@@ -1,0 +1,29 @@
+language: generic
+sudo: required
+dist: trusty
+
+#slack integration
+notifications:
+  slack:
+    rooms:
+      - palouserobosub:C883XOLXAI646jXLW8zENsVE#software
+    on_success: never  
+    on_failure: never
+
+#whitelist for branches to build
+branches:
+  only:
+    - master
+    - dev
+    - travisci
+
+#install dependencies
+install:
+  - tools/install_scripts/install_travis.sh
+
+#build the project
+script:
+  - source /opt/ros/indigo/setup.bash
+  - cd ../ && mkdir src && mv robosub src/ && cd src
+  - catkin_init_workspace
+  - cd ../ && catkin_make

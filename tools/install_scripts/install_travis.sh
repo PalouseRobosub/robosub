@@ -1,0 +1,65 @@
+#!/bin/bash
+
+
+# towards the end of this script, we will execute
+# 'sudo aptitude install $PACKAGES', so any new
+# packages should get appended to this variable,
+# instead of directly installing
+PACKAGES="
+"
+
+
+#setup ROS stuff
+sudo sh -c '. /etc/lsb-release && echo "deb http://mirror.umd.edu/packages.ros.org/ros/ubuntu trusty main" > /etc/apt/sources.list.d/ros-latest.list'
+wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo apt-key add -
+PACKAGES="$PACKAGES"
+
+PACKAGES="$PACKAGES
+ros-indigo-ros-base
+python-catkin-pkg
+python-rosdep
+python-wstool 
+ros-indigo-catkin
+git
+build-essential
+cmake
+libeigen3-dev
+libzmq3-dev
+python-zmq 
+p7zip-full
+wget
+libraw1394-11
+libgtkmm-2.4-1c2a
+libglademm-2.4-1c2a
+libgtkglextmm-x11-1.2-dev
+libgtkglextmm-x11-1.2-0
+libusb-1.0-0
+libdc1394-22 
+libavcodec54 
+libavformat54 
+libavutil52 
+libswscale2
+"
+# update
+sudo aptitude update -q
+
+echo "Installing: $PACKAGES"
+sudo aptitude install -y $PACKAGES
+
+#grab stuff from from the robosub server
+#wget http://robosub.eecs.wsu.edu/build_outputs/opencv_3.1.0.deb
+#sudo dpkg -i opencv_3.1.0.deb
+#wget http://robosub.eecs.wsu.edu/build_outputs/rapidjson_1.0.4.deb
+#sudo dpkg -i rapidjson_1.0.4.deb
+#wget http://robosub.eecs.wsu.edu/build_outputs/flycapture.7z
+#7z x flycapture.7z
+#cd flycapture
+#sudo bash install_flycapture_unattended.sh
+
+# Google test
+#sudo apt-get install libgtest-dev
+#sudo cd /usr/src/gtest
+#sudo cmake CMakeLists.txt
+#sudo make
+#sudo mv *.a /usr/lib
+
