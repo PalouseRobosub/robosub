@@ -129,16 +129,16 @@ include_directories(
 # add_dependencies(robosub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(robosub_node src/robosub_node.cpp)
+ add_executable(example src/example.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(robosub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(example ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(robosub_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(example
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##
