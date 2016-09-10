@@ -4,6 +4,7 @@ dist: trusty
 
 #slack integration
 notifications:
+  email: false
   slack:
     rooms:
       - palouserobosub:C883XOLXAI646jXLW8zENsVE#software
