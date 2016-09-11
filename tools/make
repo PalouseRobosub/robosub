@@ -1,0 +1,12 @@
+#!/bin/bash
+
+arrROS_PACKAGE_PATH=(${ROS_PACKAGE_PATH//:/ })
+
+for i in "${arrROS_PACKAGE_PATH[@]}"
+do
+    if [ -d "$i/robosub" ]; then
+        cd $i/..
+    fi
+done
+
+catkin_make
