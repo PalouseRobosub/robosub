@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Parse the PACKAGE_PATH into an array
 arrROS_PACKAGE_PATH=(${ROS_PACKAGE_PATH//:/ })
 
+# Find the location that contains the robosub sub directory
 for i in "${arrROS_PACKAGE_PATH[@]}"
 do
     if [ -d "$i/robosub" ]; then
@@ -9,4 +11,11 @@ do
     fi
 done
 
-catkin_make
+if [ "$1" -eq "ninja" ]
+then
+    echo "Using Ninja"
+    catkin_make --use-ninja
+else
+    echo "Using Make"
+    catkin_make
+fi
