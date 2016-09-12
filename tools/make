@@ -2,20 +2,46 @@
 
 # Parse the PACKAGE_PATH into an array
 arrROS_PACKAGE_PATH=(${ROS_PACKAGE_PATH//:/ })
+found=0
 
 # Find the location that contains the robosub sub directory
 for i in "${arrROS_PACKAGE_PATH[@]}"
 do
+    echo "Searching $i for robosub"
+    # Found the robosub sub directory
     if [ -d "$i/robosub" ]; then
+        found=1
+        echo -e "[\033[0;32mFound\033[0m]"
         cd $i/..
+        if [ "$1" = "ninja" ]
+        then
+            # user wants to use ninja instead of make
+
+            # Check if ninja is installed
+            if [ "$(which ninja)" = "" ]; then
+                echo -e "[\033[0;31mCould not find Ninja\033[0m] Have you installed ninja-build?"
+                exit
+            fi
+
+            echo -e "[\033[0;32mUsing Ninja\033[0m]"
+            catkin_make --use-ninja
+            exit
+        else
+            # user wants to use make - default
+
+            #check if Make is installed
+            if [ "$(which make)" = "" ]; then
+                echo -e "[\033[0;31mCould not find Make\033[0m] Have you installed build-essential?"
+                exit
+            fi
+
+            echo -e "[\033[0;32mUsing Make\033[0m]"
+            catkin_make
+            exit
+        fi
     fi
 done
 
-if [ "$1" -eq "ninja" ]
-then
-    echo "Using Ninja"
-    catkin_make --use-ninja
-else
-    echo "Using Make"
-    catkin_make
+if [ "$found" -eq "0" ]; then
+    echo -e "\033[0;31mrobosub ROS package not found\033[0m. Have you sourced devel/setup.bash?"
 fi
