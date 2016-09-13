@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find robosub)/launch/joystick_driver.launch" />
+    <include file="$(find robosub)/launch/joystick_control.launch" />
+</launch>

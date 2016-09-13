@@ -1,0 +1,4 @@
+<launch>
+    <rosparam command="load" file="$(find robosub)/param/joystick_control.param" />
+    <node name="joystick_control" pkg="robosub" type="joystick_control" />
+</launch>

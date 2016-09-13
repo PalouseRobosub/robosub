@@ -1,0 +1,2 @@
+add_ros_node(joystick_driver JoystickDriver.cpp)
+add_ros_node(joystick_control JoystickControl.cpp)
