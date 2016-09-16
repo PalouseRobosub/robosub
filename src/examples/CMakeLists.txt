@@ -5,6 +5,8 @@ add_ros_node(fork_parent fork_parent.cpp)
 add_ros_node(fork_child fork_child.cpp)
 add_ros_node(param_example parameter.cpp)
 
+add_dynamic_ros_node(dynamicParameters DynamicParameters.cpp)
+
 add_ros_node(serial_subscriber serial_subscriber.cpp)
 target_link_libraries(serial_subscriber serial)
 

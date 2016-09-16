@@ -7,6 +7,7 @@ project(robosub)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  dynamic_reconfigure
   std_msgs
   message_generation
   roslint
@@ -91,10 +92,9 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+ generate_dynamic_reconfigure_options(
+   cfg/Dynamic.cfg
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -108,10 +108,9 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robosub
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+  CATKIN_DEPENDS roscpp rospy dynamic_reconfigure std_msgs message_runtime
 #  DEPENDS system_lib
 )
-
 
 #############
 ## Testing ##
@@ -144,6 +143,14 @@ macro(add_ros_node node_name file_name)
 	add_dependencies(${node_name}  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 	target_link_libraries(${node_name} ${catkin_LIBRARIES})
 endmacro(add_ros_node)
+
+#macro for adding and linking nodes with dynamic parameters
+macro(add_dynamic_ros_node node_name file_name)
+        add_executable(${node_name} ${file_name})
+            #${PROJECT_NAME}_gencfg is needed for any nodes needing dynamic params
+        add_dependencies(${node_name} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+        target_link_libraries(${node_name} ${catkin_LIBRARIES})
+endmacro(add_dynamic_ros_node)
 
 #specify where other CMakeLists.txt files live
 add_subdirectory(src/examples)
