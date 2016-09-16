@@ -13,7 +13,20 @@ do
         found=1
         echo -e "[\033[0;32mFound\033[0m]"
         cd $i/..
-        if [ "$1" = "ninja" ]
+       
+        if [ "$1" = "clean" ]
+        then
+            if [ -n "$CATKIN_NINJA" ]; then
+                catkin_make clean
+                rm build/CMakeCache.txt
+            else
+                catkin_make clean
+                rm build/CMakeCache.txt
+            fi
+            exit
+        fi
+        
+        if [ -n "$CATKIN_NINJA" ]
         then
             # user wants to use ninja instead of make
 
