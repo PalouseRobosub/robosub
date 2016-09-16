@@ -7,7 +7,7 @@ geometry_msgs::Quaternion current_orientation;
 
 void controlCallback(const robosub::control::ConstPtr& msg)
 {
-	
+
 
 
 
@@ -23,20 +23,22 @@ void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "control");	
+	ros::init(argc, argv, "control");
 	ros::NodeHandle n;
 	ros::Subscriber controlsub = n.subscribe("control", 1, controlCallback);
 	ros::Subscriber orientationsub = n.subscribe("orientation", 1, orientationCallback);
   	ros::Publisher pub = n.advertise<robosub::thruster>("thruster", 1);
 	robosub::thruster thruster_command;
-	ros::Rate r(10);
-	
+	int rate;
+	n.getParam("control/rate", rate);
+	ros::Rate r(rate);
+
 	ROS_INFO("INITIALIZED");
 	while (ros::ok())
 	{
-		
+
 		pub.publish(thruster_command);
-		
+
 		ros::spinOnce();
 		r.sleep();
 	}
@@ -130,7 +132,7 @@ int main(int argc, char **argv)
 //
 //			//read thruster settings file to load thrusters
 //
-//			string thruster_settings_file = "settings/modules/" + 
+//			string thruster_settings_file = "settings/modules/" +
 //											string(settings["thruster_file"].GetString()) +
 //											".json";
 //			FILE *pFile = fopen(thruster_settings_file.c_str(), "r");
