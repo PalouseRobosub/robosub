@@ -1,35 +1,66 @@
 #include "utility/serial.hpp"
+#include "ros/ros.h"
+#include "ros/console.h"
 
 namespace rs
 {
-	Serial::Serial(const char *port_name, int baud_rate)
+	Serial::Serial()
 	{
-		this->port_fd = open(port_name, O_RDWR | O_NOCTTY | O_ASYNC | O_NDELAY);
-		if (this->port_fd < 0)
-		{
-			//EXIT("could not open port: " + string(port_name));
-		}
-
-		this->configure(baud_rate);
+		m_port_fd = -1;
+		m_port_name = "";
+		m_is_open = false;
 	}
 
 	Serial::~Serial()
 	{
-		close(this->port_fd);
+		this->Close();
 	}
 
+	int Serial::Open(const char *port_name, int baud_rate)
+	{
+		this->m_port_fd = ::open(port_name, O_RDWR | O_NOCTTY | O_ASYNC | O_NDELAY);
+		this->m_port_name = port_name;
+		if (this->m_port_fd < 0)
+		{
+			ROS_FATAL("could not open port: %s", port_name);
+			ros::shutdown();
+		}
 
-	int Serial::swrite(uint8_t *buf, int num)
+
+		this->Configure(baud_rate);
+
+		m_is_open = true;
+
+		return 0;
+	}
+
+	int Serial::Close()
+	{
+		if(m_is_open)
+		{
+			::close(this->m_port_fd);
+		}
+
+		m_is_open = false;
+		return 0;
+	}
+
+	int Serial::Write(uint8_t *buf, int num)
 	{
 		int i;
 		int sent = 0;
 
+		if(!m_is_open)
+		{
+			return -1;
+		}
+
 		while(sent < num)
 		{
-			i = write(this->port_fd, buf, num);
+			i = ::write(this->m_port_fd, buf, num);
 			if (i < 0)
 			{
-				//ERROR("serial write error");
+				ROS_ERROR("serial write error");
 			}
 			else
 			{
@@ -40,20 +71,23 @@ namespace rs
 		return sent;
 	}
 
-	int Serial::sread(uint8_t *buf, int num)
+	int Serial::Read(uint8_t *buf, int num)
 	{
 
 		int i = 0;
 		int temp;
 
+		if(!m_is_open)
+		{
+			return -1;
+		}
+
 		while(i < num)
 		{
-			temp = read(this->port_fd, buf+i, num-i);
+			temp = ::read(this->m_port_fd, buf+i, num-i);
 			if(temp == -1)
 			{
-			//		temp = errno;
-			//		printf("%d ", errno);
-		
+				ROS_ERROR("serial read error");
 			}
 			else
 				i+=temp;
@@ -61,36 +95,30 @@ namespace rs
 		}
 
 		return i;
-	/*
-	   int i;
-
-			i = read(this->port_fd, buf, num);
-			if(i != num)
-			{
-				ERROR("Serial Read Error");
-			}
-
-		return i;
-		*/
 	}
 
-    int Serial::queryBuffer()
+    int Serial::QueryBuffer()
     {
+		if(!m_is_open)
+		{
+			return -1;
+		}
+
         int bytes_available = 0;
-        ioctl(this->port_fd, FIONREAD, &bytes_available);
+        ioctl(this->m_port_fd, FIONREAD, &bytes_available);
         return bytes_available;
     }
 
-	void Serial::configure(int baud_rate)
+	void Serial::Configure(int baud_rate)
 	{
 		struct termios options = {0};
-		int fd = this->port_fd;
+		int fd = this->m_port_fd;
 
-		//INFO("configuring port");
+		ROS_INFO("configuring serial port");
 
-		if (tcgetattr(this->port_fd, &options) != 0)
+		if (tcgetattr(this->m_port_fd, &options) != 0)
 		{
-			//ERROR("Failed to get attributes.");
+			ROS_ERROR("Failed to get serial attributes.");
 		}
 
 		options.c_iflag = 0; //no input handling
@@ -117,9 +145,7 @@ namespace rs
 
 		if (tcsetattr(fd, TCSANOW, &options) != 0)
 		{
-			//ERROR("Failed to set the serial port options.");
+			ROS_ERROR("Failed to set the serial port options.");
 		}
-
-		//INFO("done!");
 	}
 };

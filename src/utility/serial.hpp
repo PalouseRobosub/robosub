@@ -11,25 +11,29 @@ typedef char u8;
 #include <unistd.h>
 #include <stdint.h>
 #include <sys/ioctl.h>
+#include <string>
 
 namespace rs
 {
 	class Serial
 	{
 		public:
-			Serial(const char *port_name, int baud_rate);
+			Serial();
 			~Serial();
-			int swrite(uint8_t *buf, int num);
-			int sread(uint8_t *buf, int num);
-            int queryBuffer();
+			int Open(const char *port_name, int baud_rate);
+			int Close();
+			int Write(uint8_t *buf, int num);
+			int Read(uint8_t *buf, int num);
+            int QueryBuffer();
 
 		private:
 			//private methods
-			void configure(int baud_rate);
+			void Configure(int baud_rate);
 
 			//private members
-			int port_fd;
-			char *port_name;
+			int m_port_fd;
+			std::string m_port_name;
+			bool m_is_open;
 	};
 };
 
