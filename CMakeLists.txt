@@ -133,7 +133,16 @@ include_directories(
   src
 )
 
+#macro for adding and linking nodes to the ros framework
+macro(add_ros_node node_name file_name)
+	add_executable(${node_name} ${file_name})
+	add_dependencies(${node_name}  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+	target_link_libraries(${node_name} ${catkin_LIBRARIES})
+endmacro(add_ros_node)
+
 #specify where other CMakeLists.txt files live
 add_subdirectory(src/examples)
 add_subdirectory(src/utility)
 add_subdirectory(src/movement)
+add_subdirectory(src/sensors)
+
