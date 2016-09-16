@@ -1,4 +1,9 @@
 
 
-add_ros_node(sensor sensor.cpp)
-target_link_libraries(sensor serial)
+add_ros_node(imu imu.cpp)
+target_link_libraries(imu serial)
+
+
+add_ros_node(depth depth.cpp)
+target_link_libraries(depth serial)
+
