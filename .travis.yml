@@ -20,11 +20,14 @@ branches:
 
 #install dependencies
 install:
-  - tools/install_scripts/install_travis.sh
+  - tools/install_scripts/install.sh
 
 #build the project
-script:
+before_script:
   - source /opt/ros/indigo/setup.bash
   - cd ../ && mkdir src && mv robosub src/ && cd src
   - catkin_init_workspace
-  - cd ../ && catkin_make
+  - cd ..
+
+script:
+  - catkin_make
