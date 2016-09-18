@@ -1,4 +1,4 @@
-#include "joystick/JoystickDriver.hpp"
+#include "joystick_driver.hpp"
 
 JoystickDriver::JoystickDriver(ros::NodeHandle *nh)
 {
