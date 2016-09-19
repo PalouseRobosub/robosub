@@ -29,10 +29,10 @@ int main(int argc, char **argv, char **env)
    * You must call one of the versions of ros::init() before using any other
    * part of the ROS system.
    */
-	printargv(argv);
-	printargv(env);
-  ros::init(argc, argv, "child");
-  ROS_INFO("child here!");
+	//printargv(argv);
+	//printargv(env);
+  ros::init(argc, argv, "fork_child");
+  ROS_INFO("new child node here!");
 
   /**
    * NodeHandle is the main access point to communications with the ROS system.
