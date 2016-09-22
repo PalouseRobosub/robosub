@@ -1,8 +1,8 @@
 
 #thruster node
 
-add_ros_node(thruster_maistro thruster_maistro.cpp)
-target_link_libraries(thruster_maistro serial)
+add_ros_node(thruster_maestro thruster_maestro.cpp)
+target_link_libraries(thruster_maestro serial)
 
 add_ros_node(thruster_sabertooth thruster_sabertooth.cpp)
 target_link_libraries(thruster_sabertooth serial)
