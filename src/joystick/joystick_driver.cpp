@@ -107,12 +107,21 @@ void JoystickDriver::shutdown()
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "joystick_driver");
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("joystick_driver");
 
     ros::Publisher pub;
     pub = nh.advertise<robosub::joystick>("joystick_driver", 1);
 
-    ros::Rate r(10);
+    int rate;
+
+    // Set default rate to 10 if param fails to load
+    if(!nh.getParam("rate", rate))
+    {
+        rate = 10;
+    }
+
+    ros::Rate r(rate);
+    ROS_INFO("rate: %d", rate);
 
     JoystickDriver joystick(&nh);
     while(ros::ok())
