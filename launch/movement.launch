@@ -1,19 +1,12 @@
 
 <launch>
-	<!--  launch a node -->
-  <load >
-	<node pkg="robosub" type="thruster_${which_thruster}" name="thruster" required="true"/>
+  <arg name="THRUSTER_TYPE" default="maestro"/>
+	<node pkg="robosub" type="thruster_$(arg THRUSTER_TYPE)" name="thruster" required="true"/>
 
   <node pkg="robosub" type="control" name="control" required="true"/>
 
   <node pkg="robosub" type="imu" name="imu" required="true"/>
 
   <node pkg="robosub" type="depth" name="depth" required="true"/>
-
-	<!-- including another launchfile -->
-	<!-- <include file="$(find robosub)/launch/another.launch"/> -->
-
-	<!-- load a settings file -->
-	<!-- <rosparam command="load" file="$(find robosub)/param/settings.yaml" /> -->
 
 </launch>
