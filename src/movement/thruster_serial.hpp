@@ -1,4 +1,11 @@
-#include "../utility/serial.hpp"
+#include "utility/serial.hpp"
+#include <vector>
+
+typedef struct 
+{
+	float speed;
+	unsigned int thruster_number;
+}thrusterVector;
 
 class ThrusterController
 {
@@ -8,7 +15,7 @@ class ThrusterController
 
 		bool configure(); // this would try to open up the serial port to the thruster controller 
 					      // return false if thruster controller not detected. 
-						   //         int SendData(float *thrusterSpeedData, int length); // see below
+		int SetSpeed(const vector<thrusterVector> speeds); // see below
 					   //
 					   //
 			          // Someone need to give me some kind of 
@@ -22,3 +29,5 @@ class ThrusterController
 		rs::Serial Controller_Port;
 
 }
+
+void  parseNormalized(const float fSpeed, uint8_t & SendByte);
