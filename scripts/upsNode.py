@@ -6,13 +6,13 @@ from sensor_msgs.msg import BatteryState
 
 def upsDataToChargeStatus(status):
     if "CHRG" in status:
-        return POWER_SUPPLY_STATUS_CHARGING
+        return BatteryState.POWER_SUPPLY_STATUS_CHARGING
     if "DISCHRG" in status:
-        return POWER_SUPPLY_STATUS_DISCHARGING
+        return BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
     if not status:
-        return POWER_SUPPLY_STATUS_UNKNOWN
+        return BatteryState.POWER_SUPPLY_STATUS_UNKNOWN
     
-    return POWER_SUPPLY_STATUS_NOT_CHARGING
+    return BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
 #    return {
 #        'CHRG':1,
 #        'OB DISCHRG':2,
@@ -25,7 +25,8 @@ def upsDataToChargeStatus(status):
 #        return POWER_SUPPLY_HEALTH_OVERVOLTAGE
 #    if "LB" in status:
 #        return POWER_SUPPLY_HEALTH_
-#    if ""
+#    if "RB" in status:
+#        return POWER_SUPPLY_HEALTH_
 
 def upsNode():
     pub = rospy.Publisher('power/ups', BatteryState, queue_size=1)
@@ -45,11 +46,14 @@ def upsNode():
         else:
             state.present = True
             state.voltage = float(vars['battery.voltage'])
-            state.charge = float(vars['battery.charge'])
-            state.power_supply_technology = POWER_SUPPLY_TECHNOLOGY_LIFE
+            state.charge = (float(vars['battery.charge']) / 100.0) * float(vars['battery.capacity'])
+            state.capacity = float(vars['battery.capacity'])
+            state.current = float(vars['battery.current'])
+            state.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIFE
             
             state.power_supply_status = upsDataToChargeStatus(vars['ups.status']);
 
+            state.percentage = float(vars['battery.charge']) / 100.0
 
         rospy.loginfo("Sending msg");
         pub.publish(state)
