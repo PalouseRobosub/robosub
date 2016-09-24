@@ -14,7 +14,7 @@ ThrusterController::~ThrusterController()
 	// sequentially set output to 1500us to all channels. 
 	for (int i=0; i < 12; i++)
 	{
-		this->Controller_Port.Write(closeBytes);
+		this->Controller_Port.Write(closeBytes, 5);
 		closeBytes[2] += 1;
 	}
 	this->Controller_Port.Close();
@@ -24,16 +24,25 @@ ThrusterController::~ThrusterController()
 bool ThrusterController::configure()
 {
 	// Open up serial port. 
-	this->Controller_Port.Open("/dev/ttyUSB0", B9600);
+	this->Controller_Port.Open(tc::cPort, B9600);
 	uint8_t ClockByte = 0xaa;
 	this->Controller_Port.Write(&ClockByte, 1);
-
+	// is there a way to know if port successfully opened?
+	return true;
 }
 
+// takes a vector of thrusterVectors and sends signals to specific thrusters.
+// see definition of thrusterVector struct definition
 int ThrusterController::SetSpeed(const vector<thrusterVector> speeds)
 {
+	uint8_t buf[4] = {0x84, 0x00, 0x70, 0x2e};
 
-	this->Controller_Port.Write(, 4);
+	for (int i=0; i < speeds.size(); i++)
+	{
+		buf[1] = speeds[i].thruster_number;
+		parseNormalized(speeds[i].speed, buf[3]);
+		this->Controller_Port.Write(buf, 4);
+	}
 }
 
 

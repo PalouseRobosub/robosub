@@ -1,8 +1,22 @@
+#pragma once
+
 #include "utility/serial.hpp"
 #include <vector>
 
-typedef struct 
+using std::vector;
+
+namespace tc
 {
+	extern char* cPort = "/dev/ttyUSB0";
+}
+
+typedef struct tv 
+{
+	tv(const float fSpeed, const unsigned int nThruster)
+	{
+		this->speed = fSpeed;
+		this->thruster_number = nThruster;
+	}
 	float speed;
 	unsigned int thruster_number;
 }thrusterVector;
@@ -28,6 +42,6 @@ class ThrusterController
 
 		rs::Serial Controller_Port;
 
-}
+};
 
 void  parseNormalized(const float fSpeed, uint8_t & SendByte);
