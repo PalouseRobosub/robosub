@@ -1,4 +1,4 @@
-#include "thruster_serial.hpp"
+#include "maestro_class.hpp"
 
 ThrusterController::ThrusterController()
 {
