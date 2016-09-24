@@ -19,8 +19,18 @@ branches:
     - travisci
 
 #install dependencies
-install:
-  - tools/install_scripts/install.sh
+addons:
+  apt:
+    sources:
+    - sourceline: 'deb http://mirror.umd.edu/packages.ros.org/ros/ubuntu trusty     main'
+      key_url: 'https://raw.githubusercontent.com/ros/rosdistro/master/ros.key '
+    - sourceline: 'deb http://robosub.eecs.wsu.edu/repo/ /'
+      key_url: 'http://robosub.eecs.wsu.edu/repo/repository_key'
+    packages:
+    - robosub
+
+#all dependencies are installed from packages, nothing to do for install
+install: true
 
 #build the project
 before_script:
