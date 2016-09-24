@@ -70,32 +70,32 @@ void JoystickDriver::parse_event()
 {
     switch(e.type & ~JS_EVENT_INIT)
     {
-        case JS_EVENT_BUTTON:
-            joystick_data.button[e.number] = e.value;
+    case JS_EVENT_BUTTON:
+        joystick_data.button[e.number] = e.value;
+        break;
+    case JS_EVENT_AXIS:
+        switch(e.number)
+        {
+        case 0: //left_right_axis, left is negative
+            joystick_data.axisY = e.value;
             break;
-        case JS_EVENT_AXIS:
-            switch(e.number)
-            {
-                case 0: //left_right_axis, left is negative
-                    joystick_data.axisY = e.value;
-                    break;
-                case 1: //forward_back_axis, forward is negative
-                    joystick_data.axisX = e.value;
-                    break;
-                case 2: //twist axis, left is negative
-                    joystick_data.axisZ = e.value;
-                    break;
-                case 3: //throttle, up is negative
-                    joystick_data.throttle = e.value;
-                    break;
-                case 4: //hat left-right, left is negative
-                    joystick_data.hatY = e.value;
-                    break;
-                case 5: //hat up-down, forward is negative
-                    joystick_data.hatX = e.value;
-                    break;
-            }
+        case 1: //forward_back_axis, forward is negative
+            joystick_data.axisX = e.value;
             break;
+        case 2: //twist axis, left is negative
+            joystick_data.axisZ = e.value;
+            break;
+        case 3: //throttle, up is negative
+            joystick_data.throttle = e.value;
+            break;
+        case 4: //hat left-right, left is negative
+            joystick_data.hatY = e.value;
+            break;
+        case 5: //hat up-down, forward is negative
+            joystick_data.hatX = e.value;
+            break;
+        }
+        break;
     }
 }
 

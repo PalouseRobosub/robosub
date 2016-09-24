@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  roslint
 )
 
 ## System dependencies are found with CMake's conventions
@@ -19,6 +20,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
+
+roslint_cpp()
 
 ################################################
 ## Declare ROS messages, services and actions ##

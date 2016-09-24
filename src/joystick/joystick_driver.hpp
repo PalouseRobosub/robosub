@@ -30,39 +30,39 @@ typedef struct
 
 class JoystickDriver
 {
-    private:
-        //helper functions
-        void parse_event();
-        //void dead_scale(double &value, double deadzone, double scaling_power);
+private:
+    //helper functions
+    void parse_event();
+    //void dead_scale(double &value, double deadzone, double scaling_power);
 
-        //constants
-        int AXIS_MAX;
-        int fd;
-        js_event e;
-        JOYSTICK_STATE joystick_data;
+    //constants
+    int AXIS_MAX;
+    int fd;
+    js_event e;
+    JOYSTICK_STATE joystick_data;
 
-        ros::NodeHandle *node;
+    ros::NodeHandle *node;
 
-        //loadable parameters
-        std::string device;
+    //loadable parameters
+    std::string device;
 
-        double axisXdeadzone;
-        double axisYdeadzone;
-        double axisZdeadzone;
+    double axisXdeadzone;
+    double axisYdeadzone;
+    double axisZdeadzone;
 
-        double x_scaling_power; 
-        double y_scaling_power; 
-        double z_scaling_power; 
+    double x_scaling_power;
+    double y_scaling_power;
+    double z_scaling_power;
 
-        double min_depth;
-        double max_depth;
+    double min_depth;
+    double max_depth;
 
-    public:
-        robosub::joystick GetJoystickMessage();
-        void shutdown();
+public:
+    robosub::joystick GetJoystickMessage();
+    void shutdown();
 
-        JoystickDriver(ros::NodeHandle *n);
-        ~JoystickDriver() {}
+    JoystickDriver(ros::NodeHandle *n);
+    ~JoystickDriver() {}
 };
 
 #endif
@@ -171,9 +171,9 @@ class JoystickDriver
         double axisYdeadzone;
         double axisZdeadzone;
 
-        double x_scaling_power; 
-        double y_scaling_power; 
-        double z_scaling_power; 
+        double x_scaling_power;
+        double y_scaling_power;
+        double z_scaling_power;
 
         double min_depth;
         double max_depth;

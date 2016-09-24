@@ -5,7 +5,7 @@ using namespace rs;
 
 int main(int argc, char **argv)
 {
-	Serial s;
+    Serial s;
 
-	return 0;
+    return 0;
 }

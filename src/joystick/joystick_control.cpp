@@ -95,7 +95,7 @@ void joystickToControlCallback(const robosub::joystick msg)
     outmsg.yaw_right *= -15;
     outmsg.forward *= 2;
 
-	pub.publish(outmsg);
+    pub.publish(outmsg);
 }
 
 int main(int argc, char **argv)
