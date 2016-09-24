@@ -8,4 +8,4 @@ wget https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -O - | sudo 
 
 
 sudo aptitude update
-sudo aptitude install -y robosub
+sudo aptitude install robosub
