@@ -5,5 +5,8 @@ add_ros_node(fork_parent fork_parent.cpp)
 add_ros_node(fork_child fork_child.cpp)
 add_ros_node(param_example parameter.cpp)
 
-add_ros_node(serial_talker serial_talker.cpp)
-target_link_libraries(serial_talker serial)
+add_ros_node(serial_subscriber serial_subscriber.cpp)
+target_link_libraries(serial_subscriber serial)
+
+add_ros_node(serial_publisher serial_publisher.cpp)
+target_link_libraries(serial_publisher serial)
