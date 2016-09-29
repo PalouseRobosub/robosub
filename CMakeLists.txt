@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(robosub)
 
+#enable C++11 support
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
