@@ -14,18 +14,6 @@ do
         echo -e "[\033[0;32mFound\033[0m]"
         cd $i/..
        
-        if [ "$1" = "clean" ]
-        then
-            if [ -n "$CATKIN_NINJA" ]; then
-                catkin_make clean
-                rm build/CMakeCache.txt
-            else
-                catkin_make clean
-                rm build/CMakeCache.txt
-            fi
-            exit
-        fi
-        
         if [ -n "$CATKIN_NINJA" ]
         then
             # user wants to use ninja instead of make
@@ -37,7 +25,7 @@ do
             fi
 
             echo -e "[\033[0;32mUsing Ninja\033[0m]"
-            catkin_make --use-ninja
+            catkin_make --use-ninja $@
             exit
         else
             # user wants to use make - default
@@ -49,7 +37,7 @@ do
             fi
 
             echo -e "[\033[0;32mUsing Make\033[0m]"
-            catkin_make
+            catkin_make $@
             exit
         fi
     fi
