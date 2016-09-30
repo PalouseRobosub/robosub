@@ -1,9 +1,3 @@
-#include "maestro_class.hpp"
-
-ThrusterController::ThrusterController()
-{
-	// I don't think anything needs to be here...
-}
 
 ThrusterController::~ThrusterController()
 {

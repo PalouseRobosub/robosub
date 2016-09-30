@@ -3,6 +3,25 @@
 #include "utility/serial.hpp"
 #include <vector>
 
+
+// To use the thruster controller class: 
+//	1. construct local thrustercontroller object
+//	2. call configure()
+//	3. construct vector containing multiple objects of 
+//		type thrusterVector defined in this file. 
+//	4. pass said vector to setSpeed function of controller object. 
+// 
+// When the node terminates, the destructor should be 
+// implicitly called (may want to explicitly call anyhow)
+//
+//
+// thrusterVector object can be constructed with its constructor
+// fSpeed is a normalized float value for thruster speed, -1 for full reverse
+// and 1 for full forward. nThruster is the thruster number. need to figure out
+// numbering convention for thrusters.
+//
+// TODO: figure out timing to see if 30Hz update rate is achievable, since
+// the serial write is a blocking call.  
 using std::vector;
 
 namespace tc
