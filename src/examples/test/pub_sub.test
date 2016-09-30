@@ -1,0 +1,4 @@
+<launch>
+    <test test-name="test_pub_sub" pkg="robosub" type="test_pub_sub" />
+    <node name="pub_sub" pkg="robosub" type="pub_sub_example" />
+</launch>

@@ -29,6 +29,7 @@ namespace rs
         }
         else if (m_pid  == 0) //child
         {
+            ROS_DEBUG("spawning \"%s\" with args \"%s\"", cmd.c_str(), args.c_str());
             char *arg_ptrs[64];
 
             arg_ptrs[0] = const_cast<char*>(cmd.c_str());

@@ -20,7 +20,7 @@ void callback(const robosub::thruster::ConstPtr& msg)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "serial_talker");
-    ros::NodeHandle n("serial_talker");
+    ros::NodeHandle n;
 
     ros::Subscriber sub = n.subscribe("thruster", 1, callback);
     std::string thruster_port;
@@ -30,6 +30,8 @@ int main(int argc, char **argv)
       ROS_FATAL("no serial port specified, exiting!");
       exit(1);
     }
+
+    ros::Duration(.1).sleep();
 
     mSerial.Open(thruster_port.c_str(), B9600);
 

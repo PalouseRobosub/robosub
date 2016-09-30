@@ -23,7 +23,7 @@ namespace rs
         pid_t pid = getpid();
         std::string testing_port = "test_" + std::to_string(pid);
         std::string args = "pty,raw,echo=0,link=" + testing_port +
-               "pty,raw,echo=0,link=" + UUT_port;
+               " pty,raw,echo=0,link=" + UUT_port;
         socat_proc.Spawn("/usr/bin/socat", args.c_str());
 
         started = true;

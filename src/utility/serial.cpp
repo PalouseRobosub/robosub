@@ -18,6 +18,11 @@ namespace rs
 
     int Serial::Open(const char *port_name, int baud_rate)
     {
+        //arbitrary small delay to allow ports to be created during tests
+        //this is a hack, better solution would be to poll/check for a
+        //certain amount of time then fail out
+        ros::Duration(.1).sleep();
+
         this->m_port_fd = ::open(port_name, O_RDWR | O_NOCTTY | O_ASYNC | O_NDELAY);
         this->m_port_name = port_name;
         if (this->m_port_fd < 0)
@@ -87,7 +92,7 @@ namespace rs
             temp = ::read(this->m_port_fd, buf+i, num-i);
             if(temp == -1)
             {
-                ROS_ERROR("serial read error");
+                //ROS_ERROR("serial read error");
             }
             else
                 i+=temp;
