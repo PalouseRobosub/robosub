@@ -1,5 +1,5 @@
 <launch>
     <param name="thruster_serial_port" value="serial_subscriber_test_port" type="str" />
     <test test-name="test_serial_subscriber" pkg="robosub" type="test_serial_subscriber" />
-    <node name="serial_subscriber" pkg="robosub" type="serial_subscriber" />
+    <node name="serial_subscriber" pkg="robosub" type="delayed_node.sh" args="1 serial_subscriber_example"/>
 </launch>

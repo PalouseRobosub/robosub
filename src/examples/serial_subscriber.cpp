@@ -25,13 +25,12 @@ int main(int argc, char **argv)
     ros::Subscriber sub = n.subscribe("thruster", 1, callback);
     std::string thruster_port;
 
+
     if(!n.getParam("thruster_serial_port", thruster_port))
     {
       ROS_FATAL("no serial port specified, exiting!");
       exit(1);
     }
-
-    ros::Duration(.1).sleep();
 
     mSerial.Open(thruster_port.c_str(), B9600);
 
