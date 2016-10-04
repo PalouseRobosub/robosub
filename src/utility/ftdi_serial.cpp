@@ -17,12 +17,11 @@ namespace rs
 
 	bool FTDISerial::open(const std::string& serial_number)
 	{
-		char* sn = new char[serial_number.size() + 1];
-		std::strcpy(sn, serial_number.c_str());
+		std::vector<char> sn(serial_number.c_str(),
+				serial_number.c_str() + serial_number.length() + 1);
 
-		m_status = FT_OpenEx(sn, FT_OPEN_BY_SERIAL_NUMBER, &m_handle);
+		m_status = FT_OpenEx(&sn[0], FT_OPEN_BY_SERIAL_NUMBER, &m_handle);
 		if(m_status != FT_OK) {
-			delete[] sn;
 			return false;
 		}
 
@@ -35,14 +34,11 @@ namespace rs
 		m_status |= FT_SetLatencyTimer(m_handle, 2);
 
 		if(m_status != FT_OK) {
-			delete[] sn;
 			return false;
 		}
 
 		m_open = true;
 
-		delete[] sn;
-		
 		return true;
 	}
 
@@ -62,7 +58,7 @@ namespace rs
 
 	bool FTDISerial::read(std::string& msg, unsigned int numChars)
 	{
-		char* buf = nullptr;
+		std::vector<char> buf;
 		unsigned int bytesRead = 0;
 
 		if(!numChars) {
@@ -73,34 +69,29 @@ namespace rs
 			}
 		}
 
-		buf = new char[numChars];
+		buf.reserve(numChars);
 
-		m_status = FT_Read(m_handle, buf, numChars, &bytesRead);
+		m_status = FT_Read(m_handle, &buf[0], numChars, &bytesRead);
 		if((bytesRead < numChars) || (m_status != FT_OK)) {
-			delete[] buf;
 			return false;
 		}
 		
-		msg = std::string{ buf };
+		msg = std::string{ &buf[0] };
 
-		delete[] buf;
 		return true;
 	}
 
 	bool FTDISerial::write(const std::string& msg)
 	{
-	 	char* msg_ptr = new char[msg.length() + 1];
-		DWORD bytesWritten = 0;
+		std::vector<char> msg_ptr(msg.c_str(),
+				msg.c_str() + msg.length() + 1);
+		unsigned int bytesWritten = 0;
 
-		std::strcpy(msg_ptr, msg.c_str());
-
-		m_status = FT_Write(m_handle, msg_ptr, msg.length(), &bytesWritten);
+		m_status = FT_Write(m_handle, &msg_ptr[0], msg.length(),
+				&bytesWritten);
 		if(m_status != FT_OK) {
-			delete[] msg_ptr;
 			return false;
 		}
-
-		delete[] msg_ptr;
 
 		return true;
 	}
@@ -135,8 +126,8 @@ namespace rs
 	
 	bool FTDISerial::populateDeviceList()
 	{
-		char** dev_buf = nullptr;
-		char** dev_buf_ptr = nullptr;
+		std::vector<std::vector<char>> dev_buf;
+		std::vector<char*> dev_buf_ptr;
 		int num_devs = 0;
 
 		if(!FTDISerial::m_dev_list.empty()) {
@@ -147,33 +138,20 @@ namespace rs
 			return false;
 		}
 
-		dev_buf_ptr = new char*[num_devs+1];
-		dev_buf = new char*[num_devs];
 		for(int i = 0; i < num_devs; i++) {
-			dev_buf[i] = new char[64];
-			dev_buf_ptr[i] = dev_buf[i];
+			dev_buf.push_back(std::vector<char>(64));
+			dev_buf_ptr.push_back(&dev_buf.back()[0]);
 		}
+		dev_buf_ptr.push_back(NULL);
 
-		if(FT_ListDevices(dev_buf_ptr, &num_devs,
+		if(FT_ListDevices(&dev_buf_ptr[0], &num_devs,
 					   FT_LIST_ALL | FT_OPEN_BY_SERIAL_NUMBER) != FT_OK) {
-			for(int i = 0; i < num_devs; i++) {
-				delete[] dev_buf[i];
-			}
-			delete[] dev_buf;
-			delete[] dev_buf_ptr;
-
 			return false;
 		}
 
 		for(int i = 0; i < num_devs; i++) {
-			FTDISerial::m_dev_list.push_back(dev_buf[i]);
+			FTDISerial::m_dev_list.push_back(&dev_buf[i][0]);
 		}
-
-		for(int i = 0; i < num_devs; i++) {
-			delete[] dev_buf[i];
-		}
-		delete[] dev_buf;
-		delete[] dev_buf_ptr;
 
 		return true;
 	}
