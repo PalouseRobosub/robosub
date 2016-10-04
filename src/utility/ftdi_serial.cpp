@@ -22,6 +22,7 @@ namespace rs
 
 		m_status = FT_OpenEx(sn, FT_OPEN_BY_SERIAL_NUMBER, &m_handle);
 		if(m_status != FT_OK) {
+			delete[] sn;
 			return false;
 		}
 
@@ -34,10 +35,13 @@ namespace rs
 		m_status |= FT_SetLatencyTimer(m_handle, 2);
 
 		if(m_status != FT_OK) {
+			delete[] sn;
 			return false;
 		}
 
 		m_open = true;
+
+		delete[] sn;
 		
 		return true;
 	}
