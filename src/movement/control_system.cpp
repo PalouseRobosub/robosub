@@ -5,88 +5,46 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
     nh = _nh;
     pub = _pub;
 
+    ReloadPIDParams();
+
     // mass
-    nh->getParam("mass", sub_mass[0]);
-    nh->getParam("mass", sub_mass[1]);
-    nh->getParam("mass", sub_mass[2]);
+    nh->getParamCached("mass", sub_mass[0]);
+    nh->getParamCached("mass", sub_mass[1]);
+    nh->getParamCached("mass", sub_mass[2]);
 
     // inertia
-    nh->getParam("inertia/psi", sub_mass[3]);
-    nh->getParam("inertia/phi", sub_mass[4]);
-    nh->getParam("inertia/theta", sub_mass[5]);
-
-    // proportional
-    nh->getParam("proportional/x", P[0]);
-    nh->getParam("proportional/y", P[1]);
-    nh->getParam("proportional/z", P[2]);
-    nh->getParam("proportional/psi", P[3]);
-    nh->getParam("proportional/phi", P[4]);
-    nh->getParam("proportional/theta", P[5]);
-
-    // integral
-    nh->getParam("integral/x", I[0]);
-    nh->getParam("integral/y", I[1]);
-    nh->getParam("integral/z", I[2]);
-    nh->getParam("integral/psi", I[3]);
-    nh->getParam("integral/phi", I[4]);
-    nh->getParam("integral/theta", I[5]);
-
-    // derivative
-    nh->getParam("derivative/x", D[0]);
-    nh->getParam("derivative/y", D[1]);
-    nh->getParam("derivative/z", D[2]);
-    nh->getParam("derivative/psi", D[3]);
-    nh->getParam("derivative/phi", D[4]);
-    nh->getParam("derivative/theta", D[5]);
-
-    // windup
-    nh->getParam("windup/x", windup[0]);
-    nh->getParam("windup/y", windup[1]);
-    nh->getParam("windup/z", windup[2]);
-    nh->getParam("windup/psi", windup[3]);
-    nh->getParam("windup/phi", windup[4]);
-    nh->getParam("windup/theta", windup[5]);
-
-    // hysteresis
-    nh->getParam("hysteresis/x", hysteresis[0]);
-    nh->getParam("hysteresis/y", hysteresis[1]);
-    nh->getParam("hysteresis/z", hysteresis[2]);
-    nh->getParam("hysteresis/psi", hysteresis[3]);
-    nh->getParam("hysteresis/phi", hysteresis[4]);
-    nh->getParam("hysteresis/theta", hysteresis[5]);
+    nh->getParamCached("inertia/psi", sub_mass[3]);
+    nh->getParamCached("inertia/phi", sub_mass[4]);
+    nh->getParamCached("inertia/theta", sub_mass[5]);
 
     //ratio of backwards/fowards thruster strength
-    nh->getParam("back_thrust_ratio", back_thrust_ratio);
+    nh->getParamCached("back_thrust_ratio", back_thrust_ratio);
 
     //thruster limits
     double limit_translation;
     double limit_rotation;
-    nh->getParam("limits/translation", limit_translation);
-    nh->getParam("limits/rotation", limit_rotation);
+    nh->getParamCached("limits/translation", limit_translation);
+    nh->getParamCached("limits/rotation", limit_rotation);
     t_lim = back_thrust_ratio * limit_translation;
     r_lim = back_thrust_ratio * limit_rotation;
 
     //max thrust
-    nh->getParam("max_thrust", max_thrust);
+    nh->getParamCached("max_thrust", max_thrust);
 
     //offsets
-    nh->getParam("control_offsets/x", offsets(0));
-    nh->getParam("control_offsets/y", offsets(1));
-    nh->getParam("control_offsets/z", offsets(2));
-    nh->getParam("control_offsets/psi", offsets(3));
-    nh->getParam("control_offsets/phi", offsets(4));
-    nh->getParam("control_offsets/theta", offsets(5));
+    nh->getParamCached("control_offsets/x", offsets(0));
+    nh->getParamCached("control_offsets/y", offsets(1));
+    nh->getParamCached("control_offsets/z", offsets(2));
+    nh->getParamCached("control_offsets/psi", offsets(3));
+    nh->getParamCached("control_offsets/phi", offsets(4));
+    nh->getParamCached("control_offsets/theta", offsets(5));
 
     // Thruster settings. Don't have nodehandle ref so must use ros::param::get
     XmlRpc::XmlRpcValue thruster_settings;
 
-    if(ros::param::get("/thruster/", thruster_settings))
+    if(!ros::param::get("/thruster/", thruster_settings))
     {
-        std::cout << "success" << std::endl;
-    }
-    else
-    {
-        std::cout << "failed" << std::endl;
+        ROS_ERROR("/thruster/ params failed to load");
     }
 
     num_thrusters = 0;
@@ -95,13 +53,14 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
     for(XmlRpc::XmlRpcValue::iterator it = thruster_settings["thrusters"].begin();
             it != thruster_settings["thrusters"].end(); ++it)
     {
-        std::cout << it->first << ":" << it->second << std::endl;
+        //std::cout << it->first << ":" << it->second << std::endl;
 
         position.conservativeResize(num_thrusters+1, NoChange_t());
         orientation.conservativeResize(num_thrusters+1, NoChange_t());
         string thruster_name = (it->first);
 
-        XmlRpc::XmlRpcValue t = thruster_settings["thrusters"]["it->first"];
+        XmlRpc::XmlRpcValue t = it->second;
+
         position(num_thrusters,0) = t["position"]["x"];
         position(num_thrusters,1) = t["position"]["y"];
         position(num_thrusters,2) = t["position"]["z"];
@@ -112,15 +71,15 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
         ++num_thrusters;
     }
 
+    int rate;
+    nh->getParamCached("rate", rate);
+    this->dt = 1.0/(double)rate;
 
     // calcs
     Matrix3d inertia_mat = Matrix3d::Zero();
     inertia_mat(0,0) = 1/sub_mass[3];
     inertia_mat(1,1) = 1/sub_mass[4];
     inertia_mat(2,2) = -1/sub_mass[5];
-    int rate;
-    nh->getParam("rate", rate);
-    this->dt = 1.0/(double)rate;
 
     motors = MatrixXd(6,num_thrusters);
 
@@ -141,19 +100,63 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
         M = pinv(motors);
     }
 
-    //INFO("M:"); log << M << endl;
-
     state_vector = Vector12d::Zero();
     motor_commands = VectorXd::Zero(num_thrusters);
     integral_state = Vector6d::Zero();
     goals = Vector6d::Zero();
     for(int i=0; i < 6; ++i)
         goal_types[i] = robosub::control::STATE_ERROR;
+
+    // Do these need initialization?
+    //prev_quat_msg = 0;
+    //prev_depth_msg = 0;
+}
+
+void ControlSystem::ReloadPIDParams()
+{
+    // proportional
+    nh->getParamCached("proportional/x", P[0]);
+    nh->getParamCached("proportional/y", P[1]);
+    nh->getParamCached("proportional/z", P[2]);
+    nh->getParamCached("proportional/psi", P[3]);
+    nh->getParamCached("proportional/phi", P[4]);
+    nh->getParamCached("proportional/theta", P[5]);
+
+    // integral
+    nh->getParamCached("integral/x", I[0]);
+    nh->getParamCached("integral/y", I[1]);
+    nh->getParamCached("integral/z", I[2]);
+    nh->getParamCached("integral/psi", I[3]);
+    nh->getParamCached("integral/phi", I[4]);
+    nh->getParamCached("integral/theta", I[5]);
+
+    // derivative
+    nh->getParamCached("derivative/x", D[0]);
+    nh->getParamCached("derivative/y", D[1]);
+    nh->getParamCached("derivative/z", D[2]);
+    nh->getParamCached("derivative/psi", D[3]);
+    nh->getParamCached("derivative/phi", D[4]);
+    nh->getParamCached("derivative/theta", D[5]);
+
+    // windup
+    nh->getParamCached("windup/x", windup[0]);
+    nh->getParamCached("windup/y", windup[1]);
+    nh->getParamCached("windup/z", windup[2]);
+    nh->getParamCached("windup/psi", windup[3]);
+    nh->getParamCached("windup/phi", windup[4]);
+    nh->getParamCached("windup/theta", windup[5]);
+
+    // hysteresis
+    nh->getParamCached("hysteresis/x", hysteresis[0]);
+    nh->getParamCached("hysteresis/y", hysteresis[1]);
+    nh->getParamCached("hysteresis/z", hysteresis[2]);
+    nh->getParamCached("hysteresis/psi", hysteresis[3]);
+    nh->getParamCached("hysteresis/phi", hysteresis[4]);
+    nh->getParamCached("hysteresis/theta", hysteresis[5]);
 }
 
 void ControlSystem::InputControlMessage(robosub::control msg)
 {
-    //INFO("got new control packet");
     Vector6d control_values;
     Matrix<uint8_t, 6, 1> control_states;
 
@@ -206,167 +209,66 @@ void ControlSystem::InputControlMessage(robosub::control msg)
         }
     }
 
-    //control system shit
-    //only update pid when new motor commands
-    //motor_commands = motor_control(state_vector,fps);
-
-    update();
+    CalculateThrusterMessage();
 }
 
-void ControlSystem::InputOrientationMessage(geometry_msgs::Quaternion msg)
+void ControlSystem::InputSensorMessages(geometry_msgs::QuaternionStamped quat_msg, robosub::depth_stamped depth_msg)
 {
-    // TODO: Make sensor packet?
-    /*
-    //INFO("got new sensor packet");
-    sensor_packet sp(m.value);
     state_vector[0] = 0; //x
     state_vector[1] = 0; //y
-    state_vector[2] = sp.depth; //z
+    state_vector[2] = depth_msg.depth; //z
 
     state_vector[3] = 0; //x'
     state_vector[4] = 0; //y'
-    state_vector[5] = sp.ddepth; //z'
+    state_vector[5] = prev_depth_msg.depth - depth_msg.depth; //z'
 
-    state_vector[6] = _PI_OVER_180 * sp.roll; //roll
-    state_vector[7] = _PI_OVER_180 * sp.pitch; //pitch
-    state_vector[8] = _PI_OVER_180 * sp.yaw; //yaw
+    prev_depth_msg.depth = depth_msg.depth;
 
+    // Quaternion to roll pitch yaw
+    // This is apparently the best way to do it with built in ros stuff
+    tf::Quaternion q(quat_msg.quaternion.x, quat_msg.quaternion.y, quat_msg.quaternion.z, quat_msg.quaternion.w);
+    tf::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+
+    state_vector[6] = _PI_OVER_180 * roll;
+    state_vector[7] = _PI_OVER_180 * pitch;
+    state_vector[8] = _PI_OVER_180 * yaw;
+
+    // These are unused currently.
+    /*
     state_vector[9] = _PI_OVER_180 * sp.droll; //roll'
     state_vector[10] = _PI_OVER_180 * sp.dpitch; //pitch'
     state_vector[11] = _PI_OVER_180 * sp.dyaw; //yaw'
-
-    //control system shit
-    INFO("state_vector:"); log << state_vector << endl;
-    motor_commands = motor_control(state_vector);
-
     */
-    update();
+
+    CalculateThrusterMessage();
 }
 
-void ControlSystem::update()
+void ControlSystem::CalculateThrusterMessage()
 {
-    /*
-    // grab messages
-    vector<string> msgs = com->receive_messages();
-    for(string msg : msgs) //is this guarenteed to only get 1 control and/or 1 sensor?
-    {
-        message m(msg);
-        if(m.mtype == "control")
-        {
-        }
-        if(m.mtype == "sensor")
-        {
-        }
+    ReloadPIDParams();
 
-        if (m.mtype == "control_config") //This message will reconfigure the control parameters
-        {
-            control_configuration_packet ccp(m.value);
-
-            if (ccp.mode == control_configuration_packet::RESET) //If this is an integral reset message
-            {
-                switch (ccp.axes)
-                {
-                    case control_configuration_packet::X:
-                        integral_state[0] = 0;
-                        break;
-                    case control_configuration_packet::Y:
-                        integral_state[1] = 0;
-                        break;
-                    case control_configuration_packet::Z:
-                        integral_state[2] = 0;
-                        break;
-                    case control_configuration_packet::PSI:
-                        integral_state[3] = 0;
-                        break;
-                    case control_configuration_packet::PHI:
-                        integral_state[4] = 0;
-                        break;
-                    case control_configuration_packet::THETA:
-                        integral_state[5] = 0;
-                        break;
-                }
-            }
-            else
-            {
-                int tmp = -1;
-                //else the mode is CONFIG -> we should update PIDWH values
-                switch (ccp.axes)
-                {
-                    case control_configuration_packet::X:
-                        tmp = 0;
-                        break;
-                    case control_configuration_packet::Y:
-                        tmp = 1;
-                        break;
-                    case control_configuration_packet::Z:
-                        tmp = 2;
-                        break;
-                    case control_configuration_packet::PSI:
-                        tmp = 3;
-                        break;
-                    case control_configuration_packet::PHI:
-                        tmp = 4;
-                        break;
-                    case control_configuration_packet::THETA:
-                        tmp = 5;
-                        break;
-                }
-                if (tmp != -1)
-                {
-                    P[tmp] = ccp.p;
-                    I[tmp] = ccp.i;
-                    D[tmp] = ccp.d;
-                    windup[tmp] = ccp.w;
-                    hysteresis[tmp] = ccp.h;
-                }
-            }
-        }
-    }
-    */
-
-    // send thruster message
-    //INFO("goals:"); log << goals << endl;
-    //log << "goals: forward state: " << statestring(goal_types[0]) << " value: " << goals[0] << endl;
-    //log << "goals: strafe state: " << statestring(goal_types[1]) << " value: " << goals[1] << endl;
-    //log << "goals: dive state: " << statestring(goal_types[2]) << " value: " << goals[2] << endl;
-    //log << "goals: roll state: " << statestring(goal_types[3]) << " value: " << goals[3] * (1.0 / _PI_OVER_180) << endl;
-    //log << "goals: pitch state: " << statestring(goal_types[4]) << " value: " << goals[4] * (1.0 / _PI_OVER_180) << endl;
-    //log << "goals: yaw state: " << statestring(goal_types[5]) << " value: " << goals[5] * (1.0 / _PI_OVER_180) << endl;
-
-    /*
-    // send a control_gui messages
-    //States
-    //INFO("Sending states to control GUI");
-    control_packet control_gui_packet(goal_types[0], goal_types[1], goal_types[2],
-            goal_types[3], goal_types[4], goal_types[5],
-            goals[0], goals[1], goals[2],	goals[3], goals[4], goals[5]);
-    com->send_message(message("control", "control_gui", "control_state", control_gui_packet.whole).whole);
-
-    //Integrals
-    //INFO("Sending Integrals to control GUI");
-    integral_packet ip(integral_state[0], integral_state[1], integral_state[2], integral_state[3], integral_state[4], integral_state[5]);
-    com->send_message(message("control", "control_gui", "integral", ip.whole).whole);
-
-    //Configurations
-    //INFO("Sending 6 configuration messages to controls GUI");
-    for (int i = 0; i < 6; i++)
-    {
-        control_configuration_packet ccp(P[i], I[i], D[i], windup[i], hysteresis[i], (control_configuration_packet::Axes)i);
-        com->send_message(message("control", "control_gui", "control_parameters", ccp.whole).whole);
-    }
-    */
+    //control system shit
+    motor_commands = motor_control(state_vector);
 
     //convert motor_commands eigen vector to stl vector
     std::vector<double> motor_commands_stl_vec(motor_commands.data(), motor_commands.data() + motor_commands.size());
 
-    robosub::thruster tp;
-    tp.data = motor_commands_stl_vec;
-    //thruster_packet tp(motor_commands_stl_vec);
-    //com->send_message(message("control", "thruster", "thruster", tp.whole).whole);
+    tp.data.clear();
+    std::stringstream s;
+    for(int i=0; i<motor_commands_stl_vec.size(); ++i)
+    {
+        s >> motor_commands_stl_vec[i];
+        tp.data.push_back(motor_commands_stl_vec[i]);
+    }
+    ROS_INFO_STREAM(s);
+    std::cout << s << std::endl;
+}
 
-    //INFO("motor_commands:"); log << motor_commands << endl;
+void ControlSystem::PublishThrusterMessage()
+{
     pub->publish(tp);
-
 }
 
 /*
@@ -386,8 +288,6 @@ string ControlSystem::statestring(control_packet::State state)
 }
 */
 
-//note that this function will need to be modified when
-//we move to 8 thrusters
 VectorXd ControlSystem::motor_control(Vector12d state)
 {
     //INFO("running motor control function");
@@ -432,7 +332,7 @@ VectorXd ControlSystem::motor_control(Vector12d state)
 
     //INFO("cs: R:"); log << R << endl;
 /*											//ccheck is this the problem?
-    if( (abs(R(1)) > _PI_OVER_2) && (abs(R(2)) > _PI_OVER_2) )
+    if( (fabs(R(1)) > _PI_OVER_2) && (fabs(R(2)) > _PI_OVER_2) )
     {
         err_rotation(0) = Sgn(R(0))*_PI - R(0); //new roll is supplement angle
         err_rotation(2) = R(2) - Sgn(R(2))*_PI; //new yaw is supplement angle
@@ -452,7 +352,7 @@ VectorXd ControlSystem::motor_control(Vector12d state)
     integral_state += error * dt; //where should dt come from?
     for(int i=0; i < 6; ++i)  //check for integral windup
     {
-        if(abs(integral_state(i)) > abs(windup(i)))
+        if(fabs(integral_state(i)) > fabs(windup(i)))
             integral_state(i) = windup(i) * Sgn(integral_state(i));
     }
 
@@ -500,9 +400,9 @@ VectorXd ControlSystem::motor_control(Vector12d state)
     //scale the motors down to limits --needs to be more intelligent: seperate  m_accel PID from offset, divide m_accel goals only
     for (int i=0; i < num_thrusters; ++i)
     {
-        if(abs(m_ctrl_t(i)) > t_lim)
+        if(fabs(m_ctrl_t(i)) > t_lim)
             m_ctrl_t(i) = t_lim*Sgn(m_ctrl_t(i));
-        if(abs(m_ctrl_r(i)) > r_lim)
+        if(fabs(m_ctrl_r(i)) > r_lim)
             m_ctrl_r(i) = r_lim*Sgn(m_ctrl_r(i));
     }
 

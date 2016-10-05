@@ -10,7 +10,11 @@
 #include "ros/ros.h"
 #include "robosub/thruster.h"
 #include "robosub/control.h"
+#include "robosub/depth_stamped.h"
 #include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/QuaternionStamped.h"
+
+#include "tf/transform_datatypes.h"
 
 using namespace Eigen;
 using std::cout;
@@ -32,9 +36,6 @@ int Sgn(float x)
 class ControlSystem
 {
 private:
-    void update();
-
-    //string statestring(control_packet::State state);
     VectorXd motor_control(Vector12d state);
     double wraparound(double x, double min, double max);
 
@@ -66,13 +67,21 @@ private:
     ros::NodeHandle *nh;
     ros::Publisher *pub;
 
+    // msgs
+    robosub::thruster tp;
+    geometry_msgs::QuaternionStamped prev_quat_msg;
+    robosub::depth_stamped prev_depth_msg;
+
 public:
     //ControlSystem();
 	ControlSystem(ros::NodeHandle *nh, ros::Publisher *pub);
     ~ControlSystem() {}
 
     void InputControlMessage(robosub::control msg);
-    void InputOrientationMessage(geometry_msgs::Quaternion msg);
+    void InputSensorMessages(geometry_msgs::QuaternionStamped quat_msg, robosub::depth_stamped depth_msg);
+    void ReloadPIDParams();
+    void CalculateThrusterMessage();
+    void PublishThrusterMessage();
 };
 
 #endif

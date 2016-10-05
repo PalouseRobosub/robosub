@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   roslint
   rostest
+  message_filters
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -59,6 +61,7 @@ add_message_files(
   thruster.msg
   control.msg
   joystick.msg
+  depth_stamped.msg
 )
 
 ## Generate services in the 'srv' folder
