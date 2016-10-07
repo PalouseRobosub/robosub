@@ -3,7 +3,16 @@
 #include "robosub/thruster.h"
 
 using namespace rs;
-Serial s;
+
+struct thruster_info
+{
+  unit8_t address;
+  unit8_t port;      // 1 or 2
+}Thruster_info;
+
+Thruster_info *mThruster_info;
+Serial mSerial;
+
 
 void checksum (unit8_t serial_data[4]) const
 {
@@ -24,20 +33,40 @@ void callBack(const robosub::thruster::ConstPtr& msg)
     for (int i = 0; i < message.data.size(); ++i)
     {
       //address
-
+      serial_data[0] = mThruster_info[i].address;
       //command
-      if()
+      if(mThruster_info[i].port == 1)
       {
-
+        if(message.data < 0)
+        { //command - backwards port 1
+          serial_data[1] = 1;
+        }
+        else
+        { //command - forwards port 1
+          serial_data[1] = 0;
+        }
       }
       else
       {
-
+        if(message.data < 0)
+        { //command - backwards port 1
+          serial_data[1] = 5;
+        }
+        else
+        { //command - forwards port 1
+          serial_data[1] = 4;
+        }
       }
+
       //data (speed) value between 0 - 127
       serial_data[2] = abs(message.data * 127);
+
       //checksum
       checksum(serial_data);
+
+      //send package to thrusters
+      mSerial.Write(serial_data, 4);
+
       //sends info, leave there for now?
       ROS_INFO("%lf", message.data[i]);
     }
@@ -46,10 +75,10 @@ void callBack(const robosub::thruster::ConstPtr& msg)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "thruster");
-    ros::NodeHandle n;
+  ros::init(argc, argv, "thruster");
+  ros::NodeHandle n;
 
-    ros::Subscriber sub = n.subscribe("thruster", 1, callBack);
+  ros::Subscriber sub = n.subscribe("thruster", 1, callBack);
 	std::string thruster_port;
 	if(!n.getParam("thruster_serial_port", thruster_port))
 	{
@@ -60,7 +89,7 @@ int main(int argc, char **argv)
 	mSerial.open(thruster_port.c_str(), B9600);
   //I think I'm supposed to add checks here
 
-    ros::spin();
+  ros::spin();
 
-    return 0;
+  return 0;
 }
