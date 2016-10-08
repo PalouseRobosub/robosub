@@ -4,17 +4,17 @@
 
 using namespace rs;
 
-struct thruster_info
+typedef struct thruster_info
 {
-  unit8_t address;
-  unit8_t port;      // 1 or 2
+  uint8_t address;
+  uint8_t port;      // 0 or 1
 }Thruster_info;
 
 Thruster_info *mThruster_info;
 Serial mSerial;
 
 
-void checksum (unit8_t serial_data[4]) const
+void checksum (uint8_t serial_data[4])
 {
   //sum the address, command, and data bytes and AND with 127
   serial_data[4] = (serial_data[0]+serial_data[1]+serial_data[2]) & 127;
@@ -23,7 +23,7 @@ void checksum (unit8_t serial_data[4]) const
 void callBack(const robosub::thruster::ConstPtr& msg)
 {
     robosub::thruster message = *msg;
-    unit8_t serial_data[4];
+    uint8_t serial_data[4];
 
     //serial_data[0] - address
     //serial_data[1] - command
@@ -35,9 +35,9 @@ void callBack(const robosub::thruster::ConstPtr& msg)
       //address
       serial_data[0] = mThruster_info[i].address;
       //command
-      if(mThruster_info[i].port == 1)
+      if(mThruster_info[i].port == 0)
       {
-        if(message.data < 0)
+        if(message.data[i] < 0)
         { //command - backwards port 1
           serial_data[1] = 1;
         }
@@ -48,7 +48,7 @@ void callBack(const robosub::thruster::ConstPtr& msg)
       }
       else
       {
-        if(message.data < 0)
+        if(message.data[i] < 0)
         { //command - backwards port 1
           serial_data[1] = 5;
         }
@@ -59,7 +59,7 @@ void callBack(const robosub::thruster::ConstPtr& msg)
       }
 
       //data (speed) value between 0 - 127
-      serial_data[2] = abs(message.data * 127);
+      serial_data[2] = abs(message.data[i] * 127);
 
       //checksum
       checksum(serial_data);
@@ -86,8 +86,22 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	mSerial.open(thruster_port.c_str(), B9600);
+	mSerial.Open(thruster_port.c_str(), B9600);
   //I think I'm supposed to add checks here
+
+  XmlRpc::XmlRpcValue my_list;
+    ros::param::get("thrusters", my_list);
+
+    mThruster_info = new struct thruster_info[my_list.size()];
+
+    for(int i=0; i < my_list.size(); ++i)
+    {
+        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+        mThruster_info[i].address = static_cast<int>(my_list[i]["address"]);
+        mThruster_info[i].port = static_cast<int>(my_list[i]["port"]);
+      }
 
   ros::spin();
 

@@ -1,0 +1,69 @@
+thruster_serial_port: "/home/robosub/mr"
+thrusters:
+  -   name: "front"
+      address: 128
+      port: 0
+      orientation:
+          x: 0.0
+          y: 1.0
+          z: 0.0
+      position:
+          x: 0.25
+          y: 0.0
+          z: 0.0
+
+  -   name: "back"
+      address: 128
+      port: 1
+      orientation:
+          x: 0.0
+          y: -1.0
+          z: 0.0
+      position:
+          x: -0.25
+          y: 0.0
+          z: 0.0
+  -   name: "left"
+      address: 129
+      port: 0
+      orientation:
+          x: 0.0
+          y: 0.0
+          z: 1.0
+      position:
+          x: 0.0
+          y: 0.25
+          z: 0.0
+  -   name: "right"
+      address: 129
+      port: 1
+      orientation:
+          x: 0.0
+          y: 0.0
+          z: 1.0
+      position:
+          x: 0.0
+          y: -0.25
+          z: 0.0
+  -   name: "top"
+      address: 127
+      port: 0
+      orientation:
+          x: 1.0
+          y: 0.0
+          z: 0.0
+      position:
+          x: 0.0
+          y: 0.0
+          z: 0.25
+  -   name: "bottom"
+      address: 127
+      port: 1
+      orientation:
+          x: -1.0
+          y: 0.0
+          z: 0.0
+      position:
+          x: 0.00
+          y: 0.0
+          z: -0.25
