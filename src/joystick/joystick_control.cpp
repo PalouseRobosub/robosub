@@ -104,6 +104,10 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
+    ros::Subscriber sub = nh.subscribe("joystick_driver", 1, joystickToControlCallback);
+    pub = nh.advertise<robosub::control>("control", 1);
+    nh = ros::NodeHandle("joystick_control");
+
     // Load settings
     nh.getParam("min_depth", min_depth);
     nh.getParam("max_depth", max_depth);
@@ -123,8 +127,6 @@ int main(int argc, char **argv)
     ROS_INFO("y_scaling_power %f", y_scaling_power);
     ROS_INFO("z_scaling_power %f", z_scaling_power);
 
-    ros::Subscriber sub = nh.subscribe("joystick_driver", 1, joystickToControlCallback);
-    pub = nh.advertise<robosub::control>("joystick_control", 1);
 
     ros::spin();
 

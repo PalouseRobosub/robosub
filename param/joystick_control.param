@@ -1,5 +1,5 @@
-joystick_control/min_depth: 0.5
-joystick_control/max_depth: 5.0
+joystick_control/min_depth: 0.0
+joystick_control/max_depth: 2.0
 joystick_control/axisXdeadzone: 0.1
 joystick_control/axisYdeadzone: 0.1
 joystick_control/axisZdeadzone: 0.1

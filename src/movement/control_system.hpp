@@ -78,10 +78,12 @@ public:
     ~ControlSystem() {}
 
     void InputControlMessage(robosub::control msg);
-    void InputSensorMessages(geometry_msgs::QuaternionStamped quat_msg, robosub::depth_stamped depth_msg);
+    void InputOrientationMessage(geometry_msgs::QuaternionStamped quat_msg);
+    void InputDepthMessage(robosub::depth_stamped depth_msg);
     void ReloadPIDParams();
     void CalculateThrusterMessage();
     void PublishThrusterMessage();
+    robosub::control PublishControlState();
 };
 
 #endif

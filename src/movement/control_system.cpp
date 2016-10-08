@@ -2,7 +2,7 @@
 
 ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
 {
-    nh = _nh;
+    nh = new ros::NodeHandle("control");
     pub = _pub;
 
     ReloadPIDParams();
@@ -42,31 +42,30 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
     // Thruster settings. Don't have nodehandle ref so must use ros::param::get
     XmlRpc::XmlRpcValue thruster_settings;
 
-    if(!ros::param::get("/thruster/", thruster_settings))
+    if(!ros::param::get("thrusters", thruster_settings))
     {
-        ROS_ERROR("/thruster/ params failed to load");
+        ROS_FATAL("thruster params failed to load");
+        exit(1);
     }
 
     num_thrusters = 0;
     position = MatrixXd(1,3);
     orientation = MatrixXd(1,3);
-    for(XmlRpc::XmlRpcValue::iterator it = thruster_settings["thrusters"].begin();
-            it != thruster_settings["thrusters"].end(); ++it)
+    for(int i=0; i < thruster_settings.size(); ++i)
     {
         //std::cout << it->first << ":" << it->second << std::endl;
 
         position.conservativeResize(num_thrusters+1, NoChange_t());
         orientation.conservativeResize(num_thrusters+1, NoChange_t());
-        string thruster_name = (it->first);
+        string thruster_name = thruster_settings[i]["name"];
 
-        XmlRpc::XmlRpcValue t = it->second;
 
-        position(num_thrusters,0) = t["position"]["x"];
-        position(num_thrusters,1) = t["position"]["y"];
-        position(num_thrusters,2) = t["position"]["z"];
-        orientation(num_thrusters,0) = t["orientation"]["x"];
-        orientation(num_thrusters,1) = t["orientation"]["y"];
-        orientation(num_thrusters,2) = t["orientation"]["z"];
+        position(num_thrusters,0) = thruster_settings[i]["position"]["x"];
+        position(num_thrusters,1) = thruster_settings[i]["position"]["y"];
+        position(num_thrusters,2) = thruster_settings[i]["position"]["z"];
+        orientation(num_thrusters,0) = thruster_settings[i]["orientation"]["x"];
+        orientation(num_thrusters,1) = thruster_settings[i]["orientation"]["y"];
+        orientation(num_thrusters,2) = thruster_settings[i]["orientation"]["z"];
 
         ++num_thrusters;
     }
@@ -90,6 +89,9 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
     }
 
     //INFO("motor matrix:"); log << motors << endl;
+    ROS_INFO_STREAM("motor_matrix:\n" << motors);
+    ROS_INFO_STREAM("orientation:\n" << orientation);
+    ROS_INFO_STREAM("postiition:\n" << position);
 
     if(motors.rows() == motors.cols())
     {
@@ -209,21 +211,11 @@ void ControlSystem::InputControlMessage(robosub::control msg)
         }
     }
 
-    CalculateThrusterMessage();
+    //CalculateThrusterMessage();
 }
 
-void ControlSystem::InputSensorMessages(geometry_msgs::QuaternionStamped quat_msg, robosub::depth_stamped depth_msg)
+void ControlSystem::InputOrientationMessage(geometry_msgs::QuaternionStamped quat_msg)
 {
-    state_vector[0] = 0; //x
-    state_vector[1] = 0; //y
-    state_vector[2] = depth_msg.depth; //z
-
-    state_vector[3] = 0; //x'
-    state_vector[4] = 0; //y'
-    state_vector[5] = prev_depth_msg.depth - depth_msg.depth; //z'
-
-    prev_depth_msg.depth = depth_msg.depth;
-
     // Quaternion to roll pitch yaw
     // This is apparently the best way to do it with built in ros stuff
     tf::Quaternion q(quat_msg.quaternion.x, quat_msg.quaternion.y, quat_msg.quaternion.z, quat_msg.quaternion.w);
@@ -241,8 +233,19 @@ void ControlSystem::InputSensorMessages(geometry_msgs::QuaternionStamped quat_ms
     state_vector[10] = _PI_OVER_180 * sp.dpitch; //pitch'
     state_vector[11] = _PI_OVER_180 * sp.dyaw; //yaw'
     */
+}
+void ControlSystem::InputDepthMessage(robosub::depth_stamped depth_msg)
+{
+    state_vector[0] = 0; //x
+    state_vector[1] = 0; //y
+    state_vector[2] = depth_msg.depth; //z
 
-    CalculateThrusterMessage();
+    state_vector[3] = 0; //x'
+    state_vector[4] = 0; //y'
+    state_vector[5] = prev_depth_msg.depth - depth_msg.depth; //z'
+
+    prev_depth_msg.depth = depth_msg.depth;
+
 }
 
 void ControlSystem::CalculateThrusterMessage()
@@ -262,10 +265,29 @@ void ControlSystem::CalculateThrusterMessage()
         s >> motor_commands_stl_vec[i];
         tp.data.push_back(motor_commands_stl_vec[i]);
     }
-    ROS_INFO_STREAM(s);
-    std::cout << s << std::endl;
+    //ROS_INFO_STREAM(s);
+    //std::cout << s << std::endl;
 }
 
+robosub::control ControlSystem::PublishControlState()
+{
+    robosub::control current_state;
+    current_state.forward_state =  goal_types[0];
+    current_state.strafe_state =  goal_types[1];
+    current_state.dive_state =  goal_types[2];
+    current_state.roll_state =  goal_types[3];
+    current_state.pitch_state =  goal_types[4];
+    current_state.yaw_state =  goal_types[5];
+
+    current_state.forward = goals[0];
+    current_state.strafe_right = goals[1];
+    current_state.dive = goals[2];
+    current_state.roll_right = goals[3] / _PI_OVER_180;
+    current_state.pitch_up = goals[4] / _PI_OVER_180;
+    current_state.yaw_right = goals[5] / _PI_OVER_180;
+
+    return current_state;
+}
 void ControlSystem::PublishThrusterMessage()
 {
     pub->publish(tp);

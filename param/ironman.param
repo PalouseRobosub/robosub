@@ -50,7 +50,7 @@ thrusters:
       port: 0
       orientation:
           x: 0.0
-          y: -1.0
+          y: 1.0
           z: 0.0
       position:
           x: 0.25
@@ -61,7 +61,7 @@ thrusters:
       port: 1
       orientation:
           x: 0.0
-          y: 1.0
+          y: -1.0
           z: 0.0
       position:
           x: -0.25

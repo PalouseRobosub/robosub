@@ -2,18 +2,18 @@ control:
     rate: 10
     mass: 25
     back_thrust_ratio: 1.0
-    max_thrust: 0
+    max_thrust: 25
     inertia:
         psi: 1.0
         phi: 1.0
         theta: 1.0
     proportional:
-        x: 0
-        y: 0
-        z: 0
-        psi: 0
-        phi: 0
-        theta: 0
+        x: 1
+        y: 1
+        z: 1
+        psi: 0.1 #roll
+        phi: 0.1 #pitch
+        theta: 0.1 #yaw
     integral:
         x: 0
         y: 0
