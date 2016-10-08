@@ -58,8 +58,17 @@ void callBack(const robosub::thruster::ConstPtr& msg)
         }
       }
 
-      //data (speed) value between 0 - 127
-      serial_data[2] = abs(message.data[i] * 127);
+      //Check for NaNs
+      if (message.data[i] != message.data[i])
+      {
+          serial_data[2] = 0;
+          ROS_ERROR("NaN recieved. Stopping thrusters.");
+      }
+      else
+      {
+        //data (speed) value between 0 - 127
+        serial_data[2] = abs(message.data[i] * 127);
+      }
 
       //checksum
       checksum(serial_data);
