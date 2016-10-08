@@ -12,6 +12,7 @@
 #include "robosub/control.h"
 #include "robosub/depth_stamped.h"
 #include "geometry_msgs/Quaternion.h"
+#include "std_msgs/Float32.h"
 #include "geometry_msgs/QuaternionStamped.h"
 
 #include "tf/transform_datatypes.h"

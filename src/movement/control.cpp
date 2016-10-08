@@ -14,13 +14,18 @@ void controlCallback(const robosub::control::ConstPtr& msg)
 
 }
 
-void orientationCallback(const geometry_msgs::QuaternionStamped::ConstPtr& quat_msg)
+void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)
 {
-    control_system->InputOrientationMessage(*quat_msg);
+    geometry_msgs::QuaternionStamped stamped;
+    stamped.quaternion = *quat_msg;
+
+    control_system->InputOrientationMessage(stamped);
 }
-void depthCallback(const robosub::depth_stamped::ConstPtr& depth_msg)
+void depthCallback(const std_msgs::Float32::ConstPtr& depth_msg)
 {
-    control_system->InputDepthMessage(*depth_msg);
+    robosub::depth_stamped stamped;
+    stamped.depth = depth_msg->data;
+    control_system->InputDepthMessage(stamped);
 }
 
 int main(int argc, char **argv)
