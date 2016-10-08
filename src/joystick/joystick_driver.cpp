@@ -107,7 +107,7 @@ void JoystickDriver::shutdown()
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "joystick_driver");
-    ros::NodeHandle nh("joystick_driver");
+    ros::NodeHandle nh;
 
     ros::Publisher pub;
     pub = nh.advertise<robosub::joystick>("joystick_driver", 1);

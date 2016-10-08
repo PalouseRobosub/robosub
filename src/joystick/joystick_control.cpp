@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "joystick_control");
 
-    ros::NodeHandle nh("joystick_control");
+    ros::NodeHandle nh;
 
     // Load settings
     nh.getParam("min_depth", min_depth);
