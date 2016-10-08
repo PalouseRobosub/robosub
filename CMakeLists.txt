@@ -62,6 +62,7 @@ add_message_files(
   control.msg
   joystick.msg
   depth_stamped.msg
+  Euler.msg
 )
 
 ## Generate services in the 'srv' folder
