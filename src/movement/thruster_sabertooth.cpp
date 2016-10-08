@@ -1,11 +1,13 @@
 #include "ros/ros.h"
 #include "utility/serial.hpp"
 #include "robosub/thruster.h"
+#include <string>
 
 using namespace rs;
 
 typedef struct thruster_info
 {
+  std::string name;
   uint8_t address;
   uint8_t port;      // 0 or 1
 }Thruster_info;
@@ -76,8 +78,8 @@ void callBack(const robosub::thruster::ConstPtr& msg)
       //send package to thrusters
       mSerial.Write(serial_data, 4);
 
-      //sends info, leave there for now?
-      ROS_INFO("%lf", message.data[i]);
+      //Publish thruster info with name
+      ROS_INFO_STREAM(mThruster_info[i].name << ":\t" << message.data[i]);
     }
 
 }
@@ -108,6 +110,7 @@ int main(int argc, char **argv)
         ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
         ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
         ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+        mThruster_info[i].name = static_cast<std::string>(my_list[i]["name"]);
         mThruster_info[i].address = static_cast<int>(my_list[i]["address"]);
         mThruster_info[i].port = static_cast<int>(my_list[i]["port"]);
       }
