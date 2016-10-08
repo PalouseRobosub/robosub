@@ -17,7 +17,7 @@ Serial mSerial;
 void checksum (uint8_t serial_data[4])
 {
   //sum the address, command, and data bytes and AND with 127
-  serial_data[4] = (serial_data[0]+serial_data[1]+serial_data[2]) & 127;
+  serial_data[3] = (serial_data[0]+serial_data[1]+serial_data[2]) & 127;
 }
 
 void callBack(const robosub::thruster::ConstPtr& msg)
