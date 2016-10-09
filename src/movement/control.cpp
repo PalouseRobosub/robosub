@@ -38,7 +38,6 @@ int main(int argc, char **argv)
     ros::Subscriber orientationSub = nh.subscribe("orientation", 1, orientationCallback);
 
 	ros::Subscriber controlsub = nh.subscribe("control", 1, controlCallback);
-	//ros::Subscriber orientationsub = nh.subscribe("orientation", 1, orientationCallback);
 
   	ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
   	ros::Publisher control_state_pub = nh.advertise<robosub::control>("current_control_state", 1);
