@@ -7,6 +7,12 @@ Serial outmessage;
 
 uint16_t translatemessage (const double data)
 {
+	/* 
+	To translate a value x in the range (a, b) into a value f(x) in the range (c, d)
+	 f(x) = (x - a)*((d - c)/(b - a)) + c
+	 For example: If we want to translate 0 in the interval (-1, 1) to it's equivalent in (1000, 2000)
+	 {the value we want} = (0 - 1000)*((2000-1000)/(1 - (-1))) + 1000
+	 */
 	return 4*((data+1)*(500) + 1000);
 }
 
