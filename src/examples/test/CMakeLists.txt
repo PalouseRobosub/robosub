@@ -11,4 +11,4 @@ add_rostest_gtest(test_pub_sub
   pub_sub.test
   test_pub_sub.cpp)
 add_dependencies(test_pub_sub pub_sub_example)
-target_link_libraries(test_pub_sub ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+target_link_libraries(test_pub_sub  test_tools ${catkin_LIBRARIES} ${GTEST_LIBRARIES})

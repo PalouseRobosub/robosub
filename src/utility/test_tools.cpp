@@ -3,9 +3,11 @@
 
 namespace rs
 {
-    void wait_for_param(const char *param_name)
+       
+
+    void wait_for_param(const char *param_name, int timeout_seconds)
     {
-        ros::Time exit_time = ros::Time::now() + ros::Duration(3);
+        ros::Time exit_time = ros::Time::now() + ros::Duration(timeout_seconds);
         while(ros::param::has(param_name) == false)
         {
             ROS_DEBUG_THROTTLE(1, "waiting for parameter: %s", param_name);
@@ -21,9 +23,9 @@ namespace rs
         }
     }
 
-    void wait_for_subscriber(ros::Publisher pub)
+    void wait_for_subscriber(ros::Publisher pub, int timeout_seconds)
     {
-        ros::Time exit_time = ros::Time::now() + ros::Duration(3);
+        ros::Time exit_time = ros::Time::now() + ros::Duration(timeout_seconds);
         while(pub.getNumSubscribers() == 0)
         {
             ROS_DEBUG_THROTTLE(1, "waiting for subscriber on: %s", pub.getTopic().c_str());

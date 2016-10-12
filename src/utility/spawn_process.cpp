@@ -4,7 +4,7 @@
 #include <signal.h>
 #include "ros/ros.h"
 #include "ros/console.h"
-#include "utility/spawn_process.hpp"
+#include "utility/test_tools.hpp"
 
 namespace rs
 {
