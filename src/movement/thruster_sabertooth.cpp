@@ -5,6 +5,11 @@
 
 using namespace rs;
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
 typedef struct thruster_info
 {
   std::string name;
@@ -151,6 +156,10 @@ int main(int argc, char **argv)
         one_thruster.port = static_cast<int>(my_list[i]["port"]);
         mThruster_info.push_back(one_thruster);
       }
+<<<<<<< Updated upstream
+=======
+>>>>>>> 9edf803... Prettified thruster info output to display names
+>>>>>>> Stashed changes
 
   setTimeOut(5); //0.5 sec timeout
 
