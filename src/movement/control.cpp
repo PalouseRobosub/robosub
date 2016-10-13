@@ -54,7 +54,7 @@ int main(int argc, char **argv)
         if (i-- < 0)
         {
             control_state_pub.publish(control_system->PublishControlState());
-            i = 0;
+            i = 10;
         }
         control_system->CalculateThrusterMessage();
         control_system->PublishThrusterMessage();
