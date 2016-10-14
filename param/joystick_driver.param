@@ -1,2 +1,0 @@
-joystick_driver/device: "/dev/input/js0"
-joystick_driver/rate: "10"

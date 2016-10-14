@@ -1,8 +1,0 @@
-joystick_control/min_depth: 0.0
-joystick_control/max_depth: 2.0
-joystick_control/axisXdeadzone: 0.1
-joystick_control/axisYdeadzone: 0.1
-joystick_control/axisZdeadzone: 0.1
-joystick_control/x_scaling_power: 2.0
-joystick_control/y_scaling_power: 2.0
-joystick_control/z_scaling_power: 2.0

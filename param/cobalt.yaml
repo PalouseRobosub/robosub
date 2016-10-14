@@ -3,84 +3,138 @@ thruster:
     lambda: 0.5
     port: "/dev/pts/6"
     sensor_sleep_ms: 25
-    thrusters: 
-        dive_front_left: 
+    thrusters:
+        dive_front_left:
             address: "0x30"
-            orientation: 
+            orientation:
                 x: 0.0
                 y: 0.0
                 z: 1.0
-            position: 
+            position:
                 x: 0.235
                 y: 0.23
                 z: -0.1
-        dive_front_right: 
+        dive_front_right:
             address: "0x32"
-            orientation: 
+            orientation:
                 x: 0.0
                 y: 0.0
                 z: 1.0
-            position: 
+            position:
                 x: 0.235
                 y: -0.23
                 z: -0.1
-        dive_back_left: 
+        dive_back_left:
             address: "0x31"
-            orientation: 
+            orientation:
                 x: 0.0
                 y: 0.0
                 z: 1.0
-            position: 
+            position:
                 x: -0.235
                 y: 0.23
                 z: -0.1
-        dive_back_right: 
+        dive_back_right:
             address: "0x33"
-            orientation: 
+            orientation:
                 x: 0.0
                 y: 0.0
                 z: 1.0
-            position: 
+            position:
                 x: -0.235
                 y: -0.23
                 z: -0.1
-        strafe_front: 
+        strafe_front:
             address: "0x34"
-            orientation: 
+            orientation:
                 x: 0.0
                 y: 1.0
                 z: 0.0
-            position: 
+            position:
                 x: 0.46
                 y: 0.0
                 z: -0.01
-        strafe_back: 
+        strafe_back:
             address: "0x35"
-            orientation: 
+            orientation:
                 x: 0.0
                 y: 1.0
                 z: 0.0
-            position: 
+            position:
                 x: -0.46
                 y: 0.0
                 z: -0.01
-        forward_left: 
+        forward_left:
             address: "0x36"
-            orientation: 
+            orientation:
                 x: 1.0
                 y: 0.0
                 z: 0.0
-            position: 
+            position:
                 x: 0.0
                 y: 0.2075
                 z: -0.01
-        forward_right: 
+        forward_right:
             address: "0x37"
-            orientation: 
+            orientation:
                 x: 1.0
                 y: 0.0
                 z: 0.0
-            position: 
+            position:
                 x: 0.0
                 y: -0.2075
                 z: -0.01
+control:
+    rate: 10
+    mass: 25
+    back_thrust_ratio: 1.0
+    max_thrust: 25
+    inertia:
+        psi: 1.0
+        phi: 1.0
+        theta: 1.0
+    proportional:
+        x: 1
+        y: 1
+        z: 1
+        psi: 0.1 #roll
+        phi: 0.1 #pitch
+        theta: 0.1 #yaw
+    integral:
+        x: 0
+        y: 0
+        z: 0
+        psi: 0
+        phi: 0
+        theta: 0
+    derivative:
+        x: 0
+        y: 0
+        z: 0
+        psi: 0
+        phi: 0
+        theta: 0
+    windup:
+        x: 0
+        y: 0
+        z: 0
+        psi: 0
+        phi: 0
+        theta: 0
+    hysteresis:
+        x: 0
+        y: 0
+        z: 0
+        psi: 0
+        phi: 0
+        theta: 0
+    limits:
+        rotation: 0.6
+        translation: 0.8
+    offsets:
+        x: 0
+        y: 0
+        z: 0
+        psi: 0
+        phi: 0
+        theta: 0

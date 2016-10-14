@@ -1,0 +1,13 @@
+joystick_control:
+    min_depth: 0.0
+    max_depth: 2.0
+    axisXdeadzone: 0.1
+    axisYdeadzone: 0.1
+    axisZdeadzone: 0.1
+    x_scaling_power: 2.0
+    y_scaling_power: 2.0
+    z_scaling_power: 2.0
+
+joystick_driver:
+    device: "/dev/input/js0"
+    rate: "10"
