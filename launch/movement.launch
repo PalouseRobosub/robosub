@@ -1,12 +1,4 @@
-
 <launch>
-  <arg name="THRUSTER_TYPE" default="maestro"/>
-	<node pkg="robosub" type="thruster_$(arg THRUSTER_TYPE)" name="thruster" required="true"/>
-
-  <node pkg="robosub" type="control" name="control" required="true"/>
-
-  <node pkg="robosub" type="imu" name="imu" required="true"/>
-
-  <node pkg="robosub" type="depth" name="depth" required="true"/>
-
+    <include file="$(find robosub)/launch/include/movement_$(env ROBOSUB_NAME).xml" />
+    <rosparam command="load" file="$(find robosub)/param/$(env ROBOSUB_NAME).yaml" />
 </launch>

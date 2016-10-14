@@ -3,7 +3,7 @@
 
 <launch>
 	<!--  launch a node -->
-	<node pkg="robosub" type="thruster" name="thruster" required="false"/>
+	<!-- <node pkg="robosub" type="thruster" name="thruster" required="false"/> -->
 
 	<!-- including another launchfile -->
 	<!-- <include file="$(find robosub)/launch/another.launch"/> -->

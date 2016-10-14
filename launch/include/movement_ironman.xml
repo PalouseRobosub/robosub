@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="robosub" type="thruster_sabertooth" name="thruster" required="true"/>
+  <node pkg="robosub" type="control" name="control" required="true"/>
+  <include file="$(find robosub)/launch/include/sensor_ironman.xml" />
+</launch>
