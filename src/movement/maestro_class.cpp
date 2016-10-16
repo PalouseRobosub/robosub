@@ -57,7 +57,11 @@ int ThrusterController::SetSpeed(const vector<thrusterVector> speeds)
 // but they lied on the datasheet (or doing some kind of parsing that 
 // I don't understand. Output is 1500us at 0x702e, 1000us at 0x701f, 
 // 2000us at 0x703e
+//
+// TODO: Figure out a range of speeds such that the thruster is not 
+// running at a million rpm. 
 void  parseNormalized(const float fSpeed, uint8_t & SendByte)
-{	
+{
+	// this needs to change - full speed way too fast. 	
 	SendByte = 15.5*fSpeed + 46;
 }

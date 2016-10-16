@@ -33,8 +33,11 @@ namespace Thruster
 	enum  char* cPort = "/dev/ttyUSB0";
 }
 
+// custom vector that stores two values: the thruster number and normalized 
+// speed of corresponding thruster [-1,1]
 typedef struct tv 
 {
+	// constructor
 	tv(const float fSpeed, const unsigned int nThruster)
 	{
 		this->speed = fSpeed;
@@ -44,6 +47,10 @@ typedef struct tv
 	unsigned int thruster_number;
 }thrusterVector;
 
+
+// ===================================================================================
+// main thruster controller class
+// ===================================================================================
 class ThrusterController
 {
 	public:
@@ -51,16 +58,12 @@ class ThrusterController
 		~ThrusterController(); // hopefully will terminate thrusters upon destruction
 
 		bool configure(); // this would try to open up the serial port to the thruster controller 
-					      // return false if thruster controller not detected. 
-		int SetSpeed(const vector<thrusterVector> speeds); // see below
-					   //
-					   //
-			          // Someone need to give me some kind of 
-       // data  parsed from the ROS message for an array of float(? double?) values ranging from -1 to 1, 
-    // whereas -1 is full reverse, and 1 is full speed forward, also need the length of the 
-        // array being passed in, or possibly define a struct/class that holds a pair of data, such as 
-       // struct ThrusterSpeedVector{ float speed, int ThrusterNumber}; 
-      // and pass in an array of those with the number of them. 
+					      // return false if thruster controller not detected. Currently 
+						  // only returning true
+		int SetSpeed(const vector<thrusterVector> speeds); // pass in a vector of the thrusterVector
+														   // defined above, use these values to assign
+														   // thruster speeds. 
+
 	private:
 
 		rs::Serial Controller_Port;
