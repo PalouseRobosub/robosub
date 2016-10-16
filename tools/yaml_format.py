@@ -16,7 +16,11 @@ args = parser.parse_args()
 #load the yaml file named by args.input
 i = ruamel.yaml.round_trip_load(open(args.input, 'r'))
 
-
+#Dump the Prettified yaml to file
 o = ruamel.yaml.round_trip_dump(i, default_style='', indent=4, default_flow_style=False)
+
+#Write the output to the file
 args.output.write(o)
+
+#Close the output file
 args.output.close()
