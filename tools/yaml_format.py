@@ -3,9 +3,20 @@
 import sys
 import pprint
 import ruamel.yaml
+import argparse
 
-filename = sys.argv[1]
+parser = argparse.ArgumentParser(description='Prettify a yaml file')
+parser.add_argument('-i', '--input', metavar='FILE', type=str, required=True , help='Set the input file')
 
-y = ruamel.yaml.round_trip_load(open(filename, 'r'))
+#Setup the output argument (Automatically opens the input string as a file)
+parser.add_argument('-o', '--output', metavar='FILE', type=argparse.FileType('w',0), required=True , help='Set the output file')
 
-print ruamel.yaml.round_trip_dump(y, default_style='', indent=4, default_flow_style=False)
+args = parser.parse_args()
+
+#load the yaml file named by args.input
+i = ruamel.yaml.round_trip_load(open(args.input, 'r'))
+
+
+o = ruamel.yaml.round_trip_dump(i, default_style='', indent=4, default_flow_style=False)
+args.output.write(o)
+args.output.close()
