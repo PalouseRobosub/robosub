@@ -3,6 +3,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include <utility/ThrottledPublisher.hpp>
 
 ControlSystem *control_system;
 
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
 	ros::Subscriber controlsub = nh.subscribe("control", 1, controlCallback);
 
   	ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
-  	ros::Publisher control_state_pub = nh.advertise<robosub::control>("current_control_state", 1);
+  	rs::ThrottledPublisher<robosub::control> control_state_pub(std::string("current_control_state"), 1, 1);
 
     control_system = new ControlSystem(&nh, &pub);
 
@@ -48,14 +49,9 @@ int main(int argc, char **argv)
     nh.getParam("control/rate", rate);
     ros::Rate r(rate);
 
-    int i = 10;
     while(ros::ok())
     {
-        if (i-- < 0)
-        {
-            control_state_pub.publish(control_system->PublishControlState());
-            i = 10;
-        }
+        control_state_pub.publish(control_system->PublishControlState());   
         control_system->CalculateThrusterMessage();
         control_system->PublishThrusterMessage();
         ros::spinOnce();

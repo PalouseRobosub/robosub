@@ -1,0 +1,35 @@
+#include <ros/ros.h>
+#include <string>
+
+namespace rs
+{
+    template <class msg> class ThrottledPublisher
+    {
+        private:
+            ros::Time nextPubTime;
+            ros::Duration rate;
+            ros::Publisher pub;
+        public:
+            ThrottledPublisher(std::string  topicName, int queueSize, float hz)
+            {
+                ros::NodeHandle nh;
+                pub = nh.advertise<msg>(topicName, queueSize);
+                this->rate = ros::Duration(1.0/hz);
+                nextPubTime = ros::Time::now();
+                ROS_INFO_STREAM("Rate: " << rate);
+            }
+
+            ~ThrottledPublisher()
+            {}
+
+            void publish(msg message)
+            {
+                if (nextPubTime <= ros::Time::now())
+                {
+                    pub.publish(message);
+                    nextPubTime = ros::Time::now() + rate;
+                    ROS_INFO_STREAM("Next Pub Time: " << nextPubTime);
+                }
+            }
+    };
+};
