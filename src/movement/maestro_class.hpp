@@ -24,9 +24,9 @@
 // the serial write is a blocking call.  
 using std::vector;
 
-namespace tc
+namespace Thruster
 {
-	extern char* cPort = "/dev/ttyUSB0";
+	enum  char* cPort = "/dev/ttyUSB0";
 }
 
 typedef struct tv 

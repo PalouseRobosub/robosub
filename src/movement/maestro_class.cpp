@@ -1,4 +1,4 @@
-
+#include "movemet/maestro_class.hpp"
 ThrusterController::~ThrusterController()
 {
 	// need to first send the off signal to the controller, then close port
