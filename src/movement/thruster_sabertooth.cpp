@@ -22,6 +22,49 @@ void checksum (uint8_t serial_data[4])
   serial_data[3] = (serial_data[0]+serial_data[1]+serial_data[2]) & 127;
 }
 
+void createThrusterPacket (uint8_t serial_data[4], double value, int i)
+{
+    serial_data[0] = mThruster_info[i].address;
+    //command
+    if(mThruster_info[i].port == 0)
+    {
+      if(value < 0)
+      { //command - backwards port 1
+        serial_data[1] = 1;
+      }
+      else
+      { //command - forwards port 1
+        serial_data[1] = 0;
+      }
+    }
+    else
+    {
+      if(value < 0)
+      { //command - backwards port 1
+        serial_data[1] = 5;
+      }
+      else
+      { //command - forwards port 1
+        serial_data[1] = 4;
+      }
+    }
+
+    //Check for NaNs
+    if (value != value)
+    {
+        serial_data[2] = 0;
+        ROS_ERROR("NaN recieved. Stopping thrusters.");
+    }
+    else
+    {
+      //data (speed) value between 0 - 127
+      serial_data[2] = abs(value * 127);
+    }
+
+    //checksum
+    checksum(serial_data);
+  }
+
 void callBack(const robosub::thruster::ConstPtr& msg)
 {
     robosub::thruster message = *msg;
@@ -34,46 +77,8 @@ void callBack(const robosub::thruster::ConstPtr& msg)
 
     for (int i = 0; i < message.data.size(); ++i)
     {
-      //address
-      serial_data[0] = mThruster_info[i].address;
-      //command
-      if(mThruster_info[i].port == 0)
-      {
-        if(message.data[i] < 0)
-        { //command - backwards port 1
-          serial_data[1] = 1;
-        }
-        else
-        { //command - forwards port 1
-          serial_data[1] = 0;
-        }
-      }
-      else
-      {
-        if(message.data[i] < 0)
-        { //command - backwards port 1
-          serial_data[1] = 5;
-        }
-        else
-        { //command - forwards port 1
-          serial_data[1] = 4;
-        }
-      }
 
-      //Check for NaNs
-      if (message.data[i] != message.data[i])
-      {
-          serial_data[2] = 0;
-          ROS_ERROR("NaN recieved. Stopping thrusters.");
-      }
-      else
-      {
-        //data (speed) value between 0 - 127
-        serial_data[2] = abs(message.data[i] * 127);
-      }
-
-      //checksum
-      checksum(serial_data);
+      createThrusterPacket(serial_data, message.data[i], i);
 
       //send package to thrusters
       mSerial.Write(serial_data, 4);
@@ -84,12 +89,39 @@ void callBack(const robosub::thruster::ConstPtr& msg)
 
 }
 
+void setTimeOut (uint8_t ms_100)
+{
+  uint8_t serial_data[4];
+
+  //loop through 6 thrusters
+  for (int i = 0; i < 6; i++)
+  {
+    //adress: loop over addresses
+    serial_data[0] = mThruster_info[i].address;
+    //command
+    serial_data[1] = 14; //serial timeout
+    //timeout value
+    serial_data[2] = ms_100;
+    //checksum
+    checksum(serial_data);
+  }
+
+    //send package to thrusters
+    mSerial.Write(serial_data, 4);
+
+  //Publish thruster info with name
+  ROS_INFO("Setting Timeout");
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "thruster");
   ros::NodeHandle n;
 
   ros::Subscriber sub = n.subscribe("thruster", 1, callBack);
+
+  setTimeOut(10); //1 sec timeout
+
 	std::string thruster_port;
 	if(!n.getParam("ports/thruster", thruster_port))
 	{
@@ -116,6 +148,13 @@ int main(int argc, char **argv)
       }
 
   ros::spin();
+
+  uint8_t serial_data[4];
+
+  for (int i = 0; i < 6; i++)
+  {
+    createThrusterPacket(serial_data, 0, i);
+  }
 
   return 0;
 }
