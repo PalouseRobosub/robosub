@@ -2,7 +2,8 @@
 
 #include "utility/serial.hpp"
 #include <vector>
-
+#include <thread>
+#include <chrono>
 
 // To use the thruster controller class: 
 //	1. construct local thrustercontroller object
@@ -20,12 +21,15 @@
 // and 1 for full forward. nThruster is the thruster number. need to figure out
 // numbering convention for thrusters.
 //
-// TODO: figure out timing to see if 30Hz update rate is achievable, since
-// the serial write is a blocking call.  
+// TODO: figure out timing to see if 30Hz update rate is achievable
 using std::vector;
 
 namespace Thruster
 {
+	enum uint8_t resetSignals[2] = {0x70, 0x2e};
+
+	// temporary - will switch to udev rule for FT232 chip when interface board is 
+	// complete. 
 	enum  char* cPort = "/dev/ttyUSB0";
 }
 
@@ -60,6 +64,11 @@ class ThrusterController
 	private:
 
 		rs::Serial Controller_Port;
+
+		// counter to send reset signal. Assuming 30Hz update rate, every once in 60
+		// signals will be discarded to send a reset signal to all ESC's. For details, 
+		// see palouserobosub.eecs.wsu.edu/wiki/ee/thrusters/start#known_issues
+		uint8_t sigalCount;
 
 };
 

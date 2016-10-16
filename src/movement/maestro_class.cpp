@@ -1,4 +1,5 @@
 #include "movemet/maestro_class.hpp"
+
 ThrusterController::~ThrusterController()
 {
 	// need to first send the off signal to the controller, then close port
@@ -30,12 +31,24 @@ bool ThrusterController::configure()
 int ThrusterController::SetSpeed(const vector<thrusterVector> speeds)
 {
 	uint8_t buf[4] = {0x84, 0x00, 0x70, 0x2e};
-
+	
+	// if 60 signals were received
+	if (signalCount >= 60)
+	{
+		// send reset signal to all esc's 
+		for (int i=0; i<8; i++)
+		{
+			this->Controller_Port.Write(buf,4);
+			buf[1]++;
+		}
+		this->signalCount = 0;
+	}
 	for (int i=0; i < speeds.size(); i++)
 	{
 		buf[1] = speeds[i].thruster_number;
 		parseNormalized(speeds[i].speed, buf[3]);
 		this->Controller_Port.Write(buf, 4);
+		this->signalCount ++;
 	}
 }
 
