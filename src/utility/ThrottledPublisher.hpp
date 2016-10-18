@@ -16,7 +16,6 @@ namespace rs
                 pub = nh.advertise<msg>(topicName, queueSize);
                 this->rate = ros::Duration(1.0/hz);
                 nextPubTime = ros::Time::now();
-                ROS_INFO_STREAM("Rate: " << rate);
             }
 
             ~ThrottledPublisher()
@@ -28,7 +27,6 @@ namespace rs
                 {
                     pub.publish(message);
                     nextPubTime = ros::Time::now() + rate;
-                    ROS_INFO_STREAM("Next Pub Time: " << nextPubTime);
                 }
             }
     };
