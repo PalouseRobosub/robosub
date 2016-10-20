@@ -87,10 +87,8 @@ void joystickToControlCallback(const robosub::joystick msg)
     {
         outmsg.pitch_state = outmsg.STATE_ABSOLUTE;
         outmsg.roll_state  = outmsg.STATE_ABSOLUTE;
-        outmsg.yaw_state  = outmsg.STATE_ABSOLUTE;
         outmsg.roll_right = 0;
         outmsg.pitch_up = 0;
-        outmsg.yaw_right = 0;
     }
     outmsg.yaw_right *= -15;
     outmsg.forward *= 2;
