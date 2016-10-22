@@ -12,7 +12,7 @@ typedef struct thruster_info
   uint8_t port;      // 0 or 1
 }Thruster_info;
 
-Thruster_info *mThruster_info;
+vector<Thruster_info> mThruster_info;
 Serial mSerial;
 
 
@@ -100,19 +100,19 @@ int main(int argc, char **argv)
 	mSerial.Open(thruster_port.c_str(), B9600);
   //I think I'm supposed to add checks here
 
-  XmlRpc::XmlRpcValue my_list;
+    XmlRpc::XmlRpcValue my_list;
     ros::param::get("thrusters", my_list);
-
-    mThruster_info = new struct thruster_info[my_list.size()];
 
     for(int i=0; i < my_list.size(); ++i)
     {
         ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
         ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
         ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
-        mThruster_info[i].name = static_cast<std::string>(my_list[i]["name"]);
-        mThruster_info[i].address = static_cast<int>(my_list[i]["address"]);
-        mThruster_info[i].port = static_cast<int>(my_list[i]["port"]);
+        Thruster_info one_thruster;
+        one_thruster.name = static_cast<std::string>(my_list[i]["name"]);
+        one_thruster.address = static_cast<int>(my_list[i]["address"]);
+        one_thruster.port = static_cast<int>(my_list[i]["port"]);
+        mThruster_info.push_back(one_thruster);
       }
 
   ros::spin();
