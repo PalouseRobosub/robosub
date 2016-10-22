@@ -46,22 +46,22 @@ int ThrusterController::SetSpeed(const vector<thrusterVector> speeds)
 	for (int i=0; i < speeds.size(); i++)
 	{
 		buf[1] = speeds[i].thruster_number;
-		parseNormalized(speeds[i].speed, buf[3]);
+		parseNormalized(speeds[i].speed, &(buf[2]));
 		this->Controller_Port.Write(buf, 4);
 		this->signalCount ++;
 	}
 }
 
 
-// maestro controller takes speed in terms of quarter microseconds...
-// but they lied on the datasheet (or doing some kind of parsing that 
-// I don't understand. Output is 1500us at 0x702e, 1000us at 0x701f, 
-// 2000us at 0x703e
-//
+// SendByte[1] is most significant byte, [0] is least significant byte
+// unit is in 1/8 us
 // TODO: Figure out a range of speeds such that the thruster is not 
 // running at a million rpm. 
-void  parseNormalized(const float fSpeed, uint8_t & SendByte)
-{
-	// this needs to change - full speed way too fast. 	
-	SendByte = 15.5*fSpeed + 46;
+void  ThrusterController::parseNormalized(const float fSpeed, uint8_t* SendByte)
+{	
+	// gets the speed in terms of 1/8 us
+	uint16_t speed = (1500 + fSpeed * 500) * 8;
+	// to change maximum speed, change the 500 value in here. 
+	*SendByte = 0xFF & speed;
+	*(SendByte+1) = speed >> 8;	
 }

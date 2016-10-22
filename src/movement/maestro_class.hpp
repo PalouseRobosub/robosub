@@ -73,7 +73,7 @@ class ThrusterController
 		// see palouserobosub.eecs.wsu.edu/wiki/ee/thrusters/start#known_issues
 		uint8_t sigalCount;
 
+		// helper function to convert from normalized speed to a byte value sent to maestro. 
+		void  parseNormalized(const float fSpeed, uint8_t* SendByte);
 };
 
-// helper function to convert from normalized speed to a byte value sent to maestro. 
-void  parseNormalized(const float fSpeed, uint8_t & SendByte);
