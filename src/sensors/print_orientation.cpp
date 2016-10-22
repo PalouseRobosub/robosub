@@ -16,10 +16,10 @@ void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
 
-    ROS_INFO_STREAM("Roll(deg): " << roll * _180_OVER_PI);
-    ROS_INFO_STREAM("Pitch(deg): " << pitch * _180_OVER_PI);
-    ROS_INFO_STREAM("Yaw(deg): " << yaw * _180_OVER_PI);
-    ROS_INFO_STREAM("\n");
+    //ROS_INFO_STREAM("Roll(deg): " << roll * _180_OVER_PI);
+    //ROS_INFO_STREAM("Pitch(deg): " << pitch * _180_OVER_PI);
+    //ROS_INFO_STREAM("Yaw(deg): " << yaw * _180_OVER_PI);
+    //ROS_INFO_STREAM("\n");
 
     robosub::Euler outmsg;
 
