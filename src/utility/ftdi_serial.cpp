@@ -1,5 +1,6 @@
 #include "ftdi_serial.hpp"
 #include <cstring>
+#include <iostream>
 #include <unistd.h>
 
 namespace rs
@@ -15,12 +16,10 @@ namespace rs
         this->close();
     }
 
-    bool FTDISerial::open(const std::string& serial_number)
+    bool FTDISerial::open(std::vector<uint8_t>& serial_number)
     {
-        std::vector<char> sn(serial_number.c_str(),
-                serial_number.c_str() + serial_number.length() + 1);
-
-        m_status = FT_OpenEx(&sn[0], FT_OPEN_BY_SERIAL_NUMBER, &m_handle);
+        serial_number.push_back(0);
+        m_status = FT_OpenEx(&serial_number[0], FT_OPEN_BY_SERIAL_NUMBER, &m_handle);
         if(m_status != FT_OK) {
             return false;
         }
@@ -56,90 +55,81 @@ namespace rs
         return true;
     }
 
-    bool FTDISerial::read(std::string& msg, unsigned int numChars)
+    bool FTDISerial::read(std::vector<uint8_t>& msg, uint32_t num_bytes)
     {
-        std::vector<char> buf;
-        unsigned int bytesRead = 0;
+        uint32_t bytes_read = 0;
 
-        if(!numChars) {
+        if(!num_bytes) {
             sleep(1);
-            m_status = FT_GetQueueStatus(m_handle, &numChars);
+            m_status = FT_GetQueueStatus(m_handle, &num_bytes);
             if(m_status != FT_OK) {
                 return false;
             }
         }
 
-        buf.reserve(numChars);
+        msg.resize(num_bytes);
 
-        m_status = FT_Read(m_handle, &buf[0], numChars, &bytesRead);
-        if((bytesRead < numChars) || (m_status != FT_OK)) {
+        m_status = FT_Read(m_handle, &msg[0], num_bytes, &bytes_read);
+        if((bytes_read < num_bytes) || (m_status != FT_OK)) {
             return false;
         }
-        
-        msg = std::string{ &buf[0] };
 
         return true;
     }
 
-    bool FTDISerial::write(const std::string& msg)
+    bool FTDISerial::write(std::vector<uint8_t>& msg)
     {
-        std::vector<char> msg_ptr(msg.c_str(),
-                msg.c_str() + msg.length() + 1);
-        unsigned int bytesWritten = 0;
+        uint32_t bytes_written = 0;
 
-        m_status = FT_Write(m_handle, &msg_ptr[0], msg.length(),
-                &bytesWritten);
-        if(m_status != FT_OK) {
+        m_status = FT_Write(m_handle, &msg[0], msg.size(), &bytes_written);
+        if((bytes_written < msg.size()) || (m_status != FT_OK)) {
             return false;
         }
 
         return true;
     }
 
-    void FTDISerial::setBaudRate(unsigned int baud_rate)
+    void FTDISerial::setBaudRate(uint32_t baud_rate)
     {
         m_baud_rate = baud_rate;
     }
 
     void FTDISerial::setBitsPerWord(FTDISerial::bits_per_word bits_per_word)
     {
-        m_bits_per_word = static_cast<unsigned char>(bits_per_word);
+        m_bits_per_word = static_cast<uint8_t>(bits_per_word);
     }
 
     void FTDISerial::setStopBits(FTDISerial::stop_bits stop_bits)
     {
-        m_stop_bits = static_cast<unsigned char>(stop_bits);
+        m_stop_bits = static_cast<uint8_t>(stop_bits);
     }
 
     void FTDISerial::setParity(FTDISerial::parity parity)
     {
-        m_parity = static_cast<unsigned char>(parity);
+        m_parity = static_cast<uint8_t>(parity);
     }
 
-    void FTDISerial::setFlowControl(FTDISerial::flow flow, unsigned char x_on,
-                                    unsigned char x_off)
+    void FTDISerial::setFlowControl(FTDISerial::flow flow, uint8_t x_on,
+                                    uint8_t x_off)
     {
-        m_flow_control = static_cast<unsigned short>(flow);
+        m_flow_control = static_cast<uint16_t>(flow);
         m_flow_x_on = x_on;
         m_flow_x_off = x_off;
     }
     
     bool FTDISerial::populateDeviceList()
     {
-        std::vector<std::vector<char>> dev_buf;
-        std::vector<char*> dev_buf_ptr;
-        int num_devs = 0;
+        std::vector<std::vector<uint8_t>> dev_buf;
+        std::vector<uint8_t*> dev_buf_ptr;
+        uint32_t num_devs = 0;
 
-        if(!FTDISerial::m_dev_list.empty()) {
+        if(!FTDISerial::m_dev_list.empty() ||
+                FT_ListDevices(&num_devs, NULL, FT_LIST_NUMBER_ONLY) != FT_OK) {
             return false;
         }
         
-        if(FT_ListDevices(&num_devs, NULL, FT_LIST_NUMBER_ONLY) != FT_OK) {
-            return false;
-        }
-
-        for(int i = 0; i < num_devs; i++) {
-            dev_buf.push_back(std::vector<char>(64));
+        for(uint32_t i = 0; i < num_devs; i++) {
+            dev_buf.push_back(std::vector<uint8_t>(64));
             dev_buf_ptr.push_back(&dev_buf.back()[0]);
         }
         dev_buf_ptr.push_back(NULL);
@@ -149,8 +139,9 @@ namespace rs
             return false;
         }
 
-        for(int i = 0; i < num_devs; i++) {
-            FTDISerial::m_dev_list.push_back(&dev_buf[i][0]);
+        for(uint32_t i = 0; i < num_devs; i++) {
+            FTDISerial::m_dev_list.emplace_back(dev_buf[i].begin(),
+                    dev_buf[i].end());
         }
 
         return true;
