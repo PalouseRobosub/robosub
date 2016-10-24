@@ -5,6 +5,17 @@ import pprint
 import ruamel.yaml
 import argparse
 
+#This function is a recursive way to traverse through the nested dictionaries
+#  of yaml files.
+# x is the dictionary to take values from
+# y is the dictionary to update the values of
+def recurse(x,y):
+    for k,v in x.items():
+        if isinstance(v,dict):
+            recurse(v,y[k])
+        else:
+            y[k] = v
+
 parser = argparse.ArgumentParser(description='Prettify a yaml file')
 parser.add_argument('-i', '--input', metavar='FILE', type=str, required=True,
                     help='Set the input file')
@@ -31,7 +42,8 @@ outputFile.close()
 i = ruamel.yaml.round_trip_load(open(args.input, 'r'))
 
 # Do parameter replacement here
-initial['control']['proportional']['psi'] = i['control']['proportional']['psi']
+recurse(i, initial)
+
 
 #Dump the Prettified yaml to file
 o = ruamel.yaml.round_trip_dump(initial, default_style='', indent=4, default_flow_style=False)
