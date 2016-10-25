@@ -1,0 +1,112 @@
+{
+	"fps": 40,
+	"lambda": 0.5,
+	"port": "/dev/pts/6",
+	"sensor_sleep_ms": 25,
+	"thrusters": {
+		"dive_front_left": {
+			"address": "0x30",
+			"orientation": {
+				"x": 0,
+				"y": 0,
+				"z": 1
+			},
+			"position": {
+				"x": 0.235,
+				"y": 0.23,
+				"z": -0.1
+			}
+		},
+		"dive_front_right": {
+			"address": "0x32",
+			"orientation": {
+				"x": 0,
+				"y": 0,
+				"z": 1
+			},
+			"position": {
+				"x": 0.235,
+				"y": -0.23,
+				"z": -0.1
+			}
+		},
+		"dive_back_left": {
+			"address": "0x31",
+			"orientation": {
+				"x": 0,
+				"y": 0,
+				"z": 1
+			},
+			"position": {
+				"x": -0.235,
+				"y": 0.23,
+				"z": -0.1
+			}
+		},
+		"dive_back_right": {
+			"address": "0x33",
+			"orientation": {
+				"x": 0,
+				"y": 0,
+				"z": 1
+			},
+			"position": {
+				"x": -0.235,
+				"y": -0.23,
+				"z": -0.1
+			}
+		},
+		"strafe_front": {
+			"address": "0x34",
+			"orientation": {
+				"x": 0,
+				"y": 1,
+				"z": 0
+			},
+			"position": {
+				"x": 0.46,
+				"y": 0,
+				"z": -0.01
+			}
+		},
+		"strafe_back": {
+			"address": "0x35",
+			"orientation": {
+				"x": 0,
+				"y": 1,
+				"z": 0
+			},
+			"position": {
+				"x": -0.46,
+				"y": 0,
+				"z": -0.01
+			}
+		},
+		"forward_left": {
+			"address": "0x36",
+			"orientation": {
+				"x": 1,
+				"y": 0,
+				"z": 0
+			},
+			"position": {
+				"x": 0,
+				"y": 0.2075,
+				"z": -0.01
+			}
+		},
+		"forward_right": {
+			"address": "0x37",
+			"orientation": {
+				"x": 1,
+				"y": 0,
+				"z": 0
+			},
+			"position": {
+				"x": 0,
+				"y": -0.2075,
+				"z": -0.01
+			}
+		}
+	}
+}
