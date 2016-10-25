@@ -48,7 +48,7 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
         exit(1);
     }
 
-    ROS_INFO_STREAM(thruster_settings.size());
+    ROS_INFO_STREAM("Loaded " << thruster_settings.size() << " thrusters");
 
     num_thrusters = 0;
     position = MatrixXd(1,3);
