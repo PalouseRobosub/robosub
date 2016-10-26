@@ -54,10 +54,12 @@ namespace rs {
              */
     		~ThrusterController()
             {
-                for (uint8_t i < thrusters; ++i)
+                vector<float> zero;
+                for (int i = 0; i < thrusters; ++i)
                 {
-                    set(i, 0);
+                    zero.push_back(0.0);
                 }
+                set(zero);
             }
 
             /**
