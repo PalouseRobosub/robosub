@@ -12,7 +12,7 @@ typedef struct thruster_info
   uint8_t port;      // 0 or 1
 }Thruster_info;
 
-vector<Thruster_info> mThruster_info;
+std::vector<Thruster_info> mThruster_info;
 Serial mSerial;
 
 
