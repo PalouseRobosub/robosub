@@ -7,7 +7,7 @@ Serial outmessage;
 
 uint16_t translatemessage (const double data)
 {
-	/* 
+	/*
 	To translate a value x in the range (a, b) into a value f(x) in the range (c, d)
 	 f(x) = (x - a)*((d - c)/(b - a)) + c
 	 For example: If we want to translate 0 in the interval (-1, 1) to it's equivalent in (1000, 2000)
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "thruster");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("thruster", 1, Callback);
-		if(!n.getParam("thruster_serial_port", thruster_port))
+		if(!n.getParam("ports/thruster", thruster_port))
     {
       ROS_FATAL("no serial port specified, exiting!");
       exit(1);

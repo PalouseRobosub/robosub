@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 
   ros::Subscriber sub = n.subscribe("thruster", 1, callBack);
 	std::string thruster_port;
-	if(!n.getParam("thruster_serial_port", thruster_port))
+	if(!n.getParam("ports/thruster", thruster_port))
 	{
 		ROS_FATAL("No serial port specified!");
 		exit(1);
