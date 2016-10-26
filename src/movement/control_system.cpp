@@ -42,7 +42,7 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
     // Thruster settings. Don't have nodehandle ref so must use ros::param::get
     XmlRpc::XmlRpcValue thruster_settings;
 
-    if(!ros::param::get("thruster", thruster_settings))
+    if(!ros::param::get("thrusters", thruster_settings))
     {
         ROS_FATAL("thruster params failed to load");
         exit(1);
@@ -53,22 +53,19 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
     num_thrusters = 0;
     position = MatrixXd(1,3);
     orientation = MatrixXd(1,3);
-    for(XmlRpc::XmlRpcValue::iterator it = thruster_settings["thrusters"].begin();
-            it != thruster_settings["thrusters"].end(); ++it)
+    for(int i=0; i < thruster_settings.size(); ++i)
     {
-        //std::cout << it->first << ":" << it->second << std::endl;
-
         position.conservativeResize(num_thrusters+1, NoChange_t());
         orientation.conservativeResize(num_thrusters+1, NoChange_t());
-        string thruster_name = it->first;
-        XmlRpc::XmlRpcValue t = it->second;
+        string thruster_name = thruster_settings[i]["name"];
 
-        position(num_thrusters,0) = t["position"]["x"];
-        position(num_thrusters,1) = t["position"]["y"];
-        position(num_thrusters,2) = t["position"]["z"];
-        orientation(num_thrusters,0) = t["orientation"]["x"];
-        orientation(num_thrusters,1) = t["orientation"]["y"];
-        orientation(num_thrusters,2) = t["orientation"]["z"];
+
+        position(num_thrusters,0) = thruster_settings[i]["position"]["x"];
+        position(num_thrusters,1) = thruster_settings[i]["position"]["y"];
+        position(num_thrusters,2) = thruster_settings[i]["position"]["z"];
+        orientation(num_thrusters,0) = thruster_settings[i]["orientation"]["x"];
+        orientation(num_thrusters,1) = thruster_settings[i]["orientation"]["y"];
+        orientation(num_thrusters,2) = thruster_settings[i]["orientation"]["z"];
 
         ++num_thrusters;
     }
