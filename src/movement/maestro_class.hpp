@@ -16,6 +16,9 @@
 #include "utility/serial.hpp"
 #include <arpa/inet.h>
 #include <ros/ros.h>
+#include <vector>
+
+using std::vector;
 
 namespace rs {
     /**
@@ -30,16 +33,23 @@ namespace rs {
      * @tparam max_speed The software limit on the maximum speed that any
      *         thruster may be set to.
      */
-    template <uint8_t thrusters = 8, float max_speed = 0.6>
     class ThrusterController
     {
         static constexpr double reset_delay = 120.0;
-    	public:
+        public:
             /**
              * Constructor.
+             *
+             * @param _thrusters The number of thrusters controlled by the
+             *        controller.
+             * @param _max_speed The maximum normalized speed inthe forward and
+             *        reverse directions that should be allowed by the
+             *        controller.
              */
-    		ThrusterController() :
-                port(NULL)
+            ThrusterController(const int _thrusters, const float _max_speed) :
+                        port(NULL),
+                        thrusters(_thrusters),
+                        max_speed(_max_speed)
             {
             }
 
@@ -51,7 +61,12 @@ namespace rs {
              */
             void setPort(Serial *_port)
             {
-                port = _port;
+                if (port != NULL)
+                {
+                    port = _port;
+                    uint8_t detect_byte = 0xAA;
+                    port->Write(&detect_byte, 1);
+                }
             }
 
             /**
@@ -60,7 +75,7 @@ namespace rs {
              * @brief This function sends zeroing commands to the maestro on
              *        class destruction.
              */
-    		~ThrusterController()
+            ~ThrusterController()
             {
                 if (port != NULL)
                 {
@@ -84,9 +99,10 @@ namespace rs {
             {
                 if (speeds.size() != thrusters || port == NULL) return -1;
 
-                uint8_t command[thrusters*2+2];
-                command[0] = MaestroCommands::SetMultipleTargets;
-                command[1] = 0;
+                uint8_t command[thrusters*2+3];
+                command[0] = static_cast<uint8_t>(MaestroCommands::SetMultipleTargets);
+                command[1] = thrusters;
+                command[2] = 0;
 
                 /*
                  * Check to see if it's currently time to send a reset signal.
@@ -94,22 +110,26 @@ namespace rs {
                 ros::Time now = ros::Time::now();
                 if (now > nextReset)
                 {
+                    ROS_INFO_STREAM("Sending thruster reset signal.");
                     for (int thruster = 0; thruster < thrusters; ++thruster)
                     {
-                        parseNormalized(0, command[thruster*2+3],
-                                command[thruster*2+2]);
+                        parseNormalized(0, command[thruster*2+4],
+                                command[thruster*2+3]);
                     }
 
-                    if (port->write(command, sizeof(command)) !=
+                    if (port->Write(command, sizeof(command)) !=
                             sizeof(command))
                         return -1;
 
                     nextReset = ros::Time::now() + ros::Duration(reset_delay);
+
                     /*
-                     * Sleep for 20ms (1 50Hz cycle) to ensure that the zero
-                     * pulse has propogated to the ESC.
+                     * Sleep for 175ms (8 50Hz cycles + 3/4 of one cycle) to
+                     * ensure that the zero pulse has propogated to the ESC.
+                     * Experimental tests have found this value. Any value less
+                     * is insufficient.
                      */
-                    usleep(20000);
+                    usleep(185000);
                 }
 
                 /*
@@ -118,25 +138,37 @@ namespace rs {
                 for (int thruster = 0; thruster < speeds.size(); ++thruster)
                 {
                     const double speed = speeds[thruster];
-                    if (speeds < 0 || speed > 1) return -1;
+                    if (speed < 0 || speed > 1) return -1;
 
-                    parseNormalized(speed, command[2*thruster+3],
-                            command[2*thruster+2])
+                    if (speed > max_speed) speed = max_speed;
+                    if (speed < -1*max_speed) speed = -1*max_speed;
+                    parseNormalized(speed, command[2*thruster+4],
+                            command[2*thruster+3]);
                 }
 
                 /*
                  * Write the data down the serial port.
                  */
-                return (port->write(command, sizeof(command)) !=
+                return (port->Write(command, sizeof(command)) !=
                         sizeof(command));
             }
 
-    	private:
+        private:
             /*
              * Pointer to serial port to be used for communication with the
              * Maestro.
              */
             Serial *port;
+
+            /*
+             * The maximum speed setting that a thruster may be set to.
+             */
+            const float max_speed;
+
+            /*
+             * The number of thrusters to be controlled.
+             */
+            const int thrusters;
 
             /*
              * Time of the next reset command. The Maestro requires an arming
@@ -237,7 +269,7 @@ namespace rs {
              *
              * @return None.
              */
-    		void  parseNormalized(const double speed, uint8_t &msb, uint8_t &lsb)
+            void  parseNormalized(const double speed, uint8_t &msb, uint8_t &lsb)
             {
                 const uint16_t speed_microseconds = speed*400;
                 const uint16_t quarter_microseconds = (1500+speed_microseconds)*4;
@@ -246,10 +278,15 @@ namespace rs {
                  * Convert the microseconds to network endianness and store them
                  * into the supplied locations.
                  */
+<<<<<<< Updated upstream
                 const uint16_t net_order = htons(quarter_microseconds);
 
                 msb = net_order >> 7;
                 lsb = net_order & 0x7F;
+=======
+                msb = quarter_microseconds >> 7;
+                lsb = quarter_microseconds & 0x7F;
+>>>>>>> Stashed changes
             }
     };
 }
