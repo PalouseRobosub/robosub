@@ -275,18 +275,10 @@ namespace rs {
                 const uint16_t quarter_microseconds = (1500+speed_microseconds)*4;
 
                 /*
-                 * Convert the microseconds to network endianness and store them
-                 * into the supplied locations.
+                 * Store results into supplied locations.
                  */
-<<<<<<< Updated upstream
-                const uint16_t net_order = htons(quarter_microseconds);
-
-                msb = net_order >> 7;
-                lsb = net_order & 0x7F;
-=======
                 msb = quarter_microseconds >> 7;
                 lsb = quarter_microseconds & 0x7F;
->>>>>>> Stashed changes
             }
     };
 }
