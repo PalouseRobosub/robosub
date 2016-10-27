@@ -138,7 +138,7 @@ namespace rs {
                 for (int thruster = 0; thruster < speeds.size(); ++thruster)
                 {
                     double speed = speeds[thruster];
-                    if (speed < 0 || speed > 1) return -1;
+                    if (speed < -1 || speed > 1) return -1;
 
                     if (speed > max_speed) speed = max_speed;
                     if (speed < -1*max_speed) speed = -1*max_speed;
