@@ -61,9 +61,9 @@ namespace rs {
              */
             void setPort(Serial *_port)
             {
-                if (port != NULL)
+                port = _port;
+                if (_port != NULL)
                 {
-                    port = _port;
                     uint8_t detect_byte = 0xAA;
                     port->Write(&detect_byte, 1);
                 }
