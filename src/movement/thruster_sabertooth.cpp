@@ -112,11 +112,10 @@ void setTimeOut (uint8_t ms_100, int num_of_thrusters)
     serial_data[2] = ms_100;
     //checksum
     checksum(serial_data);
-  }
 
     //send package to thrusters
     mSerial.Write(serial_data, 4);
-
+  }
   //Timeout message
   ROS_INFO("Setting Timeout");
 }
