@@ -22,10 +22,19 @@ void checksum (uint8_t serial_data[4])
   serial_data[3] = (serial_data[0]+serial_data[1]+serial_data[2]) & 127;
 }
 
-void createThrusterPacket (uint8_t serial_data[4], double value, int i)
+/*
+THRUSTER PACKET
+serial_data[0] address
+serial_data[1] command
+serial_data[2] data bytes
+serial_data[3] checksum (call checksum function)
+*/
+void createThrusterPacket (uint8_t serial_data[4], double value, int index)
 {
     serial_data[0] = mThruster_info[i].address;
-    //command
+    
+    /*Command*/
+    //Port 1
     if(mThruster_info[i].port == 0)
     {
       if(value < 0)
@@ -37,14 +46,15 @@ void createThrusterPacket (uint8_t serial_data[4], double value, int i)
         serial_data[1] = 0;
       }
     }
+    //Other ports (Port 2)
     else
     {
       if(value < 0)
-      { //command - backwards port 1
+      { //command - backwards port 2
         serial_data[1] = 5;
       }
       else
-      { //command - forwards port 1
+      { //command - forwards port 2
         serial_data[1] = 4;
       }
     }
@@ -65,15 +75,12 @@ void createThrusterPacket (uint8_t serial_data[4], double value, int i)
     checksum(serial_data);
   }
 
+/*Message recieved, send thruster package to thrusters
+  Publish thruster information with name*/
 void callBack(const robosub::thruster::ConstPtr& msg)
 {
     robosub::thruster message = *msg;
     uint8_t serial_data[4];
-
-    //serial_data[0] - address
-    //serial_data[1] - command
-    //serial_data[2] - data (speed)
-    //serial_data[3] - checksum
 
     for (int i = 0; i < message.data.size(); ++i)
     {
@@ -86,15 +93,16 @@ void callBack(const robosub::thruster::ConstPtr& msg)
       //Publish thruster info with name
       ROS_INFO_STREAM(mThruster_info[i].name << ":\t" << message.data[i]);
     }
-
 }
 
-void setTimeOut (uint8_t ms_100)
+/*Set a timeout
+  Hardware cannot have a value greater than 256: uint8_t*/
+void setTimeOut (uint8_t ms_100, int num_of_thrusters)
 {
   uint8_t serial_data[4];
 
-  //loop through 6 thrusters
-  for (int i = 0; i < 6; i++)
+  //loop through thrusters
+  for (int i = 0; i < num_of_thrusters; i++)
   {
     //adress: loop over addresses
     serial_data[0] = mThruster_info[i].address;
@@ -109,7 +117,7 @@ void setTimeOut (uint8_t ms_100)
     //send package to thrusters
     mSerial.Write(serial_data, 4);
 
-  //Publish thruster info with name
+  //Timeout message
   ROS_INFO("Setting Timeout");
 }
 
@@ -150,8 +158,10 @@ int main(int argc, char **argv)
   ros::spin();
 
   uint8_t serial_data[4];
+  int num_of_thrusters = 6; //Change number of thrusters here as needed
 
-  for (int i = 0; i < 6; i++)
+  //Loop through thrusters
+  for (int i = 0; i < num_of_thrusters; i++)
   {
     createThrusterPacket(serial_data, 0, i);
   }
