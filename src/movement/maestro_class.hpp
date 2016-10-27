@@ -37,13 +37,21 @@ namespace rs {
     	public:
             /**
              * Constructor.
-             *
-             * @param port A configured and initialized serial port to use for
-             *        communicating with the thrusters.
              */
-    		ThrusterController(Serial &_port) :
-                port(_port)
+    		ThrusterController() :
+                port(NULL)
             {
+            }
+
+            /**
+             * Sets the serial port used to communicate with the thrusters.
+             *
+             * @param _port A configured and initialized serial port to be used
+             *        for communicating with the Maestro.
+             */
+            void setPort(Serial *_port)
+            {
+                port = _port;
             }
 
             /**
@@ -54,12 +62,15 @@ namespace rs {
              */
     		~ThrusterController()
             {
-                vector<float> zero;
-                for (int i = 0; i < thrusters; ++i)
+                if (port != NULL)
                 {
-                    zero.push_back(0.0);
+                    vector<float> zero;
+                    for (int i = 0; i < thrusters; ++i)
+                    {
+                        zero.push_back(0.0);
+                    }
+                    set(zero);
                 }
-                set(zero);
             }
 
             /**
@@ -71,7 +82,7 @@ namespace rs {
              */
             int set(vector<float> &speeds)
             {
-                if (speeds.size() != thrusters) return -1;
+                if (speeds.size() != thrusters || port == NULL) return -1;
 
                 uint8_t command[thrusters*2+2];
                 command[0] = MaestroCommands::SetMultipleTargets;
@@ -89,7 +100,7 @@ namespace rs {
                                 command[thruster*2+2]);
                     }
 
-                    if (port.write(command, sizeof(command)) !=
+                    if (port->write(command, sizeof(command)) !=
                             sizeof(command))
                         return -1;
 
@@ -116,15 +127,16 @@ namespace rs {
                 /*
                  * Write the data down the serial port.
                  */
-                return (port.write(command, sizeof(command)) !=
+                return (port->write(command, sizeof(command)) !=
                         sizeof(command));
             }
 
     	private:
             /*
-             * Serial port to be used for communication with the Maestro.
+             * Pointer to serial port to be used for communication with the
+             * Maestro.
              */
-            Serial &port;
+            Serial *port;
 
             /*
              * Time of the next reset command. The Maestro requires an arming
