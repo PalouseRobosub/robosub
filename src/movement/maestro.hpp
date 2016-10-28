@@ -2,7 +2,8 @@
  * @author Ryan Summers
  * @date 10-25-2016
  *
- * @brief Provides declaration of the thruster controller class.
+ * @brief Provides declaration and definitions of the thruster controller
+ *        class.
  *
  * @note Any documentation specified in this file refers to information located
  *       at https://www.pololu.com/docs/0J40. Information is formatted into
@@ -14,7 +15,6 @@
 #define THRUSTER_CONTROLLER_H
 
 #include "utility/serial.hpp"
-#include <arpa/inet.h>
 #include <ros/ros.h>
 #include <vector>
 
@@ -35,15 +35,20 @@ namespace rs {
      */
     class ThrusterController
     {
+        /*
+         * Specifies the delay in seconds after which a reset signal (1500
+         * microsecond pulse) should be sent.
+         */
         static constexpr double reset_delay = 120.0;
+
         public:
             /**
              * Constructor.
              *
              * @param _thrusters The number of thrusters controlled by the
              *        controller.
-             * @param _max_speed The maximum normalized speed inthe forward and
-             *        reverse directions that should be allowed by the
+             * @param _max_speed The maximum normalized speed in the forward
+             *        and reverse directions that should be allowed by the
              *        controller.
              */
             ThrusterController(const int _thrusters, const float _max_speed) :
@@ -51,22 +56,6 @@ namespace rs {
                         thrusters(_thrusters),
                         max_speed(_max_speed)
             {
-            }
-
-            /**
-             * Sets the serial port used to communicate with the thrusters.
-             *
-             * @param _port A configured and initialized serial port to be used
-             *        for communicating with the Maestro.
-             */
-            void setPort(Serial *_port)
-            {
-                port = _port;
-                if (_port != NULL)
-                {
-                    uint8_t detect_byte = 0xAA;
-                    port->Write(&detect_byte, 1);
-                }
             }
 
             /**
@@ -86,6 +75,32 @@ namespace rs {
                     }
                     set(zero);
                 }
+            }
+
+            /**
+             * Sets the serial port used to communicate with the thrusters.
+             *
+             * @param _port A pointer to a configured and initialized serial
+             *        port to be used for communicating with the Maestro.
+             *
+             * @return Zero upon success and -1 upon failure.
+             */
+            int setPort(Serial *_port)
+            {
+                port = _port;
+                if (_port != NULL)
+                {
+                    uint8_t detect_byte = 0xAA;
+                    if (port->Write(&detect_byte, 1) != 1)
+                    {
+                        ROS_DEBUG_STREAM("Serial port failed to write baud-detection bit.");
+                        return -1;
+                    }
+                    return 0;
+                }
+                ROS_DEBUG_STREAM("Serial port pointer supplied is not a valid
+                        pointer.");
+                return -1;
             }
 
             /**
@@ -113,37 +128,64 @@ namespace rs {
                     ROS_INFO_STREAM("Sending thruster reset signal.");
                     for (int thruster = 0; thruster < thrusters; ++thruster)
                     {
-                        parseNormalized(0, command[thruster*2+4],
-                                command[thruster*2+3]);
+                        if (parseNormalized(0, command[thruster*2+4],
+                                command[thruster*2+3]))
+                        {
+                            ROS_DEBUG_STREAM("Parse Normalized encountered
+                                    abnormal thruster speed.");
+                            return -1;
+                        }
                     }
 
                     if (port->Write(command, sizeof(command)) !=
                             sizeof(command))
+                    {
+                        ROS_DEBUG_STREAM("Serial port failed to write entire
+                                command.");
                         return -1;
+                    }
 
                     nextReset = ros::Time::now() + ros::Duration(reset_delay);
 
                     /*
-                     * Sleep for 175ms (8 50Hz cycles + 3/4 of one cycle) to
+                     * Sleep for 185ms (9 50Hz cycles + 1/4 of one cycle) to
                      * ensure that the zero pulse has propogated to the ESC.
                      * Experimental tests have found this value. Any value less
-                     * is insufficient.
+                     * is insufficient and will cause ESC malfuctions.
                      */
                     usleep(185000);
                 }
 
                 /*
-                 * Send thruster commands down the to the maestro.
+                 * Send thruster commands down the to the Maestro.
                  */
                 for (int thruster = 0; thruster < speeds.size(); ++thruster)
                 {
                     double speed = speeds[thruster];
-                    if (speed < -1 || speed > 1) return -1;
+                    if (speed < -1 || speed > 1)
+                    {
+                        ROS_DEBUG_STREAM("Thruster speed out of range.");
+                        return -1;
+                    }
 
-                    if (speed > max_speed) speed = max_speed;
-                    if (speed < -1*max_speed) speed = -1*max_speed;
-                    parseNormalized(speed, command[2*thruster+4],
-                            command[2*thruster+3]);
+                    if (speed > max_speed)
+                    {
+                        ROS_DEBUG_STREAM("Software-limiting thruster speed.");
+                        speed = max_speed;
+                    }
+                    if (speed < -1*max_speed)
+                    {
+                        ROS_DEBUG_STREAM("Software-limiting thruster reverse
+                                speed.");
+                        speed = -1*max_speed;
+                    }
+                    if (parseNormalized(speed, command[2*thruster+4],
+                            command[2*thruster+3]))
+                    {
+                        ROS_DEBUG_STREAM("Parse Normalized encountered abnormal
+                                thruster speed.");
+                        return -1;
+                    }
                 }
 
                 /*
@@ -155,7 +197,7 @@ namespace rs {
 
         private:
             /*
-             * Pointer to serial port to be used for communication with the
+             * Pointer to the serial port to be used for communication with the
              * Maestro.
              */
             Serial *port;
@@ -166,14 +208,17 @@ namespace rs {
             const float max_speed;
 
             /*
-             * The number of thrusters to be controlled.
+             * The number of thrusters to be controlled by the Maestro.
              */
             const int thrusters;
 
             /*
-             * Time of the next reset command. The Maestro requires an arming
-             * command of 1500 microseconds atleast once every 2 minutes and 35
-             * seconds.
+             * Represents the time of the next reset command. The Maestro
+             * requires an arming command of 1500 microseconds at least once
+             * every 2 minutes and 35 seconds. This is unspecified behavior in
+             * the datasheet and has been confirmed as a defect from the
+             * manufacturer. Experimentally, it has been found that this reset
+             * signal must be continued for atleast 185ms.
              */
             ros::Time nextReset;
 
@@ -190,52 +235,57 @@ namespace rs {
             enum class MaestroCommands : uint8_t
             {
                 /*
-                 * Sets the target of the servo. If the servo is configured as a
-                 * servo, this setting specifies the number of quarters of a
+                 * Sets the target of the servo. If the servo is configured as
+                 * a servo, this setting specifies the number of quarters of a
                  * microsecond to send as a pulse. Otherwise, the servo is
                  * operating as digital output. In this case, a value >= 6000
-                 * represents a '1' and a value of less than 6000 represents a '0'.
+                 * represents a '1' and a value of less than 6000 represents a
+                 * '0'.
                  */
                 SetTarget = 0x84,
 
                 /*
                  * Identical to SetTarget, except it allows for any number of
-                 * targets to be set. The channel number represents the starting
-                 * channel and is incremented by 1 for each target sent.
+                 * targets to be set. The channel number represents the
+                 * starting channel and is incremented by 1 for each target
+                 * sent. The first following byte represents the starting servo
+                 * index and the second byte represents the number of servos to
+                 * configure. All following bytes are the incrementing target
+                 * values.
                  */
                 SetMultipleTargets = 0x9F,
 
                 /*
-                 * Sets the speed at which a change in the target is propogated to
-                 * the servo. Units expressed are quarts of a microsecond per 10
-                 * milliseconds. For example, setting a value of 140 means that the
-                 * speed is 3.5 microseconds/millisecond. If the target is changed
-                 * from 1000 microseconds to 1350 microseconds, it will take 100 ms
-                 * for that adjustment to propogate. Speed has no effect on digital
-                 * inputs or outputs.
+                 * Sets the speed at which a change in the target is propogated
+                 * to the servo. Units expressed are quarts of a microsecond
+                 * per 10 milliseconds. For example, setting a value of 140
+                 * means that the speed is 3.5 microseconds/millisecond. If the
+                 * target is changed from 1000 microseconds to 1350
+                 * microseconds, it will take 100 ms for that adjustment to
+                 * propogate. Speed has no effect on digital inputs or outputs.
                  */
                 SetSpeed = 0x87,
 
                 /*
-                 * The acceleration represents how quickly the servo ramps up to
-                 * maximum speed. This represents 0.25 microseconds/10ms/80ms.
-                 * Values must be from 0 to 255.
+                 * The acceleration represents how quickly the servo ramps up
+                 * to maximum speed. Each value represents 0.25
+                 * microseconds/10ms/80ms. Values must be from 0 to 255.
                  */
                 SetAcceleration = 0x89,
 
                 /*
                  * Sets a specified servo channel to a PWM output. The 2 bytes
-                 * following the channel number indicate the on-time of the PWM and
-                 * the two bytes following that specify the period of the PWM.
-                 * These values are represented as 1/48microseconds.
+                 * following the channel number indicate the on-time of the PWM
+                 * and the two bytes following those two specify the period of
+                 * the PWM. These values are represented as 1/48microseconds.
                  */
                 SetPWM = 0x8A,
 
                 /*
                  * Gets the current position value of a channel. The meaning of
-                 * this value depends on the mode of the servo. In servo mode, it
-                 * returns the on-time of the servo. Response is sent as a 2-byte
-                 * response immediately after transmission.
+                 * this value depends on the mode of the servo. In servo mode,
+                 * it returns the on-time of the servo. Response is sent as a
+                 * 2-byte response immediately after transmission.
                  */
                 GetPosition = 0x90,
 
@@ -246,14 +296,15 @@ namespace rs {
                 GetMovingState = 0x93,
 
                 /*
-                 * Returns two bytes of error codes (LSB first) representing any
-                 * pending errors that the Maestro has detected.
+                 * Returns two bytes of error codes (LSB first) representing
+                 * any pending errors that the Maestro has detected. This
+                 * command accepts no following bytes.
                  */
                 GetErrors = 0xA1,
 
                 /*
-                 * Sets all servos to go to the home position. This command accepts
-                 * no following bytes.
+                 * Sets all servos to go to the home position. This command
+                 * accepts no following bytes.
                  */
                 GoHome = 0xA2
             };
@@ -261,16 +312,19 @@ namespace rs {
             /**
              * Parses a normalized speed value into a Maestro-compatible number.
              *
-             * @param speed The normalized speed to parse.
-             * @param[out] msb The location to store the most significant bit of
-             *             the result.
-             * @param[out] lsb The location to store the least significant bit of
-             *             the result.
+             * @param speed The normalized speed to parse. Values must fall
+             8        within the range [-1,1].
+             * @param[out] msb The location to store the most significant bit
+             *             of the result.
+             * @param[out] lsb The location to store the least significant bit
+             *             of the result.
              *
-             * @return None.
+             * @return Zero on success and -1 on failure.
              */
-            void  parseNormalized(const double speed, uint8_t &msb, uint8_t &lsb)
+            int parseNormalized(const double speed, uint8_t &msb, uint8_t &lsb)
             {
+                if (speed < -1 || speed > 1) return -1;
+
                 const uint16_t speed_microseconds = speed*400;
                 const uint16_t quarter_microseconds = (1500+speed_microseconds)*4;
 
@@ -279,6 +333,8 @@ namespace rs {
                  */
                 msb = quarter_microseconds >> 7;
                 lsb = quarter_microseconds & 0x7F;
+
+                return 0;
             }
     };
 }
