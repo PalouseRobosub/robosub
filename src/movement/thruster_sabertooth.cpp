@@ -31,11 +31,11 @@ serial_data[3] checksum (call checksum function)
 */
 void createThrusterPacket (uint8_t serial_data[4], double value, int index)
 {
-    serial_data[0] = mThruster_info[i].address;
-    
+    serial_data[0] = mThruster_info[index].address;
+
     /*Command*/
     //Port 1
-    if(mThruster_info[i].port == 0)
+    if(mThruster_info[index].port == 0)
     {
       if(value < 0)
       { //command - backwards port 1
@@ -63,7 +63,7 @@ void createThrusterPacket (uint8_t serial_data[4], double value, int index)
     if (value != value)
     {
         serial_data[2] = 0;
-        ROS_ERROR("NaN recieved. Stopping thrusters.");
+        ROS_ERROR("NaN recieved. Stopping thruster.");
     }
     else
     {
@@ -73,7 +73,7 @@ void createThrusterPacket (uint8_t serial_data[4], double value, int index)
 
     //checksum
     checksum(serial_data);
-  }
+ }
 
 /*Message recieved, send thruster package to thrusters
   Publish thruster information with name*/
@@ -91,18 +91,18 @@ void callBack(const robosub::thruster::ConstPtr& msg)
       mSerial.Write(serial_data, 4);
 
       //Publish thruster info with name
-      ROS_INFO_STREAM(mThruster_info[i].name << ":\t" << message.data[i]);
+      ROS_DEBUG_STREAM(mThruster_info[i].name << ":\t" << message.data[i]);
     }
 }
 
 /*Set a timeout
   Hardware cannot have a value greater than 256: uint8_t*/
-void setTimeOut (uint8_t ms_100, int num_of_thrusters)
+void setTimeOut (uint8_t ms_100)
 {
   uint8_t serial_data[4];
 
   //loop through thrusters
-  for (int i = 0; i < num_of_thrusters; i++)
+  for (int i = 0; i < mThruster_info.size(); i++)
   {
     //adress: loop over addresses
     serial_data[0] = mThruster_info[i].address;
@@ -127,17 +127,15 @@ int main(int argc, char **argv)
 
   ros::Subscriber sub = n.subscribe("thruster", 1, callBack);
 
-  setTimeOut(10); //1 sec timeout
 
-	std::string thruster_port;
-	if(!n.getParam("ports/thruster", thruster_port))
-	{
-		ROS_FATAL("No serial port specified!");
-		exit(1);
-	}
+    std::string thruster_port;
+    if(!n.getParam("ports/thruster", thruster_port))
+    {
+        ROS_FATAL("No serial port specified!");
+        exit(1);
+    }
 
-	mSerial.Open(thruster_port.c_str(), B9600);
-  //I think I'm supposed to add checks here
+    mSerial.Open(thruster_port.c_str(), B9600);
 
     XmlRpc::XmlRpcValue my_list;
     ros::param::get("thrusters", my_list);
@@ -154,15 +152,17 @@ int main(int argc, char **argv)
         mThruster_info.push_back(one_thruster);
       }
 
+  setTimeOut(5); //0.5 sec timeout
+
   ros::spin();
 
+  //shutdown thrusters when node exits
   uint8_t serial_data[4];
-  int num_of_thrusters = 6; //Change number of thrusters here as needed
-
   //Loop through thrusters
-  for (int i = 0; i < num_of_thrusters; i++)
+  for (int i = 0; i < mThruster_info.size(); i++)
   {
     createThrusterPacket(serial_data, 0, i);
+    mSerial.Write(serial_data, 4);
   }
 
   return 0;
