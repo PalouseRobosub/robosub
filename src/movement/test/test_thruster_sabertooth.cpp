@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include "ros/ros.h"
 #include "robosub/thruster.h"
-#include "utility/serial_testbench.hpp"
 #include "utility/serial.hpp"
+#include "utility/test_tools.hpp"
 
 typedef struct thruster_info
 {
@@ -12,10 +12,13 @@ typedef struct thruster_info
 }Thruster_info;
 
 Thruster_info *mThruster_info;
-Serial mSerial;
+rs::Serial mSerial;
+ros::Publisher pub;
 
 TEST(SerialSubscriber, basicTest)
 {
+    XmlRpc::XmlRpcValue my_list;
+    mThruster_info = new struct thruster_info[my_list.size()];
     //Variables for testing use.
     uint8_t address = 0, cmd_byte = 0, speed = 0, checksum = 0;
     int count = 0;
@@ -37,37 +40,33 @@ TEST(SerialSubscriber, basicTest)
     //publish the thruster message
     pub.publish(saber_msg);
 
+    for(int i=0; i < my_list.size(); ++i)
+      {
+          ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
+          ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
+          ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+         mThruster_info[i].name = static_cast<std::string>(my_list[i]["name"]);
+         mThruster_info[i].address = static_cast<int>(my_list[i]["address"]);
+        mThruster_info[i].port = static_cast<int>(my_list[i]["port"]);
+        }
+
     //after we published the thruster message, the thruster module should have
     //received the message, and then sent some data down the serial port, here
     //we read that data and verify it is correct
     //read one byte from the serial port
-
     //
     while(count < 6)
     {
-        /*
-        if(count < 2)
-        {
-          address = 128;
-        }
-        else if(count < 4)
-        {
-          address = 129;
-        }
-        else
-        {
-          address = 130;
-        } */
-
         //Gets address
-        address = mThruster_info[count].address
+        ROS_ERROR("GOT HERE");
+        address = mThruster_info[count].address;
+        ROS_ERROR("THEN GOT HERE");
 
         //If positive, command should be 0
         if(saber_msg.data[count] > 0)
         {
           cmd_byte = 0;
         }
-
         //If negative, command should be 1
         else if(saber_msg.data[count] < 0)
         {
@@ -78,7 +77,7 @@ TEST(SerialSubscriber, basicTest)
         speed = abs(saber_msg.data[count] * 127);
 
         //Check sum
-        checksum = address + cmd_byte + speed;
+        checksum = (address + cmd_byte + speed) & 127;
 
         mSerial.Read(serial_data, 4);
 
@@ -87,6 +86,7 @@ TEST(SerialSubscriber, basicTest)
         EXPECT_EQ(cmd_byte, serial_data[1]);
         EXPECT_EQ(speed, serial_data[2]);
         EXPECT_EQ(checksum, serial_data[3]);
+        ROS_ERROR("AND THEN GOT HERE");
 
         count++;
     }
@@ -113,8 +113,9 @@ int main(int argc, char *argv[])
   ros::param::set("thruster_serial_port", UUT_port);
   mSerial.Open(testing_port.c_str(), B9600);
 
+
   pub = n.advertise<robosub::thruster>("thruster", 1);
 
-  rs::wait_for_subscriber(pub, 3);
+  rs::wait_for_subscriber(pub, 60);
   return RUN_ALL_TESTS();
 }

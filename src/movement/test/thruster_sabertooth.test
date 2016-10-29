@@ -1,5 +1,5 @@
 <launch>
-    <param name="thruster_serial_port" value="thruster_sabertooth_test_port" type="str" />
-    <test test-name="test_thruster_sabertooth" pkg="robosub" type="test_thruster_sabertooth" />
-    <node name="thruster_sabertooth" pkg="robosub" type="delayed_node.sh" args="1 thruster_sabertooth_test"/>
-</launch
+    <test test-name="test_sabertooth_thruster" pkg="robosub" type="test_sabertooth_thruster" />
+    <node name="thruster_sabertooth" pkg="robosub" type="delayed_node.sh" args="1 thruster_sabertooth"/>
+    <rosparam command="load" file="$(find robosub)/param/ironman.param" />
+</launch>
