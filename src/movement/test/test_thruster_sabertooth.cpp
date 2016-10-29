@@ -11,14 +11,13 @@ typedef struct thruster_info
   uint8_t port;      // 0 or 1
 }Thruster_info;
 
-Thruster_info *mThruster_info;
+std::vector<Thruster_info> mThruster_info;
 rs::Serial mSerial;
 ros::Publisher pub;
 
 TEST(SerialSubscriber, basicTest)
 {
-    XmlRpc::XmlRpcValue my_list;
-    mThruster_info = new struct thruster_info[my_list.size()];
+    uint8_t waste[24] = {0};
     //Variables for testing use.
     uint8_t address = 0, cmd_byte = 0, speed = 0, checksum = 0;
     int count = 0;
@@ -40,37 +39,59 @@ TEST(SerialSubscriber, basicTest)
     //publish the thruster message
     pub.publish(saber_msg);
 
-    for(int i=0; i < my_list.size(); ++i)
-      {
-          ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
-          ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
-          ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
-         mThruster_info[i].name = static_cast<std::string>(my_list[i]["name"]);
-         mThruster_info[i].address = static_cast<int>(my_list[i]["address"]);
-        mThruster_info[i].port = static_cast<int>(my_list[i]["port"]);
-        }
+    //gets the list that holds the information for all of the thrusters
+    XmlRpc::XmlRpcValue my_list;
+    ros::param::get("thrusters", my_list);
 
+    /*stores the information for all of the thrusters into the mThruster_info
+     struct in vector form*/
+    for(int i=0; i < my_list.size(); ++i)
+    {
+        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+        Thruster_info one_thruster;
+        one_thruster.name = static_cast<std::string>(my_list[i]["name"]);
+        one_thruster.address = static_cast<int>(my_list[i]["address"]);
+        one_thruster.port = static_cast<int>(my_list[i]["port"]);
+        mThruster_info.push_back(one_thruster);
+      }
+
+      //reads the first 24 bytes from the serial port to take them out of the way
+      mSerial.Read(waste, 24);
     //after we published the thruster message, the thruster module should have
     //received the message, and then sent some data down the serial port, here
     //we read that data and verify it is correct
     //read one byte from the serial port
-    //
+
     while(count < 6)
     {
         //Gets address
-        ROS_ERROR("GOT HERE");
         address = mThruster_info[count].address;
-        ROS_ERROR("THEN GOT HERE");
 
         //If positive, command should be 0
-        if(saber_msg.data[count] > 0)
+        if(mThruster_info[count].port == 0)
         {
-          cmd_byte = 0;
+          if(saber_msg.data[count] < 0)
+          { //command - backwards port 1
+            cmd_byte = 1;
+          }
+          else
+          { //command - forwards port 1
+            cmd_byte = 0;
+          }
         }
-        //If negative, command should be 1
-        else if(saber_msg.data[count] < 0)
+        //Other ports (Port 2)
+        else
         {
-          cmd_byte = 1;
+          if(saber_msg.data[count] < 0)
+          { //command - backwards port 2
+            cmd_byte = 5;
+          }
+          else
+          { //command - forwards port 2
+            cmd_byte = 4;
+          }
         }
 
         //Calculates speed
@@ -86,7 +107,6 @@ TEST(SerialSubscriber, basicTest)
         EXPECT_EQ(cmd_byte, serial_data[1]);
         EXPECT_EQ(speed, serial_data[2]);
         EXPECT_EQ(checksum, serial_data[3]);
-        ROS_ERROR("AND THEN GOT HERE");
 
         count++;
     }
@@ -110,7 +130,7 @@ int main(int argc, char *argv[])
         exit(1);
   }
 
-  ros::param::set("thruster_serial_port", UUT_port);
+  ros::param::set("ports/thruster", UUT_port);
   mSerial.Open(testing_port.c_str(), B9600);
 
 
