@@ -43,12 +43,12 @@ namespace rs {
 
     public:
 
-        ThrusterController(const int thrusters, const double max_speed, const
-                Serial *port, const double delay_ms);
+        ThrusterController(const int thrusters, const double max_speed, Serial
+                *port = nullptr, const double delay_ms = 185.00);
 
         ~ThrusterController();
 
-        int setPort(const Serial *port);
+        int setPort(Serial *port);
 
         int set(vector<double> &speeds);
 

@@ -14,8 +14,8 @@ namespace rs
      */
     ThrusterController::ThrusterController(const int thrusters,
                                            const double max_speed,
-                                           const Serial *port = nullptr,
-                                           const double delay_ms = 185.00) :
+                                           Serial *port,
+                                           const double delay_ms) :
             _port(port),
             _thrusters(_thrusters),
             _max_speed(_max_speed),
@@ -50,7 +50,7 @@ namespace rs
      *
      * @return Zero upon success and -1 upon failure.
      */
-    int ThrusterController::setPort(const Serial *port)
+    int ThrusterController::setPort(Serial *port)
     {
         _port = port;
         if (_port != nullptr)
@@ -82,7 +82,7 @@ namespace rs
          * Create an array of bytes. Each thruster command requires 2 bytes and
          * 3 bytes are used for the header.
          */
-        uint8_t command[thrusters*2+3];
+        uint8_t command[_thrusters*2+3];
         command[0] = static_cast<uint8_t>(MaestroCommands::SetMultipleTargets);
         command[1] = _thrusters;
         command[2] = 0;
@@ -100,13 +100,12 @@ namespace rs
                 if (parseNormalized(0, command[current_thruster*2+4],
                             command[current_thruster*2+3]))
                 {
-                    ROS_ERROR("Parse Normalized encountered abnormal thruster
-                            speed.");
+                    ROS_ERROR_STREAM( "Parse Normalized encountered abnormal thruster speed.");
                     return -1;
                 }
             }
 
-            if (port->Write(command, sizeof(command)) != sizeof(command))
+            if (_port->Write(command, sizeof(command)) != sizeof(command))
             {
                 ROS_ERROR("Serial port failed to write entire command.");
                 return -1;
@@ -133,21 +132,20 @@ namespace rs
                 return -1;
             }
 
-            if (current_speed > max_speed)
+            if (current_speed > _max_speed)
             {
                 ROS_INFO("Software-limiting thruster speed.");
-                current_speed = max_speed;
+                current_speed = _max_speed;
             }
-            if (current_speed < -1*max_speed)
+            if (current_speed < -1*_max_speed)
             {
                 ROS_INFO("Software-limiting thruster reverse speed.");
-                current_speed = -1*max_speed;
+                current_speed = -1*_max_speed;
             }
             if (parseNormalized(current_speed, command[2*thruster+4],
                         command[2*thruster+3]))
             {
-                ROS_ERROR("Parse Normalized encountered abnormal thruster
-                        speed.");
+                ROS_ERROR("Parse Normalized encountered abnormal thruster speed.");
                 return -1;
             }
         }
@@ -155,7 +153,7 @@ namespace rs
         /*
          * Write the data down the serial port.
          */
-        return (port->Write(command, sizeof(command)) != sizeof(command));
+        return (_port->Write(command, sizeof(command)) != sizeof(command));
     }
 
     /**
