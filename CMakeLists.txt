@@ -17,7 +17,11 @@ find_package(catkin REQUIRED COMPONENTS
   rostest
   message_filters
   tf
+  image_transport
+  cv_bridge
 )
+
+find_package(OpenCV REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -117,7 +121,7 @@ catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robosub
   CATKIN_DEPENDS roscpp rospy dynamic_reconfigure std_msgs message_runtime
-#  DEPENDS system_lib
+  DEPENDS OpenCV
 )
 
 #############
@@ -143,6 +147,7 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
   src
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 #macro for adding and linking nodes to the ros framework
@@ -166,3 +171,4 @@ add_subdirectory(src/utility)
 add_subdirectory(src/movement)
 add_subdirectory(src/sensors)
 add_subdirectory(src/joystick)
+add_subdirectory(src/vision)
