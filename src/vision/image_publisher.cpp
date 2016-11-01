@@ -16,8 +16,8 @@ int main(int argc, char** argv)
 
     image_transport::ImageTransport it(nh);
 
-    image_transport::Publisher pub_left = it.advertise("camera/image_left", 1);
-    image_transport::Publisher pub_right = it.advertise("camera/image_right", 1);
+    image_transport::Publisher pub_left = it.advertise("camera/left/image", 1);
+    image_transport::Publisher pub_right = it.advertise("camera/right/image", 1);
 
     ros::Rate loop_rate(5);
 
