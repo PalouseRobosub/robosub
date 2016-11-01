@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+	<node pkg="robosub" type="unity_bridge.py" name="unity_bridge" required="true"/>
+	<node pkg="robosub" type="image_publisher" name="image_publisher" required="true"/>
+</launch>
