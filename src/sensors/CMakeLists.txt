@@ -13,3 +13,9 @@ target_link_libraries(depth serial)
 add_ros_node(hydrophones trilateration.cpp)
 
 add_ros_node(print_orientation print_orientation.cpp)
+
+add_library(localization_system localization_system.cpp)
+add_dependencies(localization_system  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_ros_node(localization localization.cpp)
+target_link_libraries(localization localization_system)
