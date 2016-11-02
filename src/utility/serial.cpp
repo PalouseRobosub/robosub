@@ -28,7 +28,7 @@ namespace rs
         if (this->m_port_fd < 0)
         {
             ROS_FATAL("could not open port: %s", port_name);
-            ros::shutdown();
+            exit(1);
         }
 
 

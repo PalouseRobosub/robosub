@@ -10,7 +10,7 @@
 typedef struct thruster_info
 {
     std::string name;
-    uint8_t port;
+    uint8_t channel;
 }Thruster_info;
 
 using namespace rs;
@@ -23,7 +23,7 @@ void Callback (const robosub::thruster::ConstPtr& msg)
     int result = 0;
     for (int i = 0; i < msg->data.size(); i++)
     {
-        result = thrusterController.set(msg->data[i], mThruster_info[i].port);
+        result = thrusterController.set(msg->data[i], mThruster_info[i].channel);
         if(result != 0)
         {
             ROS_ERROR_STREAM("Setting speed of thrusters failed.");
@@ -36,7 +36,7 @@ void zeroThrusterSpeeds()
     int result = 0;
     for (int i = 0; i < mThruster_info.size(); i++)
     {
-        result = thrusterController.set(0, mThruster_info[i].port);
+        result = thrusterController.set(0, mThruster_info[i].channel);
         if(result != 0)
         {
             ROS_ERROR_STREAM("Setting speed of thrusters failed.");
@@ -66,10 +66,10 @@ int main(int argc, char **argv)
     for(int i=0; i < my_list.size(); ++i)
     {
         ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][channel]:    " << my_list[i]["channel"]);
         Thruster_info one_thruster;
         one_thruster.name = static_cast<std::string>(my_list[i]["name"]);
-        one_thruster.port = static_cast<int>(my_list[i]["port"]);
+        one_thruster.channel = static_cast<int>(my_list[i]["channel"]);
         mThruster_info.push_back(one_thruster);
     }
 

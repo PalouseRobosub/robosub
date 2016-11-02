@@ -1,5 +1,10 @@
 #include "control_system.hpp"
 
+int Sgn(float x)
+{
+    return (x > 0) - (x < 0);
+}
+
 ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
 {
     nh = new ros::NodeHandle("control");

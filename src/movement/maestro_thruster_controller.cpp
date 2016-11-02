@@ -9,13 +9,7 @@ namespace rs
     {
         _is_initialized = false;
 
-        //initialze thruster reset times
-        //loop over all possible channels (0-11)
-        ros::Time now = ros::Time::now();
-        for(uint8_t i = 0; i < _max_thrusters; ++i)
-        {
-            _next_reset[i] = now;
-        }
+
     }
 
 
@@ -50,13 +44,17 @@ namespace rs
 
         _post_reset_delay_ms == delay_ms;
 
-        /*
-         * set the max speed for all thrusters
-         */
-         for (uint8_t i=0; i < _max_thrusters; ++i)
-         {
-             _max_speed[i] = max_speed;
-         }
+        //initialze thruster settings
+        //loop over all possible channels (0-11)
+        ros::Time now = ros::Time::now();
+        for(uint8_t i = 0; i < _max_thrusters; ++i)
+        {
+            //initialze reset time
+            _next_reset[i] = now;
+
+            //set max speed for thruster
+            _max_speed[i] = max_speed;
+        }
 
         if (delay_ms < 185.00)
         {
