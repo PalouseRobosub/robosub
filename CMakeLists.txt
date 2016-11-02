@@ -152,7 +152,7 @@ include_directories(
 
 #macro for adding and linking nodes to the ros framework
 macro(add_ros_node node_name file_name)
-	add_executable(${node_name} ${file_name})
+	add_executable(${node_name} ${file_name} ${ARGN})
 	add_dependencies(${node_name}  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 	target_link_libraries(${node_name} ${catkin_LIBRARIES})
 endmacro(add_ros_node)
