@@ -44,4 +44,5 @@ before_script:
   - cd ..
 
 script:
+  - catkin_make
   - catkin_make run_tests
