@@ -11,14 +11,14 @@
  *       subsection 5.
  */
 
-#ifndef THRUSTER_CONTROLLER_H
-#define THRUSTER_CONTROLLER_H
+#ifndef MAESTRO_THRUSTER_CONTROLLER_H
+#define MAESTRO_THRUSTER_CONTROLLER_H
 
 #include "utility/serial.hpp"
 #include <ros/ros.h>
 #include <vector>
+#include <map>
 
-using std::vector;
 
 namespace rs {
     /**
@@ -33,7 +33,7 @@ namespace rs {
      * @tparam max_speed The software limit on the maximum speed that any
      *         thruster may be set to.
      */
-    class ThrusterController
+    class MaestroThrusterController
     {
         /*
          * Specifies the delay in seconds after which a reset signal (1500
@@ -43,16 +43,24 @@ namespace rs {
 
     public:
 
-        ThrusterController(const int thrusters, const double max_speed, Serial
-                *port = nullptr, const double delay_ms = 185.00);
+        MaestroThrusterController();
 
-        ~ThrusterController();
+        ~MaestroThrusterController();
 
-        int setPort(Serial *port);
+        int init(const double max_speed, Serial *port,
+            const double post_reset_delay_ms = 185.00);
 
-        int set(vector<double> &speeds);
+        int set(double speed, const uint8_t &channel);
 
     private:
+        int setPort(Serial *port);
+
+        /*
+         * Have we sucessfully called init?
+         *
+         */
+        bool _is_initialized;
+
         /*
          * Pointer to the serial port to be used for communication with the
          * Maestro.
@@ -62,28 +70,28 @@ namespace rs {
         /*
          * The maximum speed setting that a thruster may be set to.
          */
-        const double _max_speed;
+        std::map<uint8_t, double> _max_speed;
 
         /*
          * The number of thrusters to be controlled by the Maestro.
          */
-        const int _thrusters;
+        const int _max_thrusters = 12;
 
         /*
          * The delay (in milliseconds) to sleep after every reset cycle.  This
          * value must be greater than, or equal, to 185ms.
          */
-        const double _delay_ms;
+        double _post_reset_delay_ms;
 
         /*
-         * Represents the time of the next reset command. The Maestro requires
+         * Represents the time of the next reset command for each thruster. The Maestro requires
          * an arming command of 1500 microseconds at least once every 2 minutes
          * and 35 seconds. This is unspecified behavior in the datasheet and
          * has been confirmed as a defect from the manufacturer.
          * Experimentally, it has been found that this reset signal must be
          * continued for atleast 185ms.
          */
-        ros::Time _next_reset;
+        std::map<uint8_t,ros::Time> _next_reset;
 
         /**
          * Maestro-defined serial bytes that have special meaning to the

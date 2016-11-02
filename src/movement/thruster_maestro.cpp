@@ -1,51 +1,84 @@
+/*
+ * Michelle Farr - 10/25/2016
+ * I am working on this... Haven't tested it at all
+ */
 #include "ros/ros.h"
 #include "utility/serial.hpp"
 #include "robosub/thruster.h"
+#include "maestro_thruster_controller.hpp"
+
+typedef struct thruster_info
+{
+    std::string name;
+    uint8_t port;
+}Thruster_info;
 
 using namespace rs;
-Serial outmessage;
-
-uint16_t translatemessage (const double data)
-{
-	/*
-	To translate a value x in the range (a, b) into a value f(x) in the range (c, d)
-	 f(x) = (x - a)*((d - c)/(b - a)) + c
-	 For example: If we want to translate 0 in the interval (-1, 1) to it's equivalent in (1000, 2000)
-	 {the value we want} = (0 - 1000)*((2000-1000)/(1 - (-1))) + 1000
-	 */
-	return 4*((data+1)*(500) + 1000);
-}
+Serial serial;
+MaestroThrusterController thrusterController;
+std::vector<Thruster_info> mThruster_info;
 
 void Callback (const robosub::thruster::ConstPtr& msg)
 {
-robosub::thruster message = *msg;
-uint8_t serial_data[40];
-for (int i = 0; i < message.data.size(); i++)
-	{
-		serial_data[0] = 132;
-		serial_data[1] = i;
-		uint16_t rawvalue = translatemessage(message.data[i]);
-		serial_data[2] = rawvalue & 0xff;
-		serial_data[3] = (rawvalue & 0xff00) >> 8;
-	ROS_INFO("%lf", message.data[i]);
-	outmessage.Write(serial_data, 4);
-	}
+    int result = 0;
+    for (int i = 0; i < msg->data.size(); i++)
+    {
+        result = thrusterController.set(msg->data[i], mThruster_info[i].port);
+        if(result != 0)
+        {
+            ROS_ERROR_STREAM("Setting speed of thrusters failed.");
+        }
+    }
 }
 
-
+void zeroThrusterSpeeds()
+{
+    int result = 0;
+    for (int i = 0; i < mThruster_info.size(); i++)
+    {
+        result = thrusterController.set(0, mThruster_info[i].port);
+        if(result != 0)
+        {
+            ROS_ERROR_STREAM("Setting speed of thrusters failed.");
+        }
+    }
+}
 
 int main(int argc, char **argv)
 {
-		std::string thruster_port;
+    std::string thruster_port;
     ros::init(argc, argv, "thruster");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("thruster", 1, Callback);
-		if(!n.getParam("ports/thruster", thruster_port))
+
+    if(!n.getParam("ports/thruster", thruster_port))
     {
-      ROS_FATAL("no serial port specified, exiting!");
-      exit(1);
+        ROS_FATAL("no serial port specified, exiting!");
+        exit(1);
     }
-		outmessage.Open(thruster_port.c_str(), B9600);
-		ros::spin();
+
+    serial.Open(thruster_port.c_str(), B9600);
+
+    //Get the ports and names of the maestro thrusters (from coblat.yaml)
+    XmlRpc::XmlRpcValue my_list;
+    ros::param::get("thrusters", my_list);
+
+    for(int i=0; i < my_list.size(); ++i)
+    {
+        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+        Thruster_info one_thruster;
+        one_thruster.name = static_cast<std::string>(my_list[i]["name"]);
+        one_thruster.port = static_cast<int>(my_list[i]["port"]);
+        mThruster_info.push_back(one_thruster);
+    }
+
+    thrusterController.init(0.6, &serial);
+
+    ros::spin();
+
+    //set speed of thrusters to zero when done
+    zeroThrusterSpeeds();
+
     return 0;
 }
