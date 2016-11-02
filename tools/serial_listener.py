@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import signal
+import threading
 
 """
 exit handler
@@ -31,8 +32,6 @@ def waitKeyboard():
 def main(args):
 
     #setup clearscreen thread
-    import threading
-
     t = threading.Thread(target=waitKeyboard)
     t.daemon = True
     t.start()

@@ -60,16 +60,16 @@ int main(int argc, char **argv)
     serial.Open(thruster_port.c_str(), B9600);
 
     //Get the ports and names of the maestro thrusters (from coblat.yaml)
-    XmlRpc::XmlRpcValue my_list;
-    ros::param::get("thrusters", my_list);
+    XmlRpc::XmlRpcValue thruster_settings;
+    ros::param::get("thrusters", thruster_settings);
 
-    for(int i=0; i < my_list.size(); ++i)
+    for(int i=0; i < thruster_settings.size(); ++i)
     {
-        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][channel]:    " << my_list[i]["channel"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << thruster_settings[i]["name"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][channel]:    " << thruster_settings[i]["channel"]);
         Thruster_info one_thruster;
-        one_thruster.name = static_cast<std::string>(my_list[i]["name"]);
-        one_thruster.channel = static_cast<int>(my_list[i]["channel"]);
+        one_thruster.name = static_cast<std::string>(thruster_settings[i]["name"]);
+        one_thruster.channel = static_cast<int>(thruster_settings[i]["channel"]);
         mThruster_info.push_back(one_thruster);
     }
 
