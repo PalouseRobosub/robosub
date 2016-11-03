@@ -57,7 +57,7 @@ namespace rs
             _max_speed[i] = max_speed;
         }
 
-        _post_reset_delay_ms == post_reset_delay_ms;
+        _post_reset_delay_ms = post_reset_delay_ms;
         if (post_reset_delay_ms < min_post_reset_delay_ms)
         {
             ROS_ERROR("Thruster millisecond delay is too low.");
