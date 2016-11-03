@@ -1,4 +1,6 @@
 #include "movement/maestro_thruster_controller.hpp"
+#include "utility/math.hpp"
+
 namespace rs
 {
     /**
@@ -35,19 +37,18 @@ namespace rs
      */
     int MaestroThrusterController::init( const double max_speed,
                                            Serial *port,
-                                           const double delay_ms)
+                                           const int post_reset_delay_ms)
     {
         if(setPort(port) != 0)
         {
             return -1;
         }
 
-        _post_reset_delay_ms == delay_ms;
 
         //initialze thruster settings
         //loop over all possible channels (0-11)
         ros::Time now = ros::Time::now();
-        for(uint8_t i = 0; i < _max_thrusters; ++i)
+        for(uint8_t i = 0; i < max_thrusters; ++i)
         {
             //initialze reset time
             _next_reset[i] = now;
@@ -56,7 +57,8 @@ namespace rs
             _max_speed[i] = max_speed;
         }
 
-        if (delay_ms < 185.00)
+        _post_reset_delay_ms == post_reset_delay_ms;
+        if (post_reset_delay_ms < min_post_reset_delay_ms)
         {
             ROS_ERROR("Thruster millisecond delay is too low.");
             return -1;
@@ -135,7 +137,7 @@ namespace rs
                 return -1;
             }
 
-            _next_reset[channel] = ros::Time::now() + ros::Duration(reset_delay);
+            _next_reset[channel] = ros::Time::now() + ros::Duration(reset_timeout);
 
             /*
              * Sleep to ensure that the zero pulse has propogated to the ESC.
@@ -154,16 +156,12 @@ namespace rs
             return -1;
         }
 
-        if (speed > _max_speed[channel])
+        if(abs(speed) > _max_speed[channel])
         {
             ROS_INFO("Software-limiting thruster speed.");
-            speed = _max_speed[channel];
+            speed = _max_speed[channel] * rs::math::sign(speed);
         }
-        if (speed < -1*_max_speed[channel])
-        {
-            ROS_INFO("Software-limiting thruster reverse speed.");
-            speed = -1*_max_speed[channel];
-        }
+
         if (parseNormalized(speed, command[3], command[2]))
         {
             ROS_ERROR("Parse Normalized encountered abnormal thruster speed.");
@@ -192,6 +190,15 @@ namespace rs
      int MaestroThrusterController::parseNormalized(const double speed, uint8_t &msb,
              uint8_t &lsb)
      {
+         //General process for determining the value:
+         //The thruster ESC expects a pulse-width value in the range of 1100-1900us
+         //with 1100us being full-reverse, 1900us full-forward, and 1500us stop.
+         //to translate -1 to 1 to this range, use the following equation:
+         //    pulse_width = (1500 + 400*speed)
+         //once the pulse-width is known, the value to send down to the maestro
+         //is calculated as follows:
+         //     msb = (pulse_width*4) >> 7
+         //     lsb = (pulse_width*4) & 0x7F
          if (speed < -1 || speed > 1) return -1;
 
          const uint16_t speed_microseconds = speed*400;

@@ -1,9 +1,7 @@
 #include "control_system.hpp"
+#include "utility/math.hpp"
 
-int Sgn(float x)
-{
-    return (x > 0) - (x < 0);
-}
+
 
 ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
 {
@@ -380,7 +378,7 @@ VectorXd ControlSystem::motor_control(Vector12d state)
     for(int i=0; i < 6; ++i)  //check for integral windup
     {
         if(fabs(integral_state(i)) > fabs(windup(i)))
-            integral_state(i) = windup(i) * Sgn(integral_state(i));
+            integral_state(i) = windup(i) * rs::math::sign(integral_state(i));
     }
 
     //perform hysteresis computation
@@ -428,9 +426,9 @@ VectorXd ControlSystem::motor_control(Vector12d state)
     for (int i=0; i < num_thrusters; ++i)
     {
         if(fabs(m_ctrl_t(i)) > t_lim)
-            m_ctrl_t(i) = t_lim*Sgn(m_ctrl_t(i));
+            m_ctrl_t(i) = t_lim*rs::math::sign(m_ctrl_t(i));
         if(fabs(m_ctrl_r(i)) > r_lim)
-            m_ctrl_r(i) = r_lim*Sgn(m_ctrl_r(i));
+            m_ctrl_r(i) = r_lim*rs::math::sign(m_ctrl_r(i));
     }
 
     VectorXd m_ctrl_sum = m_ctrl_t + m_ctrl_r;

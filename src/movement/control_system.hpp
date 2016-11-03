@@ -29,8 +29,6 @@ typedef Matrix<double,6,6> Matrix6d;
 
 #define _PI_OVER_180 (3.1415 / 180.0)
 
-int Sgn(float x);
-
 class ControlSystem
 {
 private:

@@ -1,7 +1,7 @@
 
 #thruster nodes
 add_ros_node(thruster_maestro thruster_maestro.cpp maestro_thruster_controller.cpp)
-target_link_libraries(thruster_maestro serial)
+target_link_libraries(thruster_maestro serial math)
 
 add_ros_node(thruster_sabertooth thruster_sabertooth.cpp)
 target_link_libraries(thruster_sabertooth serial)
@@ -9,3 +9,4 @@ target_link_libraries(thruster_sabertooth serial)
 
 #control system node
 add_ros_node(control control.cpp control_system.cpp rotation_engine.cpp)
+target_link_libraries(control math)

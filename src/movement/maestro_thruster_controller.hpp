@@ -37,9 +37,23 @@ namespace rs {
     {
         /*
          * Specifies the delay in seconds after which a reset signal (1500
-         * microsecond pulse) should be sent.
+         * microsecond pulse) should be sent to the ESC. This must occur
+         * periodically (at least once every 2:35 minutes), or the ESC will
+         * stop responding to commands.
          */
-        static constexpr double reset_delay = 120.0;
+        static constexpr double reset_timeout = 120.0;
+
+        /*
+         * The number of thrusters to be controlled by the Maestro.
+         */
+        static constexpr int max_thrusters = 12;
+
+        /*
+         * the minimum time (in milliseconds) needed for reset signal to
+         * propagate from the maestro to the ESC, determined emperically
+         */
+        static constexpr int min_post_reset_delay_ms = 185;
+
 
     public:
 
@@ -48,7 +62,7 @@ namespace rs {
         ~MaestroThrusterController();
 
         int init(const double max_speed, Serial *port,
-            const double post_reset_delay_ms = 185.00);
+            const int post_reset_delay_ms = min_post_reset_delay_ms );
 
         int set(double speed, const uint8_t &channel);
 
@@ -72,10 +86,7 @@ namespace rs {
          */
         std::map<uint8_t, double> _max_speed;
 
-        /*
-         * The number of thrusters to be controlled by the Maestro.
-         */
-        const int _max_thrusters = 12;
+
 
         /*
          * The delay (in milliseconds) to sleep after every reset cycle.  This
