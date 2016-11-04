@@ -13,7 +13,7 @@
         <node pkg="nodelet" type="nodelet" name="left_camera_manager" args="manager" />
 
         <node pkg="nodelet" type="nodelet" name="left_camera_nodelet"
-              args="load pointgrey_camera_driver/PointGreyCameraNodelet left_camera_nodelet_manager" >
+              args="load pointgrey_camera_driver/PointGreyCameraNodelet left_camera_manager" >
             <param name="frame_id" value="left" />
             <param name="serial" value="$(arg left_serial)" />
 
@@ -38,7 +38,7 @@
         
         <!-- Right Camera -->
         <node pkg="nodelet" type="nodelet" name="right_camera_nodelet"
-              args="load pointgrey_camera_driver/PointGreyCameraNodelet right_camera_nodelet_manager" >
+              args="load pointgrey_camera_driver/PointGreyCameraNodelet right_camera_manager" >
             <param name="frame_id" value="right" />
             <param name="serial" value="$(arg right_serial)" />
 
