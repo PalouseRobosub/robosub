@@ -13,6 +13,7 @@
 
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
+#include <MS5837.h>
 #include <utility/imumaths.h>
 
 #include <ros.h>
@@ -21,23 +22,32 @@
 #include <geometry_msgs/Vector3.h>
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
+MS5837 ds;
 
 ros::NodeHandle n;
 
 geometry_msgs::Quaternion msg;
-geometry_msgs::Vector3 acc;
+geometry_msgs::Vector3 lin_acc;
 geometry_msgs::Vector3 mag;
 geometry_msgs::Vector3 gyro;
 std_msgs::Float32 depth_msg;
+std_msgs::Float32 temp_msg;
+std_msgs::Float32 pressure_msg;
 
 ros::Publisher rs_bno_data_pub("rs_bno_data", &msg);
-ros::Publisher rs_accel_data_pub("rs_accel_data", &acc);
+ros::Publisher rs_lin_accel_data_pub("rs_lin_accel_data", &lin_acc);
 ros::Publisher rs_mag_data_pub("rs_mag_data", &mag);
 //ros::Publisher rs_gyro_data_pub("rs_gyro_data", &gyro);
 ros::Publisher rs_depth_data_pub("rs_depth_data", &depth_msg);
+ros::Publisher rs_temp_data_pub("rs_temp_data", &temp_msg);
+ros::Publisher rs_pressure_data_pub("rs_pressure_data", &pressure_msg);
 
 void setup() {
+    Serial.begin(9600);
     while(!bno.begin());
+
+    ds.init();
+    ds.setFluidDensity(997.0f); // fluid density of freshwater
 
     delay(1000);
 
@@ -50,8 +60,10 @@ void setup() {
 
     n.initNode();
     n.advertise(rs_bno_data_pub);
-    n.advertise(rs_accel_data_pub);
+    n.advertise(rs_lin_accel_data_pub);
     n.advertise(rs_depth_data_pub);
+    n.advertise(rs_temp_data_pub);
+    n.advertise(rs_pressure_data_pub);
     //n.advertise(rs_gyro_data_pub);
     n.advertise(rs_mag_data_pub);
 }
@@ -78,11 +90,11 @@ void loop() {
     msg.w = q.w();
     rs_bno_data_pub.publish(&msg);
 
-    imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
-    acc.x = accel.x();
-    acc.y = accel.y();
-    acc.z = accel.z();
-    rs_accel_data_pub.publish(&acc);
+    imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    lin_acc.x = accel.x();
+    lin_acc.y = accel.y();
+    lin_acc.z = accel.z();
+    rs_lin_accel_data_pub.publish(&lin_acc);
 
     /*
     imu::Vector<3> gyroscope = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
@@ -100,11 +112,22 @@ void loop() {
 
     /*
      * Read depth sensor. The analog depth sensor is an input on pin A1.
-     */
-    const float depth_reading = -.025 * (analogRead(2) - 335);
+     * const float depth_reading = -.025 * (analogRead(2) - 335);
 
-    depth_msg.data = depth_reading;
-    rs_depth_data_pub.publish(&depth_msg);
+     * depth_msg.data = depth_reading;
+     * rs_depth_data_pub.publish(&depth_msg);
+     */
+
+     ds.read();
+
+     depth_msg.data = ds.depth();
+     rs_depth_data_pub.publish(&depth_msg);
+
+     temp_msg.data = ds.temperature();
+     rs_temp_data_pub.publish(&temp_msg);
+
+     pressure_msg.data = ds.pressure();
+     rs_pressure_data_pub.publish(&pressure_msg);
 
     n.spinOnce();
 
