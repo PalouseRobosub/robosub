@@ -173,11 +173,11 @@ void ControlSystem::InputControlMessage(robosub::control msg)
     control_states[5] = msg.yaw_state;
 
     control_values[0] = msg.forward;
-    control_values[1] = msg.strafe_right;
+    control_values[1] = msg.strafe_left;
     control_values[2] = msg.dive;
     control_values[3] = msg.roll_right * _PI_OVER_180;
-    control_values[4] = msg.pitch_up * _PI_OVER_180;
-    control_values[5] = msg.yaw_right * _PI_OVER_180;
+    control_values[4] = msg.pitch_down * _PI_OVER_180;
+    control_values[5] = msg.yaw_left * _PI_OVER_180;
 
     for(int i=0; i < 6; ++i)
     {
@@ -226,9 +226,9 @@ void ControlSystem::InputOrientationMessage(geometry_msgs::QuaternionStamped qua
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
 
-    state_vector[6] = _PI_OVER_180 * roll;
-    state_vector[7] = _PI_OVER_180 * pitch;
-    state_vector[8] = _PI_OVER_180 * yaw;
+    state_vector[6] = roll;
+    state_vector[7] = pitch;
+    state_vector[8] = yaw;
 
     // These are unused currently.
     /*
@@ -284,11 +284,11 @@ robosub::control ControlSystem::PublishControlState()
     current_state.yaw_state =  goal_types[5];
 
     current_state.forward = goals[0];
-    current_state.strafe_right = goals[1];
+    current_state.strafe_left = goals[1];
     current_state.dive = goals[2];
     current_state.roll_right = goals[3] / _PI_OVER_180;
-    current_state.pitch_up = goals[4] / _PI_OVER_180;
-    current_state.yaw_right = goals[5] / _PI_OVER_180;
+    current_state.pitch_down = goals[4] / _PI_OVER_180;
+    current_state.yaw_left = goals[5] / _PI_OVER_180;
 
     return current_state;
 }

@@ -93,10 +93,10 @@ control:
     proportional:
         x: 1
         y: 1
-        z: 1
-        psi: 0.1 #roll
-        phi: 0.1 #pitch
-        theta: 0.1 #yaw
+        z: 20
+        psi: 30 #roll
+        phi: 50 #pitch
+        theta: 20 #yaw
     integral:
         x: 0
         y: 0

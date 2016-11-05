@@ -55,11 +55,11 @@ uint8 yaw_state
 
 #control commands
 float64 forward
-float64 strafe_right
+float64 strafe_left
 float64 dive
 float64 roll_right
-float64 pitch_up
-float64 yaw_right
+float64 pitch_down
+float64 yaw_left
 
 
 #Enums for state variables

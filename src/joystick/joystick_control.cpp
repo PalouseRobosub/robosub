@@ -44,19 +44,19 @@ void joystickToControlCallback(const robosub::joystick msg)
     outmsg.dive_state    = outmsg.STATE_ABSOLUTE;
     outmsg.yaw_state     = outmsg.STATE_RELATIVE;
     outmsg.forward = (double)msg.axisX;
-    outmsg.strafe_right = msg.axisY;
-    outmsg.yaw_right = msg.axisZ;
+    outmsg.strafe_left = -msg.axisY;
+    outmsg.yaw_left = msg.axisZ;
     outmsg.dive = (double) -((max_depth-min_depth)*(double)msg.throttle + min_depth);
 
     if (msg.axisZ)
     {
         outmsg.yaw_state = outmsg.STATE_RELATIVE;
-        outmsg.yaw_right = msg.axisZ;
+        outmsg.yaw_left = msg.axisZ;
     }
     else
     {
         outmsg.yaw_state = outmsg.STATE_NONE;
-        outmsg.yaw_right = 0;
+        outmsg.yaw_left = 0;
     }
 
     if (!msg.buttons[0])
@@ -64,12 +64,12 @@ void joystickToControlCallback(const robosub::joystick msg)
         if (msg.hatX)
         {
             outmsg.pitch_state = outmsg.STATE_RELATIVE;
-            outmsg.pitch_up = (double) msg.hatX * -10;
+            outmsg.pitch_down = (double) msg.hatX * -10;
         }
         else
         {
             outmsg.pitch_state = outmsg.STATE_NONE;
-            outmsg.pitch_up = 0;
+            outmsg.pitch_down = 0;
         }
         if (msg.hatY)
         {
@@ -88,9 +88,9 @@ void joystickToControlCallback(const robosub::joystick msg)
         outmsg.pitch_state = outmsg.STATE_ABSOLUTE;
         outmsg.roll_state  = outmsg.STATE_ABSOLUTE;
         outmsg.roll_right = 0;
-        outmsg.pitch_up = 0;
+        outmsg.pitch_down = 0;
     }
-    outmsg.yaw_right *= -15;
+    outmsg.yaw_left *= -15;
     outmsg.forward *= 2;
 
     pub.publish(outmsg);

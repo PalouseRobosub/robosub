@@ -15,11 +15,11 @@ def print_pretty(which, state, value):
 
 def callback(msg):
     print_pretty("forward", msg.forward_state, msg.forward)
-    print_pretty("strafe", msg.strafe_state, msg.strafe_right)
+    print_pretty("strafe", msg.strafe_state, msg.strafe_left)
     print_pretty("dive", msg.dive_state, msg.dive)
     print_pretty("roll", msg.roll_state, msg.roll_right)
-    print_pretty("pitch", msg.pitch_state, msg.pitch_up)
-    print_pretty("yaw", msg.yaw_state, msg.yaw_right)
+    print_pretty("pitch", msg.pitch_state, msg.pitch_down)
+    print_pretty("yaw", msg.yaw_state, msg.yaw_left)
     print "---"
 
 if __name__ == "__main__":

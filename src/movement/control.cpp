@@ -31,17 +31,17 @@ void depthCallback(const std_msgs::Float32::ConstPtr& depth_msg)
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "control");
+    ros::init(argc, argv, "control");
 
-	ros::NodeHandle nh;
+    ros::NodeHandle nh;
 
     ros::Subscriber depthSub = nh.subscribe("depth", 1, depthCallback);
     ros::Subscriber orientationSub = nh.subscribe("orientation", 1, orientationCallback);
 
-	ros::Subscriber controlsub = nh.subscribe("control", 1, controlCallback);
+    ros::Subscriber controlsub = nh.subscribe("control", 1, controlCallback);
 
-  	ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
-  	rs::ThrottledPublisher<robosub::control> control_state_pub(std::string("current_control_state"), 1, 1);
+    ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
+    rs::ThrottledPublisher<robosub::control> control_state_pub(std::string("current_control_state"), 1, 5);
 
     control_system = new ControlSystem(&nh, &pub);
 
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
     while(ros::ok())
     {
-        control_state_pub.publish(control_system->PublishControlState());   
+        control_state_pub.publish(control_system->PublishControlState());
         control_system->CalculateThrusterMessage();
         control_system->PublishThrusterMessage();
         ros::spinOnce();
