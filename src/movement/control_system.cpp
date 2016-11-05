@@ -255,6 +255,7 @@ void ControlSystem::CalculateThrusterMessage()
 {
     ReloadPIDParams();
 
+    ROS_DEBUG_STREAM("state:\n" << state_vector);
     //control system shit
     motor_commands = motor_control(state_vector);
 
