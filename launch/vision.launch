@@ -1,9 +1,9 @@
 <launch>
 
-    <arg name="left_serial" default="0"/>
+    <arg name="left_serial" default="14406637"/>
     <arg name="left_calibrated" default="0"/>
 
-    <arg name="right_serial" default="1" />
+    <arg name="right_serial" default="14406634" />
     <arg name="right_calibrated" default="0" />
 
     <group ns="camera">
