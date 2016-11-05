@@ -15,11 +15,15 @@
 #include <Adafruit_BNO055.h>
 #include <MS5837.h>
 #include <utility/imumaths.h>
-
 #include <ros.h>
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Vector3.h>
+
+//#define MUX_2_ADDR_W 0b11100000
+//#define MUX_2_ADDR_R 0b11100001
+//#define MUX_1_ADDR_W 0b11100010
+//#define MUX_1_ADDR_R 0b11100011
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 MS5837 ds;
@@ -28,23 +32,26 @@ ros::NodeHandle n;
 
 geometry_msgs::Quaternion msg;
 geometry_msgs::Vector3 lin_acc;
-geometry_msgs::Vector3 mag;
-geometry_msgs::Vector3 gyro;
-std_msgs::Float32 depth_msg;
-std_msgs::Float32 temp_msg;
+//geometry_msgs::Vector3 mag;
+//geometry_msgs::Vector3 gyro;
+//std_msgs::Float32 depth_msg;
+//std_msgs::Float32 temp_msg;
 std_msgs::Float32 pressure_msg;
 
 ros::Publisher rs_bno_data_pub("rs_bno_data", &msg);
 ros::Publisher rs_lin_accel_data_pub("rs_lin_accel_data", &lin_acc);
-ros::Publisher rs_mag_data_pub("rs_mag_data", &mag);
+//ros::Publisher rs_mag_data_pub("rs_mag_data", &mag);
 //ros::Publisher rs_gyro_data_pub("rs_gyro_data", &gyro);
-ros::Publisher rs_depth_data_pub("rs_depth_data", &depth_msg);
-ros::Publisher rs_temp_data_pub("rs_temp_data", &temp_msg);
+//ros::Publisher rs_depth_data_pub("rs_depth_data", &depth_msg);
+//ros::Publisher rs_temp_data_pub("rs_temp_data", &temp_msg);
 ros::Publisher rs_pressure_data_pub("rs_pressure_data", &pressure_msg);
 
 void setup() {
-    Serial.begin(9600);
     while(!bno.begin());
+
+//    Wire.beginTransmission(MUX_1_ADDR_W);
+//    Wire.write((uint8_t)0b00000001); // disable channel 1 enable channel 0 (bits 0,1 for control)
+//    Wire.endTransmission();
 
     ds.init();
     ds.setFluidDensity(997.0f); // fluid density of freshwater
@@ -61,11 +68,11 @@ void setup() {
     n.initNode();
     n.advertise(rs_bno_data_pub);
     n.advertise(rs_lin_accel_data_pub);
-    n.advertise(rs_depth_data_pub);
-    n.advertise(rs_temp_data_pub);
-    n.advertise(rs_pressure_data_pub);
-    //n.advertise(rs_gyro_data_pub);
-    n.advertise(rs_mag_data_pub);
+//    n.advertise(rs_depth_data_pub);
+//    n.advertise(rs_temp_data_pub);
+  n.advertise(rs_pressure_data_pub);
+//  n.advertise(rs_gyro_data_pub);
+//    n.advertise(rs_mag_data_pub);
 }
 
 void loop() {
@@ -104,11 +111,11 @@ void loop() {
     rs_gyro_data_pub.publish(&gyro);
 */
 
-    imu::Vector<3> magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
-    mag.x = magnetometer.x();
-    mag.y = magnetometer.y();
-    mag.z = magnetometer.z();
-    rs_mag_data_pub.publish(&mag);
+//    imu::Vector<3> magnetometer = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
+//    mag.x = magnetometer.x();
+//    mag.y = magnetometer.y();
+//    mag.z = magnetometer.z();
+//    rs_mag_data_pub.publish(&mag);
 
     /*
      * Read depth sensor. The analog depth sensor is an input on pin A1.
@@ -118,18 +125,22 @@ void loop() {
      * rs_depth_data_pub.publish(&depth_msg);
      */
 
+//     Wire.beginTransmission(MUX_1_ADDR_W);
+//     Wire.write((uint8_t)0b00000001);
+//     Wire.endTransmission();
+
      ds.read();
 
-     depth_msg.data = ds.depth();
-     rs_depth_data_pub.publish(&depth_msg);
-
-     temp_msg.data = ds.temperature();
-     rs_temp_data_pub.publish(&temp_msg);
+//     depth_msg.data = ds.depth();
+//     rs_depth_data_pub.publish(&depth_msg);
+//
+//     temp_msg.data = ds.temperature();
+//     rs_temp_data_pub.publish(&temp_msg);
 
      pressure_msg.data = ds.pressure();
      rs_pressure_data_pub.publish(&pressure_msg);
 
     n.spinOnce();
 
-    delay(20);
+    delay(25);
 }
