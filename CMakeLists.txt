@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   image_transport
   cv_bridge
+  pointgrey_camera_driver
 )
 
 find_package(OpenCV REQUIRED)
