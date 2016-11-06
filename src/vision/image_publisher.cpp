@@ -32,8 +32,11 @@ int main(int argc, char** argv)
         pub_left.publish(l_msg);
         pub_right.publish(r_msg);
 
+        // This is ugly but it works
+        delete [] l.data;
+        delete [] r.data;
+
         ros::spinOnce();
         loop_rate.sleep();
     }
 }
-

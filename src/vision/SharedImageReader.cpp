@@ -68,9 +68,8 @@ namespace rs
         sem_wait(header->sem); // lock memory
         memcpy(data, header->data, header->data_size); // write
         sem_post(header->sem); // unlock memory
-        Mat m(header->size, header->type);
-		memcpy(m.data, data, header->data_size);
-		delete data;
+        Mat m(header->size.width, header->size.height, header->type, data);
+        //delete [] data;
         return m;
     }
 
