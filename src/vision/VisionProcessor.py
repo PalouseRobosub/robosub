@@ -18,8 +18,19 @@ def process_image(image):
     lower_bound = np.array([0, 10, 10])
     upper_bound = np.array([10,255,255])
 
+    lower_bound[0] = rospy.get_param("/vision/red/min/hue")
+    lower_bound[1] = rospy.get_param("/vision/red/min/sat")
+    lower_bound[2] = rospy.get_param("/vision/red/min/val")
+    
+    upper_bound[0] = rospy.get_param("/vision/red/max/hue")
+    upper_bound[1] = rospy.get_param("/vision/red/max/sat")
+    upper_bound[2] = rospy.get_param("/vision/red/max/val")
+    
     #execute the color filter, returns a binary black/white image
     mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
+
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((5,5), np.uint8))
+    #mask = cv2.dilate(mask, np.ones((5,5),np.uint8), iterations=3)
 
     #display the results of the color filter
     cv2.imshow("image_mask", mask)
@@ -50,7 +61,7 @@ def process_image(image):
 class Node:
     def __init__(self):
         #register a subscriber callback that receives images
-        self.image_sub = rospy.Subscriber('/camera/left/image', Image, self.image_callback, queue_size=1)
+        self.image_sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback, queue_size=1)
 
         #create a publisher for sending commands to turtlebot
         self.processed_pub = rospy.Publisher('vision/buoy/red', visionPos, queue_size=1)
@@ -73,10 +84,11 @@ class Node:
 
 
         msg = visionPos()
-
-        msg.xPos.append(location[0])
-        msg.yPos.append(location[1])
-        msg.magnitude.append(magnitude)
+        
+        if location:
+            msg.xPos.append(location[0])
+            msg.yPos.append(location[1])
+            msg.magnitude.append(magnitude)
         #publish command to the turtlebot
         self.processed_pub.publish(msg)
 

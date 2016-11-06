@@ -1,0 +1,10 @@
+vision:
+ red:
+  min:
+   hue: 0
+   sat: 10
+   val: 10
+  max:
+   hue: 10
+   sat: 255
+   val: 255
