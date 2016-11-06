@@ -14,6 +14,8 @@ class Node():
     def callback(self, vision_result):
         msg = control()
 
+        rospy.info("state: {}".format(self.state))
+
         #always maintain depth at 1 meter
         msg.dive_state = control.STATE_ABSOLUTE
         msg.dive = -1
@@ -30,16 +32,20 @@ class Node():
                 msg.forward = 0
         elif self.state is "TRACKING_GATE":
             if len(vision_result.xPos) < 1: #if we can no longer see the gate
+                #set to blindly continue going forward for a bit
                 self.exit_time = rospy.Time.now() + rospy.Duration.from_sec(10)
                 self.state = "CONTINUE_GATE"
 
+            #calculate center of gate, which is the average of the two pole positions
             gate_center = (vision_result.xPos[0] + vision_result.xPos[1]) / 2
             msg.yaw_state = control.STATE_ERROR
             msg.yaw_left = 10 * gate_center
 
-            #regulate distance
+            #go forward
             msg.forward_state = control.STATE_ERROR
             msg.forward = 10
+
+        #at this point, we should be blindly going forward for a bit to pass through the gate
         elif self.state is "CONTINUE_GATE":
             #check if we've gone straight for long enough
             if rospy.Time.now() > self.exit_time:
@@ -52,6 +58,8 @@ class Node():
             #go straight
             msg.forward_state = control.STATE_ERROR
             msg.forward = 10
+        else:
+            rospy.error("got into uncaught state: {}".format(self.state))
 
 
         self.pub.publish(msg)
