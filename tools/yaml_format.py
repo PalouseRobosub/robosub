@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import sys
-import pprint
 import ruamel.yaml
 import argparse
 
@@ -13,18 +12,17 @@ def process_scalar(self):
     if self.style is None:
         self.style = self.choose_scalar_style()
     split = (not self.simple_key_context)
-    # VVVVVVVVVVVVVVVVVVVV added
+    # Start of added section
     if split:  # not a key
         is_string = True
         if self.event.value and self.event.value.lstrip('-').replace('.','',1).isdigit():
             is_string = False
-        # insert extra tests for scalars that should not be ?
         if is_string:
-            self.style = "\""
-    # ^^^^^^^^^^^^^^^^^^^^
-    # if self.analysis.multiline and split    \
-    #         and (not self.style or self.style in '\'\"'):
-    #     self.write_indent()
+            self.style = '"'
+    # End of added section
+    if self.analysis.multiline and split    \
+            and (not self.style or self.style in '\'\"'):
+        self.write_indent()
     if self.style == '"':
         self.write_double_quoted(self.analysis.scalar, split)
     elif self.style == '\'':
@@ -90,6 +88,7 @@ if __name__ == '__main__':
     #Dump the Prettified yaml to file
     o = ruamel.yaml.dump(initial, default_style='', indent=4, Dumper=dd,
                                     block_seq_indent=1, default_flow_style=False)
+
     outputFile = open(args.output, 'w')
 
     #Write the output to the file
