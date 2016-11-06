@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(robosub)
 
+## By default no optimization or debug flags are set use the following
+## two lines to pass in these flags. Only use one at a time!
+#set(CMAKE_BUILD_TYPE Debug) #Uncomment this line to enable debug symbols
+#set(CMAKE_BUILD_TYPE Release) #Uncomment this for max optimization
+
 #enable C++11 support
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
