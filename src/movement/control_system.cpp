@@ -94,7 +94,7 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
     //INFO("motor matrix:"); log << motors << endl;
     ROS_INFO_STREAM("motor_matrix:\n" << motors);
     ROS_INFO_STREAM("orientation:\n" << orientation);
-    ROS_INFO_STREAM("postiition:\n" << position);
+    ROS_INFO_STREAM("position:\n" << position);
 
     if(motors.rows() == motors.cols())
     {
@@ -224,6 +224,8 @@ void ControlSystem::InputOrientationMessage(geometry_msgs::QuaternionStamped qua
     tf::Quaternion q(quat_msg.quaternion.x, quat_msg.quaternion.y, quat_msg.quaternion.z, quat_msg.quaternion.w);
     tf::Matrix3x3 m(q);
     double roll, pitch, yaw;
+
+    //return yaw,pitch,roll in radians
     m.getRPY(roll, pitch, yaw);
 
     state_vector[6] = roll;
