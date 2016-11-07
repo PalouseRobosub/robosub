@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import rospy
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from robosub.msg import visionPos
 import cv2
 import numpy as np
 from image_converter import ToOpenCV, depthToOpenCV
-
+from wfov_camera_msgs.msg import WFOVImage
 
 #this function does our image processing
 #returns the location and "size" of the detected object
@@ -61,7 +61,7 @@ def process_image(image):
 class Node:
     def __init__(self):
         #register a subscriber callback that receives images
-        self.image_sub = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback, queue_size=1)
+        self.image_sub = rospy.Subscriber('/camera/right/image', WFOVImage, self.image_callback, queue_size=1)
 
         #create a publisher for sending commands to turtlebot
         self.processed_pub = rospy.Publisher('vision/buoy/red', visionPos, queue_size=1)
@@ -70,7 +70,7 @@ class Node:
     #all logic occurs in this function
     def image_callback(self, ros_image):
         # convert the ros image to a format openCV can use
-        cv_image = np.asarray(ToOpenCV(ros_image))
+        cv_image = np.asarray(ToOpenCV(ros_image.image))
 
         #run our vision processing algorithm to pick out the object
         #returns the location (x,y) of the object on the screen, and the
