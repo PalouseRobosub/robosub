@@ -73,6 +73,8 @@ add_message_files(
   joystick.msg
   depth_stamped.msg
   Euler.msg
+  visionPos.msg
+  visionPosArray.msg
 )
 
 ## Generate services in the 'srv' folder
