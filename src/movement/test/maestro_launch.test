@@ -1,0 +1,5 @@
+<launch>
+    <test test-name="test_maestro_thruster" pkg="robosub" type="test_maestro_thruster" />
+
+    <node name="maestro_node" pkg="robosub" type="delayed_node.sh" args="1 thruster_maestro"/>
+</launch>
