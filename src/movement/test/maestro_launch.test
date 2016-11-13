@@ -1,5 +1,6 @@
 <launch>
     <test test-name="test_maestro_thruster" pkg="robosub" type="test_maestro_thruster" />
 
-    <node name="maestro_node" pkg="robosub" type="delayed_node.sh" args="1 thruster_maestro"/>
+    <node name="maestro_node" pkg="robosub" type="delayed_node.sh" args="3 thruster_maestro"/>
+      <rosparam command="load" file="$(find robosub)/param/cobalt.yaml" />
 </launch>

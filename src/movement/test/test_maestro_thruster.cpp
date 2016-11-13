@@ -12,6 +12,7 @@
 //some global variables used by multiple tests
 rs::Serial mSerial;
 ros::Publisher pub;
+double byte_check(uint8_t byte2, uint8_t byte3);
 
 //insert tests here
 TEST(Maestro, basicTest)
@@ -109,7 +110,7 @@ main(int argc, char *argv[])
     //wait for the UUT to finish launching, can't run tests until the UUT has
     //set itself up. This function will wait for 3 seconds for the UUT to
     //initialize, then it will error out and fail the test
-    rs::wait_for_subscriber(pub, 3);
+    rs::wait_for_subscriber(pub, 5);
 
     return RUN_ALL_TESTS();
 }
