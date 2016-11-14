@@ -7,7 +7,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-
+#include <iostream>
 
 class VisionProcessor
 {
@@ -15,10 +15,11 @@ class VisionProcessor
         VisionProcessor(); //Construct with settings file?
         ~VisionProcessor();
         
-        cv::Mat process(const sensor_msgs::Image& image);
+        cv::Mat process(sensor_msgs::Image& image);
 
     private:
-        cv::Mat toOpenCV(const sensor_msgs::Image& image);
+        cv::Mat manConvert(const sensor_msgs::Image& image);
+        cv::Mat toOpenCV(sensor_msgs::Image& image);
         
 };
 #endif

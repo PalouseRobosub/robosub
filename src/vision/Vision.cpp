@@ -9,14 +9,21 @@ ros::Publisher pub;
 
 void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
+
+    std::cout << "Left Camera Callback" << std::endl;
     robosub::visionPos outMsg;
 
     VisionProcessor vp;
+    
+    sensor_msgs::Image imgCopy = msg->image;
 
-    cv::Mat processed = vp.process(msg->image);
+    std::cout << "Processing" << std::endl;
+    cv::Mat processed = vp.process(imgCopy);
 
     cv::namedWindow("left_mask");
     cv::imshow("left_mask", processed);
+
+    cv::waitKey(1);
 
     pub.publish(outMsg);
 }
@@ -35,8 +42,8 @@ int main(int argc, char **argv)
 
     ros::NodeHandle n;
 
-    ros::Subscriber leftCamSub = n.subscribe("/camera/left/image", 1, leftCamCallback);
-    ros::Subscriber rightCamSub = n.subscribe("/camera/right/image", 1, rightCamCallback);
+    ros::Subscriber leftCamSub = n.subscribe("/camera/right/image", 1, leftCamCallback);
+    ros::Subscriber rightCamSub = n.subscribe("/camera/left/image", 1, rightCamCallback);
 
     pub = n.advertise<robosub::visionPos>("/vision/buoy/red", 1);
 

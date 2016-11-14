@@ -1,7 +1,7 @@
 #ifndef SHAREDIMAGEREADER_HPP
 #define SHAREDIMAGEREADER_HPP
 
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 #include <iostream>
 #include "SharedImageHeader.hpp"
 #include "ros/ros.h"
