@@ -18,7 +18,6 @@ class VisionProcessor
         cv::Mat process(sensor_msgs::Image& image);
 
     private:
-        cv::Mat manConvert(const sensor_msgs::Image& image);
         cv::Mat toOpenCV(sensor_msgs::Image& image);
         
 };

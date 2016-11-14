@@ -20,8 +20,30 @@ void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     std::cout << "Processing" << std::endl;
     cv::Mat processed = vp.process(imgCopy);
 
+    cv::Mat procOut = processed.clone();
+
+    cv::Mat original = cv_bridge::toCvShare(msg->image, msg, sensor_msgs::image_encodings::BGR8)->image;
+
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+
+    findContours(processed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0,0)); 
+
+    cv::Moments moments;
+    moments = cv::moments(contours[0], false);
+
+   cv::Point2f center = cv::Point2f(moments.m10/moments.m00, moments.m01/moments.m00);
+
+    std::cout << "Center at: " << center << std::endl;
+
+    cv::circle(original, center, 3, cv::Scalar(0,0,255), -1);
+    cv::circle(procOut, center, 3, cv::Scalar(0,0,255), -1);
+
+    cv::namedWindow("Original");
+    cv::imshow("Original", original);
+
     cv::namedWindow("left_mask");
-    cv::imshow("left_mask", processed);
+    cv::imshow("left_mask", procOut);
 
     cv::waitKey(1);
 
