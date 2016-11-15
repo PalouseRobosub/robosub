@@ -9,33 +9,39 @@ ros::Publisher pub;
 
 void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
-
-    std::cout << "Left Camera Callback" << std::endl;
-    robosub::visionPos outMsg;
-
+    //Create a vision processor
     VisionProcessor vp;
     
+    //Copy the image for processing
+    //TODO: This should be optimized to avoid copying by sharing the pointer
     sensor_msgs::Image imgCopy = msg->image;
 
-    std::cout << "Processing" << std::endl;
+    //Process the image using the VisionProcessor
     cv::Mat processed = vp.process(imgCopy);
 
+    //Clone the output image for showing
     cv::Mat procOut = processed.clone();
 
+    //Create a Mat of the original image for showing
     cv::Mat original = cv_bridge::toCvShare(msg->image, msg, sensor_msgs::image_encodings::BGR8)->image;
 
+    //Find contours
     std::vector<std::vector<cv::Point>> contours;
     std::vector<cv::Vec4i> hierarchy;
 
     findContours(processed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0,0)); 
 
+    //Create the output message
+    robosub::visionPos outMsg;
+
+    //If there are no contours, no calculations needed
     if (contours.size() >= 1)
     {
-        cv::Moments moments;
-
+        //Find the area of the first contour
         double largestArea = cv::contourArea(contours[0], false);
         int largestIndex = 0;
-
+        
+        //Compare the first contour to other areas to find contour with the largest area
         for (int i = 1; i < contours.size(); i++)
         {
             double area = cv::contourArea(contours[i], false);
@@ -46,39 +52,43 @@ void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
             }
         }
 
+        //Find the moments (physical properties) of the contour
+        cv::Moments moments;
         moments = cv::moments(contours[largestIndex], false);
 
         int cx = -1;
         int cy = -1;
         int imWidth = msg->image.width;
         int imHeight = msg->image.height;
+        //Using moments, find the center point of the contour
         if (moments.m00 > 0)
         {
+            //Find x and y coordinates with 0,0 being top left corner
             cx = (int)(moments.m10/moments.m00);
             cy = (int)(moments.m01/moments.m00);
             cv::Point2f center = cv::Point2f(cx,cy);
             std::cout << "Center at: " << "[" << cx - (imWidth/2) << "," << -1*(cy-(imHeight / 2)) << "]" << std::endl;
-            cv::circle(original, center, 4, cv::Scalar(0,0,255), -1);
+            cv::circle(original, center, 4, cv::Scalar(0,0,255), -1); //Draw a circle on the original image for location visualization
         }
+
+        //Prepare the output message
+        outMsg.xPos = cx - (imWidth / 2);
+        outMsg.yPos = cy - (imHeight / 2);
+        outMsg.magnitude = (double)largestArea / (double)(imWidth * imHeight);
+
     }
-    //cv::circle(procOut, center, 3, cv::Scalar(0,0,255), -1);
-
-    //cv::RNG rng(12345);
-
-    //for (int i = 0; i < contours.size(); i++)
-    //{
-    //    cv::Scalar color = cv::Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255));
-    //    cv::drawContours(original, contours, i, color, 2, 8, hierarchy, 0, cv::Point());
-    //}
-
+    
+    //Show images
     cv::namedWindow("Original");
     cv::imshow("Original", original);
 
     cv::namedWindow("left_mask");
     cv::imshow("left_mask", procOut);
 
+    //Wait for 1 millisecond to show images
     cv::waitKey(1);
-
+    
+    //Publish output message
     pub.publish(outMsg);
 }
 
