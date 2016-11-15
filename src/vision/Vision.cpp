@@ -29,15 +29,47 @@ void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 
     findContours(processed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0,0)); 
 
-    cv::Moments moments;
-    moments = cv::moments(contours[0], false);
+    if (contours.size() >= 1)
+    {
+        cv::Moments moments;
 
-   cv::Point2f center = cv::Point2f(moments.m10/moments.m00, moments.m01/moments.m00);
+        double largestArea = cv::contourArea(contours[0], false);
+        int largestIndex = 0;
 
-    std::cout << "Center at: " << center << std::endl;
+        for (int i = 1; i < contours.size(); i++)
+        {
+            double area = cv::contourArea(contours[i], false);
+            if (area > largestArea)
+            {
+                largestArea = area;
+                largestIndex = i;
+            }
+        }
 
-    cv::circle(original, center, 3, cv::Scalar(0,0,255), -1);
-    cv::circle(procOut, center, 3, cv::Scalar(0,0,255), -1);
+        moments = cv::moments(contours[largestIndex], false);
+
+        int cx = -1;
+        int cy = -1;
+        int imWidth = msg->image.width;
+        int imHeight = msg->image.height;
+        if (moments.m00 > 0)
+        {
+            cx = (int)(moments.m10/moments.m00);
+            cy = (int)(moments.m01/moments.m00);
+            cv::Point2f center = cv::Point2f(cx,cy);
+            std::cout << "Center at: " << "[" << cx - (imWidth/2) << "," << -1*(cy-(imHeight / 2)) << "]" << std::endl;
+            cv::circle(original, center, 4, cv::Scalar(0,0,255), -1);
+        }
+    }
+    //cv::circle(procOut, center, 3, cv::Scalar(0,0,255), -1);
+
+    //cv::RNG rng(12345);
+
+    //for (int i = 0; i < contours.size(); i++)
+    //{
+    //    cv::Scalar color = cv::Scalar(rng.uniform(0,255), rng.uniform(0,255), rng.uniform(0,255));
+    //    cv::drawContours(original, contours, i, color, 2, 8, hierarchy, 0, cv::Point());
+    //}
 
     cv::namedWindow("Original");
     cv::imshow("Original", original);

@@ -15,7 +15,7 @@ cv::Mat VisionProcessor::process(sensor_msgs::Image& image)
 {
     ros::NodeHandle n;
     
-    cv::Mat toProcess = toOpenCV(image);//manConvert(image);//toOpenCV(image);
+    cv::Mat toProcess = toOpenCV(image);
     
     //std::cout << "Processed" << std::endl;
 
@@ -26,15 +26,15 @@ cv::Mat VisionProcessor::process(sensor_msgs::Image& image)
 
     cv::Scalar lower_bound(0, 10, 10);
 
-    n.getParam("/vision/red/min/hue", lower_bound[0]);
-    n.getParam("/vision/red/min/sat", lower_bound[1]);
-    n.getParam("/vision/red/min/val", lower_bound[2]);
+    n.getParamCached("/vision/red/min/hue", lower_bound[0]);
+    n.getParamCached("/vision/red/min/sat", lower_bound[1]);
+    n.getParamCached("/vision/red/min/val", lower_bound[2]);
 
     cv::Scalar upper_bound(10,255,255);
  
-    n.getParam("/vision/red/max/hue", upper_bound[0]);
-    n.getParam("/vision/red/max/sat", upper_bound[1]);
-    n.getParam("/vision/red/max/val", upper_bound[2]);   
+    n.getParamCached("/vision/red/max/hue", upper_bound[0]);
+    n.getParamCached("/vision/red/max/sat", upper_bound[1]);
+    n.getParamCached("/vision/red/max/val", upper_bound[2]);   
 
     //std::cout << "Masking" << std::endl;
     cv::Mat mask;
