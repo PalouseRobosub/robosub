@@ -8,17 +8,26 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
+#include <string>
+
+using std::string;
+using namespace cv;
+using cv_bridge::toCvCopy;
+using cv_bridge::CvImagePtr;
+using sensor_msgs::Image;
 
 class VisionProcessor
 {
     public:
-        VisionProcessor(); //Construct with settings file?
+        VisionProcessor(string paramGroup);
         ~VisionProcessor();
         
-        cv::Mat process(sensor_msgs::Image& image);
+        Mat process(Image& image);
 
     private:
-        cv::Mat toOpenCV(sensor_msgs::Image& image);
+        string paramGroup;
+    
+        Mat toOpenCV(Image& image);
         
 };
 #endif

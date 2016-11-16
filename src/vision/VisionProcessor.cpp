@@ -1,8 +1,9 @@
 #include "VisionProcessor.hpp"
 
-VisionProcessor::VisionProcessor()
+//paramGroup defines the subdirectory under /vision to look for and use in params
+VisionProcessor::VisionProcessor(string paramGroup)
 {
-    
+    this->paramGroup = paramGroup;
 }
 
 VisionProcessor::~VisionProcessor()
@@ -10,69 +11,74 @@ VisionProcessor::~VisionProcessor()
 
 }
 
-
-cv::Mat VisionProcessor::process(sensor_msgs::Image& image)
+//Processes the image using color filtering with parameters under given subgroup
+Mat VisionProcessor::process(Image& image)
 {
     //Create a nodehandle for param fetching
     ros::NodeHandle n;
     
     //Convert image message to OpenCV Mat
-    cv::Mat toProcess = toOpenCV(image);
+    Mat toProcess = toOpenCV(image);
     
-    //std::cout << "Processed" << std::endl;
+    ROS_DEBUG_STREAM("Image now OpenCv Mat");
 
     //Convert to HSV color space
-    cv::Mat hsv;
-    cv::cvtColor(toProcess, hsv, cv::COLOR_BGR2HSV);
+    Mat hsv;
+    cvtColor(toProcess, hsv, cv::COLOR_BGR2HSV);
 
-    //std::cout << "Converted to hsv" << std::endl;
+    ROS_DEBUG_STREAM("Converted image to hsv");
 
     //Create the lowerbound of thresholding with defaults
-    cv::Scalar lower_bound(0, 10, 10);
+    Scalar lower_bound(0, 10, 10);
     
     //Get lowerbound params
-    n.getParamCached("/vision/red/min/hue", lower_bound[0]);
-    n.getParamCached("/vision/red/min/sat", lower_bound[1]);
-    n.getParamCached("/vision/red/min/val", lower_bound[2]);
+    n.getParamCached("/vision/" + paramGroup + "/min/hue", lower_bound[0]);
+    n.getParamCached("/vision/" + paramGroup + "/min/sat", lower_bound[1]);
+    n.getParamCached("/vision/" + paramGroup + "/min/val", lower_bound[2]);
 
     //Create upperbound of thresholding with defaults
-    cv::Scalar upper_bound(10,255,255);
+    Scalar upper_bound(10,255,255);
  
     //Get upperbound params
-    n.getParamCached("/vision/red/max/hue", upper_bound[0]);
-    n.getParamCached("/vision/red/max/sat", upper_bound[1]);
-    n.getParamCached("/vision/red/max/val", upper_bound[2]);   
+    n.getParamCached("/vision/" + paramGroup + "/max/hue", upper_bound[0]);
+    n.getParamCached("/vision/" + paramGroup + "/max/sat", upper_bound[1]);
+    n.getParamCached("/vision/" + paramGroup + "/max/val", upper_bound[2]);   
 
-    //std::cout << "Masking" << std::endl;
-    cv::Mat mask;
+    ROS_DEBUG_STREAM("Performing Masking and/or other processing");
+    Mat mask;
     //Blur the image for a bit more smoothness
-    cv::medianBlur(mask, mask, 3);
+    medianBlur(mask, mask, 3);
     //Mask the image within the threshold range
-    cv::inRange(hsv, lower_bound, upper_bound, mask);
+    inRange(hsv, lower_bound, upper_bound, mask);
 
     //Add an open filter which reduces small noise.
-    cv::morphologyEx(mask, mask, cv::MORPH_OPEN, getStructuringElement(cv::MORPH_RECT, cv::Size(3,3)));
+    morphologyEx(mask, mask, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(3,3)));
 
-    //std::cout << "Masked" << std::endl;
+    ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
     return mask;
 }
 
 ///////Private functions///////
 
-cv::Mat VisionProcessor::toOpenCV(sensor_msgs::Image& image)
+//Converts a ros image_transport Image to an OpenCV Mat
+Mat VisionProcessor::toOpenCV(Image& image)
 {
-    //std::cout << "Image size: " << sizeof(image.data) << std::endl;
+    ROS_DEBUG_STREAM("Image size in bytes: " << sizeof(image.data));
+    //Determine if the image is empty, may be deprecated.
     if (sizeof(image.data) == 0)
     {
-        //std::cout << "Empty image" << std::endl;
-        return cv::Mat();
+        ROS_ERROR_STREAM("Empty image");
+        //Return empty mat on empty image
+        return Mat();
     }
 
-    cv_bridge::CvImagePtr cv_ptr;
+    //Construct a pointer to contain the converted image
+    CvImagePtr cv_ptr;
     try
     {
-        //std::cout << "Copying..." << std::endl;
-        cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+        ROS_DEBUG_STREAM("Copying/sharing image...");
+        //Copy the image using cv_bridge, in future should change to "toCvShare"
+        cv_ptr = toCvCopy(image, sensor_msgs::image_encodings::BGR8);
     }
     catch (cv_bridge::Exception& e)
     {
@@ -80,6 +86,6 @@ cv::Mat VisionProcessor::toOpenCV(sensor_msgs::Image& image)
         exit(1);
     }
     
-    //std::cout << "Returning Mat" << std::endl;
+    ROS_DEBUG_STREAM("Returning Mat");
     return cv_ptr->image;
 }
