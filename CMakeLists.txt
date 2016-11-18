@@ -38,8 +38,14 @@ find_package(OpenCV REQUIRED)
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
 
-set(ROSLINT_CPP_OPTS "--filter=-legal")
+## Setup ROSlint with our preferred settings
+## C++:
+set(ROSLINT_CPP_OPTS "--filter=-legal,-whitespace/comments,-whitespace/parens,-build/namespaces,-readability/namespace,-runtime/threadsafe_fn" "--linelength=80")
 roslint_cpp()
+
+## Python
+set(ROSLINT_PYTHON_OPTS "--ignore=E3,E121,E123,E126,E226,E24,E704" "--max-line-length=80")
+roslint_python()
 
 ################################################
 ## Declare ROS messages, services and actions ##
