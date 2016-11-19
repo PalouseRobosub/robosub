@@ -1,7 +1,6 @@
-#include "ros/ros.h"
+#include "VisionProcessor.hpp"
 #include "wfov_camera_msgs/WFOVImage.h"
 #include "robosub/visionPos.h"
-#include "VisionProcessor.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include <iostream>
 #include <vector>
@@ -109,6 +108,7 @@ int main(int argc, char **argv)
 
     ros::NodeHandle n;
 
+                            //Topics reversed for use with current rosbag
     ros::Subscriber leftCamSub = n.subscribe("/camera/right/image", 1, leftCamCallback);
     ros::Subscriber rightCamSub = n.subscribe("/camera/left/image", 1, rightCamCallback);
 

@@ -1,10 +1,6 @@
-vision:
- red:
-  min:
-   hue: 0
-   sat: 10
-   val: 10
-  max:
-   hue: 10
-   sat: 255
-   val: 255
+red:
+  blur_iters: 1
+  close: {heigth: 7, iters: 2, width: 7}
+  max: {hue: 80, sat: 200, val: 200}
+  min: {hue: 50, sat: 100, val: 55}
+  open: {height: 7, iters: 1, width: 7}

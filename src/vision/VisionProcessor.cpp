@@ -44,15 +44,67 @@ Mat VisionProcessor::process(Image& image)
     n.getParamCached("/vision/" + paramGroup + "/max/sat", upper_bound[1]);
     n.getParamCached("/vision/" + paramGroup + "/max/val", upper_bound[2]);   
 
+    //Initialize blur iteration num with default
+    int numBlurIters = 3;
+
+    //Get blur param
+    n.getParamCached("/vision/" + paramGroup + "/blur_iters", numBlurIters);
+
+    //Initialize open filter size with default of 3x3
+    int openSize[] = {3,3};
+
+    //Initialize open filter iteration num with default
+    int numOpenIters = 1;
+
+    //Get open params
+    n.getParamCached("/vision/" + paramGroup + "/open/width", openSize[0]);
+    n.getParamCached("/vision/" + paramGroup + "/open/heigth", openSize[1]);
+    n.getParamCached("/vision/" + paramGroup + "/open/iters", numOpenIters);
+
+    //Initialize open filter size with default of 3x3
+    int closeSize[] = {3,3};
+
+    //Initialize open filter iteration num with default
+    int numCloseIters = 1;
+
+    //Get open params
+    n.getParamCached("/vision/" + paramGroup + "/close/width", closeSize[0]);
+    n.getParamCached("/vision/" + paramGroup + "/close/heigth", closeSize[1]);
+    n.getParamCached("/vision/" + paramGroup + "/close/iters", numCloseIters);
+
+    //Sizes must be odd for open filter
+    if (openSize[0] % 2 != 1)
+    {
+        openSize[0]++;
+    }
+
+    if (openSize[1] % 2 != 1)
+    {
+        openSize[1]++;
+    }
+    
+    if (closeSize[0] % 2 != 1)
+    {
+        closeSize[0]++;
+    }
+
+    if (closeSize[1] % 2 != 1)
+    {
+        closeSize[1]++;
+    }
+    
     ROS_DEBUG_STREAM("Performing Masking and/or other processing");
     Mat mask;
     //Blur the image for a bit more smoothness
-    medianBlur(mask, mask, 3);
+    medianBlur(hsv, mask, 3);
     //Mask the image within the threshold range
-    inRange(hsv, lower_bound, upper_bound, mask);
+    inRange(mask, lower_bound, upper_bound, mask);
+
+    //Add a close filter to remove holes in objects
+    morphologyEx(mask, mask, MORPH_CLOSE, getStructuringElement(MORPH_RECT, Size(closeSize[0], closeSize[1])), Point(-1,-1), numCloseIters);
 
     //Add an open filter which reduces small noise.
-    morphologyEx(mask, mask, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(3,3)));
+    morphologyEx(mask, mask, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(openSize[0], openSize[1])), Point(-1,-1), numOpenIters);
 
     ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
     return mask;
