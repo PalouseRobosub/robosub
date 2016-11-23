@@ -1,120 +1,123 @@
 #include "control_system.hpp"
-#include "utility/math.hpp"
 
-
-
-ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub)
+ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub) :
+    nh(new ros::NodeHandle("control")),
+    pub(_pub)
 {
-    nh = new ros::NodeHandle("control");
-    pub = _pub;
-
     ReloadPIDParams();
 
-    // mass
+    /*
+     * Load parameters from the settings file.
+     */
     nh->getParamCached("mass", sub_mass[0]);
     nh->getParamCached("mass", sub_mass[1]);
     nh->getParamCached("mass", sub_mass[2]);
-
-    // inertia
     nh->getParamCached("inertia/psi", sub_mass[3]);
     nh->getParamCached("inertia/phi", sub_mass[4]);
     nh->getParamCached("inertia/theta", sub_mass[5]);
-
-    //ratio of backwards/fowards thruster strength
     nh->getParamCached("back_thrust_ratio", back_thrust_ratio);
-
-    //thruster limits
-    double limit_translation;
-    double limit_rotation;
-    nh->getParamCached("limits/translation", limit_translation);
-    nh->getParamCached("limits/rotation", limit_rotation);
-    t_lim = back_thrust_ratio * limit_translation;
-    r_lim = back_thrust_ratio * limit_rotation;
-
-    //max thrust
+    nh->getParamCached("limits/translation", t_lim);
+    nh->getParamCached("limits/rotation", r_lim);
     nh->getParamCached("max_thrust", max_thrust);
+    nh->getParamCached("rate", dt);
 
-    //offsets
-    nh->getParamCached("control_offsets/x", offsets(0));
-    nh->getParamCached("control_offsets/y", offsets(1));
-    nh->getParamCached("control_offsets/z", offsets(2));
-    nh->getParamCached("control_offsets/psi", offsets(3));
-    nh->getParamCached("control_offsets/phi", offsets(4));
-    nh->getParamCached("control_offsets/theta", offsets(5));
+    /*
+     * Calculate the change in time between each call.
+     * TODO: Replace dt with actual message timestamps.
+     */
+    dt = 1.0/dt;
 
-    // Thruster settings. Don't have nodehandle ref so must use ros::param::get
+    /*
+     * Initialize the state of the goals to error.
+     */
+    for(int i=0; i < 6; ++i)
+    {
+        goal_types[i] = robosub::control::STATE_ERROR;
+    }
+
+    /*
+     * Ensure that the commands and states are all set to zero initially.
+     */
+    state_vector = Vector12d::Zero();
+    motor_commands = VectorXd::Zero(num_thrusters);
+
+    integral_state = Vector6d::Zero();
+
+    /*
+     * Translate thruster limits in terms of the backwards thruster ratio.
+     */
+    t_lim *= back_thrust_ratio;
+    r_lim *= back_thrust_ratio;
+
+    /*
+     * Load thruster node settings. A nodehandle reference is not available, so
+     * make use of rosparam get.
+     */
     XmlRpc::XmlRpcValue thruster_settings;
-
     if(!ros::param::get("thrusters", thruster_settings))
     {
         ROS_FATAL("thruster params failed to load");
         exit(1);
     }
-
     ROS_INFO_STREAM("Loaded " << thruster_settings.size() << " thrusters");
 
-    num_thrusters = 0;
     position = MatrixXd(1,3);
     orientation = MatrixXd(1,3);
-    for(int i=0; i < thruster_settings.size(); ++i)
+    for(num_thrusters = 0; num_thrusters < thruster_settings.size(); ++num_thrusters)
     {
+        /*
+         * Increment the number of rows in the position and orientation
+         * matrices to accomodate the new thruster.
+         */
         position.conservativeResize(num_thrusters+1, NoChange_t());
         orientation.conservativeResize(num_thrusters+1, NoChange_t());
-        string thruster_name = thruster_settings[i]["name"];
 
-
+        /*
+         * Load in the thruster positions and orientations. The column of the
+         * position and orientation matrices denote the x, y, and z components
+         * sequentially.
+         */
         position(num_thrusters,0) = thruster_settings[i]["position"]["x"];
         position(num_thrusters,1) = thruster_settings[i]["position"]["y"];
         position(num_thrusters,2) = thruster_settings[i]["position"]["z"];
         orientation(num_thrusters,0) = thruster_settings[i]["orientation"]["x"];
         orientation(num_thrusters,1) = thruster_settings[i]["orientation"]["y"];
         orientation(num_thrusters,2) = thruster_settings[i]["orientation"]["z"];
-
-        ++num_thrusters;
     }
 
-    int rate;
-    nh->getParamCached("rate", rate);
-    this->dt = 1.0/(double)rate;
-
-    // calcs
-    Matrix3d inertia_mat = Matrix3d::Zero();
-    inertia_mat(0,0) = 1/sub_mass[3];
-    inertia_mat(1,1) = 1/sub_mass[4];
-    inertia_mat(2,2) = -1/sub_mass[5];
-
+    /*
+     * Create a motor matrix that places each motor as a column within it.
+     */
     motors = MatrixXd(6,num_thrusters);
 
-    for (int i=0; i < num_thrusters; ++i)
+    for (int i = 0; i < num_thrusters; ++i)
     {
-        motors.block<3,1>(0,i) = max_thrust * orientation.block<1,3>(i,0).transpose();
-        motors.block<3,1>(3,i) = max_thrust*position.block<1,3>(i,0).cross(orientation.block<1,3>(i,0)).transpose();
+        motors.block<3,1>(0,i) = max_thrust *
+                orientation.block<1,3>(i,0).transpose();
+
+        /*
+         * Please validate this section. It is unknown as to what it should be
+         * accomplishing.
+         */
+        motors.block<3,1>(3,i) = max_thrust * position.block<1,3>(i,0).cross(
+                orientation.block<1,3>(i,0)).transpose();
     }
 
-    //INFO("motor matrix:"); log << motors << endl;
     ROS_INFO_STREAM("motor_matrix:\n" << motors);
     ROS_INFO_STREAM("orientation:\n" << orientation);
     ROS_INFO_STREAM("position:\n" << position);
 
+    /*
+     * TODO: Discover why the motor matrix is inverted.
+     */
     if(motors.rows() == motors.cols())
     {
-        M = motors.inverse();
+        motors = motors.inverse();
     }
     else
     {
-        M = pinv(motors);
+        motors = pinv(motors);
     }
-
-    state_vector = Vector12d::Zero();
-    motor_commands = VectorXd::Zero(num_thrusters);
-    integral_state = Vector6d::Zero();
-    goals = Vector6d::Zero();
-    for(int i=0; i < 6; ++i)
-        goal_types[i] = robosub::control::STATE_ERROR;
-
-    // Do these need initialization?
-    //prev_quat_msg = 0;
-    //prev_depth_msg = 0;
 }
 
 void ControlSystem::ReloadPIDParams()
@@ -258,21 +261,17 @@ void ControlSystem::CalculateThrusterMessage()
     ReloadPIDParams();
 
     ROS_DEBUG_STREAM("state:\n" << state_vector);
-    //control system shit
+
     motor_commands = motor_control(state_vector);
 
     //convert motor_commands eigen vector to stl vector
     std::vector<double> motor_commands_stl_vec(motor_commands.data(), motor_commands.data() + motor_commands.size());
 
     tp.data.clear();
-    std::stringstream s;
     for(int i=0; i<motor_commands_stl_vec.size(); ++i)
     {
-        s >> motor_commands_stl_vec[i];
         tp.data.push_back(motor_commands_stl_vec[i]);
     }
-    //ROS_INFO_STREAM(s);
-    //std::cout << s << std::endl;
 }
 
 robosub::control ControlSystem::PublishControlState()
@@ -299,46 +298,25 @@ void ControlSystem::PublishThrusterMessage()
     pub->publish(tp);
 }
 
-/*
-string ControlSystem::statestring(control_packet::State state)
-{
-    string s;
-    switch (state)
-    {
-        case robosub::control::STATE_NONE:     s = "NONE"; break;
-        case robosub::control::STATE_ABSOLUTE: s = "ABSOLUTE"; break;
-        case robosub::control::STATE_RELATIVE: s = "RELATIVE"; break;
-        case robosub::control::STATE_ERROR:    s = "ERROR"; break;
-        default: s = "UNKNOWN"; break;
-    }
-
-    return s;
-}
-*/
-
 VectorXd ControlSystem::motor_control(Vector12d state)
 {
-    //INFO("running motor control function");
-    //calcluate errors
-    Vector3d err_translation = goals.segment<3>(0) - state.segment<3>(0);
+    /*
+     * Calculate the error between the current state and the goal. If the state
+     * is set to error, override the error calculation to assume that our
+     * current state is correct and no modification is required.
+     */
+    Vector3d rotation_goals;
+    Vector3d translation_error = goals.segment<3>(0) - state.segment<3>(0);
     for(int i=0; i < 3; ++i)
     {
-        //check if we should override the error calculation
         if(goal_types[i] == robosub::control::STATE_ERROR)
         {
-            err_translation[i] = goals[i];
-            //integral_state[i+3] = 0.0; 		//ccheck +3? is translation latter 3 terms?
-            integral_state[i] = 0.0;		//fix seems correct
+            translation_error[i] = goals[i];
+            integral_state[i] = 0.0;
         }
-    }
-
-    Vector3d rotation_goals;
-    for(int i=0; i < 3; ++i)
-    {
         if(goal_types[i+3] == robosub::control::STATE_ERROR)
         {
             rotation_goals[i] = state_vector[i+6] + goals[i+3];
-            //integral_state[i] = 0.0;
             integral_state[i+3] = 0.0;
         }
         else
@@ -346,104 +324,96 @@ VectorXd ControlSystem::motor_control(Vector12d state)
             rotation_goals[i] = goals[i+3];
         }
     }
-    //INFO("cs: rotation_gls:"); log << rotation_goals << endl;
-//		Vector3d R = ir3D( r3D(rotation_goals) * r3D(state.segment<3>(6)).transpose() );
-    Vector3d R = ir3D( r3D(state.segment<3>(6)).transpose() * r3D(rotation_goals) ); //ccheck wrong order r3D' * r3D
-    Vector3d err_rotation = R;
-    //log << r3D(rotation_goals) << endl;
-    //log << r3D(state.segment<3>(6)).transpose() << endl;
-    //if roll and yaw are over 90 degrees either way,
-    //a more efficient route exists
+    Vector3d rotation_error = ir3D(r3D(state.segment<3>(6)).transpose() * r3D(rotation_goals));
 
+    /*
+     * TODO: Validate that this rotation error should be over-written.
+     */
     //ccheck cos theta * pitch FIRST, before supplemental angle
-    err_rotation(1) = err_rotation(1) * cos(err_rotation(2));
-
-    //INFO("cs: R:"); log << R << endl;
-/*											//ccheck is this the problem?
-    if( (fabs(R(1)) > _PI_OVER_2) && (fabs(R(2)) > _PI_OVER_2) )
-    {
-        err_rotation(0) = Sgn(R(0))*_PI - R(0); //new roll is supplement angle
-        err_rotation(2) = R(2) - Sgn(R(2))*_PI; //new yaw is supplement angle
-        //pitch is unchanged
-    }
-*/
-//		err_rotation.segment<2>(0) = err_rotation.segment<2>(0) * cos(err_rotation(2)); 	//ccheck both pitch and roll cos(theta)
-
+    rotation_error(1) = rotation_error(1) * cos(rotation_error(2));
 
     Vector6d error;
-    error << err_translation, err_rotation;
+    error << translation_error, rotation_error;
 
-    //INFO("cs: error:"); log << error << endl;
-
-    //do PID for all the the motors
-    //update error integral
-    integral_state += error * dt; //where should dt come from?
-    for(int i=0; i < 6; ++i)  //check for integral windup
+    /*
+     * Calculate and bound-check the integral terms.
+     */
+    integral_state += error * dt;
+    for(int i=0; i < 6; ++i)
     {
         if(fabs(integral_state(i)) > fabs(windup(i)))
-            integral_state(i) = windup(i) * rs::math::sign(integral_state(i));
+            integral_state(i) = windup(i) * ((integral_state(i) < 0)? -1 : 1);
     }
 
-    //perform hysteresis computation
-    Vector6d hist;
-    hist = (error.array().abs() >= hysteresis.array()).cast<double>();
-    //INFO("cs: hys"); log << hist << endl;
-
-    //use PID to compute the corrective actions
+    /*
+     * Nullify any controlling movements for proportional control if the error
+     * is below the hysteresis threshold. Add in integral terms and incorporate
+     * derivative terms.
+     */
+    Vector6d hist = (error.array().abs() >= hysteresis.array()).cast<double>();
+    Vector6d derivative_vector = Vector6d::Zero();
     Vector6d m_accel = Vector6d::Zero();
-    m_accel = P.cwiseProduct(error).cwiseProduct(hist); //proportional
-    //INFO("cs: m_accel1:"); log << m_accel << endl;
+    derivative_vector.segment<3>(0) = state.segment<3>(3);
+    derivative_vector.segment<3>(3) = state.segment<3>(9);
 
-    Vector6d tmp6v = Vector6d::Zero(); //setup custom state vector for derivative
-    tmp6v.segment<3>(0) = state.segment<3>(3);
-    tmp6v.segment<3>(3) = state.segment<3>(9);
-    m_accel += D.cwiseProduct(tmp6v); //derivative
-    m_accel += I.cwiseProduct(integral_state); //integral
-    m_accel += offsets; //add offset
-
-//		INFO("cs: m_accel2:"); log << m_accel << endl;
-
+    m_accel += P.cwiseProduct(error).cwiseProduct(hist);
+    m_accel += I.cwiseProduct(integral_state);
+    m_accel += D.cwiseProduct(derivative_vector);
 
     Vector6d m_force = m_accel.cwiseProduct(sub_mass); //convert to force
-    //INFO("cs: m_force:"); log << m_force << endl;
 
-    Vector3d tmp3v;
-    tmp3v[0] = state[6];
-    tmp3v[1] = state[7];
-    tmp3v[2] = 0; 			//setting yaw=0 means x,y commands become forward/strafe commands
+    /*
+     * Grab the current orientation of the submarine for rotating the current
+     * translational goals. The order of this vector is roll, pitch, and yaw.
+     * TODO: Verify that the yaw should be set to zero.
+     */
+    Vector3d current_orientation;
+    current_orientation[0] = state[6];
+    current_orientation[1] = state[7];
+    current_orientation[2] = 0;
 
-    tmp6v = Vector6d::Zero();
-    tmp6v.segment<3>(0) = r3D(tmp3v).transpose() * m_force.segment<3>(0);  //uncomment this line to vectorize force
-    //tmp6v.segment<3>(0) = m_force.segment<3>(0);
-    VectorXd m_ctrl_t = M * tmp6v;
-    //INFO("cs: tmp6v for translation:"); log << tmp6v << endl;
+    /*
+     * Normalize the translational forces based on the current orientation of
+     * the submarine and calculate the trnaslation control for each thruster.
+     */
+    Vector6d translation_command = Vector6d::Zero();
+    translation_command.segment<3>(0) = r3D(current_orientation).transpose() *
+        m_force.segment<3>(0);
+    VectorXd translation_control = motors * translation_command;
 
-    tmp6v = Vector6d::Zero();
-    tmp6v.segment<3>(3) = m_force.segment<3>(3);
-    //INFO("cs: tmp6v for rotation:"); log << tmp6v << endl;
-    VectorXd m_ctrl_r = M * tmp6v;
-    //INFO("cs: Motor Matrix:"); log << M.inverse() << endl;
+    /*
+     * Calculate the rotation control for each thruster.
+     */
+    Vector6d rotation_command = Vector6d::Zero();
+    rotation_command.segment<3>(3) = m_force.segment<3>(3);
+    VectorXd rotation_control = motors * rotation_command;
 
-
-    //scale the motors down to limits --needs to be more intelligent: seperate  m_accel PID from offset, divide m_accel goals only
+    /*
+     * Truncate any goals that are over thresholds.
+     * TODO: Intelligently scale each portion of the thruster goal so that all
+     *       goals are equally represented.
+     */
     for (int i=0; i < num_thrusters; ++i)
     {
-        if(fabs(m_ctrl_t(i)) > t_lim)
-            m_ctrl_t(i) = t_lim*rs::math::sign(m_ctrl_t(i));
-        if(fabs(m_ctrl_r(i)) > r_lim)
-            m_ctrl_r(i) = r_lim*rs::math::sign(m_ctrl_r(i));
+        if(fabs(translation_control(i)) > t_lim)
+            translation_control(i) = t_lim*((translation_control(i) < 0)? -1 : 1);
+        if(fabs(rotation_control(i)) > r_lim)
+            rotation_control(i) = r_lim*((rotation_control(i) < 0)? -1 : 1);
     }
 
-    VectorXd m_ctrl_sum = m_ctrl_t + m_ctrl_r;
-
-    for (int i=0; i < num_thrusters; ++i)
+    /*
+     * Sum together the translation and rotation goals to attain a final
+     * control for each thruster. Scale any reverse directions by the backward
+     * thruster ratio to achieve our desired backward thrust goal.
+     */
+    VectorXd total_control = translation_control + rotation_control;
+    for (int i = 0; i < num_thrusters; ++i)
     {
-        if(m_ctrl_sum[i] < 0)
-            m_ctrl_sum[i] /= back_thrust_ratio;
+        if(total_control[i] < 0)
+            total_control[i] /= back_thrust_ratio;
     }
 
-	//INFO("cs: m_control_output:"); log << m_ctrl_sum << endl;
-    return m_ctrl_sum;
+    return total_control;
 }
 
 double ControlSystem::wraparound(double x, double min, double max)

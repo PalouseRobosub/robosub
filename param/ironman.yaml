@@ -115,10 +115,3 @@ control:
     limits:
         rotation: 0.6
         translation: 0.8
-    offsets:
-        x: 0
-        y: 0
-        z: 0
-        psi: 0
-        phi: 0
-        theta: 0

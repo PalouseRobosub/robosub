@@ -38,10 +38,14 @@ private:
     //internal state information
     Vector6d goals;
     Matrix<uint8_t, 6, 1> goal_types;
+
+    /*
+     * The current status of all the integrals for X, Y, Z, PSI, PHI, and
+     * THETA. Elements are stored in that order.
+     */
     Vector6d integral_state;
     VectorXd motor_commands;
 
-    //loadable parameters
     Vector6d P, I, D;
     Vector6d windup, hysteresis;
     Vector6d sub_mass;
@@ -49,7 +53,6 @@ private:
     MatrixXd motors;
     MatrixXd position;
     MatrixXd orientation;
-    MatrixXd M;
     double t_lim;
     double r_lim;
     double max_thrust;
