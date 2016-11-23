@@ -8,5 +8,3 @@ add_library(test_tools
   serial_testbench.cpp
   spawn_process.cpp)
 target_link_libraries(test_tools ${catkin_LIBRARIES})
-
-add_library(math math.cpp)

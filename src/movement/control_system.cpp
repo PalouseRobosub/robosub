@@ -63,26 +63,26 @@ ControlSystem::ControlSystem(ros::NodeHandle *_nh, ros::Publisher *_pub) :
 
     position = MatrixXd(1,3);
     orientation = MatrixXd(1,3);
-    for(num_thrusters = 0; num_thrusters < thruster_settings.size(); ++num_thrusters)
+    for(int i = 0; i < thruster_settings.size(); ++i, ++num_thrusters)
     {
         /*
          * Increment the number of rows in the position and orientation
          * matrices to accomodate the new thruster.
          */
-        position.conservativeResize(num_thrusters+1, NoChange_t());
-        orientation.conservativeResize(num_thrusters+1, NoChange_t());
+        position.conservativeResize(i+1, NoChange_t());
+        orientation.conservativeResize(i+1, NoChange_t());
 
         /*
          * Load in the thruster positions and orientations. The column of the
          * position and orientation matrices denote the x, y, and z components
          * sequentially.
          */
-        position(num_thrusters,0) = thruster_settings[i]["position"]["x"];
-        position(num_thrusters,1) = thruster_settings[i]["position"]["y"];
-        position(num_thrusters,2) = thruster_settings[i]["position"]["z"];
-        orientation(num_thrusters,0) = thruster_settings[i]["orientation"]["x"];
-        orientation(num_thrusters,1) = thruster_settings[i]["orientation"]["y"];
-        orientation(num_thrusters,2) = thruster_settings[i]["orientation"]["z"];
+        position(i,0) = thruster_settings[i]["position"]["x"];
+        position(i,1) = thruster_settings[i]["position"]["y"];
+        position(i,2) = thruster_settings[i]["position"]["z"];
+        orientation(i,0) = thruster_settings[i]["orientation"]["x"];
+        orientation(i,1) = thruster_settings[i]["orientation"]["y"];
+        orientation(i,2) = thruster_settings[i]["orientation"]["z"];
     }
 
     /*

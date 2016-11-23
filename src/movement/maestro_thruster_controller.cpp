@@ -1,5 +1,4 @@
 #include "movement/maestro_thruster_controller.hpp"
-#include "utility/math.hpp"
 
 namespace rs
 {
@@ -159,7 +158,7 @@ namespace rs
         if(abs(speed) > _max_speed[channel])
         {
             ROS_INFO("Software-limiting thruster speed.");
-            speed = _max_speed[channel] * rs::math::sign(speed);
+            speed = _max_speed[channel] * ((speed < 0)? -1 : 1);
         }
 
         if (parseNormalized(speed, command[3], command[2]))
