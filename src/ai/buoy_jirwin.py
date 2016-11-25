@@ -8,7 +8,7 @@ from robosub.msg import control
 class Node():
     def __init__(self):
         self.pub = rospy.Publisher('control', control, queue_size=1)
-        self.sub = rospy.Subscriber('vision/start_gate', vision_pos, self.callback)
+        self.sub = rospy.Subscriber('vision/buoy', vision_pos, self.callback)
         self.state = "SEARCHING"
 
     def callback(self, vision_result):
