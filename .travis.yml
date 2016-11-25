@@ -53,5 +53,5 @@ matrix:
     - env: LINT=true
 
 env:
-  - LINT=true
   - LINT=false
+  - LINT=true
