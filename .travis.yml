@@ -48,6 +48,10 @@ script:
   - catkin_make run_tests
   - if [ $LINT == "true" ] ; then catkin_make roslint; fi 
 
+matrix:
+  allow_failures:
+    - env: LINT=true
+
 env:
   - LINT=true
   - LINT=false
