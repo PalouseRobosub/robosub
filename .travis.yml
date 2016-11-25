@@ -46,3 +46,8 @@ before_script:
 script:
   - catkin_make
   - catkin_make run_tests
+  - if [ $LINT == "true" ] ; then catkin_make roslint; fi 
+
+env:
+  - LINT=true
+  - LINT=false
