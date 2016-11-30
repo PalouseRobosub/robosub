@@ -64,7 +64,7 @@ thrusters:
     -   name: "forward_left"
         channel: 6
         orientation:
-            x: 1.0
+            x: -1.0
             y: 0.0
             z: 0.0
         position:
@@ -74,7 +74,7 @@ thrusters:
     -   name: "forward_right"
         channel: 7
         orientation:
-            x: 1.0
+            x: -1.0
             y: 0.0
             z: 0.0
         position:
@@ -84,8 +84,8 @@ thrusters:
 control:
     rate: 10
     mass: 25
-    back_thrust_ratio: 1.0
-    max_thrust: 25
+    back_thrust_ratio: 0.8
+    max_thrust: 50.0
     inertia:
         psi: 1.0
         phi: 1.0
