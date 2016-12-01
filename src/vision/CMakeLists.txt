@@ -7,3 +7,5 @@ target_link_libraries(image_publisher ${OpenCV_LIBRARIES})
 
 add_ros_node(vision VisionProcessor.cpp Vision.cpp)
 target_link_libraries(vision ${OpenCV_LIBRARIES})
+
+add_subdirectory(calib)

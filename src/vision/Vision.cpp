@@ -1,8 +1,7 @@
 #include "VisionProcessor.hpp"
 #include "wfov_camera_msgs/WFOVImage.h"
 #include "robosub/visionPos.h"
-#include "robosub/visionPosArray.h"
-#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/highgui.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
