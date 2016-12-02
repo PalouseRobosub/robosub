@@ -22,7 +22,7 @@ void modelStatesCallback(const gazebo_msgs::ModelStates& msg)
 {
     geometry_msgs::Vector3 position_msg;
     geometry_msgs::Quaternion orientation_msg;
-    geometry_msgs::Vector3 lin_accel_msg;
+    //geometry_msgs::Vector3 lin_accel_msg;
     std_msgs::Float32 depth_msg;
 
     // Find top of water and subs indices in modelstates lists
