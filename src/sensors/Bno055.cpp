@@ -22,7 +22,7 @@ namespace rs
         /*
          * Validate that self-test passed for all sensors.
          */
-        AbortIf(read_register(Bno055:Register::ST_RESULT, &self_test_result));
+        AbortIf(read_register(Bno055::Register::ST_RESULT, self_test_result));
         AbortIfNot(self_test_result == 0x04, -1);
 
         /*
@@ -37,7 +37,7 @@ namespace rs
             AbortIf(getSystemStatus(system_status, error));
             if (system_status == 1)
             {
-                return reinterpret_cast<int>(error);
+                return error;
             }
 
             /*
@@ -62,7 +62,7 @@ namespace rs
         AbortIf(read_register(Bno055::Register::SYS_CLK_STATUS, clock_status));
         if (clock_status & 0b1)
         {
-            AbortIf(write_register(Bno055:Register::SYS_TRIGGER, 1<<7));
+            AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<7));
         }
 
         /*
@@ -84,7 +84,8 @@ namespace rs
      */
     int Bno055::setPowerMode(PowerMode mode)
     {
-        AbortIf(write_register(Bno055::Register::PWR_MODE, mode));
+        AbortIf(write_register(Bno055::Register::PWR_MODE,
+                static_cast<uint8_t>(mode)));
 
         return 0;
     }
@@ -99,7 +100,8 @@ namespace rs
      */
     int Bno055::setOperationMode(Bno055::OperationMode mode)
     {
-        AbortIf(write_register(Bno055::Register::OPR_MODE, mode));
+        AbortIf(write_register(Bno055::Register::OPR_MODE,
+                static_cast<uint8_t>(mode)));
         const uint8_t wait_time_ms =
             (mode == Bno055::OperationMode::Config)? to_config_switch_time_ms :
             from_config_switch_time_ms;
@@ -144,7 +146,7 @@ namespace rs
      *
      * @return Zero upon success or a non-zero error code.
      */
-    int Bno055::SetOutputFormat(Bno055::Sensor sensor, Bno055::Format format)
+    int Bno055::setOutputFormat(Bno055::Sensor sensor, Bno055::Format format)
     {
         uint8_t unit_select;
         AbortIf(read_register(Bno055::Register::UNIT_SEL, unit_select));
@@ -154,25 +156,25 @@ namespace rs
                 AbortIfNot(format == Bno055::Format::MetersPerSecondSquared ||
                         format == Bno055::Format::MilliG, -1);
                 unit_select &= ~(1<<1);
-                uint_select |= static_cast<uint8_t>(format);
+                unit_select |= static_cast<uint8_t>(format);
                 break;
             case Bno055::Sensor::Gyroscope:
-                AbortIfNot(format == Bno055::Format::DegreesPerSecond ||
+                AbortIfNot(format == Bno055::Format::DegreesPerSec ||
                         format == Bno055::Format::RadiansPerSec, -1);
                 unit_select &= ~(1<<2);
-                uint_select |= static_cast<uint8_t>(format);
+                unit_select |= static_cast<uint8_t>(format);
                 break;
             case Bno055::Sensor::Fusion:
                 AbortIfNot(format == Bno055::Format::EulerDegrees ||
                         format == Bno055::Format::EulerRadians, -1);
-                uint_select &= ~(1<<3);
-                uint_select |= static_cast<uint8_t>(format);
+                unit_select &= ~(1<<3);
+                unit_select |= static_cast<uint8_t>(format);
                 break;
             case Bno055::Sensor::Thermometer:
                 AbortIfNot(format == Bno055::Format::TempC ||
                         format == Bno055::Format::TempF, -1);
-                uint_select &= ~(1<<5);
-                uint_select |= static_cast<uint8_t>(format);
+                unit_select &= ~(1<<5);
+                unit_select |= static_cast<uint8_t>(format);
                 break;
             default:
                 return -1;
@@ -196,11 +198,11 @@ namespace rs
      */
     int Bno055::readAccelerometer(int16_t &x, int16_t &y, int16_t &z)
     {
-        vector<uint16_t> data;
+        vector<uint8_t> data;
         AbortIf(read_register(Bno055::Register::ACC_DATA_X_LSB, data, 6));
-        x = data[0] | reinterpret_cast<uint16_t>(data[1]) << 8;
-        y = data[2] | reinterpret_cast<uint16_t>(data[3]) << 8;
-        z = data[4] | reinterpret_cast<uint16_t>(data[5]) << 8;
+        x = data[0] | static_cast<uint16_t>(data[1]) << 8;
+        y = data[2] | static_cast<uint16_t>(data[3]) << 8;
+        z = data[4] | static_cast<uint16_t>(data[5]) << 8;
 
         return 0;
     }
@@ -218,11 +220,11 @@ namespace rs
      */
     int Bno055::readMagnometer(int16_t &x, int16_t &y, int16_t &z)
     {
-        vector<uint16_t> data;
+        vector<uint8_t> data;
         AbortIf(read_register(Bno055::Register::MAG_DATA_X_LSB, data, 6));
-        x = data[0] | reinterpret_cast<uint16_t>(data[1]) << 8;
-        y = data[2] | reinterpret_cast<uint16_t>(data[3]) << 8;
-        z = data[4] | reinterpret_cast<uint16_t>(data[5]) << 8;
+        x = data[0] | static_cast<uint16_t>(data[1]) << 8;
+        y = data[2] | static_cast<uint16_t>(data[3]) << 8;
+        z = data[4] | static_cast<uint16_t>(data[5]) << 8;
 
         return 0;
     }
@@ -240,11 +242,11 @@ namespace rs
      */
     int Bno055::readGyroscope(int16_t &x, int16_t &y, int16_t &z)
     {
-        vector<uint16_t> data;
+        vector<uint8_t> data;
         AbortIf(read_register(Bno055::Register::GYR_DATA_X_LSB, data, 6));
-        x = data[0] | reinterpret_cast<uint16_t>(data[1]) << 8;
-        y = data[2] | reinterpret_cast<uint16_t>(data[3]) << 8;
-        z = data[4] | reinterpret_cast<uint16_t>(data[5]) << 8;
+        x = data[0] | static_cast<uint16_t>(data[1]) << 8;
+        y = data[2] | static_cast<uint16_t>(data[3]) << 8;
+        z = data[4] | static_cast<uint16_t>(data[5]) << 8;
 
         return 0;
     }
@@ -261,11 +263,11 @@ namespace rs
      */
     int Bno055::readEuler(int16_t &roll, int16_t &pitch, int16_t &yaw)
     {
-        vector<uint16_t> data;
+        vector<uint8_t> data;
         AbortIf(read_register(Bno055::Register::EUL_Heading_LSB, data, 6));
-        yaw = data[0] | reinterpret_cast<uint16_t>(data[1]) << 8;
-        roll = data[2] | reinterpret_cast<uint16_t>(data[3]) << 8;
-        pitch = data[4] | reinterpret_cast<uint16_t>(data[5]) << 8;
+        yaw = data[0] | static_cast<uint16_t>(data[1]) << 8;
+        roll = data[2] | static_cast<uint16_t>(data[3]) << 8;
+        pitch = data[4] | static_cast<uint16_t>(data[5]) << 8;
 
         return 0;
     }
@@ -280,12 +282,12 @@ namespace rs
      */
     int Bno055::readQuaternion(int16_t &w, int16_t &x, int16_t &y, int16_t &z)
     {
-        vector<uint16_t> data;
+        vector<uint8_t> data;
         AbortIf(read_register(Bno055::Register::QUAT_Data_w_LSB, data, 8));
-        w = data[0] | reinterpret_cast<uint16_t>(data[1]) << 8;
-        x = data[2] | reinterpret_cast<uint16_t>(data[3]) << 8;
-        y = data[4] | reinterpret_cast<uint16_t>(data[5]) << 8;
-        z = data[6] | reinterpret_cast<uint16_t>(data[7]) << 8;
+        w = data[0] | static_cast<uint16_t>(data[1]) << 8;
+        x = data[2] | static_cast<uint16_t>(data[3]) << 8;
+        y = data[4] | static_cast<uint16_t>(data[5]) << 8;
+        z = data[6] | static_cast<uint16_t>(data[7]) << 8;
 
         return 0;
     }
@@ -328,8 +330,7 @@ namespace rs
         axis_data[1] = ((static_cast<uint8_t>(x) > 0b10)? 1 << 2 : 0) |
                 ((static_cast<uint8_t>(y) > 0b10)? 1 << 1 : 0) |
                 ((static_cast<uint8_t>(x) > 0b10)? 1 : 0);
-        AbortIf(write_register(
-                Bno055::Register::AXIS_MAP_CONFIG, axis_data, 2));
+        AbortIf(write_register( Bno055::Register::AXIS_MAP_CONFIG, axis_data));
 
         return 0;
     }
@@ -349,25 +350,25 @@ namespace rs
             int16_t offset_z)
     {
         vector<uint8_t> offsets(6);
-        offsets[0] = reinterpret_cast<uint8_t>(offset_x);
-        offsets[1] = reinterpret_cast<uint8_t>(offset_x >> 8);
-        offsets[2] = reinterpret_cast<uint8_t>(offset_y);
-        offsets[3] = reinterpret_cast<uint8_t>(offset_y >> 8);
-        offsets[4] = reinterpret_cast<uint8_t>(offset_z);
-        offsets[5] = reinterpret_cast<uint8_t>(offset_z >> 8);
+        offsets[0] = static_cast<uint8_t>(offset_x);
+        offsets[1] = static_cast<uint8_t>(offset_x >> 8);
+        offsets[2] = static_cast<uint8_t>(offset_y);
+        offsets[3] = static_cast<uint8_t>(offset_y >> 8);
+        offsets[4] = static_cast<uint8_t>(offset_z);
+        offsets[5] = static_cast<uint8_t>(offset_z >> 8);
         switch (sensor)
         {
             case Bno055::Sensor::Accelerometer:
-                AbortIf(write_sensor(Bno055::Register::ACC_OFFSET_X_LSB,
-                        offsets, 6));
+                AbortIf(write_register(Bno055::Register::ACC_OFFSET_X_LSB,
+                        offsets));
                 break;
             case Bno055::Sensor::Gyroscope:
-                AbortIf(write_sensor(Bno055::Register::GYR_OFFSET_X_LSB,
-                        offsets, 6));
+                AbortIf(write_register(Bno055::Register::GYR_OFFSET_X_LSB,
+                        offsets));
                 break;
             case Bno055::Sensor::Magnometer:
-                AbortIf(write_sensor(Bno055::Register::MAG_OFFSET_X_LSB,
-                        offsets, 6));
+                AbortIf(write_register(Bno055::Register::MAG_OFFSET_X_LSB,
+                        offsets));
                 break;
             default:
                 return -1;
@@ -396,24 +397,24 @@ namespace rs
         switch (sensor)
         {
             case Bno055::Sensor::Accelerometer:
-                AbortIf(read_sensor(Bno055::Register::ACC_OFFSET_X_LSB,
+                AbortIf(read_register(Bno055::Register::ACC_OFFSET_X_LSB,
                         offsets, 6));
                 break;
             case Bno055::Sensor::Gyroscope:
-                AbortIf(read_sensor(Bno055::Register::GYR_OFFSET_X_LSB,
+                AbortIf(read_register(Bno055::Register::GYR_OFFSET_X_LSB,
                         offsets, 6));
                 break;
             case Bno055::Sensor::Magnometer:
-                AbortIf(read_sensor(Bno055::Register::MAG_OFFSET_X_LSB,
+                AbortIf(read_register(Bno055::Register::MAG_OFFSET_X_LSB,
                         offsets, 6));
                 break;
             default:
                 return -1;
                 break;
         }
-        offset_x = reinterpret_cast<uint16_t>(offsets[1]) << 8 | offsets[0];
-        offset_y = reinterpret_cast<uint16_t>(offsets[3]) << 8 | offsets[2];
-        offset_z = reinterpret_cast<uint16_t>(offsets[5]) << 8 | offsets[4];
+        offset_x = static_cast<uint16_t>(offsets[1]) << 8 | offsets[0];
+        offset_y = static_cast<uint16_t>(offsets[3]) << 8 | offsets[2];
+        offset_z = static_cast<uint16_t>(offsets[5]) << 8 | offsets[4];
 
         return 0;
     }
@@ -422,7 +423,7 @@ namespace rs
      * Write radii to a sensor calibration.
      *
      * @param sensor The sensor whose calibration information should be read.
-     *        This value can only by the Gyroscope, Magnometer, or the
+     *        This value can only be set for the Magnometer or the
      *        Accelerometer.
      * @param radius Radius to store in memory.
      *
@@ -431,21 +432,17 @@ namespace rs
     int Bno055::writeRadius(Sensor sensor, int16_t radius)
     {
         vector<uint8_t> _radius(2);
-        _radius[0] = reinterpret_cast<uint8_t>(radius);
-        _radius[1] = reinterpret_cast<uint8_t>(radius >> 8);
+        _radius[0] = static_cast<uint8_t>(radius);
+        _radius[1] = static_cast<uint8_t>(radius >> 8);
         switch (sensor)
         {
             case Bno055::Sensor::Accelerometer:
-                AbortIf(write_sensor(Bno055::Register::ACC_RADIUS_LSB,
-                        _radius, 2));
-                break;
-            case Bno055::Sensor::Gyroscope:
-                AbortIf(write_sensor(Bno055::Register::GYR_RADIUS_LSB,
-                        _radius, 2));
+                AbortIf(write_register(Bno055::Register::ACC_RADIUS_LSB,
+                        _radius));
                 break;
             case Bno055::Sensor::Magnometer:
-                AbortIf(write_sensor(Bno055::Register::MAG_RADIUS_LSB,
-                        _radius, 2));
+                AbortIf(write_register(Bno055::Register::MAG_RADIUS_LSB,
+                        _radius));
                 break;
             default:
                 return -1;
@@ -459,8 +456,7 @@ namespace rs
      * Read radii calculated by a sensor calibration.
      *
      * @param sensor The sensor whose calibration information should be read.
-     *        This value can only by the Gyroscope, Magnometer, or the
-     *        Accelerometer.
+     *        This value can only be the Magnometer or the Accelerometer.
      * @param[out] radius Location to store the radius.
      *
      * @return Zero upon success or non-zero error code.
@@ -471,22 +467,18 @@ namespace rs
         switch (sensor)
         {
             case Bno055::Sensor::Accelerometer:
-                AbortIf(read_sensor(Bno055::Register::ACC_RADIUS_LSB,
-                        _radius, 2));
-                break;
-            case Bno055::Sensor::Gyroscope:
-                AbortIf(read_sensor(Bno055::Register::GYR_RADIUS_LSB,
+                AbortIf(read_register(Bno055::Register::ACC_RADIUS_LSB,
                         _radius, 2));
                 break;
             case Bno055::Sensor::Magnometer:
-                AbortIf(read_sensor(Bno055::Register::MAG_RADIUS_LSB,
+                AbortIf(read_register(Bno055::Register::MAG_RADIUS_LSB,
                         _radius, 2));
                 break;
             default:
                 return -1;
                 break;
         }
-        radius = reinterpret_cast<uint16_t>(_radius[1]) << 8 | _radius[0];
+        radius = static_cast<uint16_t>(_radius[1]) << 8 | _radius[0];
 
         return 0;
     }
@@ -498,7 +490,7 @@ namespace rs
      *             the system.
      * @return Zero upon success or a non-zero error code.
      */
-    int Bno055::getSystemCalibration()
+    int Bno055::getSystemCalibration(uint8_t &calibration)
     {
         uint8_t calib_stat_reg, calib_stat;
         AbortIf(read_register(Bno055::Register::CALIB_STAT,
@@ -519,7 +511,6 @@ namespace rs
     int Bno055::getSensorCalibration(Sensor sensor, uint8_t &calibration)
     {
         uint8_t calib_stat = 0, calib_stat_reg = 0;
-        AbortIfNot(level < 4 && level >= 0, -1);
         AbortIfNot(sensor == Bno055::Sensor::Accelerometer ||
                 sensor == Bno055::Sensor::Magnometer ||
                 sensor == Bno055::Sensor::Accelerometer, -1);
@@ -534,7 +525,7 @@ namespace rs
             case Bno055::Sensor::Accelerometer:
                 calib_stat = (calib_stat_reg >> 2) & 0b11;
                 break;
-            case Bno055::Sensor::Accelerometer:
+            case Bno055::Sensor::Magnometer:
                 calib_stat = (calib_stat_reg >> 0) & 0b11;
                 break;
             default:
@@ -569,10 +560,10 @@ namespace rs
         /*
          * Ensure that the correct page is set for the specified register.
          */
-        uint16_t register_address = reinterpret_Cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _current_page)
+        uint16_t register_address = static_cast<uint16_t>(start);
+        if ((register_address & 0x100>>2) != _page)
         {
-            AbortIf(set_page(regster_address & 0x100 >> 2));
+            AbortIf(set_page(register_address & 0x100 >> 2));
         }
 
         /*
@@ -580,13 +571,13 @@ namespace rs
          */
         vector<uint8_t> msg =
                 {0xAA, 0x00, static_cast<uint8_t>(start), 1, data};
-        AbortIfNot(port.write(msg.data(), msg.size()) == msg.size(), -1);
+        AbortIfNot(_port.Write(msg.data(), msg.size()) == msg.size(), -1);
 
         /*
          * Verify that the write succeeded with the Bno's reply.
          */
         uint8_t response[2];
-        AbortIfNot(port.read(response, 2) == 2, -1);
+        AbortIfNot(_port.Read(response, 2) == 2, -1);
 
         AbortIfNot(response[0] == 0xEE, -1);
 
@@ -607,10 +598,10 @@ namespace rs
         /*
          * Ensure that the correct page is set for the specified register.
          */
-        uint16_t register_address = reinterpret_Cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _current_page)
+        uint16_t register_address = static_cast<uint16_t>(start);
+        if ((register_address & 0x100>>2) != _page)
         {
-            AbortIf(set_page(regster_address & 0x100 >> 2));
+            AbortIf(set_page(register_address & 0x100 >> 2));
         }
 
         /*
@@ -623,13 +614,13 @@ namespace rs
         vector<uint8_t> msg =
                 {0xAA, 0x00, static_cast<uint8_t>(start), write_length};
         msg.insert(msg.end(), data.begin(), data.end());
-        AbortIfNot(port.write(msg.data(), msg.size()) == msg.size(), -1);
+        AbortIfNot(_port.Write(msg.data(), msg.size()) == msg.size(), -1);
 
         /*
          * Verify that the write succeeded with the Bno's reply.
          */
         uint8_t response[2];
-        AbortIfNot(port.read(response, 2) == 2, -1);
+        AbortIfNot(_port.Read(response, 2) == 2, -1);
 
         AbortIfNot(response[0] == 0xEE, -1);
 
@@ -644,31 +635,30 @@ namespace rs
      *
      * @return Zero upon success or a non-zero error code.
      */
-    int Bno055::read_register(Bno055::Register start, uint8_t data)
+    int Bno055::read_register(Bno055::Register start, uint8_t &data)
     {
         /*
          * Ensure that the correct page is set for the specified register.
          */
-        uint16_t register_address = reinterpret_Cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _current_page)
+        uint16_t register_address = static_cast<uint16_t>(start);
+        if ((register_address & 0x100>>2) != _page)
         {
-            AbortIf(set_page(regster_address & 0x100 >> 2));
+            AbortIf(set_page(register_address & 0x100 >> 2));
         }
 
         /*
          * Allocate memory for a response, request a read, and read the
          * response.
          */
-        vector<uint8_t> reply(len + 2);
+        vector<uint8_t> reply(3);
         vector<uint8_t> request = {0xAA, 0x01, static_cast<uint8_t>(start), 1};
-        AbortIfNot(port.write(request.data(), request.size() == request.size(),
+        AbortIfNot(_port.Write(request.data(), request.size()) == request.size(),
                 -1);
-        AbortIfNot(port.read(reply.data(), len + 2) == len + 2, -1);
-        AbortIfNot(reply[0] == 0xEE, reinterpret_cast<int>(reply[1]));
-        AbortIfNot(reply[1] == len, -1);
+        AbortIfNot(_port.Read(reply.data(), 3) < 2, -1);
+        AbortIfNot(reply[0] == 0xEE, static_cast<int>(reply[1]));
+        AbortIfNot(reply[1] == 1, -1);
 
-        data.clear();
-        data.insert(data.begin(), reply.start()+2, reply.end());
+        data = reply[2];
 
         return 0;
     }
@@ -688,28 +678,33 @@ namespace rs
         /*
          * Ensure that the correct page is set for the specified register.
          */
-        uint16_t register_address = reinterpret_Cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _current_page)
+        uint16_t register_address = static_cast<uint16_t>(start);
+        if ((register_address & 0x100>>2) != _page)
         {
-            AbortIf(set_page(regster_address & 0x100 >> 2));
+            AbortIf(set_page(register_address & 0x100 >> 2));
         }
 
         /*
          * Allocate memory for a response, request a read, and read the
          * response.
          */
+        uint8_t read_length;
         vector<uint8_t> reply(len + 2);
         vector<uint8_t> request = {0xAA, 0x01, static_cast<uint8_t>(start),
                 len};
-        const size_t bytes_written = port.write(request.data(),
-                request.size());
-        AbortIfNot(bytes_written == request.size(), -1);
-        AbortIfNot(port.read(reply.data(), len + 2) == len + 2, -1);
-        AbortIfNot(reply[0] == 0xEE, reinterpret_cast<int>(reply[1]));
+        AbortIfNot(_port.Write(request.data(), request.size())
+                == request.size(), -1);
+        /*
+         * Ensure that atleast an error code can be read. Verify later that
+         * entire length was read.
+         */
+        AbortIfNot((read_length = _port.Read(reply.data(), len + 2)) < 2, -1);
+        AbortIfNot(reply[0] == 0xEE, static_cast<int>(reply[1]));
+        AbortIfNot(read_length == len + 2, -1)
         AbortIfNot(reply[1] == len, -1);
 
         data.clear();
-        data.insert(data.begin(), reply.start()+2, reply.end());
+        data.insert(data.begin(), reply.begin()+2, reply.end());
 
         return 0;
     }
@@ -725,7 +720,7 @@ namespace rs
     {
         AbortIfNot(id == 1 || id == 0, -1);
         AbortIf(write_register(Bno055::Register::PAGE_ID, id));
-        _current_page = id;
+        _page = id;
         return 0;
     }
 

@@ -12,11 +12,14 @@
 #ifndef BNO055_H
 #define BNO055_H
 
-#include "utility/Serial.hpp"
+#include "utility/serial.hpp"
+#include <vector>
+
+using std::vector;
 
 #define AbortIfNot(x, ret) \
 { \
-    if (!x) \
+    if (!(x)) \
     { \
         return ret;\
     } \
@@ -185,7 +188,7 @@ namespace rs
             Mag = 0b0010,
             Gyro = 0b0011,
             AccMag = 0b0100,
-            AccGyro = 0b0b0101,
+            AccGyro = 0b0101,
             MagGyro = 0b0110,
             AccMagGyro = 0b111,
             Imu = 0b1000,
@@ -257,11 +260,11 @@ namespace rs
          * increasing pitch clockwise, whereas Windows defines increasing pitch
          * as counter-clockwise [3.6.2].
          */
-        enum class PitchMode
+        enum class PitchMode : uint8_t
         {
             Windows = 0b00000000,
             Android = 0b10000000
-        }
+        };
 
         /**
          * Constructor.
@@ -271,7 +274,7 @@ namespace rs
          */
         Bno055(Serial &port) :
             _port(port),
-            _current_mode(Mode::Config)
+            _current_mode(OperationMode::Config),
             _page(0)
         {
         }
@@ -282,7 +285,7 @@ namespace rs
 
         int setOperationMode(OperationMode mode);
 
-        int setOutputFormat(Format format);
+        int setOutputFormat(Sensor sensor, Format format);
 
         int readAccelerometer(int16_t &x, int16_t &y, int16_t &z);
         int readMagnometer(int16_t &x, int16_t &y, int16_t &z);
@@ -300,7 +303,8 @@ namespace rs
         int writeRadius(Sensor sensor, int16_t radius);
         int readRadius(Sensor sensor, int16_t &radius);
 
-        int calibrate(Sensor sensor);
+        int getSensorCalibration(Sensor sensor, uint8_t &calibration);
+        int getSystemCalibration(uint8_t &calibration);
 
         int init();
 
@@ -313,7 +317,8 @@ namespace rs
         int write_register(Bno055::Register start, vector<uint8_t> data);
         int write_register(Bno055::Register start, uint8_t data);
 
-        int read_register(Bno055::Register start, vector<uint8_t> &data, int len);
+        int read_register(Bno055::Register start, vector<uint8_t> &data, uint8_t len);
+        int read_register(Bno055::Register start, uint8_t &data);
 
         int set_page(uint8_t id);
 
