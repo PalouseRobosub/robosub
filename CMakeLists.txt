@@ -82,6 +82,8 @@ add_message_files(
   Euler.msg
   visionPos.msg
   visionPosArray.msg
+  ObstaclePos.msg
+  ObstaclePosArray.msg
 )
 
 ## Generate services in the 'srv' folder

@@ -4,12 +4,17 @@
 #include "geometry_msgs/Vector3.h"
 #include "gazebo_msgs/ModelState.h"
 #include "gazebo_msgs/ModelStates.h"
+#include "robosub/ObstaclePosArray.h"
 
 ros::Publisher position_pub;
 ros::Publisher orientation_pub;
 ros::Publisher depth_pub;
+ros::Publisher obstacle_pos_pub;
 //ros::Publisher lin_accel_pub;
 
+// List of names of objects to publish the position and name of. This will be
+// loaded from parameters.
+std::vector<std::string> object_names;
 
 // ModelStates msg consists of a name, a pose (position and orientation),
 // and a twist (linear and angular velocity) for each object in
@@ -56,6 +61,33 @@ void modelStatesCallback(const gazebo_msgs::ModelStates& msg)
         }
     }
 
+    // Search through the modelstates msg and extract position data for pool
+    // obstacles.
+    robosub::ObstaclePosArray object_array;
+    for(int i=0; i<object_names.size(); i++)
+    {
+        // Find object_names[i].
+        auto it = std::find(msg.name.begin(), msg.name.end(), object_names[i]);
+        // Note: std::find returns an iterator equal to array.end() if input
+        // not found in array.
+        if(it != msg.name.end())
+        {
+            // Calculate index
+            auto idx = std::distance(msg.name.begin(), it);
+
+            // Extract necessary data from modelstates
+            robosub::ObstaclePos pos;
+            pos.x = msg.pose[idx].position.x;
+            pos.y = msg.pose[idx].position.y;
+            pos.z = msg.pose[idx].position.z;
+            pos.name = msg.name[idx];
+
+            object_array.data.push_back(pos);
+        }
+    }
+
+    obstacle_pos_pub.publish(object_array);
+
     //lin_accel_pub.publish(lin_accel_msg);
 }
 
@@ -68,6 +100,7 @@ int main(int argc, char **argv)
     position_pub = nh.advertise<geometry_msgs::Vector3>("position", 1);
     orientation_pub = nh.advertise<geometry_msgs::Quaternion>("orientation", 1);
     depth_pub = nh.advertise<std_msgs::Float32>("depth", 1);
+    obstacle_pos_pub = nh.advertise<robosub::ObstaclePosArray>("obstacle_positions", 1);
     // Info not being published right now
     //lin_accel_pub = nh.advertise<geometry_msgs::Vector3>("lin_accel", 1);
 
@@ -77,6 +110,12 @@ int main(int argc, char **argv)
     if(!nh.getParam("control/rate", rate))
         rate = 30;
     ros::Rate r(rate);
+
+    // Put object names in vector
+    if(!nh.getParam("/obstacles", object_names))
+    {
+        ROS_WARN_STREAM("failed to load obstacle names");
+    }
 
     // I use spinOnce and sleeps here because the simulator publishes
     // at a very high rate and we don't need every message
