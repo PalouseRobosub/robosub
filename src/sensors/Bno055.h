@@ -207,8 +207,8 @@ namespace rs
             Y = 0b001,
             Z = 0b010,
             NegativeX = 0b100,
-            NegativeY = 0b101,
-            NegativeZ = 0b110
+            NegativeY = 0b1000,
+            NegativeZ = 0b10000
         };
 
         /**
@@ -297,12 +297,16 @@ namespace rs
         int writeOffsets(Sensor sensor, int16_t offset_x, int16_t offset_y, int16_t offset_z);
         int readOffsets(Sensor sensor, int16_t &offset_x, int16_t &offset_y, int16_t &offset_z);
 
-        int writeRadii(Sensor sensor, int16_t radius);
-        int readRadii(Sensor sensor, int16_t &radius);
+        int writeRadius(Sensor sensor, int16_t radius);
+        int readRadius(Sensor sensor, int16_t &radius);
 
         int calibrate(Sensor sensor);
 
         int init();
+
+        int getSystemStatus(uint8_t &status, uint8_t &error);
+
+        int reset();
 
     private:
 
@@ -310,6 +314,8 @@ namespace rs
         int write_register(Bno055::Register start, uint8_t data);
 
         int read_register(Bno055::Register start, vector<uint8_t> &data, int len);
+
+        int set_page(uint8_t id);
 
         /*
          * Serial port to be utilized for communicating with the sensor.
@@ -319,7 +325,7 @@ namespace rs
         /*
          * Definition of the current operating mode of the sensor.
          */
-        Bno055::OperationMode _current_mode;
+        OperationMode _current_mode;
 
         /*
          * Defines the current register page that the sensor is set to.
