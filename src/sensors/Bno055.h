@@ -14,6 +14,22 @@
 
 #include "utility/Serial.hpp"
 
+#define AbortIfNot(x, ret) \
+{ \
+    if (!x) \
+    { \
+        return ret;\
+    } \
+}
+
+#define AbortIf(x) \
+{ \
+    if (x) \
+    { \
+        return x; \
+    } \
+}
+
 namespace rs
 {
     /**
@@ -25,9 +41,9 @@ namespace rs
          * Defines the times (in milliseconds) required to switch from config
          * mode to another mode and from any mode to config mode [Table 3-6].
          */
-        static constexpr uint8_t to_config_switch_time = 19;
+        static constexpr uint8_t to_config_switch_time_ms = 19;
 
-        static constexpr uint8_t from_config_switch_time = 7;
+        static constexpr uint8_t from_config_switch_time_ms = 7;
 
         /**
          * Defines register address locations.
@@ -214,8 +230,10 @@ namespace rs
         {
             Accelerometer,
             Magnometer,
-            Gyroscope
-        }
+            Gyroscope,
+            Thermometer,
+            Fusion
+        };
 
         /**
          * Definition of all available output unit formats for each of the
@@ -225,12 +243,10 @@ namespace rs
         {
             MetersPerSecondSquared = 0b00000,
             MilliG = 0b00001,
-            MicroTeslas,
             DegreesPerSec = 0b00000,
-            RevoPerSec = 0b00010,
+            RadiansPerSec = 0b00010,
             EulerDegrees = 0b00000,
             EulerRadians = 0b00100,
-            Quaternions,
             TempC = 0b00000,
             TempF = 0b10000
         };
