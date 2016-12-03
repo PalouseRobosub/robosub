@@ -32,7 +32,7 @@ typedef Matrix<double,6,6> Matrix6d;
 class ControlSystem
 {
 private:
-    VectorXd motor_control(Vector12d state);
+    VectorXd motor_control();
     double wraparound(double x, double min, double max);
 
     //internal state information
@@ -63,7 +63,7 @@ private:
     // need vector/matrix for submarine parameters like mass
 
     // ros stuff
-    ros::NodeHandle *nh;
+    ros::NodeHandle &nh;
     ros::Publisher *pub;
 
     // msgs
@@ -73,7 +73,7 @@ private:
 
 public:
     //ControlSystem();
-	ControlSystem(ros::NodeHandle *nh, ros::Publisher *pub);
+	ControlSystem(ros::NodeHandle &nh, ros::Publisher *pub);
     ~ControlSystem() {}
 
     void InputControlMessage(robosub::control msg);
