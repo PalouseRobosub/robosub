@@ -6,7 +6,7 @@ target_link_libraries(bno055 ${catkin_LIBRARIES})
 add_ros_node(imu imu.cpp)
 target_link_libraries(imu serial)
 
-add_ros_node(bno bno.cpp)
+add_ros_node(bno bno_example.cpp)
 target_link_libraries(bno serial bno055)
 
 add_ros_node(depth depth.cpp)
