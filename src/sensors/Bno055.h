@@ -17,6 +17,14 @@
 
 using std::vector;
 
+/**
+ * Handle expressions for automatic return on failure.
+ *
+ * @param x Expression to evaluate.
+ * @param ret The value to return when the expression evaluates to false.
+ *
+ * @return ret if the expression x evaluates false.
+ */
 #define AbortIfNot(x, ret) \
 { \
     if (!(x)) \
@@ -25,6 +33,13 @@ using std::vector;
     } \
 }
 
+/**
+ * Handle expressions for automatic return on success.
+ *
+ * @param x The expression to evaluate.
+ *
+ * @return x if the expression evaluates true.
+ */
 #define AbortIf(x) \
 { \
     if (x) \
@@ -45,12 +60,20 @@ namespace rs
          * mode to another mode and from any mode to config mode [Table 3-6].
          */
         static constexpr uint8_t to_config_switch_time_ms = 19;
-
         static constexpr uint8_t from_config_switch_time_ms = 7;
+
+        /*
+         * Defines the specific error codes and header responses from the Bno
+         * sensor [4.7].
+         */
         static constexpr uint8_t read_success_header = 0xBB;
         static constexpr uint8_t write_response_header = 0xEE;
         static constexpr uint8_t request_header = 0xAA;
 
+        /*
+         * Defines the Bno055's chip ID stored in the Bno memory.
+         */
+        static constexpr uint8_t chip_id = 0xA0;
 
         /**
          * Defines register address locations.
@@ -284,18 +307,32 @@ namespace rs
         {
         }
 
+        int init();
+
+        int reset();
+
         int setPowerMode(PowerMode mode);
 
-        int setPitchMode(PitchMode mode);
-
         int setOperationMode(OperationMode mode);
+
+        int getSystemStatus(uint8_t &status, uint8_t &error);
+
+        int getSystemCalibration(uint8_t &calibration);
+
+        int getSensorCalibration(Sensor sensor, uint8_t &calibration);
+
+        int setPitchMode(PitchMode mode);
 
         int setOutputFormat(Sensor sensor, Format format);
 
         int readAccelerometer(int16_t &x, int16_t &y, int16_t &z);
+
         int readMagnometer(int16_t &x, int16_t &y, int16_t &z);
+
         int readGyroscope(int16_t &x, int16_t &y, int16_t &z);
+
         int readEuler(double &roll, double &pitch, double &yaw);
+
         int readQuaternion(double &w, double &x, double &y, double &z);
 
         int readTemperature(uint16_t &temp);
@@ -303,26 +340,21 @@ namespace rs
         int remapAxes(Axis x, Axis y, Axis z);
 
         int writeOffsets(Sensor sensor, int16_t offset_x, int16_t offset_y, int16_t offset_z);
+
         int readOffsets(Sensor sensor, int16_t &offset_x, int16_t &offset_y, int16_t &offset_z);
 
         int writeRadius(Sensor sensor, int16_t radius);
+
         int readRadius(Sensor sensor, int16_t &radius);
-
-        int getSensorCalibration(Sensor sensor, uint8_t &calibration);
-        int getSystemCalibration(uint8_t &calibration);
-
-        int init();
-
-        int getSystemStatus(uint8_t &status, uint8_t &error);
-
-        int reset();
 
     private:
 
         int write_register(Bno055::Register start, vector<uint8_t> data);
+
         int write_register(Bno055::Register start, uint8_t data);
 
         int read_register(Bno055::Register start, vector<uint8_t> &data, uint8_t len);
+
         int read_register(Bno055::Register start, uint8_t &data);
 
         int set_page(uint8_t id);

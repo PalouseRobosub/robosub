@@ -8,6 +8,14 @@ using namespace std;
 
 using namespace rs;
 
+/**
+ * Handles errors returned by the Bno driver.
+ *
+ * @param x The expression to evaluate.
+ * @param s The string representing the function the error occurred in.
+ *
+ * @return None.
+ */
 #define HandleError(x, s) \
 { \
     if ((x)) \
@@ -29,6 +37,11 @@ using namespace rs;
     } \
 } \
 
+/**
+ * Main entry point into the program.
+ *
+ * @return Zero upon completion.
+ */
 int main()
 {
     ros::Time::init();
@@ -47,7 +60,6 @@ int main()
      * Perform a calibration of all sensors.
      */
     uint8_t acc_calib = 0, gyr_calib = 0, mag_calib = 0, sys_calib = 0;
-    /*
     do
     {
         HandleError(bno.getSensorCalibration(Bno055::Sensor::Accelerometer, acc_calib), "Bno055::getSensorCalibration()");
@@ -61,7 +73,6 @@ int main()
         usleep(500000);
     }
     while (sys_calib < 3 || acc_calib < 3 || mag_calib < 3 || gyr_calib < 3);
-    */
 
     double w = 0, x = 0, y = 0, z = 0;
     double roll, pitch, yaw;
@@ -78,5 +89,7 @@ int main()
         cout << "pitch: " << pitch << endl;
         cout << "yaw: " << yaw << endl;
     }
+
+    return 0;
 }
 

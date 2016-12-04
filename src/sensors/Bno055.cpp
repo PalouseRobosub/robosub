@@ -26,10 +26,10 @@ namespace rs
          * derived from [4.3.1].
          */
         AbortIf(read_register(Bno055::Register::CHIP_ID, chip_id));
-        AbortIfNot(chip_id == 0xA0, -1);
+        AbortIfNot(chip_id == Bno055::chip_id, -1);
 
         /*
-         * Validate that self-test passed for all sensors.
+         * Validate that the power on self-test passed for all sensors.
          */
         AbortIf(read_register(Bno055::Register::ST_RESULT, self_test_result));
         AbortIfNot(self_test_result  == 0x0F, -1);
@@ -42,14 +42,9 @@ namespace rs
         AbortIf(read_register(Bno055::Register::SYS_TRIGGER, sys_trigger_reg));
         AbortIf(write_register(Bno055::Register::SYS_TRIGGER,
                 sys_trigger_reg | 1));
-
-        /*
-         * Wait for the test to complete and validate the results.
-         */
         usleep(500000);
         AbortIf(read_register(Bno055::Register::ST_RESULT,
                 self_test_result));
-
         AbortIfNot(self_test_result == 0x0F, -1);
 
         /*
@@ -566,7 +561,7 @@ namespace rs
     {
         uint8_t chip_id = 0;
         AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<5));
-        while (chip_id != 0xA0)
+        while (chip_id != Bno055::chip_id)
         {
             read_register(Bno055::Register::CHIP_ID, chip_id);
         }
