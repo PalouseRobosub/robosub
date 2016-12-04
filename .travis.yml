@@ -30,6 +30,8 @@ addons:
       key_url: 'https://raw.githubusercontent.com/ros/rosdistro/master/ros.key '
     - sourceline: 'deb http://robosub.eecs.wsu.edu/repo/ /'
       key_url: 'http://robosub.eecs.wsu.edu/repo/repository_key'
+    - sourceline: 'deb http://packages.osrfoundation.org/gazebo/ubuntu trusty main'
+      key_url: 'http://packages.osrfoundation.org/gazebo.key'
     packages:
     - robosub
 
