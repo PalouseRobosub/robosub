@@ -6,7 +6,7 @@ thrusters:
         orientation:
             x: 0.0
             y: 0.0
-            z: 1.0
+            z: -1.0
         position:
             x: 0.235
             y: 0.23
@@ -16,7 +16,7 @@ thrusters:
         orientation:
             x: 0.0
             y: 0.0
-            z: 1.0
+            z: -1.0
         position:
             x: 0.235
             y: -0.23
@@ -26,7 +26,7 @@ thrusters:
         orientation:
             x: 0.0
             y: 0.0
-            z: 1.0
+            z: -1.0
         position:
             x: -0.235
             y: 0.23
@@ -36,7 +36,7 @@ thrusters:
         orientation:
             x: 0.0
             y: 0.0
-            z: 1.0
+            z: -1.0
         position:
             x: -0.235
             y: -0.23
@@ -83,7 +83,7 @@ thrusters:
             z: -0.01
 control:
     rate: 10
-    mass: 25
+    mass: 27
     back_thrust_ratio: 0.8
     max_thrust: 50.0
     inertia:
@@ -126,8 +126,8 @@ control:
         phi: 0
         theta: 0
     limits:
-        rotation: 0.6
-        translation: 0.8
+        rotation: 0.5
+        translation: 0.5
     offsets:
         x: 0
         y: 0
