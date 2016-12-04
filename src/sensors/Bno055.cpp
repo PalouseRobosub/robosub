@@ -5,12 +5,21 @@ namespace rs
     /**
      * Initialize the Bno to a default configuration state.
      *
+     * @note This function needs a minimum of 1.15 seconds to execute because
+     *       the Bno055 self-test requires time to complete and reset requires
+     *       650ms.
+     *
      * @return Zero upon success and non-zero upon failure.
      */
     int Bno055::init()
     {
         uint8_t self_test_result, chip_id, clock_status, clock_config;
         AbortIf(set_page(0));
+
+        /*
+         * Perform a software reset to start off in a default state.
+         */
+        AbortIf(reset());
 
         /*
          * Sanity check that this is the chip we expect it to be. Result
@@ -23,37 +32,25 @@ namespace rs
          * Validate that self-test passed for all sensors.
          */
         AbortIf(read_register(Bno055::Register::ST_RESULT, self_test_result));
-        AbortIfNot(self_test_result == 0x04, -1);
+        AbortIfNot(self_test_result  == 0x0F, -1);
 
         /*
          * Begin a built-in self-test of the device and wait for it to
          * complete.
          */
-        AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1));
-        bool running = true;
-        uint8_t system_status, error;
-        while (running)
-        {
-            AbortIf(getSystemStatus(system_status, error));
-            if (system_status == 1)
-            {
-                return error;
-            }
-
-            /*
-             * If it is no longer running the self-test, continue.
-             */
-            if (system_status != 4)
-            {
-                running = false;
-            }
-        }
+        uint8_t sys_trigger_reg;
+        AbortIf(read_register(Bno055::Register::SYS_TRIGGER, sys_trigger_reg));
+        AbortIf(write_register(Bno055::Register::SYS_TRIGGER,
+                sys_trigger_reg | 1));
 
         /*
-         * Validate the results of the self-test.
+         * Wait for the test to complete and validate the results.
          */
-        AbortIf(read_register(Bno055::Register::ST_RESULT, self_test_result));
-        AbortIfNot(self_test_result == 0x04, -1);
+        usleep(500000);
+        AbortIf(read_register(Bno055::Register::ST_RESULT,
+                self_test_result));
+
+        AbortIfNot(self_test_result == 0x0F, -1);
 
         /*
          * Read and configure the clock to utilize the external oscillator if
@@ -169,6 +166,7 @@ namespace rs
                         format == Bno055::Format::EulerRadians, -1);
                 unit_select &= ~(1<<3);
                 unit_select |= static_cast<uint8_t>(format);
+                euler_units = format;
                 break;
             case Bno055::Sensor::Thermometer:
                 AbortIfNot(format == Bno055::Format::TempC ||
@@ -261,13 +259,24 @@ namespace rs
      * @param[out] pitch Location to store pitch reading.
      * @param[out] yaw Location to store yaw reading.
      */
-    int Bno055::readEuler(int16_t &roll, int16_t &pitch, int16_t &yaw)
+    int Bno055::readEuler(double &roll, double &pitch, double &yaw)
     {
         vector<uint8_t> data;
+        int16_t raw_yaw, raw_roll, raw_pitch;
         AbortIf(read_register(Bno055::Register::EUL_Heading_LSB, data, 6));
-        yaw = data[0] | static_cast<uint16_t>(data[1]) << 8;
-        roll = data[2] | static_cast<uint16_t>(data[3]) << 8;
-        pitch = data[4] | static_cast<uint16_t>(data[5]) << 8;
+        raw_yaw = data[0] | static_cast<uint16_t>(data[1]) << 8;
+        raw_roll = data[2] | static_cast<uint16_t>(data[3]) << 8;
+        raw_pitch = data[4] | static_cast<uint16_t>(data[5]) << 8;
+
+        /*
+         * Scale raw readings by scale factors defined in [Table 3-28].
+         */
+        roll = raw_roll * ((euler_units == Bno055::Format::EulerDegrees)?
+                1.0/16 : 1.0/900);
+        yaw = raw_yaw * ((euler_units == Bno055::Format::EulerDegrees)?
+                1.0/16 : 1.0/900);
+        pitch = raw_pitch * ((euler_units == Bno055::Format::EulerDegrees)?
+                1.0/16 : 1.0/900);
 
         return 0;
     }
@@ -280,14 +289,23 @@ namespace rs
      * @param[out] y Location to store y reading.
      * @param[out] z Location to store z reading.
      */
-    int Bno055::readQuaternion(int16_t &w, int16_t &x, int16_t &y, int16_t &z)
+    int Bno055::readQuaternion(double &w, double &x, double &y, double &z)
     {
         vector<uint8_t> data;
         AbortIf(read_register(Bno055::Register::QUAT_Data_w_LSB, data, 8));
-        w = data[0] | static_cast<uint16_t>(data[1]) << 8;
-        x = data[2] | static_cast<uint16_t>(data[3]) << 8;
-        y = data[4] | static_cast<uint16_t>(data[5]) << 8;
-        z = data[6] | static_cast<uint16_t>(data[7]) << 8;
+
+        /*
+         * Scale quaternion output into normalized form by the factor defined
+         * in [Table 3-31].
+         */
+        w = static_cast<int16_t>(data[0] |
+                static_cast<uint16_t>(data[1]) << 8) * 1.0 / (1<<14);
+        x = static_cast<int16_t>(data[2] |
+                static_cast<uint16_t>(data[3]) << 8) * 1.0 / (1<<14);
+        y = static_cast<int16_t>(data[4] |
+                static_cast<uint16_t>(data[5]) << 8) * 1.0 / (1<<14);
+        z = static_cast<int16_t>(data[6] |
+                static_cast<uint16_t>(data[7]) << 8) * 1.0 / (1<<14);
 
         return 0;
     }
@@ -510,23 +528,23 @@ namespace rs
      */
     int Bno055::getSensorCalibration(Sensor sensor, uint8_t &calibration)
     {
-        uint8_t calib_stat = 0, calib_stat_reg = 0;
+        uint8_t calib_stat_reg = 0;
         AbortIfNot(sensor == Bno055::Sensor::Accelerometer ||
                 sensor == Bno055::Sensor::Magnometer ||
-                sensor == Bno055::Sensor::Accelerometer, -1);
+                sensor == Bno055::Sensor::Gyroscope, -1);
 
         AbortIf(read_register(Bno055::Register::CALIB_STAT,
                 calib_stat_reg));
         switch (sensor)
         {
             case Bno055::Sensor::Gyroscope:
-                calib_stat = (calib_stat_reg >> 4) & 0b11;
+                calibration = (calib_stat_reg >> 4) & 0b11;
                 break;
             case Bno055::Sensor::Accelerometer:
-                calib_stat = (calib_stat_reg >> 2) & 0b11;
+                calibration = (calib_stat_reg >> 2) & 0b11;
                 break;
             case Bno055::Sensor::Magnometer:
-                calib_stat = (calib_stat_reg >> 0) & 0b11;
+                calibration = (calib_stat_reg >> 0) & 0b11;
                 break;
             default:
                 return -1;
@@ -539,11 +557,20 @@ namespace rs
     /**
      * Resets the sensor to power-on default values.
      *
+     * @note This function requires a 650ms wait to enter normal power mode
+     *       after a reset.
+     *
      * @return Zero upon success or a non-zero error code.
      */
     int Bno055::reset()
     {
+        uint8_t chip_id = 0;
         AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<5));
+        while (chip_id != 0xA0)
+        {
+            read_register(Bno055::Register::CHIP_ID, chip_id);
+        }
+
         return 0;
     }
 
@@ -569,9 +596,36 @@ namespace rs
         /*
          * Construct the message and transmit the write request.
          */
-        vector<uint8_t> msg =
-                {0xAA, 0x00, static_cast<uint8_t>(start), 1, data};
+        vector<uint8_t> msg = {Bno055::request_header, 0x00,
+                static_cast<uint8_t>(start), 1, data};
         AbortIfNot(_port.Write(msg.data(), msg.size()) == msg.size(), -1);
+
+        /*
+         * If a reset was just triggered, a reply is not given from the sensor.
+         * It is necessary to wait for the POR to trigger.
+         */
+        if (start == Bno055::Register::SYS_TRIGGER && data == 1<<5)
+        {
+            /*
+             * Wait a ms for the device to fully enter reset. After that, read
+             * all bytes in the buffer. The Bno cannot send a whole reply
+             * packet if a reset is triggered.
+             */
+            usleep(1000);
+            uint8_t bytes_avail = _port.QueryBuffer();
+            vector<uint8_t> response(bytes_avail);
+            AbortIfNot(_port.Read(response.data(), bytes_avail) ==
+                    bytes_avail, -1);
+
+            /*
+             * Ensure only a partial message or a success was returned. Then,
+             * wait the necessary 650ms to be successfully powered up again.
+             */
+            AbortIfNot(bytes_avail == 0 ||
+                    response[0] == Bno055::write_response_header, -1);
+            AbortIfNot(bytes_avail <= 1 || response[1] != 1, -1);
+            return 0;
+        }
 
         /*
          * Verify that the write succeeded with the Bno's reply.
@@ -579,13 +633,16 @@ namespace rs
         uint8_t response[2];
         AbortIfNot(_port.Read(response, 2) == 2, -1);
 
-        AbortIfNot(response[0] == 0xEE, -1);
+        AbortIfNot(response[0] == Bno055::write_response_header, -1);
 
         return ((response[1] == 0x1)? 0 : response[1]);
     }
 
     /**
      * Write to specific registers within the BNO.
+     *
+     * @note Beware that it is illegal to write a reset using this function and
+     *       doing so will result in undefined behavior.
      *
      * @param start The register to begin writing to.
      * @param data A vector containing the data to begin writing at register
@@ -611,8 +668,8 @@ namespace rs
         uint8_t write_length = data.size();
         AbortIfNot(write_length < 128, -1);
 
-        vector<uint8_t> msg =
-                {0xAA, 0x00, static_cast<uint8_t>(start), write_length};
+        vector<uint8_t> msg = {Bno055::request_header, 0x00,
+                static_cast<uint8_t>(start), write_length};
         msg.insert(msg.end(), data.begin(), data.end());
         AbortIfNot(_port.Write(msg.data(), msg.size()) == msg.size(), -1);
 
@@ -622,7 +679,7 @@ namespace rs
         uint8_t response[2];
         AbortIfNot(_port.Read(response, 2) == 2, -1);
 
-        AbortIfNot(response[0] == 0xEE, -1);
+        AbortIfNot(response[0] == Bno055::write_response_header, -1);
 
         return ((response[1] == 0x1)? 0 : response[1]);
     }
@@ -651,11 +708,13 @@ namespace rs
          * response.
          */
         vector<uint8_t> reply(3);
-        vector<uint8_t> request = {0xAA, 0x01, static_cast<uint8_t>(start), 1};
-        AbortIfNot(_port.Write(request.data(), request.size()) == request.size(),
-                -1);
-        AbortIfNot(_port.Read(reply.data(), 3) < 2, -1);
-        AbortIfNot(reply[0] == 0xEE, static_cast<int>(reply[1]));
+        vector<uint8_t> request = {Bno055::request_header, 0x01,
+                static_cast<uint8_t>(start), 1};
+        AbortIfNot(_port.Write(request.data(),
+                request.size()) == request.size(), -1);
+        AbortIfNot(_port.Read(reply.data(), 3) >= 2, -1);
+        AbortIfNot(reply[0] == Bno055::read_success_header,
+                static_cast<int>(reply[1]));
         AbortIfNot(reply[1] == 1, -1);
 
         data = reply[2];
@@ -690,16 +749,17 @@ namespace rs
          */
         uint8_t read_length;
         vector<uint8_t> reply(len + 2);
-        vector<uint8_t> request = {0xAA, 0x01, static_cast<uint8_t>(start),
-                len};
-        AbortIfNot(_port.Write(request.data(), request.size())
-                == request.size(), -1);
+        vector<uint8_t> request = {Bno055::request_header, 0x01,
+                static_cast<uint8_t>(start), len};
+        AbortIfNot(_port.Write(request.data(), request.size()) ==
+                request.size(), -1);
         /*
          * Ensure that atleast an error code can be read. Verify later that
          * entire length was read.
          */
-        AbortIfNot((read_length = _port.Read(reply.data(), len + 2)) < 2, -1);
-        AbortIfNot(reply[0] == 0xEE, static_cast<int>(reply[1]));
+        AbortIfNot((read_length = _port.Read(reply.data(), len + 2)) >= 2, -1);
+        AbortIfNot(reply[0] == Bno055::read_success_header,
+                static_cast<int>(reply[1]));
         AbortIfNot(read_length == len + 2, -1)
         AbortIfNot(reply[1] == len, -1);
 

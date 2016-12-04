@@ -89,6 +89,23 @@ namespace rs
 
         while(i < num)
         {
+            /*
+             * Wait for atleast one byte to be available before reading so that
+             * timeout is also valid if no bytes are received on the port.
+             */
+            ros::Time start = ros::Time::now();
+            double time = 0;
+            while (QueryBuffer() == 0 && time < 0.5)
+            {
+                time = (ros::Time::now() - start).toSec();
+                usleep(20000);
+            }
+
+            if (time >= 0.5)
+            {
+                return 0;
+            }
+
             temp = ::read(this->m_port_fd, buf+i, num-i);
             if(temp == -1)
             {

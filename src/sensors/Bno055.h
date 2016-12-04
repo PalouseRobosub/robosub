@@ -47,6 +47,10 @@ namespace rs
         static constexpr uint8_t to_config_switch_time_ms = 19;
 
         static constexpr uint8_t from_config_switch_time_ms = 7;
+        static constexpr uint8_t read_success_header = 0xBB;
+        static constexpr uint8_t write_response_header = 0xEE;
+        static constexpr uint8_t request_header = 0xAA;
+
 
         /**
          * Defines register address locations.
@@ -275,7 +279,8 @@ namespace rs
         Bno055(Serial &port) :
             _port(port),
             _current_mode(OperationMode::Config),
-            _page(0)
+            _page(0),
+            euler_units(Format::EulerDegrees)
         {
         }
 
@@ -290,8 +295,8 @@ namespace rs
         int readAccelerometer(int16_t &x, int16_t &y, int16_t &z);
         int readMagnometer(int16_t &x, int16_t &y, int16_t &z);
         int readGyroscope(int16_t &x, int16_t &y, int16_t &z);
-        int readEuler(int16_t &roll, int16_t &pitch, int16_t &yaw);
-        int readQuaternion(int16_t &w, int16_t &x, int16_t &y, int16_t &z);
+        int readEuler(double &roll, double &pitch, double &yaw);
+        int readQuaternion(double &w, double &x, double &y, double &z);
 
         int readTemperature(uint16_t &temp);
 
@@ -336,6 +341,11 @@ namespace rs
          * Defines the current register page that the sensor is set to.
          */
         uint8_t _page;
+
+        /*
+         * Defines the output units of an Euler reading.
+         */
+        Format euler_units;
     };
 }
 #endif
