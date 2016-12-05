@@ -63,7 +63,7 @@ private:
     // need vector/matrix for submarine parameters like mass
 
     // ros stuff
-    ros::NodeHandle &nh;
+    ros::NodeHandle nh;
     ros::Publisher *pub;
 
     // msgs
@@ -73,7 +73,7 @@ private:
 
 public:
     //ControlSystem();
-	ControlSystem(ros::NodeHandle &nh, ros::Publisher *pub);
+	ControlSystem(ros::Publisher *pub);
     ~ControlSystem() {}
 
     void InputControlMessage(robosub::control msg);

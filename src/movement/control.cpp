@@ -10,9 +10,9 @@ ControlSystem *control_system;
 void controlCallback(const robosub::control::ConstPtr& msg)
 {
     control_system->InputControlMessage(*msg);
-    //control_system->PublishThrusterMessage();
-    //ROS_DEBUG("got control message");
-
+    control_system->CalculateThrusterMessage();
+    control_system->PublishThrusterMessage();
+    ROS_INFO("Received control message.");
 }
 
 void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
     rs::ThrottledPublisher<robosub::control> control_state_pub(std::string("current_control_state"), 1, 5);
 
-    control_system = new ControlSystem(nh, &pub);
+    control_system = new ControlSystem(&pub);
 
     int rate;
     nh.getParam("control/rate", rate);

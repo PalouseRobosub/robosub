@@ -6,8 +6,8 @@
  * @param _nh A node handle reference to use for accessing node parameters.
  * @param _pub A pointer to a ROS publisher to publish thruster messages to.
  */
-ControlSystem::ControlSystem(ros::NodeHandle &_nh, ros::Publisher *_pub) :
-    nh(_nh),
+ControlSystem::ControlSystem(ros::Publisher *_pub) :
+    nh(ros::NodeHandle("control")),
     pub(_pub)
 {
     ReloadPIDParams();
@@ -25,13 +25,14 @@ ControlSystem::ControlSystem(ros::NodeHandle &_nh, ros::Publisher *_pub) :
     nh.getParamCached("limits/translation", t_lim);
     nh.getParamCached("limits/rotation", r_lim);
     nh.getParamCached("max_thrust", max_thrust);
-    nh.getParamCached("rate", dt);
+    int rate = 1;
+    nh.getParamCached("rate", rate);
 
     /*
      * Calculate the change in time between each call.
      * TODO: Replace dt with actual message timestamps.
      */
-    dt = 1.0/dt;
+    dt = 1.0/rate;
 
     /*
      * Initialize the state of the goals to error.
@@ -45,7 +46,6 @@ ControlSystem::ControlSystem(ros::NodeHandle &_nh, ros::Publisher *_pub) :
      * Ensure that the commands and states are all set to zero initially.
      */
     state_vector = Vector12d::Zero();
-    motor_commands = VectorXd::Zero(num_thrusters);
     integral_state = Vector6d::Zero();
 
     /*
@@ -68,7 +68,6 @@ ControlSystem::ControlSystem(ros::NodeHandle &_nh, ros::Publisher *_pub) :
 
     position = MatrixXd(1,3);
     orientation = MatrixXd(1,3);
-    motors = MatrixXd(6,num_thrusters);
     for(int i = 0; i < thruster_settings.size(); ++i, ++num_thrusters)
     {
         /*
@@ -89,7 +88,12 @@ ControlSystem::ControlSystem(ros::NodeHandle &_nh, ros::Publisher *_pub) :
         orientation(i,0) = thruster_settings[i]["orientation"]["x"];
         orientation(i,1) = thruster_settings[i]["orientation"]["y"];
         orientation(i,2) = thruster_settings[i]["orientation"]["z"];
+    }
 
+    motors = MatrixXd(6,num_thrusters);
+    motor_commands = VectorXd::Zero(num_thrusters);
+    for (int i = 0; i < num_thrusters; ++i)
+    {
         /*
          * Calculate the force and moment for each thruster.
          * TODO: Validate moment calculations are correct through utilization
@@ -292,14 +296,14 @@ void ControlSystem::CalculateThrusterMessage()
 {
     ReloadPIDParams();
 
-    ROS_DEBUG_STREAM("Current State:\n" << state_vector);
-
     motor_commands = motor_control();
+
+    tp.data.clear();
 
     std::vector<double> motor_commands_vector(motor_commands.data(),
             motor_commands.data() + motor_commands.size());
     for (int i = 0; i < motor_commands_vector.size(); ++i)
-        tp.data[i] = motor_commands_vector[i];
+        tp.data.push_back(motor_commands_vector[i]);
 }
 
 /**
@@ -349,6 +353,7 @@ VectorXd ControlSystem::motor_control()
      * is set to error, override the error calculation to assume that our
      * current state is correct and no modification is required.
      */
+    ROS_INFO_STREAM("Current State: \n" << state_vector);
     Vector3d rotation_goals;
     Vector3d translation_error = goals.segment<3>(0) - state_vector.segment<3>(0);
     for(int i=0; i < 3; ++i)
@@ -378,6 +383,8 @@ VectorXd ControlSystem::motor_control()
 
     Vector6d error;
     error << translation_error, rotation_error;
+    ROS_INFO_STREAM("Translation Error: \n" << translation_error);
+    ROS_INFO_STREAM("Rotation Error: \n" << rotation_error);
 
     /*
      * Update and bound-check the integral terms.
@@ -388,6 +395,8 @@ VectorXd ControlSystem::motor_control()
         if(fabs(integral_state(i)) > fabs(windup(i)))
             integral_state(i) = windup(i) * ((integral_state(i) < 0)? -1 : 1);
     }
+    ROS_INFO_STREAM("Integral States: \n" << integral_state);
+    ROS_INFO_STREAM("dT: \n" << dt);
 
     /*
      * Nullify any controlling movements for proportional control if the error
@@ -403,11 +412,13 @@ VectorXd ControlSystem::motor_control()
     m_accel += P.cwiseProduct(error).cwiseProduct(hist);
     m_accel += I.cwiseProduct(integral_state);
     m_accel += D.cwiseProduct(derivative_vector);
+    ROS_INFO_STREAM("Desired Acceleration: \n" << m_accel);
 
     /*
      * Convert accelerations to force by multipling by masses.
      */
     Vector6d m_force = m_accel.cwiseProduct(sub_mass);
+    ROS_INFO_STREAM("Desired Force: \n" << m_force);
 
     /*
      * Grab the current orientation of the submarine for rotating the current
@@ -434,6 +445,8 @@ VectorXd ControlSystem::motor_control()
     Vector6d rotation_command = Vector6d::Zero();
     rotation_command.segment<3>(3) = m_force.segment<3>(3);
     VectorXd rotation_control = motors * rotation_command;
+    ROS_INFO_STREAM("Rotation control (no truncation): \n" << translation_control);
+    ROS_INFO_STREAM("Translation control (no truncation): \n" << rotation_control);
 
     /*
      * Truncate any goals that are over thresholds.
@@ -459,6 +472,7 @@ VectorXd ControlSystem::motor_control()
         if(total_control[i] < 0)
             total_control[i] /= back_thrust_ratio;
     }
+    ROS_INFO_STREAM("Total control (truncated): \n" << total_control);
 
     return total_control;
 }
