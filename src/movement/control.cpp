@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     ros::Subscriber controlsub = nh.subscribe("control", 1, controlCallback);
 
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
-    rs::ThrottledPublisher<robosub::control> control_state_pub(std::string("current_control_state"), 1, 5);
+    rs::ThrottledPublisher<robosub::control_status> control_state_pub(std::string("current_control_state"), 1, 5);
 
     control_system = new ControlSystem(&pub);
 
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
     while(ros::ok())
     {
-        control_state_pub.publish(control_system->PublishControlState());
+        control_state_pub.publish(control_system->GetControlStatus());
         control_system->CalculateThrusterMessage();
         control_system->PublishThrusterMessage();
         ros::spinOnce();

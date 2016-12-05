@@ -77,6 +77,7 @@ add_message_files(
   FILES
   thruster.msg
   control.msg
+  control_status.msg
   joystick.msg
   depth_stamped.msg
   Euler.msg

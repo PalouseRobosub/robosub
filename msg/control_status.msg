@@ -1,0 +1,48 @@
+string forward_state
+string strafe_left_state
+string dive_state
+string roll_right_state
+string pitch_down_state
+string yaw_left_state
+
+float32 forward_goal
+float32 strafe_left_goal
+float32 dive_goal
+float32 roll_right_goal
+float32 pitch_down_goal
+float32 yaw_left_goal
+
+float32 forward_error
+float32 strafe_left_error
+float32 dive_error
+float32 roll_right_error
+float32 pitch_down_error
+float32 yaw_left_error
+
+float32 forward_integral
+float32 strafe_left_integral
+float32 dive_integral
+float32 roll_right_integral
+float32 pitch_down_integral
+float32 yaw_left_integral
+
+float32 forward_derivative
+float32 strafe_left_derivative
+float32 dive_derivative
+float32 roll_right_derivative
+float32 pitch_down_derivative
+float32 yaw_left_derivative
+
+float32 forward_translation_control
+float32 strafe_left_translation_control
+float32 dive_translation_control
+float32 roll_right_translation_control
+float32 pitch_down_translation_control
+float32 yaw_left_translation_control
+
+float32 forward_rotation_control
+float32 strafe_left_rotation_control
+float32 dive_rotation_control
+float32 roll_right_rotation_control
+float32 pitch_down_rotation_control
+float32 yaw_left_rotation_control
