@@ -375,12 +375,6 @@ VectorXd ControlSystem::motor_control()
     }
     Vector3d rotation_error = ir3D(r3D(state_vector.segment<3>(6)).transpose() * r3D(rotation_goals));
 
-    /*
-     * TODO: Validate that this rotation error should be over-written.
-     */
-    //ccheck cos theta * pitch FIRST, before supplemental angle
-    rotation_error(1) = rotation_error(1) * cos(rotation_error(2));
-
     Vector6d error;
     error << translation_error, rotation_error;
     ROS_INFO_STREAM("Translation Error: \n" << translation_error);
@@ -396,7 +390,6 @@ VectorXd ControlSystem::motor_control()
             integral_state(i) = windup(i) * ((integral_state(i) < 0)? -1 : 1);
     }
     ROS_INFO_STREAM("Integral States: \n" << integral_state);
-    ROS_INFO_STREAM("dT: \n" << dt);
 
     /*
      * Nullify any controlling movements for proportional control if the error
@@ -412,7 +405,6 @@ VectorXd ControlSystem::motor_control()
     m_accel += P.cwiseProduct(error).cwiseProduct(hist);
     m_accel += I.cwiseProduct(integral_state);
     m_accel += D.cwiseProduct(derivative_vector);
-    ROS_INFO_STREAM("Desired Acceleration: \n" << m_accel);
 
     /*
      * Convert accelerations to force by multipling by masses.

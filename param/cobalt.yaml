@@ -93,16 +93,16 @@ control:
     proportional:
         x: 1
         y: 1
-        z: 20
-        psi: 30 #roll
-        phi: 50 #pitch
-        theta: 20 #yaw
+        z: 4
+        psi: 3 #roll
+        phi: 3 #pitch
+        theta: 1 #yaw
     integral:
         x: 0
         y: 0
-        z: 0
-        psi: 0
-        phi: 0
+        z: 1
+        psi: 4
+        phi: 5
         theta: 0
     derivative:
         x: 0
@@ -112,12 +112,12 @@ control:
         phi: 0
         theta: 0
     windup:
-        x: 0
-        y: 0
-        z: 0
-        psi: 0
-        phi: 0
-        theta: 0
+        x: 5
+        y: 5
+        z: 5
+        psi: 5
+        phi: 3
+        theta: 5
     hysteresis:
         x: 0
         y: 0
