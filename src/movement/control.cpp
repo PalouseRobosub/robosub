@@ -12,7 +12,6 @@ void controlCallback(const robosub::control::ConstPtr& msg)
     control_system->InputControlMessage(*msg);
     control_system->CalculateThrusterMessage();
     control_system->PublishThrusterMessage();
-    ROS_INFO("Received control message.");
 }
 
 void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)

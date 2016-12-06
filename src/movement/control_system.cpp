@@ -458,11 +458,9 @@ void ControlSystem::calculate_motor_control()
     current_integral += current_error * dt;
     for(int i=0; i < 6; ++i)
     {
-        ROS_INFO_STREAM("Integral: " << current_integral[i] << " Windup: " << windup[i]);
         if(fabs(current_integral[i]) > fabs(windup[i]))
         {
             current_integral[i] = windup[i] * ((current_integral[i] < 0)? -1 : 1);
-            ROS_INFO_STREAM("Truncating integral " << i << " to " << current_integral[i]);
         }
     }
 
