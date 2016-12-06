@@ -27,6 +27,23 @@ enum Mode
     CALIBRATED = 2
 };
 
+static std::ostream & operator<<(std::ostream & out, Mode &mode)
+{
+    if (mode == DETECTION)
+    {
+        out << "DETECTION";
+    }
+    else if (mode == CAPTURING)
+    {
+        out << "CAPTURING";
+    }
+    else
+    {
+        out << "CALIBRATED";
+    }
+    return out;
+}
+
 class Settings
 {
     public:

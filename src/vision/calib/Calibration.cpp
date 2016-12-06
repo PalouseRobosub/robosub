@@ -11,18 +11,19 @@ bool calibFinished = false;
 vector<vector<Point2f>> imagePoints;
 Mat cameraMatrix, distCoeffs;
 Size imageSize;
-int mode = DETECTION;
+int mode = CAPTURING;
 clock_t prevTimestamp = 0;
 const Scalar RED(0,0,255), GREEN(0,255,0);
 const char ESC_KEY = 27;
 
 void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
-    ROS_DEBUG_STREAM("Callback");
+    ROS_DEBUG_STREAM("Callback, Mode: " << mode);
     Mat view = toCvShare(msg->image, msg, sensor_msgs::image_encodings::BGR8)->image;
     
     if (mode == CAPTURING && imagePoints.size() >= (size_t)s.nrFrames)
     {
+        ROS_DEBUG_STREAM("Calibrating and saving during capture");
         if (runCalibrationAndSave(s, imageSize, cameraMatrix, distCoeffs, imagePoints))
             mode = CALIBRATED;
         else
@@ -31,11 +32,13 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 
     if (view.empty())
     {
+        ROS_DEBUG_STREAM("Empty view");
         if (mode != CALIBRATED && !imagePoints.empty())
         {
             runCalibrationAndSave(s, imageSize, cameraMatrix, distCoeffs, imagePoints);
         }
         calibFinished = true;
+        ROS_DEBUG_STREAM("Exiting after empty view. Mode: " << mode);
         ros::shutdown();
         return;
     }
@@ -57,6 +60,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     switch(s.calibrationPattern)
     {
         case Settings::CHESSBOARD:
+            ROS_DEBUG_STREAM("Finding Chessboard Corners");
             found = findChessboardCorners(view, s.boardSize, pointBuf, chessBoardFlags);
             break;
         case Settings::CIRCLES_GRID:
@@ -72,6 +76,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 
     if (found)
     {
+        ROS_DEBUG_STREAM("Pattern found");
         if (s.calibrationPattern == Settings::CHESSBOARD)
         {
             Mat viewGray;
@@ -80,18 +85,24 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         }
 
         imagePoints.push_back(pointBuf);
-
+        
+        ROS_DEBUG_STREAM("Drawing corners...");
         drawChessboardCorners(view, s.boardSize, Mat(pointBuf), found);
+    }
+    else
+    {
+        ROS_DEBUG_STREAM("Pattern not found");
     }
 
     string outMsg = (mode == CALIBRATED) ? "Calibrated" : "Calibrating";
 
     int baseLine = 0;
     Size textSize = getTextSize(outMsg, 1, 1.0, 1, &baseLine);
-    Point textOrigin(view.cols - 2*textSize.width - 10, view.rows - 2*baseLine - 10);
+    Point textOrigin(view.cols - 2*textSize.width - 10, 10);//view.rows - 2*baseLine - 10);
 
     if (mode == CAPTURING)
     {
+        ROS_DEBUG_STREAM("Capturing");
         if (s.showUndistorted)
         {
             outMsg = format("%d/%d Undist", (int)imagePoints.size(), s.nrFrames);
@@ -102,10 +113,9 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         }
     }
 
-    putText(view, outMsg, textOrigin, 1, 1, mode == CALIBRATED ? GREEN : RED);
-
     if (mode == CALIBRATED && s.showUndistorted)
     {
+        ROS_DEBUG_STREAM("Undistorting image...");
         Mat temp = view.clone();
         if (s.useFisheye)
         {
@@ -117,11 +127,15 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         }
     }
 
+    ROS_DEBUG_STREAM("Adding text to image");
+    putText(view, outMsg, textOrigin, 1, 1, mode == CALIBRATED ? GREEN : RED);
+
     imshow("Image", view);
     char key = (char)waitKey(s.delay);
 
     if (key == ESC_KEY)
     {
+        ROS_DEBUG_STREAM("User requested stop");
         calibFinished = true;
         ros::shutdown();
         return;
@@ -130,6 +144,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     if (key == 'u' && mode == CALIBRATED)
     {
         s.showUndistorted = !s.showUndistorted;
+        ROS_INFO_STREAM("Now showing " << (s.showUndistorted ? "Undistorted" : "Distorted") << " image.");
     }
 
 }
@@ -177,4 +192,5 @@ int main (int argc, char* argv[])
 
     ros::spin();
 
+    ROS_INFO_STREAM("Calibration complete!");
 }

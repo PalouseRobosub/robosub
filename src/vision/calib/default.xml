@@ -28,7 +28,7 @@
      <Calibrate_FixPrincipalPointAtTheCenter> 1 </Calibrate_FixPrincipalPointAtTheCenter>
                                                                                                
      <!-- The name of the output log file. -->
-     <Write_outputFileName>"out_camera_data.xml"</Write_outputFileName>
+     <Write_outputFileName>"out_camera_data.yml"</Write_outputFileName>
      <!-- If true (non-zero) we write to the output file the feature points.-->
      <Write_DetectedFeaturePoints>1</Write_DetectedFeaturePoints>
      <!-- If true (non-zero) we write to the output file the extrinsic camera parameters.-->
