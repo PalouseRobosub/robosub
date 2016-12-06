@@ -69,7 +69,7 @@ ControlSystem::ControlSystem(ros::Publisher *_pub) :
     MatrixXd position = MatrixXd(num_thrusters,3);
     MatrixXd orientation = MatrixXd(num_thrusters,3);
     motors = MatrixXd(6,num_thrusters);
-    motor_commands = VectorXd::Zero(num_thrusters);
+    total_control = VectorXd::Zero(num_thrusters);
 
     for(int i = 0; i < num_thrusters; ++i)
     {
@@ -309,12 +309,13 @@ void ControlSystem::CalculateThrusterMessage()
      * total_control vector.
      */
     tp.data.clear();
-
     std::vector<double> control_vector(total_control.data(),
             total_control.data() + total_control.size());
 
-    for (int i = 0; i < control_vector.size(); ++i)
+    for (unsigned int i = 0; i < control_vector.size(); ++i)
+    {
         tp.data.push_back(control_vector[i]);
+    }
 }
 
 /**
@@ -361,19 +362,16 @@ robosub::control_status ControlSystem::GetControlStatus()
     current_state.pitch_down_derivative = current_derivative[4] / _PI_OVER_180;
     current_state.yaw_left_derivative = current_derivative[5] / _PI_OVER_180;
 
-    current_state.forward_rotation_control = rotation_control[0];
-    current_state.strafe_left_rotation_control = rotation_control[1];
-    current_state.dive_rotation_control = rotation_control[2];
-    current_state.roll_right_rotation_control = rotation_control[3] / _PI_OVER_180;
-    current_state.pitch_down_rotation_control = rotation_control[4] / _PI_OVER_180;
-    current_state.yaw_left_rotation_control = rotation_control[5] / _PI_OVER_180;
+    std::vector<float> rotation_control_vector(rotation_control.data(),
+            rotation_control.data() + rotation_control.size());
+    std::vector<float> translation_control_vector(translation_control.data(),
+            translation_control.data() + translation_control.size());
 
-    current_state.forward_translation_control = translation_control[0];
-    current_state.strafe_left_translation_control = translation_control[1];
-    current_state.dive_translation_control = translation_control[2];
-    current_state.roll_right_translation_control = translation_control[3] / _PI_OVER_180;
-    current_state.pitch_down_translation_control = translation_control[4] / _PI_OVER_180;
-    current_state.yaw_left_translation_control = translation_control[5] / _PI_OVER_180;
+    for (unsigned int i = 0; i < rotation_control_vector.size(); ++i)
+    {
+        current_state.translation_control.push_back(translation_control_vector[i]);
+        current_state.rotation_control.push_back(rotation_control_vector[i]);
+    }
 
     return current_state;
 }
@@ -416,14 +414,13 @@ void ControlSystem::PublishThrusterMessage()
  *
  * @return The control signal C to send to the thrusters.
  */
-VectorXd ControlSystem::calculate_motor_control()
+void ControlSystem::calculate_motor_control()
 {
     /*
      * Calculate the error between the current state and the goal. If the state
      * is set to error, override the error calculation to assume that our
      * current state is correct and no modification is required.
      */
-    ROS_INFO_STREAM("Current State: \n" << state_vector);
     Vector3d rotation_goals;
     Vector3d translation_error = goals.segment<3>(0) - state_vector.segment<3>(0);
     for(int i=0; i < 3; ++i)
@@ -458,10 +455,13 @@ VectorXd ControlSystem::calculate_motor_control()
     current_integral += current_error * dt;
     for(int i=0; i < 6; ++i)
     {
-        if(fabs(current_integral(i)) > fabs(windup(i)))
-            current_integral(i) = windup(i) * ((current_integral(i) < 0)? -1 : 1);
+        ROS_INFO_STREAM("Integral: " << current_integral[i] << " Windup: " << windup[i]);
+        if(fabs(current_integral[i]) > fabs(windup[i]))
+        {
+            current_integral[i] = windup[i] * ((current_integral[i] < 0)? -1 : 1);
+            ROS_INFO_STREAM("Truncating integral " << i << " to " << current_integral[i]);
+        }
     }
-    ROS_INFO_STREAM("Integral States: \n" << current_integral);
 
     /*
      * Nullify any controlling movements for proportional control if the error

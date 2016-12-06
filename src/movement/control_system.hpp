@@ -4,7 +4,7 @@
 #include <eigen3/Eigen/Dense>
 #include <iostream>
 #include <string>
-#include <stdint.h>
+#include <cstdint>
 
 #include "rotation_engine.hpp"
 #include "ros/ros.h"
@@ -52,7 +52,7 @@ public:
     robosub::control_status GetControlStatus();
 private:
 
-    VectorXd calculate_motor_control();
+    void calculate_motor_control();
     double wraparound(double x, double min, double max);
     std::string state_to_string(uint8_t state);
 
@@ -83,8 +83,6 @@ private:
      * truncation has occurred.
      */
     VectorXd total_control;
-
-    VectorXd motor_commands;
 
     Vector6d P, I, D;
     Vector6d windup, hysteresis;
