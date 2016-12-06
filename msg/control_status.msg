@@ -33,16 +33,5 @@ float32 roll_right_derivative
 float32 pitch_down_derivative
 float32 yaw_left_derivative
 
-float32 forward_translation_control
-float32 strafe_left_translation_control
-float32 dive_translation_control
-float32 roll_right_translation_control
-float32 pitch_down_translation_control
-float32 yaw_left_translation_control
-
-float32 forward_rotation_control
-float32 strafe_left_rotation_control
-float32 dive_rotation_control
-float32 roll_right_rotation_control
-float32 pitch_down_rotation_control
-float32 yaw_left_rotation_control
+float32[] translation_control
+float32[] rotation_control
