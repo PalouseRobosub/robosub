@@ -51,11 +51,11 @@ namespace rs
          * Read and configure the clock to utilize the external oscillator if
          * the clock is able to be configured.
          */
-        AbortIf(read_register(Bno055::Register::SYS_CLK_STATUS, clock_status));
-        if (clock_status & 0b1)
-        {
-            AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<7));
-        }
+        //AbortIf(read_register(Bno055::Register::SYS_CLK_STATUS, clock_status));
+        //if (clock_status & 0b1)
+        //{
+        //    AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<7));
+        //}
 
         /*
          * Set the power and operating mode to configuration defaults.
@@ -580,6 +580,11 @@ namespace rs
     int Bno055::write_register(Bno055::Register start, uint8_t data)
     {
         /*
+         * Flush the serial buffer.
+         */
+        _port.Flush();
+
+        /*
          * Ensure that the correct page is set for the specified register.
          */
         uint16_t register_address = static_cast<uint16_t>(start);
@@ -597,28 +602,9 @@ namespace rs
 
         /*
          * If a reset was just triggered, a reply is not given from the sensor.
-         * It is necessary to wait for the POR to trigger.
          */
         if (start == Bno055::Register::SYS_TRIGGER && data == 1<<5)
         {
-            /*
-             * Wait a ms for the device to fully enter reset. After that, read
-             * all bytes in the buffer. The Bno cannot send a whole reply
-             * packet if a reset is triggered.
-             */
-            usleep(1000);
-            uint8_t bytes_avail = _port.QueryBuffer();
-            vector<uint8_t> response(bytes_avail);
-            AbortIfNot(_port.Read(response.data(), bytes_avail) ==
-                    bytes_avail, -1);
-
-            /*
-             * Ensure only a partial message or a success was returned. Then,
-             * wait the necessary 650ms to be successfully powered up again.
-             */
-            AbortIfNot(bytes_avail == 0 ||
-                    response[0] == Bno055::write_response_header, -1);
-            AbortIfNot(bytes_avail <= 1 || response[1] != 1, -1);
             return 0;
         }
 
@@ -630,14 +616,21 @@ namespace rs
 
         AbortIfNot(response[0] == Bno055::write_response_header, -1);
 
+        /*
+         * The BNO failed to clear its buffers in time and wasn't able to
+         * receive the command. Retry sending it.
+         */
+        if (response[1] == 0x07)
+        {
+            AbortIf(write_register(start, data));
+            return 0;
+        }
+
         return ((response[1] == 0x1)? 0 : response[1]);
     }
 
     /**
      * Write to specific registers within the BNO.
-     *
-     * @note Beware that it is illegal to write a reset using this function and
-     *       doing so will result in undefined behavior.
      *
      * @param start The register to begin writing to.
      * @param data A vector containing the data to begin writing at register
@@ -647,6 +640,11 @@ namespace rs
      */
     int Bno055::write_register(Bno055::Register start, vector<uint8_t> data)
     {
+        /*
+         * Flush the serial buffers.
+         */
+        _port.Flush();
+
         /*
          * Ensure that the correct page is set for the specified register.
          */
@@ -675,6 +673,15 @@ namespace rs
         AbortIfNot(_port.Read(response, 2) == 2, -1);
 
         AbortIfNot(response[0] == Bno055::write_response_header, -1);
+        /*
+         * The BNO failed to clear the buffer in time to receive the command.
+         * Retry the command.
+         */
+        if (response[1] == 0x07)
+        {
+            AbortIf(write_register(start, data));
+            return 0;
+        }
 
         return ((response[1] == 0x1)? 0 : response[1]);
     }
@@ -689,6 +696,11 @@ namespace rs
      */
     int Bno055::read_register(Bno055::Register start, uint8_t &data)
     {
+        /*
+         * Flush the serial port buffer.
+         */
+        _port.Flush();
+
         /*
          * Ensure that the correct page is set for the specified register.
          */
@@ -707,12 +719,30 @@ namespace rs
                 static_cast<uint8_t>(start), 1};
         AbortIfNot(_port.Write(request.data(),
                 request.size()) == request.size(), -1);
-        AbortIfNot(_port.Read(reply.data(), 3) >= 2, -1);
-        AbortIfNot(reply[0] == Bno055::read_success_header,
-                static_cast<int>(reply[1]));
+
+        /*
+         * Read the two byte response.
+         */
+        AbortIfNot(_port.Read(reply.data(), 2) == 2, -1);
+        AbortIfNot(reply[0] == Bno055::read_success_header || reply[0] ==
+                Bno055::acknowledge_header, static_cast<int>(reply[1]));
+
+        /*
+         * The BNO failed to clear the buffer in time to receive the command.
+         * Retry the command.
+         */
+        if (reply[0] == Bno055::acknowledge_header && reply[1] == 0x07)
+        {
+            AbortIf(read_register(start, data));
+            return 0;
+        }
+
         AbortIfNot(reply[1] == 1, -1);
 
-        data = reply[2];
+        /*
+         * Read the value of the register.
+         */
+        AbortIfNot(_port.Read(&data, 1) == 1, -1);
 
         return 0;
     }
@@ -730,6 +760,11 @@ namespace rs
             uint8_t len)
     {
         /*
+         * Flush the serial port buffer.
+         */
+        _port.Flush();
+
+        /*
          * Ensure that the correct page is set for the specified register.
          */
         uint16_t register_address = static_cast<uint16_t>(start);
@@ -742,7 +777,7 @@ namespace rs
          * Allocate memory for a response, request a read, and read the
          * response.
          */
-        uint8_t read_length;
+        int8_t read_length;
         vector<uint8_t> reply(len + 2);
         vector<uint8_t> request = {Bno055::request_header, 0x01,
                 static_cast<uint8_t>(start), len};
@@ -752,14 +787,24 @@ namespace rs
          * Ensure that atleast an error code can be read. Verify later that
          * entire length was read.
          */
-        AbortIfNot((read_length = _port.Read(reply.data(), len + 2)) >= 2, -1);
-        AbortIfNot(reply[0] == Bno055::read_success_header,
-                static_cast<int>(reply[1]));
-        AbortIfNot(read_length == len + 2, -1)
+        AbortIfNot(_port.Read(reply.data(), 2) == 2, -1);
+        AbortIfNot(reply[0] == Bno055::read_success_header || reply[0] ==
+                Bno055::acknowledge_header, static_cast<int>(reply[1]));
+        /*
+         * The BNO failed to clear the buffer in time to receive the command.
+         * Retry the command.
+         */
+        if (reply[0] == Bno055::acknowledge_header && reply[1] == 0x07)
+        {
+            AbortIf(read_register(start, data, len));
+            return 0;
+        }
+
         AbortIfNot(reply[1] == len, -1);
+        AbortIfNot(_port.Read(reply.data(), len) == len, -1);
 
         data.clear();
-        data.insert(data.begin(), reply.begin()+2, reply.end());
+        data.insert(data.begin(), reply.begin(), reply.end()-2);
 
         return 0;
     }

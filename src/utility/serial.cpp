@@ -50,6 +50,11 @@ namespace rs
         return 0;
     }
 
+    int Serial::Flush()
+    {
+        tcflush(this->m_port_fd, TCIOFLUSH);
+    }
+
     int Serial::Write(uint8_t *buf, int num)
     {
         int i;
@@ -103,6 +108,7 @@ namespace rs
 
             if (time >= 0.5)
             {
+                ROS_INFO("No serial bytes were available");
                 return 0;
             }
 

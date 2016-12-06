@@ -27,7 +27,8 @@ using std::vector;
  */
 #define AbortIfNot(x, ret) \
 { \
-    if (!(x)) \
+    int t = (x); \
+    if (!t) \
     { \
         return ret;\
     } \
@@ -42,9 +43,10 @@ using std::vector;
  */
 #define AbortIf(x) \
 { \
-    if (x) \
+    int t = (x); \
+    if (t) \
     { \
-        return x; \
+        return t; \
     } \
 }
 
@@ -68,6 +70,7 @@ namespace rs
          */
         static constexpr uint8_t read_success_header = 0xBB;
         static constexpr uint8_t write_response_header = 0xEE;
+        static constexpr uint8_t acknowledge_header = 0xEE;
         static constexpr uint8_t request_header = 0xAA;
 
         /*

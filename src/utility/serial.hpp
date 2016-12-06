@@ -25,6 +25,7 @@ namespace rs
         int Write(uint8_t *buf, int num);
         int Read(uint8_t *buf, int num);
         int QueryBuffer();
+        int Flush();
 
     private:
         //private methods
