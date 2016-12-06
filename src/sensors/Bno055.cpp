@@ -144,18 +144,6 @@ namespace rs
         AbortIf(read_register(Bno055::Register::UNIT_SEL, unit_select));
         switch (sensor)
         {
-            case Bno055::Sensor::Accelerometer:
-                AbortIfNot(format == Bno055::Format::MetersPerSecondSquared ||
-                        format == Bno055::Format::MilliG, -1);
-                unit_select &= ~(1<<1);
-                unit_select |= static_cast<uint8_t>(format);
-                break;
-            case Bno055::Sensor::Gyroscope:
-                AbortIfNot(format == Bno055::Format::DegreesPerSec ||
-                        format == Bno055::Format::RadiansPerSec, -1);
-                unit_select &= ~(1<<2);
-                unit_select |= static_cast<uint8_t>(format);
-                break;
             case Bno055::Sensor::Fusion:
                 AbortIfNot(format == Bno055::Format::EulerDegrees ||
                         format == Bno055::Format::EulerRadians, -1);
@@ -176,74 +164,8 @@ namespace rs
 
         AbortIf(write_register(Bno055::Register::UNIT_SEL, unit_select));
         return 0;
+
     }
-
-    /**
-     * Read raw accelerometer data.
-     *
-     * @note Units are set separately and are defined in [Table 3-17].
-     *
-     * @param[out] x Location to store x result.
-     * @param[out] y Location to store y result.
-     * @param[out] z Location to store z result.
-     *
-     * @return Zero upon success or non-zero error code.
-     */
-    int Bno055::readAccelerometer(int16_t &x, int16_t &y, int16_t &z)
-    {
-        vector<uint8_t> data;
-        AbortIf(read_register(Bno055::Register::ACC_DATA_X_LSB, data, 6));
-        x = data[0] | static_cast<uint16_t>(data[1]) << 8;
-        y = data[2] | static_cast<uint16_t>(data[3]) << 8;
-        z = data[4] | static_cast<uint16_t>(data[5]) << 8;
-
-        return 0;
-    }
-
-    /**
-     * Read raw magnometer data.
-     *
-     * @note Units are in microTeslas.
-     *
-     * @param[out] x The location to store x result.
-     * @param[out] y The location to store y result.
-     * @param[out] z The location to store z result.
-     *
-     * @return Zero upon success or non-zero error code.
-     */
-    int Bno055::readMagnometer(int16_t &x, int16_t &y, int16_t &z)
-    {
-        vector<uint8_t> data;
-        AbortIf(read_register(Bno055::Register::MAG_DATA_X_LSB, data, 6));
-        x = data[0] | static_cast<uint16_t>(data[1]) << 8;
-        y = data[2] | static_cast<uint16_t>(data[3]) << 8;
-        z = data[4] | static_cast<uint16_t>(data[5]) << 8;
-
-        return 0;
-    }
-
-    /**
-     * Read raw gyroscope data.
-     *
-     * @note Units are set separately and are defined in [Table 3-22].
-     *
-     * @param[out] x The location to store x result.
-     * @param[out] y The location to store y result.
-     * @param[out] z The location to store z result.
-     *
-     * @return Zero upon success or non-zero error code.
-     */
-    int Bno055::readGyroscope(int16_t &x, int16_t &y, int16_t &z)
-    {
-        vector<uint8_t> data;
-        AbortIf(read_register(Bno055::Register::GYR_DATA_X_LSB, data, 6));
-        x = data[0] | static_cast<uint16_t>(data[1]) << 8;
-        y = data[2] | static_cast<uint16_t>(data[3]) << 8;
-        z = data[4] | static_cast<uint16_t>(data[5]) << 8;
-
-        return 0;
-    }
-
     /**
      * Read the euler orientation information.
      *
@@ -614,7 +536,7 @@ namespace rs
         uint8_t response[2];
         AbortIfNot(_port.Read(response, 2) == 2, -1);
 
-        AbortIfNot(response[0] == Bno055::write_response_header, -1);
+        AbortIfNot(response[0] == Bno055::acknowledge_header, -1);
 
         /*
          * The BNO failed to clear its buffers in time and wasn't able to
@@ -672,7 +594,7 @@ namespace rs
         uint8_t response[2];
         AbortIfNot(_port.Read(response, 2) == 2, -1);
 
-        AbortIfNot(response[0] == Bno055::write_response_header, -1);
+        AbortIfNot(response[0] == Bno055::acknowledge_header, -1);
         /*
          * The BNO failed to clear the buffer in time to receive the command.
          * Retry the command.

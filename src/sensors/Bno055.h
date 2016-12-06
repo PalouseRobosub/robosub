@@ -69,7 +69,6 @@ namespace rs
          * sensor [4.7].
          */
         static constexpr uint8_t read_success_header = 0xBB;
-        static constexpr uint8_t write_response_header = 0xEE;
         static constexpr uint8_t acknowledge_header = 0xEE;
         static constexpr uint8_t request_header = 0xAA;
 
@@ -214,13 +213,6 @@ namespace rs
         enum class OperationMode : uint8_t
         {
             Config = 0b0000,
-            Acc = 0b0001,
-            Mag = 0b0010,
-            Gyro = 0b0011,
-            AccMag = 0b0100,
-            AccGyro = 0b0101,
-            MagGyro = 0b0110,
-            AccMagGyro = 0b111,
             Imu = 0b1000,
             Compass = 0b1001,
             M4G = 0b1010,
@@ -274,10 +266,6 @@ namespace rs
          */
         enum class Format : uint8_t
         {
-            MetersPerSecondSquared = 0b00000,
-            MilliG = 0b00001,
-            DegreesPerSec = 0b00000,
-            RadiansPerSec = 0b00010,
             EulerDegrees = 0b00000,
             EulerRadians = 0b00100,
             TempC = 0b00000,
@@ -327,12 +315,6 @@ namespace rs
         int setPitchMode(PitchMode mode);
 
         int setOutputFormat(Sensor sensor, Format format);
-
-        int readAccelerometer(int16_t &x, int16_t &y, int16_t &z);
-
-        int readMagnometer(int16_t &x, int16_t &y, int16_t &z);
-
-        int readGyroscope(int16_t &x, int16_t &y, int16_t &z);
 
         int readEuler(double &roll, double &pitch, double &yaw);
 
