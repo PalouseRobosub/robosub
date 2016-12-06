@@ -183,9 +183,9 @@ void ControlSystem::InputControlMessage(robosub::control msg)
     control_values[0] = msg.forward;
     control_values[1] = msg.strafe_left;
     control_values[2] = msg.dive;
-    control_values[3] = msg.roll_right * _PI_OVER_180;
-    control_values[4] = msg.pitch_down * _PI_OVER_180;
-    control_values[5] = msg.yaw_left * _PI_OVER_180;
+    control_values[3] = msg.roll_right;
+    control_values[4] = msg.pitch_down;
+    control_values[5] = msg.yaw_left;
 
     for(int i=0; i < 6; ++i)
     {
@@ -208,11 +208,11 @@ void ControlSystem::InputControlMessage(robosub::control msg)
                 if(i < 3)
                     goals[i] = state_vector[i] + control_values[i];
                 else if (i == 3)
-                    goals[i] = wraparound(state_vector[i+3] + control_values[i], -180.0 * _PI_OVER_180, 180.0 * _PI_OVER_180);
+                    goals[i] = wraparound(state_vector[i+3] + control_values[i], -180.0, 180.0);
                 else if (i == 4)
-                    goals[i] = wraparound(state_vector[i+3] + control_values[i], -90.0 * _PI_OVER_180, 90.0 * _PI_OVER_180);
+                    goals[i] = wraparound(state_vector[i+3] + control_values[i], -90.0, 90.0);
                 else if (i == 5)
-                    goals[i] = wraparound(state_vector[i+3] + control_values[i], -180.0 * _PI_OVER_180, 180.0 * _PI_OVER_180);
+                    goals[i] = wraparound(state_vector[i+3] + control_values[i], -180.0, 180.0);
                 break;
 
             case robosub::control::STATE_ERROR:
@@ -250,10 +250,13 @@ void ControlSystem::InputOrientationMessage(geometry_msgs::QuaternionStamped qua
                 quat_msg.quaternion.y, quat_msg.quaternion.z,
                 quat_msg.quaternion.w));
     m.getRPY(state_vector[6], state_vector[7], state_vector[8]);
+    state_vector[6] *= _180_OVER_PI;
+    state_vector[7] *= _180_OVER_PI;
+    state_vector[8] *= _180_OVER_PI;
     /*
-    state_vector[9] = _PI_OVER_180 * sp.droll; //roll'
-    state_vector[10] = _PI_OVER_180 * sp.dpitch; //pitch'
-    state_vector[11] = _PI_OVER_180 * sp.dyaw; //yaw'
+    state_vector[9] = sp.droll; //roll'
+    state_vector[10] = sp.dpitch; //pitch'
+    state_vector[11] = sp.dyaw; //yaw'
     */
 }
 
@@ -337,30 +340,30 @@ robosub::control_status ControlSystem::GetControlStatus()
     current_state.forward_goal = goals[0];
     current_state.strafe_left_goal = goals[1];
     current_state.dive_goal = goals[2];
-    current_state.roll_right_goal = goals[3] / _PI_OVER_180;
-    current_state.pitch_down_goal = goals[4] / _PI_OVER_180;
-    current_state.yaw_left_goal = goals[5] / _PI_OVER_180;
+    current_state.roll_right_goal = goals[3];
+    current_state.pitch_down_goal = goals[4];
+    current_state.yaw_left_goal = goals[5];
 
     current_state.forward_error = current_error[0];
     current_state.strafe_left_error = current_error[1];
     current_state.dive_error = current_error[2];
-    current_state.roll_right_error = current_error[3] / _PI_OVER_180;
-    current_state.pitch_down_error = current_error[4] / _PI_OVER_180;
-    current_state.yaw_left_error = current_error[5] / _PI_OVER_180;
+    current_state.roll_right_error = current_error[3];
+    current_state.pitch_down_error = current_error[4];
+    current_state.yaw_left_error = current_error[5];
 
     current_state.forward_integral = current_integral[0];
     current_state.strafe_left_integral = current_integral[1];
     current_state.dive_integral = current_integral[2];
-    current_state.roll_right_integral = current_integral[3] / _PI_OVER_180;
-    current_state.pitch_down_integral = current_integral[4] / _PI_OVER_180;
-    current_state.yaw_left_integral = current_integral[5] / _PI_OVER_180;
+    current_state.roll_right_integral = current_integral[3];
+    current_state.pitch_down_integral = current_integral[4];
+    current_state.yaw_left_integral = current_integral[5];
 
     current_state.forward_derivative = current_derivative[0];
     current_state.strafe_left_derivative = current_derivative[1];
     current_state.dive_derivative = current_derivative[2];
-    current_state.roll_right_derivative = current_derivative[3] / _PI_OVER_180;
-    current_state.pitch_down_derivative = current_derivative[4] / _PI_OVER_180;
-    current_state.yaw_left_derivative = current_derivative[5] / _PI_OVER_180;
+    current_state.roll_right_derivative = current_derivative[3];
+    current_state.pitch_down_derivative = current_derivative[4];
+    current_state.yaw_left_derivative = current_derivative[5];
 
     std::vector<float> rotation_control_vector(rotation_control.data(),
             rotation_control.data() + rotation_control.size());

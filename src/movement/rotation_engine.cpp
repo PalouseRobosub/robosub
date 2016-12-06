@@ -7,6 +7,29 @@ phi = pitch
 theta = yaw
 */
 
+static constexpr double _PI_OVER_180 = 3.14159 / 180.0;
+static constexpr double _180_OVER_PI = 180.0 / 3.14159 ;
+
+double asind(double x)
+{
+    return _180_OVER_PI * asin(x);
+}
+
+double atan2d(double x, double y)
+{
+    return _180_OVER_PI * atan2(x, y);
+}
+
+double cosd(double x)
+{
+    return cos(x * _PI_OVER_180);
+}
+
+double sind(double x)
+{
+    return sin(x * _PI_OVER_180);
+}
+
 Matrix3d r3D(Vector3d omega)
 {
 
@@ -28,7 +51,7 @@ Matrix3d r3D(Vector3d omega)
           uz(2),      0, -uz(0),
          -uz(1),  uz(0),      0;
 
-    Q = tmp*sin(theta) + (Matrix3d::Identity()-uz*uz.transpose())*cos(theta) + uz*uz.transpose();
+    Q = tmp*sind(theta) + (Matrix3d::Identity()-uz*uz.transpose())*cosd(theta) + uz*uz.transpose();
 
 
     uy = Q*uy; //new pitch vector
@@ -42,7 +65,7 @@ Matrix3d r3D(Vector3d omega)
           uy(2),      0, -uy(0),
          -uy(1),  uy(0),      0;
 
-    Q = tmp*sin(phi) + (Matrix3d::Identity()-uy*uy.transpose())*cos(phi) + uy*uy.transpose();
+    Q = tmp*sind(phi) + (Matrix3d::Identity()-uy*uy.transpose())*cosd(phi) + uy*uy.transpose();
 
     ux = Q*ux;
 
@@ -54,7 +77,7 @@ Matrix3d r3D(Vector3d omega)
           ux(2),      0, -ux(0),
          -ux(1),  ux(0),      0;
 
-    Q = tmp*sin(psi) + (Matrix3d::Identity()-ux*ux.transpose())*cos(psi) + ux*ux.transpose();
+    Q = tmp*sind(psi) + (Matrix3d::Identity()-ux*ux.transpose())*cosd(psi) + ux*ux.transpose();
 
     R = Q*R;
 
@@ -85,7 +108,7 @@ Matrix3d r3Dv(Vector3d omega, MatrixXd uv)
           uz(2),      0, -uz(0),
          -uz(1),  uz(0),      0;
 
-    Q = tmp*sin(theta) + (Matrix3d::Identity()-uz*uz.transpose())*cos(theta) + uz*uz.transpose();
+    Q = tmp*sind(theta) + (Matrix3d::Identity()-uz*uz.transpose())*cosd(theta) + uz*uz.transpose();
 
 
     uy = Q*uy; //new pitch vector
@@ -99,7 +122,7 @@ Matrix3d r3Dv(Vector3d omega, MatrixXd uv)
           uy(2),      0, -uy(0),
          -uy(1),  uy(0),      0;
 
-    Q = tmp*sin(phi) + (Matrix3d::Identity()-uy*uy.transpose())*cos(phi) + uy*uy.transpose();
+    Q = tmp*sind(phi) + (Matrix3d::Identity()-uy*uy.transpose())*cosd(phi) + uy*uy.transpose();
 
     ux = Q*ux;
 
@@ -111,7 +134,7 @@ Matrix3d r3Dv(Vector3d omega, MatrixXd uv)
           ux(2),      0, -ux(0),
          -ux(1),  ux(0),      0;
 
-    Q = tmp*sin(psi) + (Matrix3d::Identity()-ux*ux.transpose())*cos(psi) + ux*ux.transpose();
+    Q = tmp*sind(psi) + (Matrix3d::Identity()-ux*ux.transpose())*cosd(psi) + ux*ux.transpose();
 
     R = Q*R;
 
@@ -127,10 +150,10 @@ Vector3d ir3D(Matrix3d R)
 
 
 /*		ux = R*Vector3d(1, 0, 0);
-    theta = atan2(ux(1), ux(0));
-    phi = -asin(ux(2));
+    theta = atan2d(ux(1), ux(0));
+    phi = -asind(ux(2));
 
-    psi = atan2(R(2,1),R(2,2));
+    psi = atan2d(R(2,1),R(2,2));
 
     uy = r3D(Vector3d(0, phi, theta))*Vector3d(0,1,0);
 
@@ -138,7 +161,7 @@ Vector3d ir3D(Matrix3d R)
     if (abs(tmp) >= 1)
         psi = 0;
     else
-        psi = acos(tmp);
+        psi = acosd(tmp);
 
 
 iO = Vector3d(psi, phi, theta).real();
@@ -150,9 +173,9 @@ iO = Vector3d(psi, phi, theta).real();
 */
 
 
-    theta = atan2(R(1,0),R(0,0));
-            phi = -asin(R(2,0));
-            psi = atan2(R(2,1),R(2,2));
+    theta = atan2d(R(1,0),R(0,0));
+            phi = -asind(R(2,0));
+            psi = atan2d(R(2,1),R(2,2));
 
 
     iO = Vector3d(psi, phi, theta).real();

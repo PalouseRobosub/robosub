@@ -37,6 +37,7 @@ class ControlSystem
      * Defines conversion scale for converting between radians and degrees.
      */
     static constexpr double _PI_OVER_180 = (3.1415 / 180.0);
+    static constexpr double _180_OVER_PI = (180.0 / 3.14159);
 
 public:
 
