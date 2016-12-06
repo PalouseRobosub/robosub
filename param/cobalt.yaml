@@ -96,7 +96,7 @@ control:
         z: 4.0
         psi: 0.04 #roll
         phi: 0.04 #pitch
-        theta: 0.04 #yaw
+        theta: 0.07 #yaw
     integral:
         x: 0.0
         y: 0.0
