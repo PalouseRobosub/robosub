@@ -81,6 +81,7 @@ add_message_files(
   joystick.msg
   depth_stamped.msg
   Euler.msg
+  QuaternionStampedAccuracy.msg
   visionPos.msg
   visionPosArray.msg
   ObstaclePos.msg
@@ -105,6 +106,7 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  geometry_msgs
 )
 
 ################################################

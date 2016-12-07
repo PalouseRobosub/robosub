@@ -2,6 +2,8 @@
 add_library(bno055 Bno055.cpp)
 target_link_libraries(bno055 ${catkin_LIBRARIES})
 
+add_ros_node(sensor sensor.cpp)
+target_link_libraries(sensor serial bno055)
 
 add_ros_node(imu imu.cpp)
 target_link_libraries(imu serial)

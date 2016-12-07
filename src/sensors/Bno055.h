@@ -298,7 +298,7 @@ namespace rs
         {
         }
 
-        int init();
+        int init(bool use_external_crystal = false);
 
         int reset();
 
@@ -324,13 +324,16 @@ namespace rs
 
         int remapAxes(Axis x, Axis y, Axis z);
 
-        int writeOffsets(Sensor sensor, int16_t offset_x, int16_t offset_y, int16_t offset_z);
+        int writeOffsets(Sensor sensor, int16_t offset_x, int16_t offset_y,
+                int16_t offset_z);
 
-        int readOffsets(Sensor sensor, int16_t &offset_x, int16_t &offset_y, int16_t &offset_z);
+        int readOffsets(Sensor sensor, int16_t &offset_x, int16_t &offset_y,
+                int16_t &offset_z);
 
-        int writeRadius(Sensor sensor, int16_t radius);
-
-        int readRadius(Sensor sensor, int16_t &radius);
+        int writeRadii(int16_t accelerometer_radius,
+                int16_t magnometer_radius);
+        int readRadii(int16_t &accelerometer_radius,
+                int16_t &magnometer_radius);
 
     private:
 
@@ -338,7 +341,8 @@ namespace rs
 
         int write_register(Bno055::Register start, uint8_t data);
 
-        int read_register(Bno055::Register start, vector<uint8_t> &data, uint8_t len);
+        int read_register(Bno055::Register start, vector<uint8_t> &data,
+                uint8_t len);
 
         int read_register(Bno055::Register start, uint8_t &data);
 

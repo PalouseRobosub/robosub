@@ -5,13 +5,16 @@ namespace rs
     /**
      * Initialize the Bno to a default configuration state.
      *
-     * @note This function needs a minimum of 1.15 seconds to execute because
-     *       the Bno055 self-test requires time to complete and reset requires
-     *       650ms.
+     * @note This function can potentially take 1-2 seconds to execute because
+     *       the Bno055 requires 650ms to wake up from a reset and the built in
+     *       self test is given 500ms.
+     *
+     * @param use_external_crystal Specified true if the Bno should be
+     *        configured to use an external crystal.
      *
      * @return Zero upon success and non-zero upon failure.
      */
-    int Bno055::init()
+    int Bno055::init(bool use_external_crystal)
     {
         uint8_t self_test_result, chip_id, clock_status, clock_config;
         AbortIf(set_page(0));
@@ -51,11 +54,11 @@ namespace rs
          * Read and configure the clock to utilize the external oscillator if
          * the clock is able to be configured.
          */
-        //AbortIf(read_register(Bno055::Register::SYS_CLK_STATUS, clock_status));
-        //if (clock_status & 0b1)
-        //{
-        //    AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<7));
-        //}
+        AbortIf(read_register(Bno055::Register::SYS_CLK_STATUS, clock_status));
+        if (use_external_crystal && (clock_status & 0b1))
+        {
+            AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<7));
+        }
 
         /*
          * Set the power and operating mode to configuration defaults.
@@ -357,32 +360,21 @@ namespace rs
     /**
      * Write radii to a sensor calibration.
      *
-     * @param sensor The sensor whose calibration information should be read.
-     *        This value can only be set for the Magnometer or the
-     *        Accelerometer.
-     * @param radius Radius to store in memory.
+     * @param accelerometer_radius The accelerometer radius configuration to
+     *        write.
+     * @param magnometer_radius The magnometer radius configuration to write.
      *
      * @return Zero upon success or non-zero error code.
      */
-    int Bno055::writeRadius(Sensor sensor, int16_t radius)
+    int Bno055::writeRadii(int16_t accelerometer_radius,
+            int16_t magnometer_radius)
     {
-        vector<uint8_t> _radius(2);
-        _radius[0] = static_cast<uint8_t>(radius);
-        _radius[1] = static_cast<uint8_t>(radius >> 8);
-        switch (sensor)
-        {
-            case Bno055::Sensor::Accelerometer:
-                AbortIf(write_register(Bno055::Register::ACC_RADIUS_LSB,
-                        _radius));
-                break;
-            case Bno055::Sensor::Magnometer:
-                AbortIf(write_register(Bno055::Register::MAG_RADIUS_LSB,
-                        _radius));
-                break;
-            default:
-                return -1;
-                break;
-        }
+        vector<uint8_t> _radii(4);
+        _radii[0] = static_cast<uint8_t>(accelerometer_radius & 0xFF);
+        _radii[1] = static_cast<uint8_t>((accelerometer_radius >> 8) & 0xFF);
+        _radii[2] = static_cast<uint8_t>(magnometer_radius & 0xFF);
+        _radii[3] = static_cast<uint8_t>((magnometer_radius >> 8) & 0xFF);
+        AbortIf(write_register(Bno055::Register::ACC_RADIUS_LSB, _radii));
 
         return 0;
     }
@@ -390,30 +382,21 @@ namespace rs
     /**
      * Read radii calculated by a sensor calibration.
      *
-     * @param sensor The sensor whose calibration information should be read.
-     *        This value can only be the Magnometer or the Accelerometer.
-     * @param[out] radius Location to store the radius.
+     * @param[out] magnometer_radius Location to store the magnometer radius.
+     * @param[out] accelerometer_radius Location to store the acclerometer
+     *             radius.
      *
      * @return Zero upon success or non-zero error code.
      */
-    int Bno055::readRadius(Sensor sensor, int16_t &radius)
+    int Bno055::readRadii(int16_t &accelerometer_radius,
+            int16_t &magnometer_radius)
     {
-        vector<uint8_t> _radius(2);
-        switch (sensor)
-        {
-            case Bno055::Sensor::Accelerometer:
-                AbortIf(read_register(Bno055::Register::ACC_RADIUS_LSB,
-                        _radius, 2));
-                break;
-            case Bno055::Sensor::Magnometer:
-                AbortIf(read_register(Bno055::Register::MAG_RADIUS_LSB,
-                        _radius, 2));
-                break;
-            default:
-                return -1;
-                break;
-        }
-        radius = static_cast<uint16_t>(_radius[1]) << 8 | _radius[0];
+        vector<uint8_t> _radii(4);
+        AbortIf(read_register(Bno055::Register::ACC_RADIUS_LSB, _radii, 4));
+        accelerometer_radius =
+                static_cast<uint16_t>(_radii[1]) << 8 | _radii[0];
+        magnometer_radius =
+                static_cast<uint16_t>(_radii[3]) << 8 | _radii[2];
 
         return 0;
     }
@@ -510,7 +493,7 @@ namespace rs
          * Ensure that the correct page is set for the specified register.
          */
         uint16_t register_address = static_cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _page)
+        if (((register_address & 0x100) >> 2) != _page)
         {
             AbortIf(set_page(register_address & 0x100 >> 2));
         }
@@ -571,7 +554,7 @@ namespace rs
          * Ensure that the correct page is set for the specified register.
          */
         uint16_t register_address = static_cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _page)
+        if (((register_address & 0x100) >> 2) != _page)
         {
             AbortIf(set_page(register_address & 0x100 >> 2));
         }
@@ -627,7 +610,7 @@ namespace rs
          * Ensure that the correct page is set for the specified register.
          */
         uint16_t register_address = static_cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _page)
+        if (((register_address & 0x100) >> 2) != _page)
         {
             AbortIf(set_page(register_address & 0x100 >> 2));
         }
@@ -690,7 +673,7 @@ namespace rs
          * Ensure that the correct page is set for the specified register.
          */
         uint16_t register_address = static_cast<uint16_t>(start);
-        if ((register_address & 0x100>>2) != _page)
+        if (((register_address & 0x100) >> 2) != _page)
         {
             AbortIf(set_page(register_address & 0x100 >> 2));
         }

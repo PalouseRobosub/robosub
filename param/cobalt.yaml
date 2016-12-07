@@ -1,5 +1,6 @@
 ports:
     thruster: "/"
+    sensor: "/dev/ttyUSB0"
 thrusters:
     -   name: "dive_front_left"
         channel: 8
@@ -128,3 +129,26 @@ control:
     limits:
         rotation: 0.5
         translation: 0.5
+sensor:
+    rate: 20
+    axis:
+        x: 1
+        y: 2
+        z: 3
+    accelerometer:
+        offset:
+            x: 0
+            y: 0
+            z: 0
+        radius: 0
+    magnometer:
+        offset:
+            x: 0
+            y: 0
+            z: 0
+        radius: 0
+    gyroscope:
+        offset:
+            x: 0
+            y: 0
+            z: 0

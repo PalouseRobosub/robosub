@@ -1,7 +1,5 @@
-#ifndef __SERIAL_H__
-#define __SERIAL_H__
-
-typedef char u8;
+#ifndef __SERIAL_H
+#define __SERIAL_H
 
 #include <cstring>
 #include <cstdlib>
