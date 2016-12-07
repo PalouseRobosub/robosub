@@ -1,17 +1,18 @@
-#include "control_system.hpp"
+#include "control_system.h"
+#include "std_msgs/Float32.h"
 
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <utility/ThrottledPublisher.hpp>
 
+using namespace robosub;
+
 ControlSystem *control_system;
 
 void controlCallback(const robosub::control::ConstPtr& msg)
 {
     control_system->InputControlMessage(*msg);
-    control_system->CalculateThrusterMessage();
-    control_system->PublishThrusterMessage();
 }
 
 void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)
@@ -42,7 +43,7 @@ int main(int argc, char **argv)
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
     rs::ThrottledPublisher<robosub::control_status> control_state_pub(std::string("current_control_state"), 1, 5);
 
-    control_system = new ControlSystem(&pub);
+    control_system = new ControlSystem();
 
     int rate;
     nh.getParam("control/rate", rate);
@@ -51,13 +52,10 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         control_state_pub.publish(control_system->GetControlStatus());
-        control_system->CalculateThrusterMessage();
-        control_system->PublishThrusterMessage();
+        pub.publish(control_system->CalculateThrusterMessage());
         ros::spinOnce();
         r.sleep();
     }
-
-    delete control_system;
 
     return 0;
 }
