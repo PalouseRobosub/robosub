@@ -13,17 +13,30 @@ namespace robosub
          * Load parameters from the settings file.
          */
         int rate = 0;
-        ros::param::getCached("/control/mass", sub_mass[0]);
-        ros::param::getCached("/control/mass", sub_mass[1]);
-        ros::param::getCached("/control/mass", sub_mass[2]);
-        ros::param::getCached("/control/inertia/psi", sub_mass[3]);
-        ros::param::getCached("/control/inertia/phi", sub_mass[4]);
-        ros::param::getCached("/control/inertia/theta", sub_mass[5]);
-        ros::param::getCached("/control/back_thrust_ratio", back_thrust_ratio);
-        ros::param::getCached("/control/limits/translation", t_lim);
-        ros::param::getCached("/control/limits/rotation", r_lim);
-        ros::param::getCached("/control/max_thrust", max_thrust);
-        ros::param::getCached("/control/rate", rate);
+
+        /*
+         * All translational masses are the submarins total mass.
+         */
+        ROS_ERROR_COND(ros::param::getCached("/control/mass", sub_mass[0]),
+                "Failed to load mass of the submarine.");
+        sub_mass[1] = sub_mass[2] = sub_mass[0];
+
+        ROS_ERROR_COND(ros::param::getCached("/control/inertia/psi",
+                sub_mass[3]), "Failed to load inertial mass psi.");
+        ROS_ERROR_COND(ros::param::getCached("/control/inertia/phi",
+                sub_mass[4]), "Failed to load inertial mass phi");
+        ROS_ERROR_COND(ros::param::getCached("/control/inertia/theta",
+                sub_mass[5]), "Failed to load inertial mass theta.");
+        ROS_ERROR_COND(ros::param::getCached("/control/back_thrust_ratio",
+                back_thrust_ratio), "Failed to load the back thrust ratio.");
+        ROS_ERROR_COND(ros::param::getCached("/control/limits/translation",
+                t_lim), "Failed to load the translation control limit.");
+        ROS_ERROR_COND(ros::param::getCached("/control/limits/rotation",
+                r_lim), "Failed to load the rotiation control limit.");
+        ROS_ERROR_COND(ros::param::getCached("/control/max_thrust",
+                max_thrust), "Failed to load the max thrust output.");
+        ROS_ERROR_COND(ros::param::getCached("/control/rate", rate),
+                "Failed to load the control system rate.");
 
         /*
          * Calculate the change in time between each call.
