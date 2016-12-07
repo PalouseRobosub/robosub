@@ -15,7 +15,8 @@ def process_scalar(self):
     # Start of added section
     if split:  # not a key
         is_string = True
-        if self.event.value and self.event.value.lstrip('-').replace('.','',1).isdigit():
+        if self.event.value and \
+           self.event.value.lstrip('-').replace('.', '', 1).isdigit():
             is_string = False
         if is_string:
             self.style = '"'
@@ -38,15 +39,15 @@ def process_scalar(self):
     if self.event.comment:
         self.write_post_comment(self.event)
 
-#This function is a recursive way to traverse through the nested dictionaries
-#  of yaml files.
-# x is the dictionary to take values from
-# y is the dictionary to update the values of
-def recurse(x,y):
-    for k,v in x.items():
-        if isinstance(v,dict):
+# This function is a recursive way to traverse through the nested dictionaries
+#    of yaml files.
+#  x is the dictionary to take values from
+#  y is the dictionary to update the values of
+def recurse(x, y):
+    for k, v in x.items():
+        if isinstance(v, dict):
             if k in y:
-                recurse(v,y[k])
+                recurse(v, y[k])
         else:
             # If the key is in the destination overwrite else do nothing
             if k in y:
@@ -54,45 +55,47 @@ def recurse(x,y):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Prettify a yaml file')
-    parser.add_argument('-i', '--input', metavar='FILE', type=str, required=True,
-                        help='Set the input file')
+    parser.add_argument('-i', '--input', metavar='FILE', type=str,
+                        required=True, help='Set the input file')
 
-    #Setup the output argument (Automatically opens the input string as a file)
-    parser.add_argument('-o', '--output', metavar='FILE', type=str, required=True,
-                        help='Set the output file')
+    # Setup the output argument
+    # (Automatically opens the input string as a file)
+    parser.add_argument('-o', '--output', metavar='FILE', type=str,
+                        required=True, help='Set the output file')
 
     args = parser.parse_args()
 
     # the input and output files must be different
     # Exit if they are the same
     if args.input == args.output:
-        print ("[\033[91mFATAL\033[0m] input and output files are the same!\nExiting...")
+        print ("[\033[91mFATAL\033[0m] input and " +
+               "output files are the same!\nExiting...")
         sys.exit()
 
     outputFile = open(args.output, 'r')
 
-    #Read the output file
+    # Read the output file
     initial = ruamel.yaml.round_trip_load(outputFile)
     outputFile.close()
 
-    #load the yaml file named by args.input
+    # load the yaml file named by args.input
     i = ruamel.yaml.round_trip_load(open(args.input, 'r'))
 
     # Do parameter replacement here
     recurse(i, initial)
 
-    #Override the Dumper's behavior with strings
+    # Override the Dumper's behavior with strings
     dd = ruamel.yaml.RoundTripDumper
     dd.process_scalar = process_scalar
 
-    #Dump the Prettified yaml to file
+    # Dump the Prettified yaml to file
     o = ruamel.yaml.dump(initial, default_style='', indent=4, Dumper=dd,
-                                    block_seq_indent=1, default_flow_style=False)
+                         block_seq_indent=1, default_flow_style=False)
 
     outputFile = open(args.output, 'w')
 
-    #Write the output to the file
+    # Write the output to the file
     outputFile.write(o)
 
-    #Close the output file
+    # Close the output file
     outputFile.close()
