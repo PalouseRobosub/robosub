@@ -12,6 +12,7 @@ namespace robosub
         /*
          * Load parameters from the settings file.
          */
+        int rate = 0;
         ros::param::getCached("/control/mass", sub_mass[0]);
         ros::param::getCached("/control/mass", sub_mass[1]);
         ros::param::getCached("/control/mass", sub_mass[2]);
@@ -22,13 +23,13 @@ namespace robosub
         ros::param::getCached("/control/limits/translation", t_lim);
         ros::param::getCached("/control/limits/rotation", r_lim);
         ros::param::getCached("/control/max_thrust", max_thrust);
-        ros::param::getCached("/control/rate", dt);
+        ros::param::getCached("/control/rate", rate);
 
         /*
          * Calculate the change in time between each call.
          * TODO: Replace dt with actual message timestamps.
          */
-        dt = 1.0/dt;
+        dt = 1.0/rate;
 
         /*
          * Initialize the state of the goals to error.
@@ -45,14 +46,15 @@ namespace robosub
         current_integral = Vector6d::Zero();
 
         /*
-         * Scale thruster limits to be in terms of the backwards thruster ratio.
+         * Scale thruster limits to be in terms of the backwards thruster
+         * ratio.
          */
         t_lim *= back_thrust_ratio;
         r_lim *= back_thrust_ratio;
 
         /*
-         * Load thruster node settings. A nodehandle reference is not available, so
-         * make use of rosparam get.
+         * Load thruster node settings. A nodehandle reference is not
+         * available, so make use of rosparam get.
          */
         XmlRpc::XmlRpcValue thruster_settings;
         if(!ros::param::getCached("thrusters", thruster_settings))
@@ -60,7 +62,8 @@ namespace robosub
             ROS_FATAL("Failed to load thruster parameters.");
             exit(1);
         }
-        ROS_INFO_STREAM("Loaded " << thruster_settings.size() << " thrusters.");
+        ROS_INFO_STREAM("Loaded " << thruster_settings.size() <<
+                " thrusters.");
         num_thrusters = thruster_settings.size();
 
         MatrixXd position = MatrixXd(num_thrusters,3);
@@ -71,9 +74,9 @@ namespace robosub
         for(int i = 0; i < num_thrusters; ++i)
         {
             /*
-             * Load in the thruster positions and orientations. The column of the
-             * position and orientation matrices denote the x, y, and z components
-             * sequentially.
+             * Load in the thruster positions and orientations. The column of
+             * the position and orientation matrices denote the x, y, and z
+             * components sequentially.
              */
             position(i,0) = thruster_settings[i]["position"]["x"];
             position(i,1) = thruster_settings[i]["position"]["y"];
@@ -87,12 +90,13 @@ namespace robosub
         {
             /*
              * Calculate the force and moment for each thruster.
-             * TODO: Validate moment calculations are correct through utilization
-             * of the cross product.
+             * TODO: Validate moment calculations are correct through
+             * utilization of the cross product.
              */
             motors.block<3,1>(0,i) = max_thrust *
-                orientation.block<1,3>(i,0).transpose();
-            motors.block<3,1>(3,i) = max_thrust * position.block<1,3>(i,0).cross(
+                    orientation.block<1,3>(i,0).transpose();
+            motors.block<3,1>(3,i) = max_thrust *
+                    position.block<1,3>(i,0).cross(
                     orientation.block<1,3>(i,0)).transpose();
         }
 
@@ -118,7 +122,7 @@ namespace robosub
     }
 
     /**
-     * Reload PID parameters from ROS parameter lists.
+     * Reload PID parameters from the ROS parameter server.
      *
      * @return None.
      */
@@ -130,36 +134,40 @@ namespace robosub
         ros::param::getCached("/control/proportional/psi", P[3]);
         ros::param::getCached("/control/proportional/phi", P[4]);
         ros::param::getCached("/control/proportional/theta", P[5]);
+
         ros::param::getCached("/control/integral/x", I[0]);
         ros::param::getCached("/control/integral/y", I[1]);
         ros::param::getCached("/control/integral/z", I[2]);
         ros::param::getCached("/control/integral/psi", I[3]);
         ros::param::getCached("/control/integral/phi", I[4]);
         ros::param::getCached("/control/integral/theta", I[5]);
+
         ros::param::getCached("/control/derivative/x", D[0]);
         ros::param::getCached("/control/derivative/y", D[1]);
         ros::param::getCached("/control/derivative/z", D[2]);
         ros::param::getCached("/control/derivative/psi", D[3]);
         ros::param::getCached("/control/derivative/phi", D[4]);
         ros::param::getCached("/control/derivative/theta", D[5]);
+
         ros::param::getCached("/control/windup/x", windup[0]);
         ros::param::getCached("/control/windup/y", windup[1]);
         ros::param::getCached("/control/windup/z", windup[2]);
         ros::param::getCached("/control/windup/psi", windup[3]);
         ros::param::getCached("/control/windup/phi", windup[4]);
         ros::param::getCached("/control/windup/theta", windup[5]);
+
         ros::param::getCached("/control/hysteresis/x", hysteresis[0]);
         ros::param::getCached("/control/hysteresis/y", hysteresis[1]);
         ros::param::getCached("/control/hysteresis/z", hysteresis[2]);
         ros::param::getCached("/control/hysteresis/psi", hysteresis[3]);
         ros::param::getCached("/control/hysteresis/phi", hysteresis[4]);
-        ros::param::get("/control/hysteresis/theta", hysteresis[5]);
+        ros::param::getCached("/control/hysteresis/theta", hysteresis[5]);
     }
 
     /**
      * Update the current goals of the submarine.
      *
-     * @note This function updates he desired state Sd.
+     * @note This function updates the desired state of the submarine.
      *
      * @param msg The control message used to update the desired state.
      *
@@ -194,22 +202,30 @@ namespace robosub
                     break;
 
                 /*
-                 * Note that all rotational goals must be wrapped according to the
-                 * following bounding limits:
-                 *   Roll: (-180, 180)
-                 *   Pitch: (-90, 90)
-                 *   Yaw: (-180, 180)
+                 * Note that all rotational goals must be wrapped according to
+                 * the following bounding limits:
+                 *   Roll (PSI): (-180, 180)
+                 *   Pitch (PHI): (-90, 90)
+                 *   Yaw (THETA): (-180, 180)
                  */
                 case robosub::control::STATE_RELATIVE:
+                    /*
+                     * Set the current state to absolute, but update the goal
+                     * by adding in the new goal to the current goal to make it
+                     * relative to the current state.
+                     */
                     this->goal_types[i] = robosub::control::STATE_ABSOLUTE;
                     if(i < 3)
                         goals[i] = state_vector[i] + control_values[i];
                     else if (i == 3)
-                        goals[i] = wraparound(state_vector[i+3] + control_values[i], -180.0, 180.0);
+                        goals[i] = wraparound(state_vector[i+3] +
+                                control_values[i], -180.0, 180.0);
                     else if (i == 4)
-                        goals[i] = wraparound(state_vector[i+3] + control_values[i], -90.0, 90.0);
+                        goals[i] = wraparound(state_vector[i+3] +
+                                control_values[i], -90.0, 90.0);
                     else if (i == 5)
-                        goals[i] = wraparound(state_vector[i+3] + control_values[i], -180.0, 180.0);
+                        goals[i] = wraparound(state_vector[i+3] +
+                                control_values[i], -180.0, 180.0);
                     break;
 
                 case robosub::control::STATE_ERROR:
@@ -230,18 +246,21 @@ namespace robosub
     /**
      * Update the current state of the submarine.
      *
-     * @brief Updates the current state vector S of the submarine given an input
-     *        orientation message.
+     * @brief Updates the current state vector S of the submarine given an
+     *        input orientation message.
      *
-     * @param quat_msg The input ROS Quaternion message that defines orientation.
+     * @param quat_msg The input ROS Quaternion message that defines
+     *        orientation.
      *
      * @return None.
      */
-    void ControlSystem::InputOrientationMessage(geometry_msgs::QuaternionStamped quat_msg)
+    void
+        ControlSystem::InputOrientationMessage(geometry_msgs::QuaternionStamped
+                quat_msg)
     {
         /*
-         * Convert the Quaternion to roll, pitch, and yaw and store the result into
-         * the state vector.
+         * Convert the Quaternion to roll, pitch, and yaw and store the result
+         * into the state vector.
          */
         tf::Matrix3x3 m(tf::Quaternion(quat_msg.quaternion.x,
                     quat_msg.quaternion.y, quat_msg.quaternion.z,
@@ -250,25 +269,20 @@ namespace robosub
         state_vector[6] *= _180_OVER_PI;
         state_vector[7] *= _180_OVER_PI;
         state_vector[8] *= _180_OVER_PI;
-        /*
-        state_vector[9] = sp.droll; //roll'
-        state_vector[10] = sp.dpitch; //pitch'
-        state_vector[11] = sp.dyaw; //yaw'
-        */
     }
 
     /**
      * Update the depth of the submarine.
      *
-     * @brief Updates the current state vector S with an updated depth reading.
+     * @brief Updates the current state vector with an updated depth reading.
      *
      * @return None.
      */
     void ControlSystem::InputDepthMessage(robosub::depth_stamped depth_msg)
     {
         /*
-         * Update the X, Y, and Z positions of the state vector. Note that X and Y
-         * position are currently unknown and always set to zero.
+         * Update the X, Y, and Z positions of the state vector. Note that X
+         * and Y position are currently unknown and always set to zero.
          */
         state_vector[0] = 0; //x
         state_vector[1] = 0; //y
@@ -300,21 +314,142 @@ namespace robosub
 
         /*
          * Calculate the new motor controls. The result will be stored in the
-         * internal total_control vector.
+         * internal total_control vector. Begin by calculating the error
+         * between the current state and the goal. If the state is set to
+         * error, override the error calculation to assume that our current
+         * state is correct and no modification is required.
          */
-        calculate_motor_control();
+        Vector3d rotation_goals;
+        Vector3d translation_error = goals.segment<3>(0) -
+                state_vector.segment<3>(0);
+        for(int i=0; i < 3; ++i)
+        {
+            if(goal_types[i] == robosub::control::STATE_ERROR)
+            {
+                translation_error[i] = goals[i];
+                current_integral[i] = 0.0;
+            }
+            if(goal_types[i+3] == robosub::control::STATE_ERROR)
+            {
+                rotation_goals[i] = state_vector[i+6] + goals[i+3];
+                current_integral[i+3] = 0.0;
+            }
+            else
+            {
+                rotation_goals[i] = goals[i+3];
+            }
+        }
+        Vector3d rotation_error = ir3D(
+                r3D(state_vector.segment<3>(6)).transpose() * r3D(rotation_goals));
 
         /*
-         * Create a new thruster control message based upon the newly calculated
-         * total_control vector.
+         * Update the current error vector with the calculated errors.
+         */
+        current_error = Vector6d::Zero();
+        current_error << translation_error, rotation_error;
+
+        /*
+         * Update and bound-check the integral terms.
+         */
+        current_integral += current_error * dt;
+        for(int i=0; i < 6; ++i)
+        {
+            if(fabs(current_integral[i]) > fabs(windup[i]))
+            {
+                current_integral[i] = windup[i] * ((current_integral[i] < 0)?
+                        -1 : 1);
+            }
+        }
+
+        /*
+         * Nullify any controlling movements for proportional control if the
+         * error is below the hysteresis threshold. Add in integral terms and
+         * incorporate derivative terms.
+         */
+        Vector6d hist = (current_error.array().abs() >=
+                hysteresis.array()).cast<double>();
+        current_derivative = Vector6d::Zero();
+        Vector6d m_accel = Vector6d::Zero();
+        current_derivative.segment<3>(0) = state_vector.segment<3>(3);
+        current_derivative.segment<3>(3) = state_vector.segment<3>(9);
+
+        m_accel += P.cwiseProduct(current_error).cwiseProduct(hist);
+        m_accel += I.cwiseProduct(current_integral);
+        m_accel += D.cwiseProduct(current_derivative);
+
+        /*
+         * Convert accelerations to force by multipling by masses.
+         */
+        Vector6d m_force = m_accel.cwiseProduct(sub_mass);
+
+        /*
+         * Grab the current orientation of the submarine for rotating the
+         * current translational goals. The order of this vector is roll,
+         * pitch, and yaw.  Note that by setting the yaw to zero, all control
+         * signals are relative.
+         */
+        Vector3d current_orientation;
+        current_orientation[0] = state_vector[6];
+        current_orientation[1] = state_vector[7];
+        current_orientation[2] = 0;
+
+        /*
+         * Normalize the translational forces based on the current orientation
+         * of the submarine and calculate the translation control for each
+         * thruster.
+         */
+        Vector6d translation_command = Vector6d::Zero();
+        translation_command.segment<3>(0) =
+            r3D(current_orientation).transpose() * m_force.segment<3>(0);
+        translation_control = motors_inverted * translation_command;
+
+        /*
+         * Calculate the rotation control for each thruster.
+         */
+        Vector6d rotation_command = Vector6d::Zero();
+        rotation_command.segment<3>(3) = m_force.segment<3>(3);
+        rotation_control = motors_inverted * rotation_command;
+
+        /*
+         * Truncate any goals that are over thresholds.
+         * TODO: Intelligently scale each portion of the thruster goal so that
+         *       all goals are equally represented.
+         */
+        for (int i=0; i < num_thrusters; ++i)
+        {
+            if(fabs(translation_control(i)) > t_lim)
+            {
+                translation_control(i) = t_lim*((translation_control(i) < 0)?
+                        -1 : 1);
+            }
+            if(fabs(rotation_control(i)) > r_lim)
+            {
+                rotation_control(i) = r_lim*((rotation_control(i) < 0)?
+                        -1 : 1);
+            }
+        }
+
+        /*
+         * Sum together the translation and rotation goals to attain a final
+         * control for each thruster. Scale any reverse directions by the
+         * backward thruster ratio to achieve our desired backward thrust goal.
+         */
+        total_control = translation_control + rotation_control;
+        for (int i = 0; i < num_thrusters; ++i)
+        {
+            if(total_control[i] < 0)
+                total_control[i] /= back_thrust_ratio;
+        }
+
+        /*
+         * Create a new thruster control message based upon the newly
+         * calculated total_control vector.
          */
         robosub::thruster thruster_message;
-        std::vector<double> control_vector(total_control.data(),
-                total_control.data() + total_control.size());
 
-        for (unsigned int i = 0; i < control_vector.size(); ++i)
+        for (int i = 0; i < num_thrusters; ++i)
         {
-            thruster_message.data.push_back(control_vector[i]);
+            thruster_message.data.push_back(total_control[i]);
         }
 
         return thruster_message;
@@ -365,18 +500,13 @@ namespace robosub
         current_state.yaw_left_derivative = current_derivative[5];
 
         /*
-         * Load eigen vectors into standard vectors and load values into the
-         * message.
+         * Load eigen vectors into the message.
          */
-        std::vector<float> rotation_control_vector(rotation_control.data(),
-                rotation_control.data() + rotation_control.size());
-        std::vector<float> translation_control_vector(translation_control.data(),
-                translation_control.data() + translation_control.size());
-
-        for (unsigned int i = 0; i < rotation_control_vector.size(); ++i)
+        for (int i = 0; i < num_thrusters; ++i)
         {
-            current_state.translation_control.push_back(translation_control_vector[i]);
-            current_state.rotation_control.push_back(rotation_control_vector[i]);
+            current_state.translation_control.push_back(
+                    translation_control[i]);
+            current_state.rotation_control.push_back(rotation_control[i]);
         }
 
         return current_state;
@@ -406,7 +536,6 @@ namespace robosub
                 return "Relative State";
                 break;
             default:
-                return "Unknown State";
                 break;
         }
         return "Unknown State";
@@ -415,125 +544,10 @@ namespace robosub
     /**
      * Calculates the motor control signal.
      *
-     * @return The control signal C to send to the thrusters.
+     * @return None.
      */
     void ControlSystem::calculate_motor_control()
     {
-        /*
-         * Calculate the error between the current state and the goal. If the state
-         * is set to error, override the error calculation to assume that our
-         * current state is correct and no modification is required.
-         */
-        Vector3d rotation_goals;
-        Vector3d translation_error = goals.segment<3>(0) - state_vector.segment<3>(0);
-        for(int i=0; i < 3; ++i)
-        {
-            if(goal_types[i] == robosub::control::STATE_ERROR)
-            {
-                translation_error[i] = goals[i];
-                current_integral[i] = 0.0;
-            }
-            if(goal_types[i+3] == robosub::control::STATE_ERROR)
-            {
-                rotation_goals[i] = state_vector[i+6] + goals[i+3];
-                current_integral[i+3] = 0.0;
-            }
-            else
-            {
-                rotation_goals[i] = goals[i+3];
-            }
-        }
-        Vector3d rotation_error = ir3D(
-                r3D(state_vector.segment<3>(6)).transpose() * r3D(rotation_goals));
-
-        /*
-         * Update the current error vector with the calculated errors.
-         */
-        current_error = Vector6d::Zero();
-        current_error << translation_error, rotation_error;
-
-        /*
-         * Update and bound-check the integral terms.
-         */
-        current_integral += current_error * dt;
-        for(int i=0; i < 6; ++i)
-        {
-            if(fabs(current_integral[i]) > fabs(windup[i]))
-            {
-                current_integral[i] = windup[i] * ((current_integral[i] < 0)? -1 : 1);
-            }
-        }
-
-        /*
-         * Nullify any controlling movements for proportional control if the error
-         * is below the hysteresis threshold. Add in integral terms and incorporate
-         * derivative terms.
-         */
-        Vector6d hist = (current_error.array().abs() >= hysteresis.array()).cast<double>();
-        current_derivative = Vector6d::Zero();
-        Vector6d m_accel = Vector6d::Zero();
-        current_derivative.segment<3>(0) = state_vector.segment<3>(3);
-        current_derivative.segment<3>(3) = state_vector.segment<3>(9);
-
-        m_accel += P.cwiseProduct(current_error).cwiseProduct(hist);
-        m_accel += I.cwiseProduct(current_integral);
-        m_accel += D.cwiseProduct(current_derivative);
-
-        /*
-         * Convert accelerations to force by multipling by masses.
-         */
-        Vector6d m_force = m_accel.cwiseProduct(sub_mass);
-
-        /*
-         * Grab the current orientation of the submarine for rotating the current
-         * translational goals. The order of this vector is roll, pitch, and yaw.
-         * Note that by setting the yaw to zero, all control signals are relative.
-         */
-        Vector3d current_orientation;
-        current_orientation[0] = state_vector[6];
-        current_orientation[1] = state_vector[7];
-        current_orientation[2] = 0;
-
-        /*
-         * Normalize the translational forces based on the current orientation of
-         * the submarine and calculate the translation control for each thruster.
-         */
-        Vector6d translation_command = Vector6d::Zero();
-        translation_command.segment<3>(0) = r3D(current_orientation).transpose() *
-            m_force.segment<3>(0);
-        translation_control = motors_inverted * translation_command;
-
-        /*
-         * Calculate the rotation control for each thruster.
-         */
-        Vector6d rotation_command = Vector6d::Zero();
-        rotation_command.segment<3>(3) = m_force.segment<3>(3);
-        rotation_control = motors_inverted * rotation_command;
-
-        /*
-         * Truncate any goals that are over thresholds.
-         * TODO: Intelligently scale each portion of the thruster goal so that all
-         *       goals are equally represented.
-         */
-        for (int i=0; i < num_thrusters; ++i)
-        {
-            if(fabs(translation_control(i)) > t_lim)
-                translation_control(i) = t_lim*((translation_control(i) < 0)? -1 : 1);
-            if(fabs(rotation_control(i)) > r_lim)
-                rotation_control(i) = r_lim*((rotation_control(i) < 0)? -1 : 1);
-        }
-
-        /*
-         * Sum together the translation and rotation goals to attain a final
-         * control for each thruster. Scale any reverse directions by the backward
-         * thruster ratio to achieve our desired backward thrust goal.
-         */
-        total_control = translation_control + rotation_control;
-        for (int i = 0; i < num_thrusters; ++i)
-        {
-            if(total_control[i] < 0)
-                total_control[i] /= back_thrust_ratio;
-        }
     }
 
     /**
