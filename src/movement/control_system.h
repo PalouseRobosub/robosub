@@ -37,7 +37,7 @@ namespace robosub
         static constexpr double _180_OVER_PI = (180.0 / 3.14159);
 
     public:
-    	ControlSystem();
+        ControlSystem();
         void InputControlMessage(const robosub::control::ConstPtr& msg);
         void InputOrientationMessage(
                 const geometry_msgs::Quaternion::ConstPtr &quat_msg);
@@ -47,7 +47,6 @@ namespace robosub
         robosub::control_status GetControlStatus();
 
     private:
-
         void calculate_motor_control();
         double wraparound(double x, double min, double max);
         std::string state_to_string(uint8_t state);

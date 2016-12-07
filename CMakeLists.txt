@@ -7,7 +7,7 @@ project(robosub)
 #set(CMAKE_BUILD_TYPE Release) #Uncomment this for max optimization
 
 #enable C++11 support
-set(CMAKE_CXX_FLAGS "-Wall -std=c++11 ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)

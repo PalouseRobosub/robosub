@@ -238,15 +238,15 @@ namespace robosub
                      */
                     this->goal_types[i] = robosub::control::STATE_ABSOLUTE;
                     if(i < 3)
-                        goals[i] = state_vector[i] + control_values[i];
+                        this->goals[i] = state_vector[i] + control_values[i];
                     else if (i == 3)
-                        goals[i] = wraparound(state_vector[i+3] +
+                        this->goals[i] = wraparound(state_vector[i+3] +
                                 control_values[i], -180.0, 180.0);
                     else if (i == 4)
-                        goals[i] = wraparound(state_vector[i+3] +
+                        this->goals[i] = wraparound(state_vector[i+3] +
                                 control_values[i], -90.0, 90.0);
                     else if (i == 5)
-                        goals[i] = wraparound(state_vector[i+3] +
+                        this->goals[i] = wraparound(state_vector[i+3] +
                                 control_values[i], -180.0, 180.0);
                     break;
 
@@ -546,24 +546,25 @@ namespace robosub
      */
     std::string ControlSystem::state_to_string(uint8_t state)
     {
+        std::string ret = "Unknown State";
         switch (state)
         {
             case robosub::control::STATE_NONE:
-                return "No State";
+                ret = "No State";
                 break;
             case robosub::control::STATE_ERROR:
-                return "Error State";
+                ret = "Error State";
                 break;
             case robosub::control::STATE_ABSOLUTE:
-                return "Absolute State";
+                ret = "Absolute State";
                 break;
             case robosub::control::STATE_RELATIVE:
-                return "Relative State";
+                ret = "Relative State";
                 break;
             default:
                 break;
         }
-        return "Unknown State";
+        return ret;
     }
 
     /**
