@@ -1,27 +1,14 @@
 #include "control_system.h"
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/QuaternionStamped.h"
+#include "ros/ros.h"
 #include "std_msgs/Float32.h"
-
-#include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
 #include <utility/ThrottledPublisher.hpp>
 
 using namespace robosub;
 
 ControlSystem *control_system;
 
-void controlCallback(const robosub::control::ConstPtr& msg)
-{
-    control_system->InputControlMessage(*msg);
-}
-
-void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)
-{
-    geometry_msgs::QuaternionStamped stamped;
-    stamped.quaternion = *quat_msg;
-
-    control_system->InputOrientationMessage(stamped);
-}
 void depthCallback(const std_msgs::Float32::ConstPtr& depth_msg)
 {
     robosub::depth_stamped stamped;
@@ -35,15 +22,20 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    ros::Subscriber depthSub = nh.subscribe("depth", 1, depthCallback);
-    ros::Subscriber orientationSub = nh.subscribe("orientation", 1, orientationCallback);
+    control_system = new ControlSystem();
 
-    ros::Subscriber controlsub = nh.subscribe("control", 1, controlCallback);
+    ros::Subscriber depth_sub = nh.subscribe("depth", 1, depthCallback);
+
+    ros::Subscriber orientation_sub =
+            nh.subscribe("orientation", 1, &ControlSystem::InputOrientationMessage, control_system);
+
+    ros::Subscriber control_sub =
+            nh.subscribe("control", 1, &ControlSystem::InputControlMessage, control_system);
 
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
-    rs::ThrottledPublisher<robosub::control_status> control_state_pub(std::string("current_control_state"), 1, 5);
 
-    control_system = new ControlSystem();
+    rs::ThrottledPublisher<robosub::control_status>
+            control_state_pub(std::string("current_control_state"), 1, 5);
 
     int rate;
     nh.getParam("control/rate", rate);
@@ -56,6 +48,8 @@ int main(int argc, char **argv)
         ros::spinOnce();
         r.sleep();
     }
+
+    delete control_system;
 
     return 0;
 }

@@ -2,6 +2,12 @@
 #include "rotation_engine.hpp"
 
 /*
+ * Note that comments in this section are lacking. This needs to be updated
+ * in the future. Please note that all inputs to any functions in this file
+ * are defined to be in degrees.
+ */
+
+/*
 psi = roll
 phi = pitch
 theta = yaw
@@ -148,31 +154,6 @@ Vector3d ir3D(Matrix3d R)
     Vector3d ux, iO, uy;
     double psi, phi, theta, tmp;
 
-
-/*		ux = R*Vector3d(1, 0, 0);
-    theta = atan2d(ux(1), ux(0));
-    phi = -asind(ux(2));
-
-    psi = atan2d(R(2,1),R(2,2));
-
-    uy = r3D(Vector3d(0, phi, theta))*Vector3d(0,1,0);
-
-    tmp = (R*Vector3d(0,1,0)).transpose()*uy;
-    if (abs(tmp) >= 1)
-        psi = 0;
-    else
-        psi = acosd(tmp);
-
-
-iO = Vector3d(psi, phi, theta).real();
-
-            //if((R-r3D(Vector3d(-psi, phi, theta))).norm() <= (R-r3D(iO)).norm())
-                    //iO(0) = -psi;
-
-
-*/
-
-
     theta = atan2d(R(1,0),R(0,0));
             phi = -asind(R(2,0));
             psi = atan2d(R(2,1),R(2,2));
@@ -183,6 +164,11 @@ iO = Vector3d(psi, phi, theta).real();
     return iO;
 }
 
+/*
+ * This function was found to be copied from an online source on the
+ * pseudo-inverse algorithm. The source can be found at the following link:
+ *      https://fuyunfei1.gitbooks.io/c-tips/content/pinv_with_eigen.html
+ */
 MatrixXd pinv(const MatrixXd &a, double epsilon)
 {
     Eigen::JacobiSVD<MatrixXd::PlainObject> svd(a,

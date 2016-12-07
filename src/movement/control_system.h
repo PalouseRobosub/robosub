@@ -38,8 +38,9 @@ namespace robosub
 
     public:
     	ControlSystem();
-        void InputControlMessage(robosub::control msg);
-        void InputOrientationMessage(geometry_msgs::QuaternionStamped quat_msg);
+        void InputControlMessage(const robosub::control::ConstPtr& msg);
+        void InputOrientationMessage(
+                const geometry_msgs::QuaternionStamped::ConstPtr &quat_msg);
         void InputDepthMessage(robosub::depth_stamped depth_msg);
         void ReloadPIDParams();
         robosub::thruster CalculateThrusterMessage();

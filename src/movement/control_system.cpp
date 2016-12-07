@@ -29,6 +29,12 @@ namespace robosub
          * Calculate the change in time between each call.
          * TODO: Replace dt with actual message timestamps.
          */
+        if (rate <= 0)
+        {
+            ROS_FATAL("Control system rate is specified as zero or less.");
+            exit(-1);
+        }
+
         dt = 1.0/rate;
 
         /*
@@ -173,24 +179,25 @@ namespace robosub
      *
      * @return None.
      */
-    void ControlSystem::InputControlMessage(robosub::control msg)
+    void ControlSystem::InputControlMessage(const
+            robosub::control::ConstPtr& msg)
     {
         std::vector<double> control_values(6);
         std::vector<uint8_t> control_states(6);
 
-        control_states[0] = msg.forward_state;
-        control_states[1] = msg.strafe_state;
-        control_states[2] = msg.dive_state;
-        control_states[3] = msg.roll_state;
-        control_states[4] = msg.pitch_state;
-        control_states[5] = msg.yaw_state;
+        control_states[0] = msg->forward_state;
+        control_states[1] = msg->strafe_state;
+        control_states[2] = msg->dive_state;
+        control_states[3] = msg->roll_state;
+        control_states[4] = msg->pitch_state;
+        control_states[5] = msg->yaw_state;
 
-        control_values[0] = msg.forward;
-        control_values[1] = msg.strafe_left;
-        control_values[2] = msg.dive;
-        control_values[3] = msg.roll_right;
-        control_values[4] = msg.pitch_down;
-        control_values[5] = msg.yaw_left;
+        control_values[0] = msg->forward;
+        control_values[1] = msg->strafe_left;
+        control_values[2] = msg->dive;
+        control_values[3] = msg->roll_right;
+        control_values[4] = msg->pitch_down;
+        control_values[5] = msg->yaw_left;
 
         for(int i=0; i < 6; ++i)
         {
@@ -254,21 +261,30 @@ namespace robosub
      *
      * @return None.
      */
-    void
-        ControlSystem::InputOrientationMessage(geometry_msgs::QuaternionStamped
-                quat_msg)
+    void ControlSystem::InputOrientationMessage(
+            const geometry_msgs::QuaternionStamped::ConstPtr &quat_msg)
     {
         /*
          * Convert the Quaternion to roll, pitch, and yaw and store the result
          * into the state vector.
          */
-        tf::Matrix3x3 m(tf::Quaternion(quat_msg.quaternion.x,
-                    quat_msg.quaternion.y, quat_msg.quaternion.z,
-                    quat_msg.quaternion.w));
+        tf::Matrix3x3 m(tf::Quaternion(quat_msg->quaternion.x,
+                    quat_msg->quaternion.y, quat_msg->quaternion.z,
+                    quat_msg->quaternion.w));
         m.getRPY(state_vector[6], state_vector[7], state_vector[8]);
+
+        /*
+         * Note that input values are calculated to be radians, but all
+         * internal values of the control system are represented in degrees.
+         * Convert the radians to degrees.
+         */
         state_vector[6] *= _180_OVER_PI;
         state_vector[7] *= _180_OVER_PI;
         state_vector[8] *= _180_OVER_PI;
+
+        /*
+         * TODO: Update the derivative of the rotation.
+         */
     }
 
     /**
@@ -284,19 +300,13 @@ namespace robosub
          * Update the X, Y, and Z positions of the state vector. Note that X
          * and Y position are currently unknown and always set to zero.
          */
-        state_vector[0] = 0; //x
-        state_vector[1] = 0; //y
-        state_vector[2] = depth_msg.depth; //z
+        state_vector[2] = depth_msg.depth;
 
         /*
-         * Update the derivatives of position within the state vector.
+         * TODO: Update the derivative of the depth.
          */
-        state_vector[3] = 0;
-        state_vector[4] = 0;
-        state_vector[5] = prev_depth_msg.depth - depth_msg.depth;
 
         prev_depth_msg.depth = depth_msg.depth;
-
     }
 
     /**
@@ -340,7 +350,8 @@ namespace robosub
             }
         }
         Vector3d rotation_error = ir3D(
-                r3D(state_vector.segment<3>(6)).transpose() * r3D(rotation_goals));
+                r3D(state_vector.segment<3>(6)).transpose() *
+                r3D(rotation_goals));
 
         /*
          * Update the current error vector with the calculated errors.
@@ -356,8 +367,8 @@ namespace robosub
         {
             if(fabs(current_integral[i]) > fabs(windup[i]))
             {
-                current_integral[i] = windup[i] * ((current_integral[i] < 0)?
-                        -1 : 1);
+                current_integral[i] = windup[i] *
+                        ((current_integral[i] < 0)? -1 : 1);
             }
         }
 
