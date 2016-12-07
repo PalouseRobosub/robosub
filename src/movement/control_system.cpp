@@ -1,4 +1,7 @@
-#include "control_system.h"
+#include "movement/control_system.h"
+
+#include <vector>
+#include <string>
 
 namespace robosub
 {
@@ -53,7 +56,7 @@ namespace robosub
         /*
          * Initialize the state of the goals to error.
          */
-        for(int i=0; i < 6; ++i)
+        for(int i = 0; i < 6; ++i)
         {
             goal_types[i] = robosub::control::STATE_ERROR;
         }
@@ -85,9 +88,9 @@ namespace robosub
                 " thrusters.");
         num_thrusters = thruster_settings.size();
 
-        MatrixXd position = MatrixXd(num_thrusters,3);
-        MatrixXd orientation = MatrixXd(num_thrusters,3);
-        MatrixXd motors = MatrixXd(6,num_thrusters);
+        MatrixXd position = MatrixXd(num_thrusters, 3);
+        MatrixXd orientation = MatrixXd(num_thrusters, 3);
+        MatrixXd motors = MatrixXd(6, num_thrusters);
         total_control = VectorXd::Zero(num_thrusters);
         translation_control = VectorXd::Zero(num_thrusters);
         rotation_control = VectorXd::Zero(num_thrusters);
@@ -99,12 +102,12 @@ namespace robosub
              * the position and orientation matrices denote the x, y, and z
              * components sequentially.
              */
-            position(i,0) = thruster_settings[i]["position"]["x"];
-            position(i,1) = thruster_settings[i]["position"]["y"];
-            position(i,2) = thruster_settings[i]["position"]["z"];
-            orientation(i,0) = thruster_settings[i]["orientation"]["x"];
-            orientation(i,1) = thruster_settings[i]["orientation"]["y"];
-            orientation(i,2) = thruster_settings[i]["orientation"]["z"];
+            position(i, 0) = thruster_settings[i]["position"]["x"];
+            position(i, 1) = thruster_settings[i]["position"]["y"];
+            position(i, 2) = thruster_settings[i]["position"]["z"];
+            orientation(i, 0) = thruster_settings[i]["orientation"]["x"];
+            orientation(i, 1) = thruster_settings[i]["orientation"]["y"];
+            orientation(i, 2) = thruster_settings[i]["orientation"]["z"];
         }
 
         for (int i = 0; i < num_thrusters; ++i)
@@ -114,11 +117,11 @@ namespace robosub
              * TODO: Validate moment calculations are correct through
              * utilization of the cross product.
              */
-            motors.block<3,1>(0,i) = max_thrust *
-                    orientation.block<1,3>(i,0).transpose();
-            motors.block<3,1>(3,i) = max_thrust *
-                    position.block<1,3>(i,0).cross(
-                    orientation.block<1,3>(i,0)).transpose();
+            motors.block<3, 1>(0, i) = max_thrust *
+                    orientation.block<1, 3>(i, 0).transpose();
+            motors.block<3, 1>(3, i) = max_thrust *
+                    position.block<1, 3>(i, 0).cross(
+                    orientation.block<1, 3>(i, 0)).transpose();
         }
 
         ROS_INFO_STREAM("Motor Matrix:\n" << motors);
@@ -214,7 +217,7 @@ namespace robosub
         control_values[4] = msg->pitch_down;
         control_values[5] = msg->yaw_left;
 
-        for(int i=0; i < 6; ++i)
+        for(int i = 0; i < 6; ++i)
         {
             switch(control_states[i])
             {
@@ -346,7 +349,7 @@ namespace robosub
         Vector3d rotation_goals;
         Vector3d translation_error = goals.segment<3>(0) -
                 state_vector.segment<3>(0);
-        for(int i=0; i < 3; ++i)
+        for(int i = 0; i < 3; ++i)
         {
             if(goal_types[i] == robosub::control::STATE_ERROR)
             {
@@ -377,7 +380,7 @@ namespace robosub
          * Update and bound-check the integral terms.
          */
         current_integral += current_error * dt;
-        for(int i=0; i < 6; ++i)
+        for (int i = 0; i < 6; ++i)
         {
             if(fabs(current_integral[i]) > fabs(windup[i]))
             {

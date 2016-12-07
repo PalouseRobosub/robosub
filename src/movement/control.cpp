@@ -1,9 +1,11 @@
-#include "control_system.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/QuaternionStamped.h"
+#include "movement/control_system.h"
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
 #include <utility/ThrottledPublisher.hpp>
+
+#include <string>
 
 using namespace robosub;
 
@@ -43,11 +45,11 @@ int main(int argc, char **argv)
 
     ros::Subscriber depth_sub = nh.subscribe("depth", 1, depthCallback);
 
-    ros::Subscriber orientation_sub =
-            nh.subscribe("orientation", 1, &ControlSystem::InputOrientationMessage, control_system);
+    ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
+            &ControlSystem::InputOrientationMessage, control_system);
 
-    ros::Subscriber control_sub =
-            nh.subscribe("control", 1, &ControlSystem::InputControlMessage, control_system);
+    ros::Subscriber control_sub = nh.subscribe("control", 1,
+            &ControlSystem::InputControlMessage, control_system);
 
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
 
