@@ -97,6 +97,8 @@ add_message_files(
   ObstaclePos.msg
   ObstaclePosArray.msg
   BatteryDetailed.msg
+  Localization.msg
+  WeightedPosition.msg
 )
 
 ## Generate services in the 'srv' folder
