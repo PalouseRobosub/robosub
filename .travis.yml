@@ -2,10 +2,6 @@ language: generic
 sudo: required
 dist: trusty
 
-#don't pull down simulator submodule, travis doesn't need it
-git:
-  submodules: false
-
 #slack integration
 notifications:
   email: false
