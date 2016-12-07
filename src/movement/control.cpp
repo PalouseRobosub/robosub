@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
 
     rs::ThrottledPublisher<robosub::control_status>
-            control_state_pub(std::string("current_control_state"), 1, 5);
+            control_state_pub(std::string("control_status"), 1, 5);
 
     int rate;
     nh.getParam("control/rate", rate);

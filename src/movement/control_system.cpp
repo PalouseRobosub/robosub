@@ -17,25 +17,25 @@ namespace robosub
         /*
          * All translational masses are the submarins total mass.
          */
-        ROS_ERROR_COND(ros::param::getCached("/control/mass", sub_mass[0]),
+        ROS_ERROR_COND(!ros::param::getCached("/control/mass", sub_mass[0]),
                 "Failed to load mass of the submarine.");
         sub_mass[1] = sub_mass[2] = sub_mass[0];
 
-        ROS_ERROR_COND(ros::param::getCached("/control/inertia/psi",
+        ROS_ERROR_COND(!ros::param::getCached("/control/inertia/psi",
                 sub_mass[3]), "Failed to load inertial mass psi.");
-        ROS_ERROR_COND(ros::param::getCached("/control/inertia/phi",
+        ROS_ERROR_COND(!ros::param::getCached("/control/inertia/phi",
                 sub_mass[4]), "Failed to load inertial mass phi");
-        ROS_ERROR_COND(ros::param::getCached("/control/inertia/theta",
+        ROS_ERROR_COND(!ros::param::getCached("/control/inertia/theta",
                 sub_mass[5]), "Failed to load inertial mass theta.");
-        ROS_ERROR_COND(ros::param::getCached("/control/back_thrust_ratio",
+        ROS_ERROR_COND(!ros::param::getCached("/control/back_thrust_ratio",
                 back_thrust_ratio), "Failed to load the back thrust ratio.");
-        ROS_ERROR_COND(ros::param::getCached("/control/limits/translation",
+        ROS_ERROR_COND(!ros::param::getCached("/control/limits/translation",
                 t_lim), "Failed to load the translation control limit.");
-        ROS_ERROR_COND(ros::param::getCached("/control/limits/rotation",
+        ROS_ERROR_COND(!ros::param::getCached("/control/limits/rotation",
                 r_lim), "Failed to load the rotiation control limit.");
-        ROS_ERROR_COND(ros::param::getCached("/control/max_thrust",
+        ROS_ERROR_COND(!ros::param::getCached("/control/max_thrust",
                 max_thrust), "Failed to load the max thrust output.");
-        ROS_ERROR_COND(ros::param::getCached("/control/rate", rate),
+        ROS_ERROR_COND(!ros::param::getCached("/control/rate", rate),
                 "Failed to load the control system rate.");
 
         /*
@@ -89,6 +89,8 @@ namespace robosub
         MatrixXd orientation = MatrixXd(num_thrusters,3);
         MatrixXd motors = MatrixXd(6,num_thrusters);
         total_control = VectorXd::Zero(num_thrusters);
+        translation_control = VectorXd::Zero(num_thrusters);
+        rotation_control = VectorXd::Zero(num_thrusters);
 
         for(int i = 0; i < num_thrusters; ++i)
         {
@@ -275,15 +277,14 @@ namespace robosub
      * @return None.
      */
     void ControlSystem::InputOrientationMessage(
-            const geometry_msgs::QuaternionStamped::ConstPtr &quat_msg)
+            const geometry_msgs::Quaternion::ConstPtr &quat_msg)
     {
         /*
          * Convert the Quaternion to roll, pitch, and yaw and store the result
          * into the state vector.
          */
-        tf::Matrix3x3 m(tf::Quaternion(quat_msg->quaternion.x,
-                    quat_msg->quaternion.y, quat_msg->quaternion.z,
-                    quat_msg->quaternion.w));
+        tf::Matrix3x3 m(tf::Quaternion(quat_msg->x, quat_msg->y, quat_msg->z,
+                    quat_msg->w));
         m.getRPY(state_vector[6], state_vector[7], state_vector[8]);
 
         /*
