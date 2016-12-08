@@ -37,7 +37,7 @@ namespace rs
             if(args != "")
             {
                 arg_ptrs[i] = strtok(const_cast<char*>(args.c_str()), " ");
-                while(arg_ptrs[++i] = strtok(NULL, " "));
+                while((arg_ptrs[++i] = strtok(NULL, " ")));
             }
             arg_ptrs[i] = 0;
 

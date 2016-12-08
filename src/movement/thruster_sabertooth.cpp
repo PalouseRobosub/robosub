@@ -82,7 +82,7 @@ void callBack(const robosub::thruster::ConstPtr& msg)
     robosub::thruster message = *msg;
     uint8_t serial_data[4];
 
-    for (int i = 0; i < message.data.size(); ++i)
+    for (unsigned int i = 0; i < message.data.size(); ++i)
     {
 
       createThrusterPacket(serial_data, message.data[i], i);
@@ -102,7 +102,7 @@ void setTimeOut (uint8_t ms_100)
   uint8_t serial_data[4];
 
   //loop through thrusters
-  for (int i = 0; i < mThruster_info.size(); i++)
+  for (unsigned int i = 0; i < mThruster_info.size(); i++)
   {
     //adress: loop over addresses
     serial_data[0] = mThruster_info[i].address;
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
   //shutdown thrusters when node exits
   uint8_t serial_data[4];
   //Loop through thrusters
-  for (int i = 0; i < mThruster_info.size(); i++)
+  for (unsigned int i = 0; i < mThruster_info.size(); i++)
   {
     createThrusterPacket(serial_data, 0, i);
     mSerial.Write(serial_data, 4);

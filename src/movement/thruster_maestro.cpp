@@ -21,7 +21,7 @@ std::vector<Thruster_info> mThruster_info;
 void Callback (const robosub::thruster::ConstPtr& msg)
 {
     int result = 0;
-    for (int i = 0; i < msg->data.size(); i++)
+    for (unsigned int i = 0; i < msg->data.size(); i++)
     {
         result = thrusterController.set(msg->data[i], mThruster_info[i].channel);
         if(result != 0)
@@ -34,7 +34,7 @@ void Callback (const robosub::thruster::ConstPtr& msg)
 void zeroThrusterSpeeds()
 {
     int result = 0;
-    for (int i = 0; i < mThruster_info.size(); i++)
+    for (unsigned int i = 0; i < mThruster_info.size(); i++)
     {
         result = thrusterController.set(0, mThruster_info[i].channel);
         if(result != 0)

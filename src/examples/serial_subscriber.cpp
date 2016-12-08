@@ -8,7 +8,7 @@ void callback(const robosub::thruster::ConstPtr& msg)
 {
   uint8_t serial_data[256];
 
-    for (int i=0; i < msg->data.size(); ++i)
+    for (unsigned int i = 0; i < msg->data.size(); ++i)
     {
       serial_data[i] = msg->data[i];
       ROS_DEBUG("serial data[%d]: %d", i, serial_data[i]);
