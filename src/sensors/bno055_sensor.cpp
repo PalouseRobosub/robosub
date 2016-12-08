@@ -102,8 +102,7 @@ int main(int argc, char **argv)
     /*
      * Load calibration parameters from the param server.
      */
-    int accelerometer_radius = -1, magnetometer_radius = -1,
-            gyroscope_radius = -1;
+    int accelerometer_radius = -1, magnetometer_radius = -1;
     int accelerometer_offset[3] = {-1, -1, -1},
             magnetometer_offset[3] = {-1, -1, -1},
             gyroscope_offset[3] = {-1, -1, -1};

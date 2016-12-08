@@ -14,7 +14,7 @@ namespace rs
      */
     int Bno055::init()
     {
-        uint8_t self_test_result, chip_id, clock_status, clock_config;
+        uint8_t self_test_result, chip_id, clock_status;
 
         /*
          * Begin by getting in sync by attempting to read the chip ID a few
@@ -187,9 +187,9 @@ namespace rs
     int Bno055::remapAxes(Axis x, Axis y, Axis z)
     {
         vector<uint8_t> axis_data = {0, 0};
-        axis_data[0] = static_cast<uint8_t>(z) & 0b11 << 4 |
-                static_cast<uint8_t>(y) & 0b11 << 2 |
-                static_cast<uint8_t>(x) & 0b11;
+        axis_data[0] = (static_cast<uint8_t>(z) & 0b11 << 4) |
+                (static_cast<uint8_t>(y) & 0b11 << 2) |
+                (static_cast<uint8_t>(x) & 0b11);
         axis_data[1] = ((static_cast<uint8_t>(x) > 0b10)? 1 << 2 : 0) |
                 ((static_cast<uint8_t>(y) > 0b10)? 1 << 1 : 0) |
                 ((static_cast<uint8_t>(x) > 0b10)? 1 : 0);
@@ -335,7 +335,7 @@ namespace rs
      */
     int Bno055::getSystemCalibration(uint8_t &calibration)
     {
-        uint8_t calib_stat_reg, calib_stat;
+        uint8_t calib_stat_reg;
         AbortIf(read_register(Bno055::Register::CALIB_STAT,
             calib_stat_reg));
         calibration = ((calib_stat_reg >> 6) & 0b11);
@@ -440,7 +440,8 @@ namespace rs
              */
             vector<uint8_t> msg = {Bno055::request_header, 0x00,
                     static_cast<uint8_t>(start), 1, data};
-            ContinueIf(_port.Write(msg.data(), msg.size()) != msg.size());
+            ContinueIf(_port.Write(msg.data(), msg.size()) !=
+                    static_cast<int>(msg.size()));
 
             /*
              * If a reset was just triggered, a reply is not given from the
@@ -528,7 +529,8 @@ namespace rs
             vector<uint8_t> msg = {Bno055::request_header, 0x00,
                     static_cast<uint8_t>(start), write_length};
             msg.insert(msg.end(), data.begin(), data.end());
-            ContinueIf(_port.Write(msg.data(), msg.size()) != msg.size());
+            ContinueIf(_port.Write(msg.data(), msg.size()) !=
+                    static_cast<int>(msg.size()));
 
             /*
              * Verify that the write succeeded with the Bno's reply.
@@ -607,7 +609,7 @@ namespace rs
             vector<uint8_t> request = {Bno055::request_header, 0x01,
                     static_cast<uint8_t>(start), 1};
             ContinueIf(_port.Write(request.data(), request.size())
-                    != request.size());
+                    != static_cast<int>(request.size()));
 
             /*
              * Read the two byte response.
@@ -702,12 +704,11 @@ namespace rs
              * Allocate memory for a response, request a read, and read the
              * response.
              */
-            int8_t read_length;
             vector<uint8_t> reply(len + 2);
             vector<uint8_t> request = {Bno055::request_header, 0x01,
                     static_cast<uint8_t>(start), len};
             ContinueIf(_port.Write(request.data(), request.size()) !=
-                    request.size());
+                    static_cast<int>(request.size()));
             /*
              * Ensure that atleast an error code can be read. Verify later that
              * the entire length was read.
