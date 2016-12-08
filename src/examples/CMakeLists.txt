@@ -7,6 +7,9 @@ add_ros_node(param_example parameter.cpp)
 
 add_dynamic_ros_node(dynamicParameters_example DynamicParameters.cpp)
 
+add_ros_node(bno bno.cpp)
+target_link_libraries(bno serial bno055)
+
 add_ros_node(serial_subscriber_example serial_subscriber.cpp)
 target_link_libraries(serial_subscriber_example serial)
 
