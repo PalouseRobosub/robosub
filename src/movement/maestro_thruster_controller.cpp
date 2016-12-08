@@ -155,7 +155,7 @@ namespace rs
             return -1;
         }
 
-        if(abs(speed) > _max_speed[channel])
+        if(fabs(speed) > _max_speed[channel])
         {
             ROS_INFO("Software-limiting thruster speed.");
             speed = _max_speed[channel] * ((speed < 0)? -1 : 1);
