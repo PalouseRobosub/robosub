@@ -15,7 +15,13 @@ namespace rs
     int Bno055::init()
     {
         uint8_t self_test_result, chip_id, clock_status, clock_config;
-        AbortIf(set_page(0));
+
+        /*
+         * Begin by getting in sync by attempting to read the chip ID a few
+         * times.
+         */
+        AbortIf(read_register(Bno055::Register::CHIP_ID, chip_id));
+        AbortIfNot(chip_id == Bno055::chip_id, -1);
 
         /*
          * Perform a software reset to start off in a default state.
@@ -406,6 +412,16 @@ namespace rs
         for (int attempt = 0; attempt < max_retries; ++attempt)
         {
             /*
+             * Wait for all potential transactions to complete before flushing.
+             */
+            if (attempt)
+            {
+                ros::Duration(0.08).sleep();
+                ROS_INFO_STREAM("Reattempting register write: " <<
+                        attempt);
+            }
+
+            /*
              * Flush the serial buffer.
              */
             _port.Flush();
@@ -479,6 +495,16 @@ namespace rs
         for (int attempt = 0; attempt < max_retries; ++attempt)
         {
             /*
+             * Wait for all potential transactions to complete before flushing.
+             */
+            if (attempt)
+            {
+                ros::Duration(0.08).sleep();
+                ROS_INFO_STREAM("Reattempting register multi write: " <<
+                        attempt);
+            }
+
+            /*
              * Flush the serial buffers.
              */
             _port.Flush();
@@ -549,6 +575,16 @@ namespace rs
     {
         for (int attempt = 0; attempt < max_retries; ++attempt)
         {
+            /*
+             * Wait for all potential transactions to complete before flushing.
+             */
+            if (attempt)
+            {
+                ros::Duration(0.08).sleep();
+                ROS_INFO_STREAM("Reattempting register read: " <<
+                        attempt);
+            }
+
             /*
              * Flush the serial port buffer.
              */
@@ -638,6 +674,16 @@ namespace rs
     {
         for (int attempt = 0; attempt < max_retries; ++attempt)
         {
+            /*
+             * Wait for all potential transactions to complete before flushing.
+             */
+            if (attempt)
+            {
+                ros::Duration(0.08).sleep();
+                ROS_INFO_STREAM("Reattempting register multi read: " <<
+                        attempt);
+            }
+
             /*
              * Flush the serial port buffer.
              */
