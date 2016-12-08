@@ -43,13 +43,18 @@ before_script:
 
 script:
   - catkin_make
-  - catkin_make run_tests
+  - if [ $TEST == "true" ] ; then catkin_make run_tests; fi 
   - if [ $LINT == "true" ] ; then catkin_make roslint; fi 
 
 matrix:
   allow_failures:
-    - env: LINT=true
+    - env:
+      - LINT=true
+  include:
+    - env: #does just the build work?
+      - JUST_BUILD=true
+    - env: #does the linter pass?
+      - LINT=true
+    - env: #do all tests pass?
+      - TEST=true
 
-env:
-  - LINT=false
-  - LINT=true
