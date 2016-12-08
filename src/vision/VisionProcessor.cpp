@@ -1,11 +1,9 @@
 #include "VisionProcessor.hpp"
 #include <XmlRpcException.h>
 
-//paramGroup defines the subdirectory under /vision to look for and use in params
-VisionProcessor::VisionProcessor(string paramGroup)
+VisionProcessor::VisionProcessor()
 {
-    this->paramGroup = paramGroup;
-    this->n = NodeHandle("~vision");
+    this->n = NodeHandle("~processing");
 }
 
 VisionProcessor::~VisionProcessor()
@@ -16,9 +14,6 @@ VisionProcessor::~VisionProcessor()
 //Processes the image using color filtering with parameters under given subgroup
 Mat VisionProcessor::process(Image& image)
 {
-    //Create a nodehandle for param fetching
-    //ros::NodeHandle n("~vision");
-    
     //Convert image message to OpenCV Mat
     Mat toProcess = toOpenCV(image);
     
@@ -44,7 +39,10 @@ Mat VisionProcessor::process(Image& image)
     int numBlurIters = 3;
 
     //Get blur param
-    n.getParamCached("/vision/blur_iters", numBlurIters);
+    if (!n.getParamCached("blur_iters", numBlurIters))
+    {
+        ROS_ERROR_STREAM("Node does not contain blur_iters param");
+    }
 
     //Initialize open filter size with default of 3x3
     int openSize[] = {3,3};
@@ -53,9 +51,9 @@ Mat VisionProcessor::process(Image& image)
     int numOpenIters = 1;
 
     //Get open params
-    n.getParamCached("/vision/open/width", openSize[0]);
-    n.getParamCached("/vision/open/height", openSize[1]);
-    n.getParamCached("/vision/open/iters", numOpenIters);
+    n.getParamCached("open/width", openSize[0]);
+    n.getParamCached("open/height", openSize[1]);
+    n.getParamCached("open/iters", numOpenIters);
 
     //Initialize open filter size with default of 3x3
     int closeSize[] = {3,3};
@@ -64,9 +62,9 @@ Mat VisionProcessor::process(Image& image)
     int numCloseIters = 1;
 
     //Get open params
-    n.getParamCached("/vision/close/width", closeSize[0]);
-    n.getParamCached("/vision/close/height", closeSize[1]);
-    n.getParamCached("/vision/close/iters", numCloseIters);
+    n.getParamCached("close/width", closeSize[0]);
+    n.getParamCached("close/height", closeSize[1]);
+    n.getParamCached("close/iters", numCloseIters);
 
     //Sizes must be odd for open filter
     if (openSize[0] % 2 != 1)
@@ -96,7 +94,7 @@ Mat VisionProcessor::process(Image& image)
     
     Mat mask;
     //Mask the image within the threshold ranges
-    for (int i = 0; i < lower_bounds.size() && i < upper_bounds.size(); i++)
+    for (unsigned int i = 0; i < lower_bounds.size() && i < upper_bounds.size(); i++)
     {
         ROS_DEBUG_STREAM("Masking color range " << i << " from " 
                             << lower_bounds[i] << " to " << upper_bounds[i]);

@@ -2,8 +2,12 @@
 
 <launch>
 
-    <node pkg="robosub" type="vision" name="vision" required="false">
-        <rosparam command="load" file="$(find robosub)/param/vision.yaml"/>
+    <node pkg="robosub" type="vision" name="red_vision" required="false">
+        <param name="subTopic" value="buoys/red"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision.yaml"/>
     </node>
-
+    <node pkg="robosub" type="vision" name="green_vision" required="false">
+        <param name="subTopic" value="buoys/green"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision.yaml"/>
+    </node>
 </launch>

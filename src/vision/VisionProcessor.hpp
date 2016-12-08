@@ -24,13 +24,12 @@ using sensor_msgs::Image;
 class VisionProcessor
 {
     public:
-        VisionProcessor(string paramGroup);
+        VisionProcessor();
         ~VisionProcessor();
         
         Mat process(Image& image);
 
     private:
-        string paramGroup;
         NodeHandle n;
 
         void getScalarParamSet(string mapName, vector<Scalar> &scalars);

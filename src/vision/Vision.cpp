@@ -13,7 +13,7 @@ ros::Publisher pub;
 void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
     //Create a vision processor
-    VisionProcessor vp("red");
+    VisionProcessor vp;
     
     //Copy the image for processing
     //TODO: This should be optimized to avoid copying by sharing the pointer
@@ -120,8 +120,10 @@ int main(int argc, char **argv)
                             //Topics reversed for use with current rosbag
     ros::Subscriber leftCamSub = n.subscribe("/camera/right/image", 1, leftCamCallback);
     ros::Subscriber rightCamSub = n.subscribe("/camera/left/image", 1, rightCamCallback);
-
-    pub = n.advertise<robosub::visionPosArray>("/vision/buoy/red", 1);
+    
+    string topic;
+    ros::param::get("~subTopic", topic);
+    pub = n.advertise<robosub::visionPosArray>("/vision/" + topic, 1);
 
     ros::spin();
 
