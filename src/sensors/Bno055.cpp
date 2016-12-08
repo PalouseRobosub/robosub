@@ -9,12 +9,9 @@ namespace rs
      *       the Bno055 requires 650ms to wake up from a reset and the built in
      *       self test is given 500ms.
      *
-     * @param use_external_crystal Specified true if the Bno should be
-     *        configured to use an external crystal.
-     *
      * @return Zero upon success and non-zero upon failure.
      */
-    int Bno055::init(bool use_external_crystal)
+    int Bno055::init()
     {
         uint8_t self_test_result, chip_id, clock_status, clock_config;
         AbortIf(set_page(0));
@@ -55,15 +52,15 @@ namespace rs
          * the clock is able to be configured.
          */
         AbortIf(read_register(Bno055::Register::SYS_CLK_STATUS, clock_status));
-        if (use_external_crystal && (clock_status & 0b1))
+        if (clock_status & 0b1)
         {
             AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<7));
         }
 
         /*
-         * Set the power and operating mode to configuration defaults.
+         * Set the power mode to normal and operating mode to configuration.
          */
-        AbortIf(setPowerMode(Bno055::PowerMode::Normal));
+        AbortIf(write_register(Bno055::Register::PWR_MODE, 0))
         AbortIf(setOperationMode(Bno055::OperationMode::Config));
 
         return 0;
@@ -110,65 +107,6 @@ namespace rs
         return 0;
     }
 
-    /**
-     * Sets the pitch mode to follow Android or Windows OS pitch definitions.
-     *
-     * @param mode The pitch convention to use.
-     *
-     * @return Zero upon success or a non-zero error code supplied by the
-     *         sensor.
-     */
-    int Bno055::setPitchMode(Bno055::PitchMode mode)
-    {
-        /*
-         * Read the current unit selection register, set the pitch mode bit to
-         * a one or zero, and write the value back to the sensor.
-         */
-        uint8_t unit_select;
-        AbortIf(read_register(Bno055::Register::UNIT_SEL, unit_select));
-        unit_select &= ~(1<<7);
-        unit_select |= static_cast<uint8_t>(mode);
-        AbortIf(write_register(Bno055::Register::UNIT_SEL, unit_select));
-
-        return 0;
-    }
-
-    /**
-     * Sets the output format units for a specific sensor.
-     *
-     * @param sensor The sensor to configure units for. The magnometer units are not adjustable.
-     * @param format The specified format to update the specified sensor to.
-     *
-     * @return Zero upon success or a non-zero error code.
-     */
-    int Bno055::setOutputFormat(Bno055::Sensor sensor, Bno055::Format format)
-    {
-        uint8_t unit_select;
-        AbortIf(read_register(Bno055::Register::UNIT_SEL, unit_select));
-        switch (sensor)
-        {
-            case Bno055::Sensor::Fusion:
-                AbortIfNot(format == Bno055::Format::EulerDegrees ||
-                        format == Bno055::Format::EulerRadians, -1);
-                unit_select &= ~(1<<3);
-                unit_select |= static_cast<uint8_t>(format);
-                euler_units = format;
-                break;
-            case Bno055::Sensor::Thermometer:
-                AbortIfNot(format == Bno055::Format::TempC ||
-                        format == Bno055::Format::TempF, -1);
-                unit_select &= ~(1<<5);
-                unit_select |= static_cast<uint8_t>(format);
-                break;
-            default:
-                return -1;
-                break;
-        }
-
-        AbortIf(write_register(Bno055::Register::UNIT_SEL, unit_select));
-        return 0;
-
-    }
     /**
      * Read the euler orientation information.
      *

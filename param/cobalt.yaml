@@ -141,7 +141,7 @@ sensor:
             y: 0
             z: 0
         radius: 0
-    magnometer:
+    magnetometer:
         offset:
             x: 0
             y: 0

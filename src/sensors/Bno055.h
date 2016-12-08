@@ -237,51 +237,16 @@ namespace rs
         };
 
         /**
-         * Defines the different power modes that the sensor can operate under
-         * [3.2].
-         */
-        enum class PowerMode : uint8_t
-        {
-            Suspend = 0b10,
-            LowPower = 0b01,
-            Normal = 0b00
-        };
-
-        /**
          * Enumeration of each of the different sensors present on the Bno055
          * System-In-Package (SiP).
          */
         enum class Sensor
         {
             Accelerometer,
-            Magnometer,
+            Magnetometer,
             Gyroscope,
             Thermometer,
             Fusion
-        };
-
-        /**
-         * Definition of all available output unit formats for each of the
-         * sensors. These formats are non-exclusive [3.6.1].
-         */
-        enum class Format : uint8_t
-        {
-            EulerDegrees = 0b00000,
-            EulerRadians = 0b00100,
-            TempC = 0b00000,
-            TempF = 0b10000
-        };
-
-        /**
-         * Defines pitch mode definitions based upon both Windows and Android
-         * operating system standards. Android utilizes an architecture of
-         * increasing pitch clockwise, whereas Windows defines increasing pitch
-         * as counter-clockwise [3.6.2].
-         */
-        enum class PitchMode : uint8_t
-        {
-            Windows = 0b00000000,
-            Android = 0b10000000
         };
 
         /**
@@ -298,11 +263,9 @@ namespace rs
         {
         }
 
-        int init(bool use_external_crystal = false);
+        int init();
 
         int reset();
-
-        int setPowerMode(PowerMode mode);
 
         int setOperationMode(OperationMode mode);
 
@@ -311,10 +274,6 @@ namespace rs
         int getSystemCalibration(uint8_t &calibration);
 
         int getSensorCalibration(Sensor sensor, uint8_t &calibration);
-
-        int setPitchMode(PitchMode mode);
-
-        int setOutputFormat(Sensor sensor, Format format);
 
         int readEuler(double &roll, double &pitch, double &yaw);
 

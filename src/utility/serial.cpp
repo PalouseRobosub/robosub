@@ -4,6 +4,9 @@
 
 namespace rs
 {
+    /**
+     * Constructor.
+     */
     Serial::Serial()
     {
         m_port_fd = -1;
@@ -11,11 +14,22 @@ namespace rs
         m_is_open = false;
     }
 
+    /**
+     * Deconstructor.
+     */
     Serial::~Serial()
     {
         this->Close();
     }
 
+    /**
+     * Open a serial port.
+     *
+     * @param port_name The name of the port to open.
+     * @param baud_rate The serial baud rate to open the port with.
+     *
+     * @return Zero upon success or a non-zero error code.
+     */
     int Serial::Open(const char *port_name, int baud_rate)
     {
         //arbitrary small delay to allow ports to be created during tests
@@ -39,6 +53,11 @@ namespace rs
         return 0;
     }
 
+    /**
+     * Closes a serial port.
+     *
+     * @return Zero upon success or a non-zero error code.
+     */
     int Serial::Close()
     {
         if(m_is_open)
@@ -50,11 +69,26 @@ namespace rs
         return 0;
     }
 
+    /**
+     * Flush the input and output buffers.
+     *
+     * @return Zero.
+     */
     int Serial::Flush()
     {
         tcflush(this->m_port_fd, TCIOFLUSH);
+
+        return 0;
     }
 
+    /**
+     * Write data to the serial port.
+     *
+     * @param buf A pointer to the data to write.
+     * @param num The number of bytes to write.
+     *
+     * @return The number of bytes returned, or -1 if error.
+     */
     int Serial::Write(uint8_t *buf, int num)
     {
         int i;
@@ -81,6 +115,14 @@ namespace rs
         return sent;
     }
 
+    /**
+     * Read data from the serial port.
+     *
+     * @param buf The location to store data.
+     * @param num The number of bytes to read.
+     *
+     * @return The number of bytes read or -1 upon error.
+     */
     int Serial::Read(uint8_t *buf, int num)
     {
 
@@ -98,12 +140,10 @@ namespace rs
              * Wait for atleast one byte to be available before reading so that
              * timeout is also valid if no bytes are received on the port.
              */
-            ros::Time start = ros::Time::now();
-            double time = 0;
-            while (QueryBuffer() == 0 && time < 0.5)
+            ros::Time exit_time = ros::Time::now() + ros::Duration(0.5);
+            while (QueryBuffer() == 0 && ros::Time::now() < exit_time)
             {
-                time = (ros::Time::now() - start).toSec();
-                usleep(20000);
+                ros::Duration(0.02).sleep();
             }
 
             if (time >= 0.5)
@@ -125,6 +165,11 @@ namespace rs
         return i;
     }
 
+    /**
+     * Get the number of available bytes.
+     *
+     * @return The number of bytes available on the serial port.
+     */
     int Serial::QueryBuffer()
     {
         if(!m_is_open)
@@ -137,6 +182,15 @@ namespace rs
         return bytes_available;
     }
 
+    /**
+     * Configure the opened file to function as a serial port.
+     *
+     * @note This function sets a default timeout of half a second for
+     *       receiving any data on the port. This timeout is updated after each
+     *       successful byte read.
+     *
+     * @param baud_rate The baud rate to configure the serial port to.
+     */
     void Serial::Configure(int baud_rate)
     {
         struct termios options = {0};

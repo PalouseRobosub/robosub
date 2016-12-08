@@ -102,43 +102,52 @@ int main(int argc, char **argv)
     /*
      * Load calibration parameters from the param server.
      */
-    int accelerometer_radius, magnometer_radius, gyroscope_radius;
-    int accelerometer_offset[3], magnometer_offset[3], gyroscope_offset[3];
+    int accelerometer_radius = -1, magnetometer_radius = -1,
+            gyroscope_radius = -1;
+    int accelerometer_offset[3] = {-1, -1, -1},
+            magnetometer_offset[3] = {-1, -1, -1},
+            gyroscope_offset[3] = {-1, -1, -1};
 
-    FatalAbortIf(nh.getParamCached("sensor/accelerometer/radius",
-            accelerometer_radius) == false,
+    /*
+     * Use explicit short-circuiting to guarentee that flags are only set when
+     * the parameter load fails.
+     */
+    bool failed_radii_load = false, failed_offset_load = false,
+            failed_axis_load = false;
+    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/radius",
+            accelerometer_radius) == false && (failed_radii_load = true),
             "Failed to load accelerometer calibration radius.");
-    FatalAbortIf(nh.getParamCached("sensor/accelerometer/offset/x",
-            accelerometer_offset[0]) == false,
-            "Failed to load acclerometer calibration offset.");
-    FatalAbortIf(nh.getParamCached("sensor/accelerometer/offset/y",
-            accelerometer_offset[1]) == false,
-            "Failed to load acclerometer calibration offset.");
-    FatalAbortIf(nh.getParamCached("sensor/accelerometer/offset/z",
-            accelerometer_offset[2]) == false,
-            "Failed to load acclerometer calibration offset.");
+    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/x",
+            accelerometer_offset[0]) == false && (failed_offset_load = true),
+            "Failed to load accelerometer calibration offset.");
+    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/y",
+            accelerometer_offset[1]) == false && (failed_offset_load = true),
+            "Failed to load accelerometer calibration offset.");
+    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/z",
+            accelerometer_offset[2]) == false && (failed_offset_load = true),
+            "Failed to load accelerometer calibration offset.");
 
-    FatalAbortIf(nh.getParamCached("sensor/magnometer/radius",
-            magnometer_radius) == false,
-            "Failed to load magnometer calibration radius.");
-    FatalAbortIf(nh.getParamCached("sensor/magnometer/offset/x",
-            magnometer_offset[0]) == false,
-            "Failed to load magnometer calibration offset.");
-    FatalAbortIf(nh.getParamCached("sensor/magnometer/offset/y",
-            magnometer_offset[1]) == false,
-            "Failed to load magnometer calibration offset.");
-    FatalAbortIf(nh.getParamCached("sensor/magnometer/offset/z",
-            magnometer_offset[2]) == false,
-            "Failed to load magnometer calibration offset.");
+    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/radius",
+            magnetometer_radius) == false && (failed_radii_load = true),
+            "Failed to load magnetometer calibration radius.");
+    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/x",
+            magnetometer_offset[0]) == false && (failed_offset_load = true),
+            "Failed to load magnetometer calibration offset.");
+    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/y",
+            magnetometer_offset[1]) == false && (failed_offset_load = true),
+            "Failed to load magnetometer calibration offset.");
+    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/z",
+            magnetometer_offset[2]) == false && (failed_offset_load = true),
+            "Failed to load magnetometer calibration offset.");
 
-    FatalAbortIf(nh.getParamCached("sensor/gyroscope/offset/x",
-            gyroscope_offset[0]) == false,
+    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/x",
+            gyroscope_offset[0]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    FatalAbortIf(nh.getParamCached("sensor/gyroscope/offset/y",
-            gyroscope_offset[1]) == false,
+    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/y",
+            gyroscope_offset[1]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    FatalAbortIf(nh.getParamCached("sensor/gyroscope/offset/z",
-            gyroscope_offset[2]) == false,
+    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/z",
+            gyroscope_offset[2]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
 
     /*
@@ -148,41 +157,54 @@ int main(int argc, char **argv)
      * the negative direction.
      */
     int axis_x, axis_y, axis_z;
-    FatalAbortIf(nh.getParamCached("sensor/axis/x", axis_x) == false,
+    ROS_WARN_COND(nh.getParamCached("sensor/axis/x", axis_x) == false &&
+            (failed_axis_load = true),
             "Failed to load Bno055 remapped X axis.");
-    FatalAbortIf(nh.getParamCached("sensor/axis/y", axis_y) == false,
+    ROS_WARN_COND(nh.getParamCached("sensor/axis/y", axis_y) == false &&
+            (failed_axis_load = true),
             "Failed to load Bno055 remapped Y axis.");
-    FatalAbortIf(nh.getParamCached("sensor/axis/z", axis_z) == false,
+    ROS_WARN_COND(nh.getParamCached("sensor/axis/z", axis_z) == false &&
+            (failed_axis_load = true),
             "Failed to load Bno055 remapped Z axis.");
 
     Bno055::Axis xAxis, yAxis, zAxis;
     xAxis = encodeAxis(axis_x);
     yAxis = encodeAxis(axis_y);
     zAxis = encodeAxis(axis_z);
-    FatalAbortIf(sensor.remapAxes(xAxis, yAxis, zAxis) != 0,
-            "Bno055 failed to remap axes.");
+    if (failed_axis_load == false)
+    {
+        ROS_WARN_COND(sensor.remapAxes(xAxis, yAxis, zAxis) != 0,
+                "Bno055 failed to remap axes.");
+    }
 
     /*
      * Write sensor calibrations to the sensor.
      */
-    FatalAbortIf(sensor.writeRadii(static_cast<int16_t>(accelerometer_radius),
-            static_cast<int16_t>(magnometer_radius)) != 0,
-            "Bno055 failed to write sensor radius calibrations.");
-    FatalAbortIf(sensor.writeOffsets(Bno055::Sensor::Accelerometer,
-            static_cast<int16_t>(accelerometer_offset[0]),
-            static_cast<int16_t>(accelerometer_offset[1]),
-            static_cast<int16_t>(accelerometer_offset[2])) != 0,
-            "Bno055 failed to write accelerometer offset calibrations.");
-    FatalAbortIf(sensor.writeOffsets(Bno055::Sensor::Magnometer,
-            static_cast<int16_t>(magnometer_offset[0]),
-            static_cast<int16_t>(magnometer_offset[1]),
-            static_cast<int16_t>(magnometer_offset[2])) != 0,
-            "Bno055 failed to write magnometer offset calibrations.");
-    FatalAbortIf(sensor.writeOffsets(Bno055::Sensor::Gyroscope,
-            static_cast<int16_t>(gyroscope_offset[0]),
-            static_cast<int16_t>(gyroscope_offset[1]),
-            static_cast<int16_t>(gyroscope_offset[2])) != 0,
-            "Bno055 failed to write gyroscope offset calibrations.");
+    if (failed_radii_load == false)
+    {
+        ROS_WARN_COND(sensor.writeRadii(static_cast<int16_t>(
+                accelerometer_radius),
+                static_cast<int16_t>(magnetometer_radius)) != 0,
+                "Bno055 failed to write sensor radius calibrations.");
+    }
+    if (failed_offset_load == false)
+    {
+        ROS_WARN_COND(sensor.writeOffsets(Bno055::Sensor::Accelerometer,
+                static_cast<int16_t>(accelerometer_offset[0]),
+                static_cast<int16_t>(accelerometer_offset[1]),
+                static_cast<int16_t>(accelerometer_offset[2])) != 0,
+                "Bno055 failed to write accelerometer offset calibrations.");
+        ROS_WARN_COND(sensor.writeOffsets(Bno055::Sensor::Magnetometer,
+                static_cast<int16_t>(magnetometer_offset[0]),
+                static_cast<int16_t>(magnetometer_offset[1]),
+                static_cast<int16_t>(magnetometer_offset[2])) != 0,
+                "Bno055 failed to write magnetometer offset calibrations.");
+        ROS_WARN_COND(sensor.writeOffsets(Bno055::Sensor::Gyroscope,
+                static_cast<int16_t>(gyroscope_offset[0]),
+                static_cast<int16_t>(gyroscope_offset[1]),
+                static_cast<int16_t>(gyroscope_offset[2])) != 0,
+                "Bno055 failed to write gyroscope offset calibrations.");
+    }
 
     /*
      * Configure the sensor to operate in nine degrees of freedom fusion mode.
@@ -191,11 +213,14 @@ int main(int argc, char **argv)
             "Bno055 failed to enter fusion mode.");
 
     /*
-     * Enter the main ros loop.
+     * Enter the main ROS loop.
      */
     int rate;
-    FatalAbortIf(nh.getParamCached("sensor/rate", rate) == false,
-            "Failed to load sensor node rate.");
+    if (!nh.getParamCached("sensor/rate", rate))
+    {
+        ROS_WARN("Failed to load sensor node rate. Falling back to 20Hz.");
+        rate = 20;
+    }
     ros::Rate r(rate);
 
     while (ros::ok())
