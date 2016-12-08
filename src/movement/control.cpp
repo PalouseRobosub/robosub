@@ -15,20 +15,6 @@ using namespace robosub;
 ControlSystem *control_system;
 
 /**
- * Handles incoming depth messages.
- *
- * @param depth_msg A pointer to a depth message that was received.
- *
- * @return None.
- */
-void depthCallback(const std_msgs::Float32::ConstPtr& depth_msg)
-{
-    robosub::depth_stamped stamped;
-    stamped.depth = depth_msg->data;
-    control_system->InputDepthMessage(stamped);
-}
-
-/**
  * Main entry point.
  *
  * @param argc, argv Arguments provided to ROS.
@@ -43,7 +29,8 @@ int main(int argc, char **argv)
 
     control_system = new ControlSystem();
 
-    ros::Subscriber depth_sub = nh.subscribe("depth", 1, depthCallback);
+    ros::Subscriber depth_sub = nh.subscribe("depth", 1,
+            &ControlSystem::InputDepthMessage, control_system);
 
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
             &ControlSystem::InputOrientationMessage, control_system);

@@ -41,7 +41,7 @@ public:
     void InputControlMessage(const robosub::control::ConstPtr& msg);
     void InputOrientationMessage(
             const robosub::QuaternionStampedAccuracy::ConstPtr &quat_msg);
-    void InputDepthMessage(robosub::depth_stamped depth_msg);
+    void InputDepthMessage(const robosub::depth_stamped::ConstPtr& depth_msg);
     void ReloadPIDParams();
     robosub::thruster CalculateThrusterMessage();
     robosub::control_status GetControlStatus();

@@ -313,19 +313,20 @@ namespace robosub
      *
      * @return None.
      */
-    void ControlSystem::InputDepthMessage(robosub::depth_stamped depth_msg)
+    void ControlSystem::InputDepthMessage(const
+            robosub::depth_stamped::ConstPtr& depth_msg)
     {
         /*
          * Update the X, Y, and Z positions of the state vector. Note that X
          * and Y position are currently unknown and always set to zero.
          */
-        state_vector[2] = depth_msg.depth;
+        state_vector[2] = depth_msg->depth;
 
         /*
          * TODO: Update the derivative of the depth.
          */
 
-        previous_depth_msg.depth = depth_msg.depth;
+        previous_depth_msg.depth = depth_msg->depth;
     }
 
     /**
