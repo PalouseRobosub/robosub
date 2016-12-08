@@ -4,8 +4,11 @@
 #include <cstdint>
 #include <eigen3/Eigen/Dense>
 #include <string>
+#include <deque>
+#include <vector>
 
 #include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/Vector3.h"
 #include "robosub/QuaternionStampedAccuracy.h"
 #include "robosub/control.h"
 #include "robosub/control_status.h"
@@ -143,14 +146,16 @@ private:
     int num_thrusters;
 
     /*
-     * The previous quaternion orientation message received.
+     * The previous quaternion orientation messages received.
      */
-    robosub::QuaternionStampedAccuracy previous_quaternion_msg;
+    std::deque<geometry_msgs::Vector3> previous_quaternion_msgs;
+    std::deque<ros::Time> previous_quaternion_msgs_times;
 
     /*
-     * The previous depth message received.
+     * The previous depth messages received.
      */
-    robosub::depth_stamped previous_depth_msg;
+    std::deque<double> previous_depth_msgs;
+    std::deque<ros::Time> previous_depth_msgs_times;
 };
 }
 #endif // _CONTROL_SYSTEM_H

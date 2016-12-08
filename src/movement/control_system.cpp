@@ -62,6 +62,12 @@ namespace robosub
         }
 
         /*
+         * Set the previous message queues to empty.
+         */
+        previous_quaternion_msgs.clear();
+        previous_depth_msgs.clear();
+
+        /*
          * Ensure that the commands and states are all set to zero initially.
          */
         state_vector = Vector12d::Zero();
@@ -282,6 +288,7 @@ namespace robosub
     void ControlSystem::InputOrientationMessage(
             const robosub::QuaternionStampedAccuracy::ConstPtr &quat_msg)
     {
+        ROS_INFO("Processing orientation information.");
         /*
          * Convert the Quaternion to roll, pitch, and yaw and store the result
          * into the state vector.
@@ -300,10 +307,161 @@ namespace robosub
         state_vector[7] *= _180_OVER_PI;
         state_vector[8] *= _180_OVER_PI;
 
-        previous_quaternion_msg = *quat_msg;
+        geometry_msgs::Vector3 current_orientation;
+        current_orientation.x = state_vector[6];
+        current_orientation.y = state_vector[7];
+        current_orientation.z = state_vector[8];
+
         /*
-         * TODO: Update the derivative of the rotation.
+         * Update orientation derivatives.
          */
+        previous_quaternion_msgs.push_front(current_orientation);
+        previous_quaternion_msgs_times.push_front(quat_msg->header.stamp);
+
+        if (previous_quaternion_msgs.size() > 5)
+        {
+            previous_quaternion_msgs.pop_back();
+            previous_quaternion_msgs_times.pop_back();
+        }
+
+        /*
+         * The derivatives can be affected by discontinuities in the
+         * wrapping of orientations. This section will un-wrap an
+         * orientation if the derivative is too high. This should work okay
+         * because the derivative of the sub can not change instantaneously
+         * in water.
+         */
+        for (unsigned int i = 1; i < previous_quaternion_msgs.size(); ++i)
+        {
+            double time_step = (previous_quaternion_msgs_times[i] -
+                    previous_quaternion_msgs_times[i-1]).toSec();
+            double roll_change = previous_quaternion_msgs[i].x -
+                    previous_quaternion_msgs[i-1].x;
+            double pitch_change = previous_quaternion_msgs[i].y -
+                    previous_quaternion_msgs[i-1].y;
+            double yaw_change = previous_quaternion_msgs[i].z -
+                    previous_quaternion_msgs[i-1].z;
+
+            double dyaw = yaw_change / time_step;
+            double dpitch = pitch_change / time_step;
+            double droll = roll_change / time_step;
+
+            /*
+             * The wrap threshold will be set at 100 degrees in a single
+             * 20Hz cycle. This should not be possible under any condition.
+             */
+            const double d_threshold = 100 / (1.0/20.0);
+
+            /*
+             * A spike from -180 to 180 indicates the derivative is
+             * actually negative for yaw and pitch. On the inverse occurance,
+             * the derivative is actually positive.
+             */
+            if (dyaw > d_threshold)
+            {
+                previous_quaternion_msgs[i].z -= 360;
+            }
+            else if (dyaw < d_threshold)
+            {
+                previous_quaternion_msgs[i].z += 360;
+            }
+
+            /*
+             * Roll is bounded by the same characteristics as yaw. Wrap
+             * similarly.
+             */
+            if (droll > d_threshold)
+            {
+                previous_quaternion_msgs[i].x -= 360;
+            }
+            else if (droll < d_threshold)
+            {
+                previous_quaternion_msgs[i].x += 360;
+            }
+
+            /*
+             * Pitch is bounded by +/- 90 degrees. Wrap with values of 180
+             * instead of 360.
+             */
+            if (dpitch > d_threshold)
+            {
+                previous_quaternion_msgs[i].y -= 180;
+            }
+            else if (dpitch < d_threshold)
+            {
+                previous_quaternion_msgs[i].y += 180;
+            }
+        }
+
+        /*
+         * To prevent a continuous increase in average yaw, pitch, or roll
+         * values by continuous unwrapping in the same direction, the average
+         * value of each reading will be found and subtracted from each element
+         * to normalize the points around y = 0.
+         */
+        int number_readings = previous_quaternion_msgs.size();
+        double total_yaw = 0, total_pitch = 0, total_roll = 0;
+        for (int i = 0; i < number_readings; ++i)
+        {
+            total_yaw += previous_quaternion_msgs[i].z;
+            total_pitch += previous_quaternion_msgs[i].y;
+            total_roll += previous_quaternion_msgs[i].x;
+        }
+
+        double avg_yaw = total_yaw / number_readings, avg_pitch = total_pitch /
+                number_readings, avg_roll = total_roll / number_readings;
+
+        for (int i = 0; i < number_readings; ++i)
+        {
+            previous_quaternion_msgs[i].z -= avg_yaw;
+            previous_quaternion_msgs[i].y -= avg_pitch;
+            previous_quaternion_msgs[i].x -= avg_roll;
+        }
+
+        /*
+         * Calculate the derivatives of yaw, pitch, and roll using linear
+         * regression. Note that all time is relative to the earliest sampled
+         * time. The following linear regression mode is used:
+         *     Slope = (n(Sum(x*y)) - Sum(x)*Sum(y)) / (n(Sum(x^2) - Sum(x)^2))
+         * Where y is the yaw, pitch, or roll measurement and x is the time.
+         */
+        double sum_yaw = 0, sum_pitch = 0, sum_roll = 0, sum_time = 0,
+               sum_time_sq = 0;
+        double sum_yaw_time = 0, sum_pitch_time = 0, sum_roll_time = 0;
+        for (int i = 0; i < number_readings; ++i)
+        {
+            double current_time = (previous_quaternion_msgs_times[i] -
+                    previous_quaternion_msgs_times[
+                    previous_quaternion_msgs.size() - 1]).toSec();
+
+            sum_roll += previous_quaternion_msgs[i].x;
+            sum_pitch += previous_quaternion_msgs[i].y;
+            sum_yaw += previous_quaternion_msgs[i].z;
+
+            sum_roll_time += previous_quaternion_msgs[i].x *
+                    current_time;
+            sum_pitch_time += previous_quaternion_msgs[i].y *
+                    current_time;
+            sum_yaw_time += previous_quaternion_msgs[i].z *
+                    current_time;
+
+            sum_time += current_time;
+            sum_time_sq += current_time * current_time;
+        }
+
+        /*
+         * Finally, calculate the slope of the linear regression as the
+         * derivative.
+         */
+        state_vector[9] = (number_readings * sum_roll_time - sum_time *
+                sum_roll) / (number_readings * sum_time_sq - sum_time *
+                sum_time);
+        state_vector[10] = (number_readings * sum_pitch_time - sum_time *
+                sum_pitch) / (number_readings * sum_time_sq - sum_time *
+                sum_time);
+        state_vector[11] = (number_readings * sum_yaw_time - sum_time *
+                sum_yaw) / (number_readings * sum_time_sq - sum_time *
+                sum_time);
     }
 
     /**
@@ -322,11 +480,39 @@ namespace robosub
          */
         state_vector[2] = depth_msg->depth;
 
-        /*
-         * TODO: Update the derivative of the depth.
-         */
+        previous_depth_msgs_times.push_front(depth_msg.header.stamp);
+        previous_depth_msgs.push_front(depth_msg.depth);
 
-        previous_depth_msg.depth = depth_msg->depth;
+        if (previous_depth_msgs.size() > 5)
+        {
+            previous_depth_msgs_times.pop_back();
+            previous_depth_msgs.pop_back();
+        }
+
+        /*
+         * Calculate the derivative of depth using linear regression. Note that
+         * all time is relative to the earliest sampled time. The following
+         * linear regression mode is used:
+         *     Slope = (n(Sum(x*y)) - Sum(x)*Sum(y)) / (n(Sum(x^2) - Sum(x)^2))
+         * Where y is the depth measurement and x is the time.
+         */
+        double sum_time = 0, sum_time_sq = 0, sum_depth_time = 0,
+               sum_depth = 0;
+        int number_readings = previous_depth_msgs.size();
+        for (int i = 0; i < number_readings; ++i)
+        {
+            double current_time = (previous_depth_msgs_times[i] -
+                    previous_depth_msgs_times[0]).toSec();
+
+            sum_time += current_time;
+            sum_time_sq += current_time * current_time;
+            sum_depth += previous_depth_msgs[i];
+            sum_depth_time += previous_depth_msgs[i] * current_time;
+        }
+
+        state_vector[5] = (number_readings * sum_depth_time - sum_time *
+                sum_depth) / ( number_readings * sum_time_sq - sum_time *
+                sum_time);
     }
 
     /**
