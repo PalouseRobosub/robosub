@@ -66,6 +66,8 @@ namespace robosub
          */
         previous_quaternion_msgs.clear();
         previous_depth_msgs.clear();
+        previous_quaternion_msgs_times.clear();
+        previous_depth_msgs_times.clear();
 
         /*
          * Ensure that the commands and states are all set to zero initially.
@@ -288,7 +290,6 @@ namespace robosub
     void ControlSystem::InputOrientationMessage(
             const robosub::QuaternionStampedAccuracy::ConstPtr &quat_msg)
     {
-        ROS_INFO("Processing orientation information.");
         /*
          * Convert the Quaternion to roll, pitch, and yaw and store the result
          * into the state vector.
@@ -329,18 +330,21 @@ namespace robosub
          * wrapping of orientations. This section will un-wrap an
          * orientation if the derivative is too high. This should work okay
          * because the derivative of the sub can not change instantaneously
-         * in water.
+         * in water. Construct a copy of the measurement vector so that the
+         * original can be maintained.
          */
-        for (unsigned int i = 1; i < previous_quaternion_msgs.size(); ++i)
+        std::deque<geometry_msgs::Vector3> previous_orientation_msgs(
+                previous_quaternion_msgs);
+        for (unsigned int i = 0; i < previous_orientation_msgs.size() - 1; ++i)
         {
             double time_step = (previous_quaternion_msgs_times[i] -
-                    previous_quaternion_msgs_times[i-1]).toSec();
-            double roll_change = previous_quaternion_msgs[i].x -
-                    previous_quaternion_msgs[i-1].x;
-            double pitch_change = previous_quaternion_msgs[i].y -
-                    previous_quaternion_msgs[i-1].y;
-            double yaw_change = previous_quaternion_msgs[i].z -
-                    previous_quaternion_msgs[i-1].z;
+                    previous_quaternion_msgs_times[i+1]).toSec();
+            double roll_change = previous_orientation_msgs[i].x -
+                    previous_orientation_msgs[i+1].x;
+            double pitch_change = previous_orientation_msgs[i].y -
+                    previous_orientation_msgs[i+1].y;
+            double yaw_change = previous_orientation_msgs[i].z -
+                    previous_orientation_msgs[i+1].z;
 
             double dyaw = yaw_change / time_step;
             double dpitch = pitch_change / time_step;
@@ -350,20 +354,23 @@ namespace robosub
              * The wrap threshold will be set at 100 degrees in a single
              * 20Hz cycle. This should not be possible under any condition.
              */
-            const double d_threshold = 100 / (1.0/20.0);
+            const double d_threshold = 10.0 / (1.0/20.0);
 
             /*
-             * A spike from -180 to 180 indicates the derivative is
-             * actually negative for yaw and pitch. On the inverse occurance,
-             * the derivative is actually positive.
+             * A spike from 180 to -180 indicates the derivative is
+             * actually positive for yaw and pitch. On the inverse occurance,
+             * the derivative is actually negative. Always adjust following
+             * readings to be normalized with the first reading in the queue.
              */
             if (dyaw > d_threshold)
             {
-                previous_quaternion_msgs[i].z -= 360;
+                previous_orientation_msgs[i+1].z += 360;
+                ROS_INFO_STREAM("Wrapping yaw up.");
             }
-            else if (dyaw < d_threshold)
+            else if (dyaw < -1*d_threshold)
             {
-                previous_quaternion_msgs[i].z += 360;
+                previous_orientation_msgs[i+1].z -= 360;
+                ROS_INFO_STREAM("Wrapping yaw down.");
             }
 
             /*
@@ -372,11 +379,13 @@ namespace robosub
              */
             if (droll > d_threshold)
             {
-                previous_quaternion_msgs[i].x -= 360;
+                previous_orientation_msgs[i+1].x += 360;
+                ROS_INFO_STREAM("Wrapping roll up.");
             }
-            else if (droll < d_threshold)
+            else if (droll < -1*d_threshold)
             {
-                previous_quaternion_msgs[i].x += 360;
+                previous_orientation_msgs[i+1].x -= 360;
+                ROS_INFO_STREAM("Wrapping roll down.");
             }
 
             /*
@@ -385,11 +394,13 @@ namespace robosub
              */
             if (dpitch > d_threshold)
             {
-                previous_quaternion_msgs[i].y -= 180;
+                previous_orientation_msgs[i+1].y += 180;
+                ROS_INFO_STREAM("Wrapping pitch up.");
             }
-            else if (dpitch < d_threshold)
+            else if (dpitch < -1*d_threshold)
             {
-                previous_quaternion_msgs[i].y += 180;
+                previous_orientation_msgs[i+1].y -= 180;
+                ROS_INFO_STREAM("Wrapping pitch down.");
             }
         }
 
@@ -399,13 +410,13 @@ namespace robosub
          * value of each reading will be found and subtracted from each element
          * to normalize the points around y = 0.
          */
-        int number_readings = previous_quaternion_msgs.size();
+        int number_readings = previous_orientation_msgs.size();
         double total_yaw = 0, total_pitch = 0, total_roll = 0;
         for (int i = 0; i < number_readings; ++i)
         {
-            total_yaw += previous_quaternion_msgs[i].z;
-            total_pitch += previous_quaternion_msgs[i].y;
-            total_roll += previous_quaternion_msgs[i].x;
+            total_yaw += previous_orientation_msgs[i].z;
+            total_pitch += previous_orientation_msgs[i].y;
+            total_roll += previous_orientation_msgs[i].x;
         }
 
         double avg_yaw = total_yaw / number_readings, avg_pitch = total_pitch /
@@ -413,9 +424,9 @@ namespace robosub
 
         for (int i = 0; i < number_readings; ++i)
         {
-            previous_quaternion_msgs[i].z -= avg_yaw;
-            previous_quaternion_msgs[i].y -= avg_pitch;
-            previous_quaternion_msgs[i].x -= avg_roll;
+            previous_orientation_msgs[i].z -= avg_yaw;
+            previous_orientation_msgs[i].y -= avg_pitch;
+            previous_orientation_msgs[i].x -= avg_roll;
         }
 
         /*
@@ -432,17 +443,17 @@ namespace robosub
         {
             double current_time = (previous_quaternion_msgs_times[i] -
                     previous_quaternion_msgs_times[
-                    previous_quaternion_msgs.size() - 1]).toSec();
+                    previous_orientation_msgs.size() - 1]).toSec();
 
-            sum_roll += previous_quaternion_msgs[i].x;
-            sum_pitch += previous_quaternion_msgs[i].y;
-            sum_yaw += previous_quaternion_msgs[i].z;
+            sum_roll += previous_orientation_msgs[i].x;
+            sum_pitch += previous_orientation_msgs[i].y;
+            sum_yaw += previous_orientation_msgs[i].z;
 
-            sum_roll_time += previous_quaternion_msgs[i].x *
+            sum_roll_time += previous_orientation_msgs[i].x *
                     current_time;
-            sum_pitch_time += previous_quaternion_msgs[i].y *
+            sum_pitch_time += previous_orientation_msgs[i].y *
                     current_time;
-            sum_yaw_time += previous_quaternion_msgs[i].z *
+            sum_yaw_time += previous_orientation_msgs[i].z *
                     current_time;
 
             sum_time += current_time;
@@ -480,8 +491,8 @@ namespace robosub
          */
         state_vector[2] = depth_msg->depth;
 
-        previous_depth_msgs_times.push_front(depth_msg.header.stamp);
-        previous_depth_msgs.push_front(depth_msg.depth);
+        previous_depth_msgs_times.push_front(depth_msg->header.stamp);
+        previous_depth_msgs.push_front(depth_msg->depth);
 
         if (previous_depth_msgs.size() > 5)
         {
@@ -501,8 +512,10 @@ namespace robosub
         int number_readings = previous_depth_msgs.size();
         for (int i = 0; i < number_readings; ++i)
         {
-            double current_time = (previous_depth_msgs_times[i] -
-                    previous_depth_msgs_times[0]).toSec();
+            ros::Duration current_duration = previous_depth_msgs_times[i] -
+                    previous_depth_msgs_times[previous_depth_msgs_times.size()
+                    - 1];
+            double current_time = current_duration.toSec();
 
             sum_time += current_time;
             sum_time_sq += current_time * current_time;

@@ -5,7 +5,6 @@
 #include <eigen3/Eigen/Dense>
 #include <string>
 #include <deque>
-#include <vector>
 
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/Vector3.h"
@@ -43,7 +42,7 @@ public:
     ControlSystem();
     void InputControlMessage(const robosub::control::ConstPtr& msg);
     void InputOrientationMessage(
-            const robosub::QuaternionStampedAccuracy::ConstPtr &quat_msg);
+            const robosub::QuaternionStampedAccuracy::ConstPtr& quat_msg);
     void InputDepthMessage(const robosub::depth_stamped::ConstPtr& depth_msg);
     void ReloadPIDParams();
     robosub::thruster CalculateThrusterMessage();
