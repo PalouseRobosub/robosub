@@ -97,7 +97,7 @@ int main(int argc, char **argv)
             "Failed to get port name parameter.");
     port.Open(port_name.c_str(), 115200);
     Bno055 sensor(port);
-    FatalAbortIf(sensor.init(true) != 0, "Bno055 failed to initialize");
+    FatalAbortIf(sensor.init() != 0, "Bno055 failed to initialize");
 
     /*
      * Load calibration parameters from the param server.

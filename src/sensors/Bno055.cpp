@@ -1,4 +1,5 @@
 #include "Bno055.h"
+#include <ros/ros.h>
 
 namespace rs
 {
@@ -67,22 +68,6 @@ namespace rs
     }
 
     /**
-     * Sets the current power setting of the sensor.
-     *
-     * @param mode The power mode to set the sensor to.
-     *
-     * @return Zero upon success or a non-zero error code returned by the
-     *         sensor.
-     */
-    int Bno055::setPowerMode(PowerMode mode)
-    {
-        AbortIf(write_register(Bno055::Register::PWR_MODE,
-                static_cast<uint8_t>(mode)));
-
-        return 0;
-    }
-
-    /**
      * Sets the current operating mode of the sensor.
      *
      * @param mode The mode to switch to.
@@ -110,8 +95,7 @@ namespace rs
     /**
      * Read the euler orientation information.
      *
-     * @note The units of these outputs are specified in [Table 3-29] and set
-     *       by the setFormat function.
+     * @note The output is specified in degrees.
      *
      * @param[out] roll Location to store roll reading.
      * @param[out] pitch Location to store pitch reading.
@@ -129,12 +113,9 @@ namespace rs
         /*
          * Scale raw readings by scale factors defined in [Table 3-28].
          */
-        roll = raw_roll * ((euler_units == Bno055::Format::EulerDegrees)?
-                1.0/16 : 1.0/900);
-        yaw = raw_yaw * ((euler_units == Bno055::Format::EulerDegrees)?
-                1.0/16 : 1.0/900);
-        pitch = raw_pitch * ((euler_units == Bno055::Format::EulerDegrees)?
-                1.0/16 : 1.0/900);
+        roll = static_cast<double>(raw_roll) / 16;
+        yaw = static_cast<double>(raw_yaw) / 16;
+        pitch = static_cast<double>(raw_pitch) / 16;
 
         return 0;
     }
@@ -215,7 +196,7 @@ namespace rs
      * Writes a sensor offset from a calibration profile to the sensor.
      *
      * @param sensor The sensor offset to modify. This value can only be the
-     *        Gyroscope, Magnometer, or Accelerometer.
+     *        Gyroscope, Magnetometer, or Accelerometer.
      * @param offset_x Offset of the x axis.
      * @param offset_y Offset of the y axis.
      * @param offset_z Offset of the z axis.
@@ -242,7 +223,7 @@ namespace rs
                 AbortIf(write_register(Bno055::Register::GYR_OFFSET_X_LSB,
                         offsets));
                 break;
-            case Bno055::Sensor::Magnometer:
+            case Bno055::Sensor::Magnetometer:
                 AbortIf(write_register(Bno055::Register::MAG_OFFSET_X_LSB,
                         offsets));
                 break;
@@ -258,7 +239,7 @@ namespace rs
      * Read offsets calculated by a sensor calibration.
      *
      * @param sensor The sensor whose calibration information should be read.
-     *        This value can only by the Gyroscope, Magnometer, or the
+     *        This value can only by the Gyroscope, Magnetometer, or the
      *        Accelerometer.
      * @param[out] offset_x Location to store the offset along the x axis.
      * @param[out] offset_y Location to store the offset along the y axis.
@@ -280,7 +261,7 @@ namespace rs
                 AbortIf(read_register(Bno055::Register::GYR_OFFSET_X_LSB,
                         offsets, 6));
                 break;
-            case Bno055::Sensor::Magnometer:
+            case Bno055::Sensor::Magnetometer:
                 AbortIf(read_register(Bno055::Register::MAG_OFFSET_X_LSB,
                         offsets, 6));
                 break;
@@ -368,7 +349,7 @@ namespace rs
     {
         uint8_t calib_stat_reg = 0;
         AbortIfNot(sensor == Bno055::Sensor::Accelerometer ||
-                sensor == Bno055::Sensor::Magnometer ||
+                sensor == Bno055::Sensor::Magnetometer ||
                 sensor == Bno055::Sensor::Gyroscope, -1);
 
         AbortIf(read_register(Bno055::Register::CALIB_STAT,
@@ -381,7 +362,7 @@ namespace rs
             case Bno055::Sensor::Accelerometer:
                 calibration = (calib_stat_reg >> 2) & 0b11;
                 break;
-            case Bno055::Sensor::Magnometer:
+            case Bno055::Sensor::Magnetometer:
                 calibration = (calib_stat_reg >> 0) & 0b11;
                 break;
             default:
@@ -422,54 +403,66 @@ namespace rs
      */
     int Bno055::write_register(Bno055::Register start, uint8_t data)
     {
-        /*
-         * Flush the serial buffer.
-         */
-        _port.Flush();
-
-        /*
-         * Ensure that the correct page is set for the specified register.
-         */
-        uint16_t register_address = static_cast<uint16_t>(start);
-        if (((register_address & 0x100) >> 2) != _page)
+        for (int attempt = 0; attempt < max_retries; ++attempt)
         {
-            AbortIf(set_page(register_address & 0x100 >> 2));
-        }
+            /*
+             * Flush the serial buffer.
+             */
+            _port.Flush();
 
-        /*
-         * Construct the message and transmit the write request.
-         */
-        vector<uint8_t> msg = {Bno055::request_header, 0x00,
-                static_cast<uint8_t>(start), 1, data};
-        AbortIfNot(_port.Write(msg.data(), msg.size()) == msg.size(), -1);
+            /*
+             * Ensure that the correct page is set for the specified register.
+             */
+            uint16_t register_address = static_cast<uint16_t>(start);
+            if (((register_address & 0x100) >> 2) != _page)
+            {
+                ContinueIf(set_page(register_address & 0x100 >> 2));
+            }
 
-        /*
-         * If a reset was just triggered, a reply is not given from the sensor.
-         */
-        if (start == Bno055::Register::SYS_TRIGGER && data == 1<<5)
-        {
+            /*
+             * Construct the message and transmit the write request.
+             */
+            vector<uint8_t> msg = {Bno055::request_header, 0x00,
+                    static_cast<uint8_t>(start), 1, data};
+            ContinueIf(_port.Write(msg.data(), msg.size()) != msg.size());
+
+            /*
+             * If a reset was just triggered, a reply is not given from the
+             * sensor.
+             */
+            if (start == Bno055::Register::SYS_TRIGGER && data == 1<<5)
+            {
+                return 0;
+            }
+
+            /*
+             * Verify that the write succeeded with the Bno's reply.
+             */
+            uint8_t response[2];
+            ContinueIf(_port.Read(response, 2) != 2);
+
+            if (response[0] != Bno055::acknowledge_header)
+            {
+                ROS_INFO_STREAM("Read invalid write response header: "
+                        << static_cast<int>(response[0]) << " but expected " <<
+                        static_cast<int>(Bno055::acknowledge_header));
+                continue;
+            }
+
+            /*
+             * The BNO failed to clear its buffers in time and wasn't able to
+             * receive the command. Retry sending it.
+             */
+            if (response[1] == 0x07)
+            {
+                AbortIf(write_register(start, data));
+                return 0;
+            }
+            ContinueIf(response[1] != 0x1);
             return 0;
         }
 
-        /*
-         * Verify that the write succeeded with the Bno's reply.
-         */
-        uint8_t response[2];
-        AbortIfNot(_port.Read(response, 2) == 2, -1);
-
-        AbortIfNot(response[0] == Bno055::acknowledge_header, -1);
-
-        /*
-         * The BNO failed to clear its buffers in time and wasn't able to
-         * receive the command. Retry sending it.
-         */
-        if (response[1] == 0x07)
-        {
-            AbortIf(write_register(start, data));
-            return 0;
-        }
-
-        return ((response[1] == 0x1)? 0 : response[1]);
+        return -1;
     }
 
     /**
@@ -483,50 +476,65 @@ namespace rs
      */
     int Bno055::write_register(Bno055::Register start, vector<uint8_t> data)
     {
-        /*
-         * Flush the serial buffers.
-         */
-        _port.Flush();
-
-        /*
-         * Ensure that the correct page is set for the specified register.
-         */
-        uint16_t register_address = static_cast<uint16_t>(start);
-        if (((register_address & 0x100) >> 2) != _page)
+        for (int attempt = 0; attempt < max_retries; ++attempt)
         {
-            AbortIf(set_page(register_address & 0x100 >> 2));
-        }
+            /*
+             * Flush the serial buffers.
+             */
+            _port.Flush();
 
-        /*
-         * Verify that the write is of proper length, construct the message,
-         * and transmit the write request.
-         */
-        uint8_t write_length = data.size();
-        AbortIfNot(write_length < 128, -1);
+            /*
+             * Ensure that the correct page is set for the specified register.
+             */
+            uint16_t register_address = static_cast<uint16_t>(start);
+            if (((register_address & 0x100) >> 2) != _page)
+            {
+                ContinueIf(set_page(register_address & 0x100 >> 2));
+            }
 
-        vector<uint8_t> msg = {Bno055::request_header, 0x00,
-                static_cast<uint8_t>(start), write_length};
-        msg.insert(msg.end(), data.begin(), data.end());
-        AbortIfNot(_port.Write(msg.data(), msg.size()) == msg.size(), -1);
+            /*
+             * Verify that the write is of proper length, construct the
+             * message, and transmit the write request.
+             */
+            uint8_t write_length = data.size();
+            AbortIfNot(write_length < 128, -1);
 
-        /*
-         * Verify that the write succeeded with the Bno's reply.
-         */
-        uint8_t response[2];
-        AbortIfNot(_port.Read(response, 2) == 2, -1);
+            vector<uint8_t> msg = {Bno055::request_header, 0x00,
+                    static_cast<uint8_t>(start), write_length};
+            msg.insert(msg.end(), data.begin(), data.end());
+            ContinueIf(_port.Write(msg.data(), msg.size()) != msg.size());
 
-        AbortIfNot(response[0] == Bno055::acknowledge_header, -1);
-        /*
-         * The BNO failed to clear the buffer in time to receive the command.
-         * Retry the command.
-         */
-        if (response[1] == 0x07)
-        {
-            AbortIf(write_register(start, data));
+            /*
+             * Verify that the write succeeded with the Bno's reply.
+             */
+            uint8_t response[2];
+            ContinueIf(_port.Read(response, 2) != 2);
+
+            if (response[0] != Bno055::acknowledge_header)
+            {
+                ROS_INFO_STREAM("Read invalid write multiple response header: "
+                        << response[0]);
+                continue;
+            }
+
+            /*
+             * The BNO failed to clear the buffer in time to receive the
+             * command.  Retry the command.
+             */
+            if (response[1] == 0x07)
+            {
+                AbortIf(write_register(start, data));
+                return 0;
+            }
+
+            ContinueIf(response[1] != 0x1);
             return 0;
         }
 
-        return ((response[1] == 0x1)? 0 : response[1]);
+        /*
+         * If all reattempts failed, return an error.
+         */
+        return -1;
     }
 
     /**
@@ -539,55 +547,81 @@ namespace rs
      */
     int Bno055::read_register(Bno055::Register start, uint8_t &data)
     {
-        /*
-         * Flush the serial port buffer.
-         */
-        _port.Flush();
-
-        /*
-         * Ensure that the correct page is set for the specified register.
-         */
-        uint16_t register_address = static_cast<uint16_t>(start);
-        if (((register_address & 0x100) >> 2) != _page)
+        for (int attempt = 0; attempt < max_retries; ++attempt)
         {
-            AbortIf(set_page(register_address & 0x100 >> 2));
-        }
+            /*
+             * Flush the serial port buffer.
+             */
+            _port.Flush();
 
-        /*
-         * Allocate memory for a response, request a read, and read the
-         * response.
-         */
-        vector<uint8_t> reply(3);
-        vector<uint8_t> request = {Bno055::request_header, 0x01,
-                static_cast<uint8_t>(start), 1};
-        AbortIfNot(_port.Write(request.data(),
-                request.size()) == request.size(), -1);
+            /*
+             * Ensure that the correct page is set for the specified register.
+             */
+            uint16_t register_address = static_cast<uint16_t>(start);
+            if (((register_address & 0x100) >> 2) != _page)
+            {
+                ContinueIf(set_page(register_address & 0x100 >> 2));
+            }
 
-        /*
-         * Read the two byte response.
-         */
-        AbortIfNot(_port.Read(reply.data(), 2) == 2, -1);
-        AbortIfNot(reply[0] == Bno055::read_success_header || reply[0] ==
-                Bno055::acknowledge_header, static_cast<int>(reply[1]));
+            /*
+             * Allocate memory for a response, request a read, and read the
+             * response.
+             */
+            vector<uint8_t> reply(3);
+            vector<uint8_t> request = {Bno055::request_header, 0x01,
+                    static_cast<uint8_t>(start), 1};
+            ContinueIf(_port.Write(request.data(), request.size())
+                    != request.size());
 
-        /*
-         * The BNO failed to clear the buffer in time to receive the command.
-         * Retry the command.
-         */
-        if (reply[0] == Bno055::acknowledge_header && reply[1] == 0x07)
-        {
-            AbortIf(read_register(start, data));
+            /*
+             * Read the two byte response.
+             */
+            ContinueIf(_port.Read(reply.data(), 2) != 2);
+
+            if (reply[0] != Bno055::read_success_header && reply[0] !=
+                    Bno055::acknowledge_header)
+            {
+                ROS_INFO_STREAM("Write attempt failed with read response: " <<
+                        reply[1]);
+                continue;
+            }
+
+            /*
+             * The BNO failed to clear the buffer in time to receive the
+             * command. Retry the command.
+             */
+            if (reply[0] == Bno055::acknowledge_header && reply[1] == 0x07)
+            {
+                /*
+                 * Reattempt the command.
+                 */
+                AbortIf(read_register(start, data));
+                return 0;
+            }
+
+            if (reply[1] != 1)
+            {
+                ROS_INFO("Read returned a length longer than one register.");
+                continue;
+            }
+
+            /*
+             * Read the value of the register.
+             */
+            if (_port.Read(&data, 1) != 1)
+            {
+                ROS_INFO("Failed to read register value.");
+                continue;
+            }
+
             return 0;
         }
 
-        AbortIfNot(reply[1] == 1, -1);
-
         /*
-         * Read the value of the register.
+         * Return fail if we have not successfully sent by now.
          */
-        AbortIfNot(_port.Read(&data, 1) == 1, -1);
-
-        return 0;
+        ROS_INFO("Failed all attempts to read a register.");
+        return -1;
     }
 
     /**
@@ -602,54 +636,86 @@ namespace rs
     int Bno055::read_register(Bno055::Register start, vector<uint8_t> &data,
             uint8_t len)
     {
-        /*
-         * Flush the serial port buffer.
-         */
-        _port.Flush();
-
-        /*
-         * Ensure that the correct page is set for the specified register.
-         */
-        uint16_t register_address = static_cast<uint16_t>(start);
-        if (((register_address & 0x100) >> 2) != _page)
+        for (int attempt = 0; attempt < max_retries; ++attempt)
         {
-            AbortIf(set_page(register_address & 0x100 >> 2));
-        }
+            /*
+             * Flush the serial port buffer.
+             */
+            _port.Flush();
 
-        /*
-         * Allocate memory for a response, request a read, and read the
-         * response.
-         */
-        int8_t read_length;
-        vector<uint8_t> reply(len + 2);
-        vector<uint8_t> request = {Bno055::request_header, 0x01,
-                static_cast<uint8_t>(start), len};
-        AbortIfNot(_port.Write(request.data(), request.size()) ==
-                request.size(), -1);
-        /*
-         * Ensure that atleast an error code can be read. Verify later that
-         * entire length was read.
-         */
-        AbortIfNot(_port.Read(reply.data(), 2) == 2, -1);
-        AbortIfNot(reply[0] == Bno055::read_success_header || reply[0] ==
-                Bno055::acknowledge_header, static_cast<int>(reply[1]));
-        /*
-         * The BNO failed to clear the buffer in time to receive the command.
-         * Retry the command.
-         */
-        if (reply[0] == Bno055::acknowledge_header && reply[1] == 0x07)
-        {
-            AbortIf(read_register(start, data, len));
+            /*
+             * Ensure that the correct page is set for the specified register.
+             */
+            uint16_t register_address = static_cast<uint16_t>(start);
+            if (((register_address & 0x100) >> 2) != _page)
+            {
+                ContinueIf(set_page(register_address & 0x100 >> 2));
+            }
+
+            /*
+             * Allocate memory for a response, request a read, and read the
+             * response.
+             */
+            int8_t read_length;
+            vector<uint8_t> reply(len + 2);
+            vector<uint8_t> request = {Bno055::request_header, 0x01,
+                    static_cast<uint8_t>(start), len};
+            ContinueIf(_port.Write(request.data(), request.size()) !=
+                    request.size());
+            /*
+             * Ensure that atleast an error code can be read. Verify later that
+             * the entire length was read.
+             */
+            ContinueIf(_port.Read(reply.data(), 2) != 2);
+            if (reply[0] != Bno055::read_success_header && reply[0] !=
+                    Bno055::acknowledge_header)
+            {
+                ROS_INFO_STREAM( "Attempting to read registers returned"
+                        " invalid response header: "
+                        << static_cast<int>(reply[1]));
+            }
+
+            /*
+             * The BNO failed to clear the buffer in time to receive the
+             * command.  Retry the command.
+             */
+            if (reply[0] == Bno055::acknowledge_header && reply[1] == 0x07)
+            {
+                AbortIf(read_register(start, data, len));
+                return 0;
+            }
+
+            /*
+             * If this is not a buffer overflow, it is an actual error.
+             */
+            if (reply[0] == Bno055::acknowledge_header)
+            {
+                ROS_INFO_STREAM("Attempting to read registers encountered"
+                        " error: " << static_cast<int>(reply[1]));
+                continue;
+            }
+
+            if (reply[1] != len)
+            {
+                ROS_INFO_STREAM("Read invalid read length of " << reply[1]);
+                continue;
+            }
+
+            if (_port.Read(reply.data(), len) != len)
+            {
+                ROS_INFO_STREAM("Failed to read register values.");
+                continue;
+            }
+
+            data.clear();
+            data.insert(data.begin(), reply.begin(), reply.end()-2);
             return 0;
         }
 
-        AbortIfNot(reply[1] == len, -1);
-        AbortIfNot(_port.Read(reply.data(), len) == len, -1);
-
-        data.clear();
-        data.insert(data.begin(), reply.begin(), reply.end()-2);
-
-        return 0;
+        /*
+         * If all attempts failed, return an error.
+         */
+        return -1;
     }
 
     /**

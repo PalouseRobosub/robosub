@@ -50,6 +50,24 @@ using std::vector;
     } \
 }
 
+#define BreakIf(x) \
+{ \
+    int t = (x); \
+    if (t) \
+    { \
+        break; \
+    } \
+}
+
+#define ContinueIf(x) \
+{ \
+    int t = (x); \
+    if (t) \
+    { \
+        continue; \
+    } \
+}
+
 namespace rs
 {
     /**
@@ -57,6 +75,10 @@ namespace rs
      */
     class Bno055
     {
+        /*
+         * The maximum number of times to reattempt a register read or write.
+         */
+        static constexpr int max_retries = 3;
         /*
          * Defines the times (in milliseconds) required to switch from config
          * mode to another mode and from any mode to config mode [Table 3-6].
@@ -258,8 +280,7 @@ namespace rs
         Bno055(Serial &port) :
             _port(port),
             _current_mode(OperationMode::Config),
-            _page(0),
-            euler_units(Format::EulerDegrees)
+            _page(0)
         {
         }
 
@@ -321,11 +342,6 @@ namespace rs
          * Defines the current register page that the sensor is set to.
          */
         uint8_t _page;
-
-        /*
-         * Defines the output units of an Euler reading.
-         */
-        Format euler_units;
     };
 }
 #endif

@@ -6,7 +6,7 @@
 #include <string>
 
 #include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/QuaternionStamped.h"
+#include "robosub/QuaternionStampedAccuracy.h"
 #include "robosub/control.h"
 #include "robosub/control_status.h"
 #include "robosub/depth_stamped.h"
@@ -39,8 +39,8 @@ class ControlSystem
 public:
     ControlSystem();
     void InputControlMessage(const robosub::control::ConstPtr& msg);
-    void InputOrientationMessage( const geometry_msgs::Quaternion::ConstPtr
-            &quat_msg);
+    void InputOrientationMessage(
+            const robosub::QuaternionStampedAccuracy::ConstPtr &quat_msg);
     void InputDepthMessage(robosub::depth_stamped depth_msg);
     void ReloadPIDParams();
     robosub::thruster CalculateThrusterMessage();
@@ -145,12 +145,12 @@ private:
     /*
      * The previous quaternion orientation message received.
      */
-    geometry_msgs::QuaternionStamped prev_quat_msg;
+    robosub::QuaternionStampedAccuracy previous_quaternion_msg;
 
     /*
      * The previous depth message received.
      */
-    robosub::depth_stamped prev_depth_msg;
+    robosub::depth_stamped previous_depth_msg;
 };
 }
 #endif // _CONTROL_SYSTEM_H

@@ -146,7 +146,7 @@ namespace rs
                 ros::Duration(0.02).sleep();
             }
 
-            if (time >= 0.5)
+            if (ros::Time::now() > exit_time)
             {
                 ROS_INFO("No serial bytes were available");
                 return 0;

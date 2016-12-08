@@ -280,14 +280,15 @@ namespace robosub
      * @return None.
      */
     void ControlSystem::InputOrientationMessage(
-            const geometry_msgs::Quaternion::ConstPtr &quat_msg)
+            const robosub::QuaternionStampedAccuracy::ConstPtr &quat_msg)
     {
         /*
          * Convert the Quaternion to roll, pitch, and yaw and store the result
          * into the state vector.
          */
-        tf::Matrix3x3 m(tf::Quaternion(quat_msg->x, quat_msg->y, quat_msg->z,
-                    quat_msg->w));
+        tf::Matrix3x3 m(tf::Quaternion(quat_msg->quaternion.x,
+                    quat_msg->quaternion.y, quat_msg->quaternion.z,
+                    quat_msg->quaternion.w));
         m.getRPY(state_vector[6], state_vector[7], state_vector[8]);
 
         /*
@@ -299,6 +300,7 @@ namespace robosub
         state_vector[7] *= _180_OVER_PI;
         state_vector[8] *= _180_OVER_PI;
 
+        previous_quaternion_msg = *quat_msg;
         /*
          * TODO: Update the derivative of the rotation.
          */
@@ -323,7 +325,7 @@ namespace robosub
          * TODO: Update the derivative of the depth.
          */
 
-        prev_depth_msg.depth = depth_msg.depth;
+        previous_depth_msg.depth = depth_msg.depth;
     }
 
     /**
