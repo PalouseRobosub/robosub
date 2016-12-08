@@ -598,10 +598,37 @@ namespace robosub
          */
         Vector6d hist = (current_error.array().abs() >=
                 hysteresis.array()).cast<double>();
-        current_derivative = Vector6d::Zero();
         Vector6d m_accel = Vector6d::Zero();
-        current_derivative.segment<3>(0) = state_vector.segment<3>(3);
-        current_derivative.segment<3>(3) = state_vector.segment<3>(9);
+
+        previous_error.push_front(current_error);
+        previous_error_times.push_front(ros::Time::now());
+
+        if (previous_error.size() > 5)
+        {
+            previous_error.pop_back();
+            previous_error_times.pop_back();
+        }
+
+        /*
+         * Calculate the derivative of the error using linear regression.
+         */
+        Vector6d sum_error = Vector6d::Zero(),
+                 sum_error_time = Vector6d::Zero();
+        double sum_time = 0, sum_time_sq = 0;
+        int number_elements = previous_error.size();
+        for (int i = 0; i < number_elements; ++i)
+        {
+            double current_time = (previous_error_times[i] -
+                    previous_error_times[number_elements - 1]).toSec();
+            sum_time += current_time;
+            sum_time_sq += current_time * current_time;
+            sum_error += previous_error[i];
+            sum_error_time += current_time * previous_error[i];
+        }
+
+        current_derivative = (number_elements * sum_error_time - sum_time *
+                sum_error) / (number_elements * sum_time_sq - sum_time *
+                sum_time);
 
         m_accel += P.cwiseProduct(current_error).cwiseProduct(hist);
         m_accel += I.cwiseProduct(current_integral);

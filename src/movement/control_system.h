@@ -155,6 +155,12 @@ private:
      */
     std::deque<double> previous_depth_msgs;
     std::deque<ros::Time> previous_depth_msgs_times;
+
+    /*
+     * The previous errors calculated.
+     */
+    std::deque<Vector6d> previous_error;
+    std::deque<ros::Time> previous_error_times;
 };
 }
 #endif // _CONTROL_SYSTEM_H
