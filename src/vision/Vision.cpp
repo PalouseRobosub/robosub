@@ -44,7 +44,7 @@ void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         int largestIndex = 0;
         
         //Compare the first contour to other areas to find contour with the largest area
-        for (int i = 1; i < contours.size(); i++)
+        for (unsigned int i = 1; i < contours.size(); i++)
         {
             double area = contourArea(contours[i], false);
             if (area > largestArea)

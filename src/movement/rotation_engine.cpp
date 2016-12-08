@@ -144,7 +144,7 @@ Matrix3d r3Dv(Vector3d omega, MatrixXd uv)
 Vector3d ir3D(Matrix3d R)
 {
     Vector3d ux, iO, uy;
-    double psi, phi, theta, tmp;
+    double psi, phi, theta;
 
     theta = atan2d(R(1, 0), R(0, 0));
             phi = -asind(R(2, 0));
