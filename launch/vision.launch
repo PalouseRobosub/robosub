@@ -1,58 +1,9 @@
+<?xml version="1.0"?>
+
 <launch>
 
-    <arg name="left_serial" default="14406637"/>
-    <arg name="left_calibrated" default="0"/>
+    <node pkg="robosub" type="vision" name="vision" required="false">
+        <rosparam command="load" file="$(find robosub)/param/vision_testing.yaml"/>
+    </node>
 
-    <arg name="right_serial" default="14406634" />
-    <arg name="right_calibrated" default="0" />
-
-    <group ns="camera">
-        
-        <group ns="left">
-        <!-- Left Camera -->
-        <node pkg="nodelet" type="nodelet" name="left_camera_manager" args="manager" />
-
-        <node pkg="nodelet" type="nodelet" name="left_camera_nodelet"
-              args="load pointgrey_camera_driver/PointGreyCameraNodelet left_camera_manager" >
-            <param name="frame_id" value="left" />
-            <param name="serial" value="$(arg left_serial)" />
-
-             <!-- This is currently unimplemented and will need work. It is
-                      intended to load the calibration for a camera.-->
-            <param name="camera_info_url" if="$(arg left_calibrated)"
-                     value="file://$(env HOME)/.ros/camera_info/$(arg left_serial).yaml"/>
-        </node>
-
-        <!-- The following currently does independent processing. This may be
-                altered in future to do stereo (and should). -->
-        <node pkg="nodelet" type="nodelet" name="image_proc_debayer_left"
-              args="load image_proc/debayer left_camera_manager">
-        </node>
-
-
-        </group>
-
-        <group ns="right">
-        <node pkg="nodelet" type="nodelet" name="right_camera_manager" args="manager" />
-
-        
-        <!-- Right Camera -->
-        <node pkg="nodelet" type="nodelet" name="right_camera_nodelet"
-              args="load pointgrey_camera_driver/PointGreyCameraNodelet right_camera_manager" >
-            <param name="frame_id" value="right" />
-            <param name="serial" value="$(arg right_serial)" />
-
-            <!-- This is currently unimplemented and will need work. It is
-                      intended to load the calibration for a camera.-->
-            <param name="camera_info_url" if="$(arg right_calibrated)"
-                     value="file://$(env HOME)/.ros/camera_info/$(arg right_serail).yaml"/>
-        </node>
-
-        <!-- The following currently does independent processing. This may be
-                altered in future to do stereo (and should). -->
-        <node pkg="nodelet" type="nodelet" name="image_proc_debayer_right"
-              args="load image_proc/debayer right_camera_manager">
-        </node>
-        </group>
-    </group>
 </launch>

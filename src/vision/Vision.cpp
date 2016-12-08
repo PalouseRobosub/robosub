@@ -1,6 +1,7 @@
 #include "VisionProcessor.hpp"
 #include "wfov_camera_msgs/WFOVImage.h"
 #include "robosub/visionPos.h"
+#include "robosub/visionPosArray.h"
 #include "opencv2/highgui/highgui.hpp"
 #include <iostream>
 #include <vector>
@@ -70,14 +71,18 @@ void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
             cy = (int)(moment.m01/moment.m00);
             Point2f center = cv::Point2f(cx,cy);
             std::cout << "Center at: " << "[" << cx - (imWidth/2) << "," << -1*(cy-(imHeight / 2)) << "]" << std::endl;
+            circle(original, center, 5, Scalar(255,255,255), -1);
             circle(original, center, 4, Scalar(0,0,255), -1); //Draw a circle on the original image for location visualization
         }
-
+        
+        ROS_DEBUG_STREAM("Preparing output");
         //Prepare the output message
         outMsg.xPos = cx - (imWidth / 2);
+        ROS_DEBUG_STREAM("X prepared");
         outMsg.yPos = cy - (imHeight / 2);
+        ROS_DEBUG_STREAM("Y prepared");
         outMsg.magnitude = (double)largestArea / (double)(imWidth * imHeight);
-
+        ROS_DEBUG_STREAM("Magnitude prepared");
     }
     
     //Show images
@@ -91,12 +96,16 @@ void leftCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     waitKey(1);
     
     //Publish output message
-    pub.publish(outMsg);
+    ROS_DEBUG_STREAM("Publishing message");
+
+    robosub::visionPosArray arrayOut;
+    arrayOut.data.push_back(outMsg);
+    pub.publish(arrayOut);
 }
 
 void rightCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
-    robosub::visionPos outMsg;
+    robosub::visionPosArray outMsg;
 
 
     pub.publish(outMsg);
@@ -112,7 +121,7 @@ int main(int argc, char **argv)
     ros::Subscriber leftCamSub = n.subscribe("/camera/right/image", 1, leftCamCallback);
     ros::Subscriber rightCamSub = n.subscribe("/camera/left/image", 1, rightCamCallback);
 
-    pub = n.advertise<robosub::visionPos>("/vision/buoy/red", 1);
+    pub = n.advertise<robosub::visionPosArray>("/vision/buoy/red", 1);
 
     ros::spin();
 

@@ -9,8 +9,13 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <map>
 
 using std::string;
+using std::vector;
+using std::map;
+using ros::NodeHandle;
 using namespace cv;
 using cv_bridge::toCvCopy;
 using cv_bridge::CvImagePtr;
@@ -26,7 +31,12 @@ class VisionProcessor
 
     private:
         string paramGroup;
-    
+        NodeHandle n;
+
+        void getScalarParamSet(string mapName, vector<Scalar> &scalars);
+        void getLowerBoundParams(vector<Scalar> &lower_bounds);
+        void getUpperBoundParams(vector<Scalar> &upper_bounds);
+
         Mat toOpenCV(Image& image);
         
 };
