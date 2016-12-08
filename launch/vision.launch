@@ -3,7 +3,7 @@
 <launch>
 
     <node pkg="robosub" type="vision" name="vision" required="false">
-        <rosparam command="load" file="$(find robosub)/param/vision_testing.yaml"/>
+        <rosparam command="load" file="$(find robosub)/param/vision.yaml"/>
     </node>
 
 </launch>
