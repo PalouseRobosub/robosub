@@ -130,6 +130,7 @@ int main(int argc, char *argv[])
         exit(1);
   }
 
+  ros::Duration(0.5).sleep();
   ros::param::set("ports/thruster", UUT_port);
   mSerial.Open(testing_port.c_str(), B9600);
 
