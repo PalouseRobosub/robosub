@@ -36,7 +36,7 @@ TEST(SerialSubscriber, basicTest)
     //after we published the thruster message, the thruster module should have
     //received the message, and then sent some data down the serial port, here
     //we read that data and verify it is correct
-    for(int i=0; i < thruster_msg.data.size(); ++i)
+    for(unsigned int i = 0; i < thruster_msg.data.size(); ++i)
     {
         //read one byte from the serial port
         mSerial.Read(serial_data, 1);
