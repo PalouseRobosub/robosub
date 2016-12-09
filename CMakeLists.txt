@@ -25,7 +25,6 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   cv_bridge
   pointgrey_camera_driver
-  gazebo_msgs
 )
 
 find_package(OpenCV REQUIRED)
