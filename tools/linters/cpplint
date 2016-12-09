@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+import cpplint_wrapper
+
+cpplint_wrapper.main()

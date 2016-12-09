@@ -41,7 +41,7 @@ find_package(OpenCV REQUIRED)
 ## Setup ROSlint with our preferred settings
 ## C++ Using the custom linter to avoid the ROS overloads:
 file (GLOB_RECURSE FILES *.cpp *.h) #Set the files to parse
-roslint_custom("${ROSLINT_SCRIPTS_DIR}/cpplint" "--root=src" ${FILES})
+roslint_custom(${CMAKE_CURRENT_LIST_DIR}/tools/linters/cpplint "--root=src" ${FILES})
 
 ## Python
 set(ROSLINT_PYTHON_OPTS "--ignore=E3,E121,E123,E126,E226,E24,E704" "--max-line-length=80")
