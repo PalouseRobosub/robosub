@@ -43,8 +43,8 @@ before_script:
 
 script:
   - catkin_make
-  - if [ $TEST == "true" ] ; then catkin_make run_tests; fi 
-  - if [ $LINT == "true" ] ; then catkin_make roslint; fi 
+  - if [ "$TEST" == "true" ] ; then catkin_make run_tests; catkin_test_results; fi
+  - if [ "$LINT" == "true" ] ; then catkin_make roslint; fi
 
 matrix:
   allow_failures:
