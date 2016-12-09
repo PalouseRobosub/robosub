@@ -45,7 +45,7 @@ roslint_custom(${CMAKE_CURRENT_LIST_DIR}/tools/linters/cpplint "--root=src" ${FI
 
 ## Python
 set(ROSLINT_PYTHON_OPTS "--ignore=E3,E121,E123,E126,E226,E24,E704" "--max-line-length=80")
-# roslint_python()
+roslint_python()
 
 ################################################
 ## Declare ROS messages, services and actions ##
