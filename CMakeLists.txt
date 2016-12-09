@@ -39,13 +39,13 @@ find_package(OpenCV REQUIRED)
 # catkin_python_setup()
 
 ## Setup ROSlint with our preferred settings
-## C++:
-set(ROSLINT_CPP_OPTS "--filter=-legal,-whitespace/comments,-whitespace/parens,-build/namespaces,-readability/namespace,-runtime/threadsafe_fn" "--linelength=80")
-roslint_cpp()
+## C++ Using the custom linter to avoid the ROS overloads:
+file (GLOB_RECURSE FILES *.cpp *.h) #Set the files to parse
+roslint_custom("${ROSLINT_SCRIPTS_DIR}/cpplint" "--root=src" ${FILES})
 
 ## Python
 set(ROSLINT_PYTHON_OPTS "--ignore=E3,E121,E123,E126,E226,E24,E704" "--max-line-length=80")
-roslint_python()
+# roslint_python()
 
 ################################################
 ## Declare ROS messages, services and actions ##
