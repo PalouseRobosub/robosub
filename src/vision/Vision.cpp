@@ -118,11 +118,11 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
 
                             //Topics reversed for use with current rosbag
-    ros::Subscriber leftCamSub = n.subscribe("/camera/right/image", 1, leftCamCallback);
-    ros::Subscriber rightCamSub = n.subscribe("/camera/left/image", 1, rightCamCallback);
+    ros::Subscriber leftCamSub = n.subscribe("camera/right/image", 1, leftCamCallback);
+    ros::Subscriber rightCamSub = n.subscribe("camera/left/image", 1, rightCamCallback);
     
     string topic;
-    pub = n.advertise<robosub::visionPosArray>("/vision/output_default" + topic, 1);
+    pub = n.advertise<robosub::visionPosArray>("vision/output_default" + topic, 1);
 
     ros::spin();
 
