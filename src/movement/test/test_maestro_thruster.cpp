@@ -8,6 +8,8 @@
 #include "robosub/thruster.h"
 #include "utility/serial.hpp"
 #include "utility/test_tools.hpp"
+#include <vector>
+#include <string>
 
 rs::Serial mSerial;
 ros::Publisher pub;
@@ -55,8 +57,6 @@ TEST(Maestro, basicTest)
     //we read that data and verify it is correct
     for(unsigned int i = 0; i < maestro_msg.data.size(); ++i)
     {
-
-
         //read one byte from the serial port
         int bytes_rxd = mSerial.Read(maestro_data, 4);
         ROS_INFO("recieved %d bytes", bytes_rxd);
@@ -77,9 +77,8 @@ TEST(Maestro, basicTest)
             speed = max_speed * ((speed < 0)? -1 : 1);
         }
         EXPECT_EQ(maestro_decimal, speed);
-
-
     }
+
     ROS_INFO("test over, waiting");
 }
 
@@ -89,7 +88,7 @@ double byte_check(uint8_t byte2, uint8_t byte3)
   uint16_t pulse_width;
 
   pulse_width = ((byte3 << 7) | byte2) >> 2;
-  target = (double)(pulse_width - 1500) / 400;
+  target = static_cast<double>(pulse_width - 1500) / 400;
 
   return target;
 }
