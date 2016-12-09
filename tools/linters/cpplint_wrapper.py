@@ -37,6 +37,7 @@ from functools import partial
 import os.path
 import re
 
+
 def patch(original_module):
     """ Decorator to easily allow wrapping/overriding of the Check* functions in cpplint. Should
         decorate a function which matches the signature of the function it replaces expect with
@@ -61,6 +62,13 @@ def makeErrorFn(original_fn, suppress_categories, suppress_message_matches):
             return
         original_fn(filename, linenum, category, confidence, message)
     return newError
+
+
+@patch(cpplint)
+def GetHeaderGuardCPPVariable(fn, filename):
+    # Overload the Header Guard Check to only use the filename, not the path
+    head, tail = os.path.split(filename)
+    return re.sub(r'[-./\s]', '_', tail.upper())
 
 
 @patch(cpplint)

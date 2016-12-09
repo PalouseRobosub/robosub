@@ -40,11 +40,19 @@ find_package(OpenCV REQUIRED)
 
 ## Setup ROSlint with our preferred settings
 ## C++ Using the custom linter to avoid the ROS overloads:
-file (GLOB_RECURSE FILES *.cpp *.h) #Set the files to parse
-roslint_custom(${CMAKE_CURRENT_LIST_DIR}/tools/linters/cpplint "--root=src" ${FILES})
+
+# Recursively select c++ source files
+file (GLOB_RECURSE FILES *.cpp *.h *.hpp) #Set the files to parse
+
+# Run the custom linter
+# To change the options for the CPP linter edit the CPPLINT.cfg file int the
+#     src directory
+roslint_custom(${CMAKE_CURRENT_LIST_DIR}/tools/linters/cpplint "--extensions=cpp,hpp,h" ${FILES})
 
 ## Python
-set(ROSLINT_PYTHON_OPTS "--ignore=E3,E121,E123,E126,E226,E24,E704" "--max-line-length=80")
+# To change the options for the python linter edit the PYLINT.cfg file in the
+#     tools/linters directory
+set(ROSLINT_PYTHON_OPTS "--config=tools/linters/PYLINT.cfg")
 roslint_python()
 
 ################################################
@@ -123,9 +131,9 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
- generate_dynamic_reconfigure_options(
-   cfg/Dynamic.cfg
- )
+generate_dynamic_reconfigure_options(
+  cfg/Dynamic.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -171,17 +179,17 @@ include_directories(
 
 #macro for adding and linking nodes to the ros framework
 macro(add_ros_node node_name file_name)
-	add_executable(${node_name} ${file_name} ${ARGN})
-	add_dependencies(${node_name}  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-	target_link_libraries(${node_name} ${catkin_LIBRARIES})
+  add_executable(${node_name} ${file_name} ${ARGN})
+  add_dependencies(${node_name}  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(${node_name} ${catkin_LIBRARIES})
 endmacro(add_ros_node)
 
 #macro for adding and linking nodes with dynamic parameters
 macro(add_dynamic_ros_node node_name file_name)
-        add_executable(${node_name} ${file_name})
-            #${PROJECT_NAME}_gencfg is needed for any nodes needing dynamic params
-        add_dependencies(${node_name} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-        target_link_libraries(${node_name} ${catkin_LIBRARIES})
+  add_executable(${node_name} ${file_name})
+    #${PROJECT_NAME}_gencfg is needed for any nodes needing dynamic params
+  add_dependencies(${node_name} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  target_link_libraries(${node_name} ${catkin_LIBRARIES})
 endmacro(add_dynamic_ros_node)
 
 #specify where other CMakeLists.txt files live
