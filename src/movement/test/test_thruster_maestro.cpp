@@ -31,14 +31,16 @@ TEST(Maestro, basicTest)
     {
         maestro_msg.data.push_back(0.0);
     }
+
+    //send initial message to make the thruster module send it's reset signal.
+    //This test isn't checking for it, so we just flush the serial buffer and
+    //throw it away
     pub.publish(maestro_msg);
     ros::Duration(2).sleep();
     mSerial.Flush();
 
-    maestro_msg.data.clear();
-
-
     //fill out data in the thruster message.
+    maestro_msg.data.clear();
     maestro_msg.data.push_back(1.0);
     maestro_msg.data.push_back(0.7);
     maestro_msg.data.push_back(0.8);
@@ -48,8 +50,6 @@ TEST(Maestro, basicTest)
 
     //publish the thruster message
     pub.publish(maestro_msg);
-
-    ROS_INFO("published message, hit enter to read serial");
     ros::Duration(1).sleep();
 
     //after we published the thruster message, the thruster module should have
@@ -63,7 +63,7 @@ TEST(Maestro, basicTest)
         //mSerial.Read(maestro_data, 4);
 
         ROS_WARN("raw_vals: %x, %x", maestro_data[2], maestro_data[3]);
-        double maestro_decimal = byte_check(maestro_data[2], maestro_data[3]);
+        double actual_speed = byte_check(maestro_data[2], maestro_data[3]);
 
 
         //checks to make sure the first byte in maestro_data is correct
@@ -71,12 +71,12 @@ TEST(Maestro, basicTest)
         EXPECT_EQ(maestro_data[1], channels[i]);
 
         //compare and make sure the value recieved is equal to the value sent
-        double speed = maestro_msg.data[i];
-        if(fabs(speed) > max_speed)
+        double expected_speed = maestro_msg.data[i];
+        if(fabs(expected_speed) > max_speed)
         {
-            speed = max_speed * ((speed < 0)? -1 : 1);
+            expected_speed = max_speed * ((expected_speed < 0)? -1 : 1);
         }
-        EXPECT_EQ(maestro_decimal, speed);
+        EXPECT_FLOAT_EQ(actual_speed, expected_speed);
     }
 
     ROS_INFO("test over, waiting");
@@ -137,15 +137,10 @@ int main(int argc, char *argv[])
     //initialize our publisher used for sending thruster messages
     pub = n.advertise<robosub::thruster>("thruster", 1);
 
-    ROS_INFO("all setup, press enter");
-    //ros::Duration(4).sleep();
-    /////getchar();
     //wait for the UUT to finish launching, can't run tests until the UUT has
     //set itself up. This function will wait for 3 seconds for the UUT to
     //initialize, then it will error out and fail the test
-    ROS_INFO("waiting for subscriber");
     rs::wait_for_subscriber(pub, 5);
-    ROS_INFO("done!");
 
     return RUN_ALL_TESTS();
 }
