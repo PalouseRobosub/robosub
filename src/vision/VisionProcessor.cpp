@@ -119,31 +119,6 @@ Mat VisionProcessor::process(Image& image)
     morphologyEx(mask, mask, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(openSize[0], openSize[1])), Point(-1,-1), numOpenIters);
 
     ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
-/*
-    Mat red = Mat::zeros(rangeMasks[0].size(), CV_32F);
-    ROS_DEBUG_STREAM("Red zeroed");
-    red.setTo(Scalar(255,0,0));
-    ROS_DEBUG_STREAM("Red set");
-    Mat redOut = Mat::zeros(rangeMasks[0].size(), CV_32F);
-    red.copyTo(redOut, rangeMasks[0]);
-
-    ROS_DEBUG_STREAM("Copied to red");
-    
-    Mat green = Mat::zeros(rangeMasks[1].size(), CV_32F);
-    green.setTo(Scalar(0,255,0));
-    Mat greenOut = Mat::zeros(rangeMasks[1].size(), CV_32F);
-    green.copyTo(greenOut, rangeMasks[1]);
-
-    ROS_DEBUG_STREAM("Copied to green");
-
-    vector<Mat> maskedColors;
-    maskedColors.push_back(redOut);
-    maskedColors.push_back(greenOut);
-
-    Mat color;
-    merge(maskedColors, color);
-
-*/
     
     ROS_DEBUG_STREAM("Returning mask");
     return mask;

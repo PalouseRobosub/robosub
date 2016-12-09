@@ -3,11 +3,11 @@
 <launch>
 
     <node pkg="robosub" type="vision" name="red_vision" required="false">
-        <param name="subTopic" value="buoys/red"/>
+        <remap from="/vision/output_default" value="/vision/buoys/red"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision.yaml"/>
     </node>
     <node pkg="robosub" type="vision" name="green_vision" required="false">
-        <param name="subTopic" value="buoys/green"/>
+        <remap from="/vision/output_default" value="/vision/buoys/green"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision.yaml"/>
     </node>
 </launch>

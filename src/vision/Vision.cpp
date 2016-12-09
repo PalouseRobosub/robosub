@@ -122,8 +122,7 @@ int main(int argc, char **argv)
     ros::Subscriber rightCamSub = n.subscribe("/camera/left/image", 1, rightCamCallback);
     
     string topic;
-    ros::param::get("~subTopic", topic);
-    pub = n.advertise<robosub::visionPosArray>("/vision/" + topic, 1);
+    pub = n.advertise<robosub::visionPosArray>("/vision/output_default" + topic, 1);
 
     ros::spin();
 
