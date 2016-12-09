@@ -129,32 +129,14 @@ private:
     /*
      * Defines the current state of the submarine. This vector stores elements
      * in the following order:
-     *      X, Y, Z, X', Y', Z', Psi (roll), Phi (pitch), Theta (yaw), Psi',
-     *      Phi', Theta'
+     *      X, Y, Z, Psi (roll), Phi (pitch), Theta (yaw)
      */
-    Vector12d state_vector;
-
-    /*
-     * Defines the amount of time that passes between each control cycle.
-     */
-    double dt;
+    Vector6d state_vector;
 
     /*
      * Defines the number of thrusters on the submarine.
      */
     int num_thrusters;
-
-    /*
-     * The previous quaternion orientation messages received.
-     */
-    std::deque<geometry_msgs::Vector3> previous_quaternion_msgs;
-    std::deque<ros::Time> previous_quaternion_msgs_times;
-
-    /*
-     * The previous depth messages received.
-     */
-    std::deque<double> previous_depth_msgs;
-    std::deque<ros::Time> previous_depth_msgs_times;
 
     /*
      * The previous errors calculated.

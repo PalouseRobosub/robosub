@@ -15,15 +15,6 @@ namespace robosub
         /*
          * Load parameters from the settings file.
          */
-        int rate = 0;
-
-        /*
-         * All translational masses are the submarins total mass.
-         */
-        ROS_ERROR_COND(!ros::param::getCached("/control/mass", sub_mass[0]),
-                "Failed to load mass of the submarine.");
-        sub_mass[1] = sub_mass[2] = sub_mass[0];
-
         ROS_ERROR_COND(!ros::param::getCached("/control/inertia/psi",
                 sub_mass[3]), "Failed to load inertial mass psi.");
         ROS_ERROR_COND(!ros::param::getCached("/control/inertia/phi",
@@ -38,20 +29,13 @@ namespace robosub
                 r_lim), "Failed to load the rotiation control limit.");
         ROS_ERROR_COND(!ros::param::getCached("/control/max_thrust",
                 max_thrust), "Failed to load the max thrust output.");
-        ROS_ERROR_COND(!ros::param::getCached("/control/rate", rate),
-                "Failed to load the control system rate.");
 
         /*
-         * Calculate the change in time between each call.
-         * TODO: Replace dt with actual message timestamps.
+         * All translational masses are the submarines total mass.
          */
-        if (rate <= 0)
-        {
-            ROS_FATAL("Control system rate is specified as zero or less.");
-            exit(-1);
-        }
-
-        dt = 1.0/rate;
+        ROS_ERROR_COND(!ros::param::getCached("/control/mass", sub_mass[0]),
+                "Failed to load mass of the submarine.");
+        sub_mass[1] = sub_mass[2] = sub_mass[0];
 
         /*
          * Initialize the state of the goals to error.
@@ -64,15 +48,19 @@ namespace robosub
         /*
          * Set the previous message queues to empty.
          */
-        previous_quaternion_msgs.clear();
-        previous_depth_msgs.clear();
-        previous_quaternion_msgs_times.clear();
-        previous_depth_msgs_times.clear();
+        previous_error.clear();
+        previous_error_times.clear();
+
+        /*
+         * Ensure that the previous error time is initialized to the current
+         * time so the first integral calculation is valid.
+         */
+        previous_error_times.push_back(ros::Time::now());
 
         /*
          * Ensure that the commands and states are all set to zero initially.
          */
-        state_vector = Vector12d::Zero();
+        state_vector = Vector6d::Zero();
         current_integral = Vector6d::Zero();
 
         /*
@@ -249,16 +237,24 @@ namespace robosub
                      */
                     this->goal_types[i] = robosub::control::STATE_ABSOLUTE;
                     if(i < 3)
+                    {
                         this->goals[i] = state_vector[i] + control_values[i];
+                    }
                     else if (i == 3)
-                        this->goals[i] = wraparound(state_vector[i+3] +
+                    {
+                        this->goals[i] = wraparound(state_vector[i] +
                                 control_values[i], -180.0, 180.0);
+                    }
                     else if (i == 4)
-                        this->goals[i] = wraparound(state_vector[i+3] +
+                    {
+                        this->goals[i] = wraparound(state_vector[i] +
                                 control_values[i], -90.0, 90.0);
+                    }
                     else if (i == 5)
-                        this->goals[i] = wraparound(state_vector[i+3] +
+                    {
+                        this->goals[i] = wraparound(state_vector[i] +
                                 control_values[i], -180.0, 180.0);
+                    }
                     break;
 
                 case robosub::control::STATE_ERROR:
@@ -297,182 +293,16 @@ namespace robosub
         tf::Matrix3x3 m(tf::Quaternion(quat_msg->quaternion.x,
                     quat_msg->quaternion.y, quat_msg->quaternion.z,
                     quat_msg->quaternion.w));
-        m.getRPY(state_vector[6], state_vector[7], state_vector[8]);
+        m.getRPY(state_vector[3], state_vector[4], state_vector[5]);
 
         /*
          * Note that input values are calculated to be radians, but all
          * internal values of the control system are represented in degrees.
          * Convert the radians to degrees.
          */
-        state_vector[6] *= _180_OVER_PI;
-        state_vector[7] *= _180_OVER_PI;
-        state_vector[8] *= _180_OVER_PI;
-
-        geometry_msgs::Vector3 current_orientation;
-        current_orientation.x = state_vector[6];
-        current_orientation.y = state_vector[7];
-        current_orientation.z = state_vector[8];
-
-        /*
-         * Update orientation derivatives.
-         */
-        previous_quaternion_msgs.push_front(current_orientation);
-        previous_quaternion_msgs_times.push_front(quat_msg->header.stamp);
-
-        if (previous_quaternion_msgs.size() > 5)
-        {
-            previous_quaternion_msgs.pop_back();
-            previous_quaternion_msgs_times.pop_back();
-        }
-
-        /*
-         * The derivatives can be affected by discontinuities in the
-         * wrapping of orientations. This section will un-wrap an
-         * orientation if the derivative is too high. This should work okay
-         * because the derivative of the sub can not change instantaneously
-         * in water. Construct a copy of the measurement vector so that the
-         * original can be maintained.
-         */
-        std::deque<geometry_msgs::Vector3> previous_orientation_msgs(
-                previous_quaternion_msgs);
-        for (unsigned int i = 0; i < previous_orientation_msgs.size() - 1; ++i)
-        {
-            double time_step = (previous_quaternion_msgs_times[i] -
-                    previous_quaternion_msgs_times[i+1]).toSec();
-            double roll_change = previous_orientation_msgs[i].x -
-                    previous_orientation_msgs[i+1].x;
-            double pitch_change = previous_orientation_msgs[i].y -
-                    previous_orientation_msgs[i+1].y;
-            double yaw_change = previous_orientation_msgs[i].z -
-                    previous_orientation_msgs[i+1].z;
-
-            double dyaw = yaw_change / time_step;
-            double dpitch = pitch_change / time_step;
-            double droll = roll_change / time_step;
-
-            /*
-             * The wrap threshold will be set at 100 degrees in a single
-             * 20Hz cycle. This should not be possible under any condition.
-             */
-            const double d_threshold = 10.0 / (1.0/20.0);
-
-            /*
-             * A spike from 180 to -180 indicates the derivative is
-             * actually positive for yaw and pitch. On the inverse occurance,
-             * the derivative is actually negative. Always adjust following
-             * readings to be normalized with the first reading in the queue.
-             */
-            if (dyaw > d_threshold)
-            {
-                previous_orientation_msgs[i+1].z += 360;
-                ROS_INFO_STREAM("Wrapping yaw up.");
-            }
-            else if (dyaw < -1*d_threshold)
-            {
-                previous_orientation_msgs[i+1].z -= 360;
-                ROS_INFO_STREAM("Wrapping yaw down.");
-            }
-
-            /*
-             * Roll is bounded by the same characteristics as yaw. Wrap
-             * similarly.
-             */
-            if (droll > d_threshold)
-            {
-                previous_orientation_msgs[i+1].x += 360;
-                ROS_INFO_STREAM("Wrapping roll up.");
-            }
-            else if (droll < -1*d_threshold)
-            {
-                previous_orientation_msgs[i+1].x -= 360;
-                ROS_INFO_STREAM("Wrapping roll down.");
-            }
-
-            /*
-             * Pitch is bounded by +/- 90 degrees. Wrap with values of 180
-             * instead of 360.
-             */
-            if (dpitch > d_threshold)
-            {
-                previous_orientation_msgs[i+1].y += 180;
-                ROS_INFO_STREAM("Wrapping pitch up.");
-            }
-            else if (dpitch < -1*d_threshold)
-            {
-                previous_orientation_msgs[i+1].y -= 180;
-                ROS_INFO_STREAM("Wrapping pitch down.");
-            }
-        }
-
-        /*
-         * To prevent a continuous increase in average yaw, pitch, or roll
-         * values by continuous unwrapping in the same direction, the average
-         * value of each reading will be found and subtracted from each element
-         * to normalize the points around y = 0.
-         */
-        int number_readings = previous_orientation_msgs.size();
-        double total_yaw = 0, total_pitch = 0, total_roll = 0;
-        for (int i = 0; i < number_readings; ++i)
-        {
-            total_yaw += previous_orientation_msgs[i].z;
-            total_pitch += previous_orientation_msgs[i].y;
-            total_roll += previous_orientation_msgs[i].x;
-        }
-
-        double avg_yaw = total_yaw / number_readings, avg_pitch = total_pitch /
-                number_readings, avg_roll = total_roll / number_readings;
-
-        for (int i = 0; i < number_readings; ++i)
-        {
-            previous_orientation_msgs[i].z -= avg_yaw;
-            previous_orientation_msgs[i].y -= avg_pitch;
-            previous_orientation_msgs[i].x -= avg_roll;
-        }
-
-        /*
-         * Calculate the derivatives of yaw, pitch, and roll using linear
-         * regression. Note that all time is relative to the earliest sampled
-         * time. The following linear regression mode is used:
-         *     Slope = (n(Sum(x*y)) - Sum(x)*Sum(y)) / (n(Sum(x^2) - Sum(x)^2))
-         * Where y is the yaw, pitch, or roll measurement and x is the time.
-         */
-        double sum_yaw = 0, sum_pitch = 0, sum_roll = 0, sum_time = 0,
-               sum_time_sq = 0;
-        double sum_yaw_time = 0, sum_pitch_time = 0, sum_roll_time = 0;
-        for (int i = 0; i < number_readings; ++i)
-        {
-            double current_time = (previous_quaternion_msgs_times[i] -
-                    previous_quaternion_msgs_times[
-                    previous_orientation_msgs.size() - 1]).toSec();
-
-            sum_roll += previous_orientation_msgs[i].x;
-            sum_pitch += previous_orientation_msgs[i].y;
-            sum_yaw += previous_orientation_msgs[i].z;
-
-            sum_roll_time += previous_orientation_msgs[i].x *
-                    current_time;
-            sum_pitch_time += previous_orientation_msgs[i].y *
-                    current_time;
-            sum_yaw_time += previous_orientation_msgs[i].z *
-                    current_time;
-
-            sum_time += current_time;
-            sum_time_sq += current_time * current_time;
-        }
-
-        /*
-         * Finally, calculate the slope of the linear regression as the
-         * derivative.
-         */
-        state_vector[9] = (number_readings * sum_roll_time - sum_time *
-                sum_roll) / (number_readings * sum_time_sq - sum_time *
-                sum_time);
-        state_vector[10] = (number_readings * sum_pitch_time - sum_time *
-                sum_pitch) / (number_readings * sum_time_sq - sum_time *
-                sum_time);
-        state_vector[11] = (number_readings * sum_yaw_time - sum_time *
-                sum_yaw) / (number_readings * sum_time_sq - sum_time *
-                sum_time);
+        state_vector[3] *= _180_OVER_PI;
+        state_vector[4] *= _180_OVER_PI;
+        state_vector[5] *= _180_OVER_PI;
     }
 
     /**
@@ -485,47 +315,7 @@ namespace robosub
     void ControlSystem::InputDepthMessage(const
             robosub::depth_stamped::ConstPtr& depth_msg)
     {
-        /*
-         * Update the X, Y, and Z positions of the state vector. Note that X
-         * and Y position are currently unknown and always set to zero.
-         */
         state_vector[2] = depth_msg->depth;
-
-        previous_depth_msgs_times.push_front(depth_msg->header.stamp);
-        previous_depth_msgs.push_front(depth_msg->depth);
-
-        if (previous_depth_msgs.size() > 5)
-        {
-            previous_depth_msgs_times.pop_back();
-            previous_depth_msgs.pop_back();
-        }
-
-        /*
-         * Calculate the derivative of depth using linear regression. Note that
-         * all time is relative to the earliest sampled time. The following
-         * linear regression mode is used:
-         *     Slope = (n(Sum(x*y)) - Sum(x)*Sum(y)) / (n(Sum(x^2) - Sum(x)^2))
-         * Where y is the depth measurement and x is the time.
-         */
-        double sum_time = 0, sum_time_sq = 0, sum_depth_time = 0,
-               sum_depth = 0;
-        int number_readings = previous_depth_msgs.size();
-        for (int i = 0; i < number_readings; ++i)
-        {
-            ros::Duration current_duration = previous_depth_msgs_times[i] -
-                    previous_depth_msgs_times[previous_depth_msgs_times.size()
-                    - 1];
-            double current_time = current_duration.toSec();
-
-            sum_time += current_time;
-            sum_time_sq += current_time * current_time;
-            sum_depth += previous_depth_msgs[i];
-            sum_depth_time += previous_depth_msgs[i] * current_time;
-        }
-
-        state_vector[5] = (number_readings * sum_depth_time - sum_time *
-                sum_depth) / ( number_readings * sum_time_sq - sum_time *
-                sum_time);
     }
 
     /**
@@ -558,18 +348,24 @@ namespace robosub
                 translation_error[i] = goals[i];
                 current_integral[i] = 0.0;
             }
-            if(goal_types[i+3] == robosub::control::STATE_ERROR)
+        }
+
+        for (int state_index = 3, i = 0; i < 3; ++i, ++state_index)
+        {
+            if(goal_types[i] == robosub::control::STATE_ERROR)
             {
-                rotation_goals[i] = state_vector[i+6] + goals[i+3];
-                current_integral[i+3] = 0.0;
+                rotation_goals[i] = state_vector[state_index] +
+                        goals[state_index];
+                current_integral[state_index] = 0.0;
             }
             else
             {
-                rotation_goals[i] = goals[i+3];
+                rotation_goals[i] = goals[state_index];
             }
         }
+
         Vector3d rotation_error = ir3D(
-                r3D(state_vector.segment<3>(6)).transpose() *
+                r3D(state_vector.segment<3>(3)).transpose() *
                 r3D(rotation_goals));
 
         /*
@@ -581,7 +377,8 @@ namespace robosub
         /*
          * Update and bound-check the integral terms.
          */
-        current_integral += current_error * dt;
+        current_integral += current_error * (ros::Time::now() -
+                previous_error_times[0]).toSec();
         for (int i = 0; i < 6; ++i)
         {
             if(fabs(current_integral[i]) > fabs(windup[i]))
@@ -610,7 +407,11 @@ namespace robosub
         }
 
         /*
-         * Calculate the derivative of the error using linear regression.
+         * Calculate the derivative of the error using linear
+         * regression. Note that all time is relative to the earliest sampled
+         * time. The following linear regression mode is used:
+         *     Slope = (n(Sum(x*y)) - Sum(x)*Sum(y)) / (n(Sum(x^2) - Sum(x)^2))
+         * Where y is the error and x is the time.
          */
         Vector6d sum_error = Vector6d::Zero(),
                  sum_error_time = Vector6d::Zero();
@@ -646,8 +447,8 @@ namespace robosub
          * signals are relative.
          */
         Vector3d current_orientation;
-        current_orientation[0] = state_vector[6];
-        current_orientation[1] = state_vector[7];
+        current_orientation[0] = state_vector[3];
+        current_orientation[1] = state_vector[4];
         current_orientation[2] = 0;
 
         /*
