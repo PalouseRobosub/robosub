@@ -15,25 +15,25 @@ namespace robosub
         /*
          * Load parameters from the settings file.
          */
-        ROS_ERROR_COND(!ros::param::getCached("/control/inertia/psi",
+        ROS_ERROR_COND(!ros::param::getCached("control/inertia/psi",
                 sub_mass[3]), "Failed to load inertial mass psi.");
-        ROS_ERROR_COND(!ros::param::getCached("/control/inertia/phi",
+        ROS_ERROR_COND(!ros::param::getCached("control/inertia/phi",
                 sub_mass[4]), "Failed to load inertial mass phi");
-        ROS_ERROR_COND(!ros::param::getCached("/control/inertia/theta",
+        ROS_ERROR_COND(!ros::param::getCached("control/inertia/theta",
                 sub_mass[5]), "Failed to load inertial mass theta.");
-        ROS_ERROR_COND(!ros::param::getCached("/control/back_thrust_ratio",
+        ROS_ERROR_COND(!ros::param::getCached("control/back_thrust_ratio",
                 back_thrust_ratio), "Failed to load the back thrust ratio.");
-        ROS_ERROR_COND(!ros::param::getCached("/control/limits/translation",
+        ROS_ERROR_COND(!ros::param::getCached("control/limits/translation",
                 t_lim), "Failed to load the translation control limit.");
-        ROS_ERROR_COND(!ros::param::getCached("/control/limits/rotation",
+        ROS_ERROR_COND(!ros::param::getCached("control/limits/rotation",
                 r_lim), "Failed to load the rotiation control limit.");
-        ROS_ERROR_COND(!ros::param::getCached("/control/max_thrust",
+        ROS_ERROR_COND(!ros::param::getCached("control/max_thrust",
                 max_thrust), "Failed to load the max thrust output.");
 
         /*
          * All translational masses are the submarines total mass.
          */
-        ROS_ERROR_COND(!ros::param::getCached("/control/mass", sub_mass[0]),
+        ROS_ERROR_COND(!ros::param::getCached("control/mass", sub_mass[0]),
                 "Failed to load mass of the submarine.");
         sub_mass[1] = sub_mass[2] = sub_mass[0];
 
@@ -148,40 +148,40 @@ namespace robosub
      */
     void ControlSystem::ReloadPIDParams()
     {
-        ros::param::getCached("/control/proportional/x", P[0]);
-        ros::param::getCached("/control/proportional/y", P[1]);
-        ros::param::getCached("/control/proportional/z", P[2]);
-        ros::param::getCached("/control/proportional/psi", P[3]);
-        ros::param::getCached("/control/proportional/phi", P[4]);
-        ros::param::getCached("/control/proportional/theta", P[5]);
+        ros::param::getCached("control/proportional/x", P[0]);
+        ros::param::getCached("control/proportional/y", P[1]);
+        ros::param::getCached("control/proportional/z", P[2]);
+        ros::param::getCached("control/proportional/psi", P[3]);
+        ros::param::getCached("control/proportional/phi", P[4]);
+        ros::param::getCached("control/proportional/theta", P[5]);
 
-        ros::param::getCached("/control/integral/x", I[0]);
-        ros::param::getCached("/control/integral/y", I[1]);
-        ros::param::getCached("/control/integral/z", I[2]);
-        ros::param::getCached("/control/integral/psi", I[3]);
-        ros::param::getCached("/control/integral/phi", I[4]);
-        ros::param::getCached("/control/integral/theta", I[5]);
+        ros::param::getCached("control/integral/x", I[0]);
+        ros::param::getCached("control/integral/y", I[1]);
+        ros::param::getCached("control/integral/z", I[2]);
+        ros::param::getCached("control/integral/psi", I[3]);
+        ros::param::getCached("control/integral/phi", I[4]);
+        ros::param::getCached("control/integral/theta", I[5]);
 
-        ros::param::getCached("/control/derivative/x", D[0]);
-        ros::param::getCached("/control/derivative/y", D[1]);
-        ros::param::getCached("/control/derivative/z", D[2]);
-        ros::param::getCached("/control/derivative/psi", D[3]);
-        ros::param::getCached("/control/derivative/phi", D[4]);
-        ros::param::getCached("/control/derivative/theta", D[5]);
+        ros::param::getCached("control/derivative/x", D[0]);
+        ros::param::getCached("control/derivative/y", D[1]);
+        ros::param::getCached("control/derivative/z", D[2]);
+        ros::param::getCached("control/derivative/psi", D[3]);
+        ros::param::getCached("control/derivative/phi", D[4]);
+        ros::param::getCached("control/derivative/theta", D[5]);
 
-        ros::param::getCached("/control/windup/x", windup[0]);
-        ros::param::getCached("/control/windup/y", windup[1]);
-        ros::param::getCached("/control/windup/z", windup[2]);
-        ros::param::getCached("/control/windup/psi", windup[3]);
-        ros::param::getCached("/control/windup/phi", windup[4]);
-        ros::param::getCached("/control/windup/theta", windup[5]);
+        ros::param::getCached("control/windup/x", windup[0]);
+        ros::param::getCached("control/windup/y", windup[1]);
+        ros::param::getCached("control/windup/z", windup[2]);
+        ros::param::getCached("control/windup/psi", windup[3]);
+        ros::param::getCached("control/windup/phi", windup[4]);
+        ros::param::getCached("control/windup/theta", windup[5]);
 
-        ros::param::getCached("/control/hysteresis/x", hysteresis[0]);
-        ros::param::getCached("/control/hysteresis/y", hysteresis[1]);
-        ros::param::getCached("/control/hysteresis/z", hysteresis[2]);
-        ros::param::getCached("/control/hysteresis/psi", hysteresis[3]);
-        ros::param::getCached("/control/hysteresis/phi", hysteresis[4]);
-        ros::param::getCached("/control/hysteresis/theta", hysteresis[5]);
+        ros::param::getCached("control/hysteresis/x", hysteresis[0]);
+        ros::param::getCached("control/hysteresis/y", hysteresis[1]);
+        ros::param::getCached("control/hysteresis/z", hysteresis[2]);
+        ros::param::getCached("control/hysteresis/psi", hysteresis[3]);
+        ros::param::getCached("control/hysteresis/phi", hysteresis[4]);
+        ros::param::getCached("control/hysteresis/theta", hysteresis[5]);
     }
 
     /**
