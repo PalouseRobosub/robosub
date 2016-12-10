@@ -98,7 +98,7 @@ def CheckBraces(fn, filename, clean_lines, linenum, error):
                         itself')
         m = Match(r'^(.*)}(.*)$', line)
         if m and (not IsBlankLine(m.group(1)) or not IsBlankLine(m.group(2))):
-            if m.group(2) != ";":
+            if m.groups()[-1][-1] != ';':
                 error(filename, linenum, 'whitespace/braces', 4,
                       '} should be on a line by itself')
     pass
