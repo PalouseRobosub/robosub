@@ -1,4 +1,4 @@
-//This file is designed to test the serial_subscriber.cpp example, which
+//This file is designed to test the Maestro Thruster node, which
 //receives messages of the robosub/thruster type, and then sends the exact
 //received value through a serial port. This example sends a single thruster
 //message with several thrusters inside, and then listens on a serial port to
@@ -17,7 +17,10 @@ double byte_check(uint8_t byte2, uint8_t byte3);
 std::vector<uint8_t> channels;
 double max_speed = 0.6;
 
-//insert tests here
+//The test will act like it is both the control system and the maestro
+//Several values that the control system might send are sent to the thruster
+//node. The results are then read from the port created by socat and compared
+//to the expected values
 TEST(Maestro, basicTest)
 {
     //allocate an array of bytes that will be used to receive serial data from
