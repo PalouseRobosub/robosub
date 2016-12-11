@@ -1,4 +1,4 @@
 std_msgs/Header header
-duration t1
-duration t2
-duration t3
+duration xDelta
+duration yDelta
+duration zDelta
