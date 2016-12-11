@@ -89,6 +89,7 @@ add_message_files(
   depth_stamped.msg
   Euler.msg
   QuaternionStampedAccuracy.msg
+  HydrophoneDeltas.msg
   visionPos.msg
   visionPosArray.msg
   ObstaclePos.msg
