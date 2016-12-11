@@ -94,6 +94,7 @@ add_message_files(
   visionPosArray.msg
   ObstaclePos.msg
   ObstaclePosArray.msg
+  BatteryDetailed.msg
 )
 
 ## Generate services in the 'srv' folder

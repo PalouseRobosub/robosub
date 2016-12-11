@@ -2,17 +2,17 @@
 
 import PyNUT
 import rospy
-from sensor_msgs.msg import BatteryState
+from robosub.msg import BatteryDetailed
 
 def upsDataToChargeStatus(status):
-    if "CHRG" in status:
-        return BatteryState.POWER_SUPPLY_STATUS_CHARGING
     if "DISCHRG" in status:
-        return BatteryState.POWER_SUPPLY_STATUS_DISCHARGING
+        return BatteryDetailed.POWER_SUPPLY_STATUS_DISCHARGING
+    if "CHRG" in status:
+        return BatteryDetailed.POWER_SUPPLY_STATUS_CHARGING
     if not status:
-        return BatteryState.POWER_SUPPLY_STATUS_UNKNOWN
-    
-    return BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
+        return BatteryDetailed.POWER_SUPPLY_STATUS_UNKNOWN
+
+    return BatteryDetailed.POWER_SUPPLY_STATUS_NOT_CHARGING
 #    return {
 #        'CHRG':1,
 #        'OB DISCHRG':2,
@@ -29,7 +29,7 @@ def upsDataToChargeStatus(status):
 #        return POWER_SUPPLY_HEALTH_
 
 def upsNode():
-    pub = rospy.Publisher('power/ups', BatteryState, queue_size=1)
+    pub = rospy.Publisher('power/ups', BatteryDetailed, queue_size=1)
 
     rospy.init_node('upsNode', anonymous=False)
 
@@ -40,20 +40,31 @@ def upsNode():
     while not rospy.is_shutdown():
         vars = client.GetUPSVars('openups')
 
-        state = BatteryState()
+        state = BatteryDetailed()
+
+        state.name = "UPS"
+
         if (vars is None):
-            state.present = False
+            state.alive = False
         else:
-            state.present = True
+            state.alive = True
             state.voltage = float(vars['battery.voltage'])
             state.charge = (float(vars['battery.charge']) / 100.0) * float(vars['battery.capacity'])
             state.capacity = float(vars['battery.capacity'])
             state.current = float(vars['battery.current'])
-            state.power_supply_technology = BatteryState.POWER_SUPPLY_TECHNOLOGY_LIFE
-            
-            state.power_supply_status = upsDataToChargeStatus(vars['ups.status']);
+            state.chemistry = BatteryDetailed.POWER_SUPPLY_TECHNOLOGY_LIFE
+
+            state.status = upsDataToChargeStatus(vars['ups.status']);
 
             state.percentage = float(vars['battery.charge']) / 100.0
+
+            state.temperature = ((9 * float(vars['ups.temperature'])) / 5) + 32
+
+            state.runtime = rospy.Time(secs = vars['battery.runtime'])
+
+            state.voltageInput = float(vars['input.voltage'])
+
+            state.currentInput = float(vars['input.current'])
 
         rospy.loginfo("Sending msg");
         pub.publish(state)
