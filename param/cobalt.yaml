@@ -4,6 +4,7 @@ ports:
 thrusters:
     -   name: "dive_front_left"
         channel: 8
+        max_speed: 0.6
         orientation:
             x: 0.0
             y: 0.0
@@ -14,6 +15,7 @@ thrusters:
             z: -0.1
     -   name: "dive_front_right"
         channel: 7
+        max_speed: 0.6
         orientation:
             x: 0.0
             y: 0.0
@@ -24,6 +26,7 @@ thrusters:
             z: -0.1
     -   name: "dive_back_left"
         channel: 4
+        max_speed: 0.6
         orientation:
             x: 0.0
             y: 0.0
@@ -34,6 +37,7 @@ thrusters:
             z: -0.1
     -   name: "dive_back_right"
         channel: 6
+        max_speed: 0.6
         orientation:
             x: 0.0
             y: 0.0
@@ -44,6 +48,7 @@ thrusters:
             z: -0.1
     -   name: "strafe_front"
         channel: 9
+        max_speed: 0.6
         orientation:
             x: 0.0
             y: 1.0
@@ -54,6 +59,7 @@ thrusters:
             z: -0.01
     -   name: "strafe_back"
         channel: 0
+        max_speed: 0.6
         orientation:
             x: 0.0
             y: 1.0
@@ -64,6 +70,7 @@ thrusters:
             z: -0.01
     -   name: "forward_left"
         channel: 10
+        max_speed: 0.6
         orientation:
             x: -1.0
             y: 0.0
@@ -74,6 +81,7 @@ thrusters:
             z: -0.01
     -   name: "forward_right"
         channel: 1
+        max_speed: 0.6
         orientation:
             x: -1.0
             y: 0.0

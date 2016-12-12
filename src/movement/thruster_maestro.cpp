@@ -47,6 +47,7 @@ void zeroThrusterSpeeds()
 int main(int argc, char **argv)
 {
     std::string thruster_port;
+    std::map<uint8_t, double> max_speeds;
     ros::init(argc, argv, "thruster");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("thruster", 1, Callback);
@@ -66,14 +67,17 @@ int main(int argc, char **argv)
     for(int i=0; i < thruster_settings.size(); ++i)
     {
         ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << thruster_settings[i]["name"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][channel]:    " << thruster_settings[i]["channel"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][channel]: " << thruster_settings[i]["channel"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][max_speed]:   " << thruster_settings[i]["max_speed"]);
         Thruster_info one_thruster;
         one_thruster.name = static_cast<std::string>(thruster_settings[i]["name"]);
         one_thruster.channel = static_cast<int>(thruster_settings[i]["channel"]);
+        max_speeds[one_thruster.channel] =
+                        static_cast<double>(thruster_settings[i]["max_speed"]);
         mThruster_info.push_back(one_thruster);
     }
 
-    thrusterController.init(0.6, &serial);
+    thrusterController.init(max_speeds, &serial);
 
     ros::spin();
 

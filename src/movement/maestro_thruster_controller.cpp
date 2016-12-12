@@ -34,9 +34,10 @@ namespace rs
      * @param port The serial port to be used for communicating with the
      *        thrusters. This port may be changed during runtime.
      */
-    int MaestroThrusterController::init( const double max_speed,
-                                           Serial *port,
-                                           const int post_reset_delay_ms)
+    int MaestroThrusterController::init(
+                            std::map<uint8_t, double> max_speed,
+                            Serial *port,
+                            const int post_reset_delay_ms)
     {
         if(setPort(port) != 0)
         {
@@ -52,8 +53,16 @@ namespace rs
             //initialze reset time
             _next_reset[i] = now;
 
-            //set max speed for thruster
-            _max_speed[i] = max_speed;
+            //default max thruster speeds to zero
+            _max_speed[i] = 0.0;
+
+        }
+        for (auto iter = max_speed.begin(); iter != max_speed.end(); iter++)
+        {
+            //set max speed for thrusters
+            uint8_t thruster_key;
+            thruster_key = iter->first;
+            _max_speed[thruster_key] = max_speed[thruster_key];
         }
 
         _post_reset_delay_ms = post_reset_delay_ms;

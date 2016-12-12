@@ -15,7 +15,7 @@ rs::Serial mSerial;
 ros::Publisher pub;
 double byte_check(uint8_t byte2, uint8_t byte3);
 std::vector<uint8_t> channels;
-double max_speed = 0.6;
+std::vector<double> max_speeds;
 
 //The test will act like it is both the control system and the maestro
 //Several values that the control system might send are sent to the thruster
@@ -75,9 +75,9 @@ TEST(Maestro, basicTest)
 
         //compare and make sure the value recieved is equal to the value sent
         double expected_speed = maestro_msg.data[i];
-        if(fabs(expected_speed) > max_speed)
+        if(fabs(expected_speed) > max_speeds[i])
         {
-            expected_speed = max_speed * ((expected_speed < 0)? -1 : 1);
+            expected_speed = max_speeds[i] * ((expected_speed < 0)? -1 : 1);
         }
         EXPECT_FLOAT_EQ(actual_speed, expected_speed);
     }
@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < my_list.size(); ++i)
     {
         channels.push_back( static_cast<int>(my_list[i]["channel"]));
+        max_speeds.push_back(static_cast<double>(my_list[i]["max_speed"]));
     }
 
     //SerialTB (serial testbench) creates 2 virtual serial ports and links them
