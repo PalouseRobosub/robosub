@@ -58,9 +58,9 @@ def upsNode():
 
             state.percentage = float(vars['battery.charge']) / 100.0
 
-            state.temperature = ((9 * float(vars['ups.temperature'])) / 5) + 32
+            state.temperature = ((9 * float(vars['battery.temperature'])) / 5) + 32
 
-            state.runtime = rospy.Time(secs = vars['battery.runtime'])
+            state.runtime = rospy.Time(secs = int(vars['battery.runtime']))
 
             state.voltageInput = float(vars['input.voltage'])
 
