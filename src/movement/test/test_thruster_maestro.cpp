@@ -60,20 +60,19 @@ TEST(Maestro, basicTest)
     //we read that data and verify it is correct
     for(unsigned int i = 0; i < maestro_msg.data.size(); ++i)
     {
-        //read one byte from the serial port
-        int bytes_rxd = mSerial.Read(maestro_data, 4);
-        ROS_INFO("recieved %d bytes", bytes_rxd);
-        //mSerial.Read(maestro_data, 4);
+        //read one thruster packet from the serial port
+        mSerial.Read(maestro_data, 4);
 
-        ROS_WARN("raw_vals: %x, %x", maestro_data[2], maestro_data[3]);
+        //calculate the thruster speed value of the packet
         double actual_speed = byte_check(maestro_data[2], maestro_data[3]);
 
-
-        //checks to make sure the first byte in maestro_data is correct
+        //check to make sure the command byte is correct
         EXPECT_EQ(maestro_data[0], 0x84);
+        //check to make sure the channel byte is correct
         EXPECT_EQ(maestro_data[1], channels[i]);
 
-        //compare and make sure the value recieved is equal to the value sent
+        //compare and make sure the thruster speed value recieved is equal to
+        //the value sent (include thruster max-speed throttling)
         double expected_speed = maestro_msg.data[i];
         if(fabs(expected_speed) > max_speeds[i])
         {
@@ -81,8 +80,6 @@ TEST(Maestro, basicTest)
         }
         EXPECT_FLOAT_EQ(actual_speed, expected_speed);
     }
-
-    ROS_INFO("test over, waiting");
 }
 
 double byte_check(uint8_t byte2, uint8_t byte3)
@@ -103,7 +100,7 @@ int main(int argc, char *argv[])
     testing::InitGoogleTest(&argc, argv);
 
     //initialize our ros node
-    ros::init(argc, argv, "maestro_launch_test");
+    ros::init(argc, argv, "thruster_maestro_test");
     ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue my_list;
