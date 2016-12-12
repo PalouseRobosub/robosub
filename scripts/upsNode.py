@@ -42,17 +42,14 @@ def upsNode():
 
         state = BatteryDetailed()
 
-        state.name = "UPS"
-
         if (vars is None):
             state.alive = False
         else:
             state.alive = True
-            state.voltage = float(vars['battery.voltage'])
-            state.charge = (float(vars['battery.charge']) / 100.0) * float(vars['battery.capacity'])
+            state.voltageBattery = float(vars['battery.voltage'])
+            state.chargeBattery = (float(vars['battery.charge']) / 100.0) * float(vars['battery.capacity'])
             state.capacity = float(vars['battery.capacity'])
             state.current = float(vars['battery.current'])
-            state.chemistry = BatteryDetailed.POWER_SUPPLY_TECHNOLOGY_LIFE
 
             state.status = upsDataToChargeStatus(vars['ups.status']);
 
