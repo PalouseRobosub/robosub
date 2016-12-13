@@ -1,5 +1,5 @@
-#ifndef VISION_PROCESSOR_H
-#define VISION_PROCESSOR_H
+#ifndef VISIONPROCESSOR_HPP
+#define VISIONPROCESSOR_HPP
 #include <ros/ros.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
@@ -27,7 +27,7 @@ class VisionProcessor
         VisionProcessor();
         ~VisionProcessor();
 
-        Mat process(Image& image);
+        Mat process(const Image& image);
 
     private:
         NodeHandle n;
@@ -36,6 +36,6 @@ class VisionProcessor
         void getLowerBoundParams(vector<Scalar> &lower_bounds);
         void getUpperBoundParams(vector<Scalar> &upper_bounds);
 
-        Mat toOpenCV(Image& image);
+        Mat toOpenCV(const Image& image);
 };
-#endif
+#endif // VISIONPROCESSOR_HPP

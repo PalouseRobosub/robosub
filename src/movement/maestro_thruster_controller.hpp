@@ -11,8 +11,8 @@
  *       subsection 5.
  */
 
-#ifndef MAESTRO_THRUSTER_CONTROLLER_H
-#define MAESTRO_THRUSTER_CONTROLLER_H
+#ifndef MAESTRO_THRUSTER_CONTROLLER_HPP
+#define MAESTRO_THRUSTER_CONTROLLER_HPP
 
 #include "utility/serial.hpp"
 #include <ros/ros.h>
@@ -194,4 +194,4 @@ private:
 };
 }
 
-#endif
+#endif // MAESTRO_THRUSTER_CONTROLLER_HPP

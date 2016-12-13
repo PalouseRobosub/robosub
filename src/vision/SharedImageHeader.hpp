@@ -1,5 +1,5 @@
-#ifndef SHAREDIMAGEHEADER_H
-#define SHAREDIMAGEHEADER_H
+#ifndef SHAREDIMAGEHEADER_HPP
+#define SHAREDIMAGEHEADER_HPP
 
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -18,4 +18,4 @@ typedef struct
     void *data;
 } SharedImageHeader;
 
-#endif
+#endif // SHAREDIMAGEHEADER_HPP

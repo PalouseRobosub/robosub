@@ -1,5 +1,5 @@
-#ifndef JOYSTICKDRIVER_HPP
-#define JOYSTICKDRIVER_HPP
+#ifndef JOYSTICK_DRIVER_HPP
+#define JOYSTICK_DRIVER_HPP
 
 #include <iostream>
 #include <fcntl.h>
@@ -64,7 +64,7 @@ public:
     ~JoystickDriver() {}
 };
 
-#endif
+#endif // JOYSTICK_DRIVER_HPP
 
 /*
 #ifndef JOYSTICKDRIVER_HPP

@@ -1,5 +1,5 @@
-#ifndef __SERIAL_H
-#define __SERIAL_H
+#ifndef SERIAL_HPP
+#define SERIAL_HPP
 
 #include <cstring>
 #include <cstdlib>
@@ -36,4 +36,4 @@ private:
 };
 };
 
-#endif
+#endif // SERIAL_HPP

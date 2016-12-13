@@ -8,7 +8,7 @@
 #include <robosub/DynamicConfig.h>
 
 
-void callback(robosub::DynamicConfig &config, uint32_t level)
+void callback(const robosub::DynamicConfig &config, uint32_t level)
 {
     ROS_INFO("Reconfigure Request: %d %f %s %s %d",
           config.int_param, config.double_param,

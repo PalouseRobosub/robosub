@@ -28,4 +28,4 @@ public:
 };
 };
 
-#endif
+#endif // SHAREDIMAGEWRITER_HPP

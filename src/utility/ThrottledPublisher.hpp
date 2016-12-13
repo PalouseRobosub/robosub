@@ -1,3 +1,6 @@
+#ifndef THROTTLEDPUBLISHER_HPP
+#define THROTTLEDPUBLISHER_HPP
+
 #include <ros/ros.h>
 #include <string>
 
@@ -31,3 +34,5 @@ template <class msg> class ThrottledPublisher
         }
 };
 };
+
+#endif // THROTTLEDPUBLISHER_HPP

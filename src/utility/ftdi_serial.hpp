@@ -1,5 +1,5 @@
-#ifndef __ROBOSUB_FTDI_SERIAL_H__
-#define __ROBOSUB_FTDI_SERIAL_H__
+#ifndef FTDI_SERIAL_HPP
+#define FTDI_SERIAL_HPP
 
 #include <cstdint>
 #include <ftd2xx.h>
@@ -74,4 +74,4 @@ private:
 };
 }
 
-#endif
+#endif // FTDI_SERIAL_HPP

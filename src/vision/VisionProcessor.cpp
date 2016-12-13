@@ -14,7 +14,7 @@ VisionProcessor::~VisionProcessor()
 }
 
 //Processes the image using color filtering with parameters under given subgroup
-Mat VisionProcessor::process(Image& image)
+Mat VisionProcessor::process(const Image& image)
 {
     //Convert image message to OpenCV Mat
     Mat toProcess = toOpenCV(image);
@@ -201,7 +201,7 @@ void VisionProcessor::getUpperBoundParams(vector<Scalar> &upper_bounds)
 }
 
 //Converts a ros image_transport Image to an OpenCV Mat
-Mat VisionProcessor::toOpenCV(Image& image)
+Mat VisionProcessor::toOpenCV(const Image& image)
 {
     ROS_DEBUG_STREAM("Image size in bytes: " << sizeof(image.data));
     //Determine if the image is empty, may be deprecated.

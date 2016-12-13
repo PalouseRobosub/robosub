@@ -1,5 +1,5 @@
-#ifndef __TEST_TOOLS_HPP__
-#define __TEST_TOOLS_HPP__
+#ifndef TEST_TOOLS_HPP
+#define TEST_TOOLS_HPP
 
 #include "ros/ros.h"
 #include <vector>
@@ -86,4 +86,4 @@ private:
 };
 };
 
-#endif
+#endif // TEST_TOOLS_HPP

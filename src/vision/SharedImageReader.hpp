@@ -28,4 +28,4 @@ public:
 };
 };
 
-#endif
+#endif //SHAREDIMAGEREADER_HPP

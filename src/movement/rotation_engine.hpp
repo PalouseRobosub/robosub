@@ -1,5 +1,5 @@
-#ifndef ROTATIONENGINE_HPP
-#define ROTATIONENGINE_HPP
+#ifndef ROTATION_ENGINE_HPP
+#define ROTATION_ENGINE_HPP
 
 #include <eigen3/Eigen/Dense>
 #include <limits>
@@ -12,4 +12,4 @@ Vector3d ir3D(Matrix3d R);
 MatrixXd pinv(const MatrixXd &a,
               double epsilon = std::numeric_limits<double>::epsilon());
 
-#endif
+#endif // ROTATION_ENGINE_HPP
