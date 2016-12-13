@@ -3,31 +3,31 @@
 
 namespace rs
 {
-    template <class msg> class ThrottledPublisher
-    {
-        private:
-            ros::Time nextPubTime;
-            ros::Duration rate;
-            ros::Publisher pub;
-        public:
-            ThrottledPublisher(std::string  topicName, int queueSize, float hz)
-            {
-                ros::NodeHandle nh;
-                pub = nh.advertise<msg>(topicName, queueSize);
-                this->rate = ros::Duration(1.0/hz);
-                nextPubTime = ros::Time::now();
-            }
+template <class msg> class ThrottledPublisher
+{
+    private:
+        ros::Time nextPubTime;
+        ros::Duration rate;
+        ros::Publisher pub;
+    public:
+        ThrottledPublisher(std::string  topicName, int queueSize, float hz)
+        {
+            ros::NodeHandle nh;
+            pub = nh.advertise<msg>(topicName, queueSize);
+            this->rate = ros::Duration(1.0/hz);
+            nextPubTime = ros::Time::now();
+        }
 
-            ~ThrottledPublisher()
-            {}
+        ~ThrottledPublisher()
+        {}
 
-            void publish(msg message)
+        void publish(msg message)
+        {
+            if (nextPubTime <= ros::Time::now())
             {
-                if (nextPubTime <= ros::Time::now())
-                {
-                    pub.publish(message);
-                    nextPubTime = ros::Time::now() + rate;
-                }
+                pub.publish(message);
+                nextPubTime = ros::Time::now() + rate;
             }
-    };
+        }
+};
 };

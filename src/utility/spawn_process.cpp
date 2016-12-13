@@ -29,20 +29,26 @@ namespace rs
         }
         else if (m_pid  == 0) //child
         {
-            ROS_DEBUG("spawning \"%s\" with args \"%s\"", cmd.c_str(), args.c_str());
+            ROS_DEBUG("spawning \"%s\" with args \"%s\"",
+                      cmd.c_str(), args.c_str());
             char *arg_ptrs[64];
 
             arg_ptrs[0] = const_cast<char*>(cmd.c_str());
-            int i=1;
+            int i = 1;
             if(args != "")
             {
                 arg_ptrs[i] = strtok(const_cast<char*>(args.c_str()), " ");
-                while((arg_ptrs[++i] = strtok(NULL, " ")));
+                while((arg_ptrs[++i] = strtok(NULL, " ")))
+                {
+                    //this loop body is intended to be empty, all logic happens
+                    //in the conditional of the while loop
+                }
             }
             arg_ptrs[i] = 0;
 
             execvp(cmd.c_str(), arg_ptrs);
-            ROS_FATAL_STREAM("failed to exec \"" << cmd << "\", error: " << strerror(errno));
+            ROS_FATAL_STREAM("failed to exec \"" << cmd << "\", error: " <<
+                             strerror(errno));
             exit(1);
         }
         else //parent

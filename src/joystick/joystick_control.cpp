@@ -31,7 +31,6 @@ void dead_scale(double *value, double deadzone, double scaling_power)
 
 void joystickToControlCallback(const robosub::joystick msg)
 {
-
     //scale and apply deadzones
     //dead_scale(msg.axisX, axisXdeadzone, x_scaling_power);
     //dead_scale(msg.axisY, axisYdeadzone, y_scaling_power);
@@ -43,10 +42,12 @@ void joystickToControlCallback(const robosub::joystick msg)
     outmsg.strafe_state  = outmsg.STATE_ERROR;
     outmsg.dive_state    = outmsg.STATE_ABSOLUTE;
     outmsg.yaw_state     = outmsg.STATE_RELATIVE;
-    outmsg.forward = (double)msg.axisX;
+    outmsg.forward = static_cast<double>(msg.axisX);
     outmsg.strafe_left = -msg.axisY;
     outmsg.yaw_left = msg.axisZ;
-    outmsg.dive = (double) -((max_depth-min_depth)*(double)msg.throttle + min_depth);
+    outmsg.dive = static_cast<double>(
+                            -((max_depth-min_depth) *
+                            static_cast<double>(msg.throttle) + min_depth));
 
     if (msg.axisZ)
     {
@@ -64,7 +65,7 @@ void joystickToControlCallback(const robosub::joystick msg)
         if (msg.hatX)
         {
             outmsg.pitch_state = outmsg.STATE_RELATIVE;
-            outmsg.pitch_down = (double) msg.hatX * -10;
+            outmsg.pitch_down =  static_cast<double>(msg.hatX) * -10;
         }
         else
         {
@@ -74,14 +75,13 @@ void joystickToControlCallback(const robosub::joystick msg)
         if (msg.hatY)
         {
             outmsg.roll_state  = outmsg.STATE_RELATIVE;
-            outmsg.roll_right = (double) msg.hatY * 10;
+            outmsg.roll_right = static_cast<double>(msg.hatY) * 10;
         }
         else
         {
             outmsg.roll_state = outmsg.STATE_NONE;
             outmsg.roll_right = 0;
         }
-
     }
     else
     {
@@ -102,7 +102,8 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    ros::Subscriber sub = nh.subscribe("joystick_driver", 1, joystickToControlCallback);
+    ros::Subscriber sub = nh.subscribe("joystick_driver", 1,
+                                       joystickToControlCallback);
     pub = nh.advertise<robosub::control>("control", 1);
     nh = ros::NodeHandle("joystick_control");
 

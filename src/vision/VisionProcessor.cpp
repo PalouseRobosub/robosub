@@ -1,5 +1,8 @@
 #include "VisionProcessor.hpp"
 #include <XmlRpcException.h>
+#include <string>
+#include <vector>
+#include <map>
 
 VisionProcessor::VisionProcessor()
 {
@@ -8,7 +11,6 @@ VisionProcessor::VisionProcessor()
 
 VisionProcessor::~VisionProcessor()
 {
-
 }
 
 //Processes the image using color filtering with parameters under given subgroup
@@ -16,7 +18,7 @@ Mat VisionProcessor::process(Image& image)
 {
     //Convert image message to OpenCV Mat
     Mat toProcess = toOpenCV(image);
-    
+
     ROS_DEBUG_STREAM("Image now OpenCv Mat");
 
     //Convert to HSV color space
@@ -27,14 +29,14 @@ Mat VisionProcessor::process(Image& image)
 
     //Create the lowerbound of thresholding with defaults
     vector<Scalar> lower_bounds;
-    
-    getLowerBoundParams(lower_bounds); 
+
+    getLowerBoundParams(lower_bounds);
 
     //Create upperbound of thresholding with defaults
     vector<Scalar> upper_bounds;
- 
+
     getUpperBoundParams(upper_bounds);
-    
+
     //Initialize blur iteration num with default
     int numBlurIters = 3;
 
@@ -45,7 +47,7 @@ Mat VisionProcessor::process(Image& image)
     }
 
     //Initialize open filter size with default of 3x3
-    int openSize[] = {3,3};
+    int openSize[] = {3, 3};
 
     //Initialize open filter iteration num with default
     int numOpenIters = 1;
@@ -56,7 +58,7 @@ Mat VisionProcessor::process(Image& image)
     n.getParamCached("open/iters", numOpenIters);
 
     //Initialize open filter size with default of 3x3
-    int closeSize[] = {3,3};
+    int closeSize[] = {3, 3};
 
     //Initialize open filter iteration num with default
     int numCloseIters = 1;
@@ -76,7 +78,7 @@ Mat VisionProcessor::process(Image& image)
     {
         openSize[1]++;
     }
-    
+
     if (closeSize[0] % 2 != 1)
     {
         closeSize[0]++;
@@ -86,17 +88,18 @@ Mat VisionProcessor::process(Image& image)
     {
         closeSize[1]++;
     }
-    
+
     ROS_DEBUG_STREAM("Performing Masking and/or other processing");
 
     //Blur the image for a bit more smoothness
     medianBlur(hsv, hsv, 3);
-    
+
     Mat mask;
     //Mask the image within the threshold ranges
-    for (unsigned int i = 0; i < lower_bounds.size() && i < upper_bounds.size(); i++)
+    for (unsigned int i = 0;
+         i < lower_bounds.size() && i < upper_bounds.size(); i++)
     {
-        ROS_DEBUG_STREAM("Masking color range " << i << " from " 
+        ROS_DEBUG_STREAM("Masking color range " << i << " from "
                             << lower_bounds[i] << " to " << upper_bounds[i]);
         Mat temp;
         inRange(hsv, lower_bounds[i], upper_bounds[i], temp);
@@ -109,38 +112,39 @@ Mat VisionProcessor::process(Image& image)
         {
             temp.copyTo(mask);
         }
-
     }
 
     //Add a close filter to remove holes in objects
-    morphologyEx(mask, mask, MORPH_CLOSE, getStructuringElement(MORPH_RECT, Size(closeSize[0], closeSize[1])), Point(-1,-1), numCloseIters);
+    morphologyEx(mask, mask, MORPH_CLOSE, getStructuringElement(MORPH_RECT,
+              Size(closeSize[0], closeSize[1])), Point(-1, -1), numCloseIters);
 
     //Add an open filter which reduces small noise.
-    morphologyEx(mask, mask, MORPH_OPEN, getStructuringElement(MORPH_RECT, Size(openSize[0], openSize[1])), Point(-1,-1), numOpenIters);
+    morphologyEx(mask, mask, MORPH_OPEN, getStructuringElement(MORPH_RECT,
+                 Size(openSize[0], openSize[1])), Point(-1, -1), numOpenIters);
 
     ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
-    
+
     ROS_DEBUG_STREAM("Returning mask");
     return mask;
 }
 
 ///////Private functions///////
 
-void VisionProcessor::getScalarParamSet(string mapName,vector<Scalar> &scalars)
+void VisionProcessor::getScalarParamSet(string mapName,
+                                        vector<Scalar> &scalars)
 {
-    
     string key;
     //Get lowerbound params
     if (n.searchParam(mapName, key))
     {
-        XmlRpc::XmlRpcValue map;   
+        XmlRpc::XmlRpcValue map;
         n.getParamCached(key, map);
         ROS_DEBUG_STREAM("Found: " << map.size() << " sets in key " << key);
-        
+
         for (int i = 0; i < map.size(); i++)
         {
             std::map<std::string, double> parameters;
-            try 
+            try
             {
                 for (auto it = map[i].begin(); it != map[i].end(); it++)
                 {
@@ -151,30 +155,32 @@ void VisionProcessor::getScalarParamSet(string mapName,vector<Scalar> &scalars)
                             value = it->second;
                             break;
                         case XmlRpc::XmlRpcValue::TypeInt:
-                            value = static_cast<double>(static_cast<int>(it->second));
+                            value = static_cast<double>(
+                                                 static_cast<int>(it->second));
                             break;
                         default:
-                            ROS_ERROR_STREAM("Invalid parameter type for " << mapName << ": " << it->first);
+                            ROS_ERROR_STREAM("Invalid parameter type for " <<
+                                             mapName << ": " << it->first);
                             return;
                             break;
                     }
 
                     parameters.emplace(it->first, value);
-                }    
+                }
             }
             catch (XmlRpc::XmlRpcException e)
             {
-                ROS_ERROR_STREAM("XmlRpcException code " << e.getCode() << ": " << e.getMessage());
+                ROS_ERROR_STREAM("XmlRpcException code " << e.getCode() <<
+                                 ": " << e.getMessage());
                 ros::shutdown();
             }
-            
+
             Scalar s;
             s[0] = parameters["hue"];//map[i]["hue"];
             s[1] = parameters["sat"];
             s[2] = parameters["val"];
             ROS_DEBUG_STREAM("Scalar: " << s);
             scalars.push_back(s);
-            
         }
         ROS_INFO_STREAM(mapName << " Params fetched");
     }
@@ -182,7 +188,7 @@ void VisionProcessor::getScalarParamSet(string mapName,vector<Scalar> &scalars)
     {
         ROS_ERROR_STREAM("Node does not contain " << mapName << " params");
     }
-    ROS_DEBUG_STREAM("Size of scalars: " << scalars.size()); 
+    ROS_DEBUG_STREAM("Size of scalars: " << scalars.size());
 }
 
 void VisionProcessor::getLowerBoundParams(vector<Scalar> &lower_bounds)
@@ -191,7 +197,7 @@ void VisionProcessor::getLowerBoundParams(vector<Scalar> &lower_bounds)
 }
 void VisionProcessor::getUpperBoundParams(vector<Scalar> &upper_bounds)
 {
-    getScalarParamSet("max", upper_bounds); 
+    getScalarParamSet("max", upper_bounds);
 }
 
 //Converts a ros image_transport Image to an OpenCV Mat
@@ -219,7 +225,7 @@ Mat VisionProcessor::toOpenCV(Image& image)
         ROS_ERROR("cv_bridge exception: %s", e.what());
         exit(1);
     }
-    
+
     ROS_DEBUG_STREAM("Returning Mat");
     return cv_ptr->image;
 }

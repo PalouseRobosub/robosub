@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "utility/test_tools.hpp"
+#include <string>
 
 namespace rs
 {

@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "robosub/thruster.h"
 #include "utility/serial.hpp"
+#include <string>
 
 rs::Serial mSerial;
 

@@ -1,4 +1,5 @@
 #include "SharedImageReader.hpp"
+#include <string>
 
 namespace rs
 {
@@ -15,7 +16,8 @@ namespace rs
         }
 
         // pull shared image header
-        void *mem = mmap(0, sizeof(SharedImageHeader), PROT_READ, MAP_SHARED, fd, 0); // let os create buffer
+        void *mem = mmap(0, sizeof(SharedImageHeader), PROT_READ, MAP_SHARED,
+                         fd, 0); // let os create buffer
         if(mem <= 0)
         {
             ROS_FATAL_STREAM(strerror(errno));
@@ -31,7 +33,9 @@ namespace rs
             ROS_FATAL_STREAM("Failed to unmap mem for object: " + header_name);
             ros::shutdown();
         }
-        mem = mmap(0, sizeof(SharedImageHeader) + header->data_size, PROT_READ, MAP_SHARED, fd, 0); // let os create buffer
+        mem = mmap(0, sizeof(SharedImageHeader) + header->data_size, PROT_READ,
+                   MAP_SHARED, fd, 0); // let os create buffer
+
         if(mem <= 0)
         {
             ROS_FATAL_STREAM(strerror(errno));
@@ -39,7 +43,7 @@ namespace rs
             ros::shutdown();
         }
         header->fd = fd;
-        header->data = (char*)mem + sizeof(SharedImageHeader);
+        header->data = static_cast<char*>(mem) + sizeof(SharedImageHeader);
 
         // map sem
         sem_t *sem = sem_open(header_name.c_str(), O_CREAT, S_IRWXU, 1);

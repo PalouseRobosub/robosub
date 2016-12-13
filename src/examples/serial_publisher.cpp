@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Quaternion.h"
 #include "utility/serial.hpp"
+#include <string>
 
 rs::Serial mSerial;
 
@@ -9,7 +10,8 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "serial_publisher");
     ros::NodeHandle n;
 
-    ros::Publisher pub = n.advertise<geometry_msgs::Quaternion>("orientation", 1);
+    ros::Publisher pub =
+                      n.advertise<geometry_msgs::Quaternion>("orientation", 1);
     std::string port;
 
     if(!n.getParam("sensor_serial_port", port))
@@ -24,7 +26,6 @@ int main(int argc, char **argv)
 
     while(ros::ok())
     {
-
       uint8_t serial_data[256];
       mSerial.Read(serial_data, 4);
 
@@ -36,6 +37,5 @@ int main(int argc, char **argv)
 
       pub.publish(my_orientation);
       rate.sleep();
-
     }
 }

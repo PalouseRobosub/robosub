@@ -1,5 +1,6 @@
 #include "Bno055.h"
 #include <ros/ros.h>
+#include <vector>
 
 namespace rs
 {

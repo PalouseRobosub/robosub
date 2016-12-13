@@ -37,7 +37,8 @@ namespace rs
         //certain amount of time then fail out
         ros::Duration(.1).sleep();
 
-        this->m_port_fd = ::open(port_name, O_RDWR | O_NOCTTY | O_ASYNC | O_NDELAY);
+        this->m_port_fd = ::open(port_name, O_RDWR | O_NOCTTY | O_ASYNC |
+                                 O_NDELAY);
         this->m_port_name = port_name;
         if (this->m_port_fd < 0)
         {
@@ -125,7 +126,6 @@ namespace rs
      */
     int Serial::Read(uint8_t *buf, int num)
     {
-
         int i = 0;
         int temp;
 
@@ -159,7 +159,7 @@ namespace rs
             }
             else
                 i+=temp;
-            usleep((num-i)<<3);
+            usleep((num-i) << 3);
         }
 
         return i;
@@ -205,10 +205,11 @@ namespace rs
 
         options.c_iflag = 0; //no input handling
         options.c_oflag = 0; //no output mapping
-        options.c_cflag = (options.c_cflag & ~CSIZE) |
-                          CS8; //utilize 8 bit works and clear the current word setting to be overwritten (masked)
-        options.c_cflag |= CLOCAL |
-                           CREAD; //disable modem controls and enable the receiver
+        //utilize 8 bit works and clear the current word setting to be
+        //overwritten (masked)
+        options.c_cflag = (options.c_cflag & ~CSIZE) | CS8;
+        //disable modem controls and enable the receiver
+        options.c_cflag |= CLOCAL | CREAD;
         //options.c_cflag &= ~CRTSCTS;
 
         cfmakeraw(&options);
@@ -217,12 +218,14 @@ namespace rs
         cfsetospeed(&options, baud_rate);
 
 
-        //Finally figured this out. With VMIN = 255 and VTIME != 0, there is a timeout (VTIME *.1 seconds) between each byte received on the UART
-        //If the timeout occurs, read() will return
-        //Read will also return if 255 bytes are read
-        //Read will aditionally return if read()'s calling readAmt is read.
+        //Finally figured this out. With VMIN = 255 and VTIME != 0, there is a
+        //timeout (VTIME *.1 seconds) between each byte received on the UART If
+        //the timeout occurs, read() will return Read will also return if 255
+        //bytes are read Read will aditionally return if read()'s calling
+        //readAmt is read.
 
-        //This is the most likely series of events that result in read() returning when the amount of bytes specified are read.
+        //This is the most likely series of events that result in read()
+        //returning when the amount of bytes specified are read.
 
         options.c_cc[VMIN] = 255;
         options.c_cc[VTIME] = 5; //.5 second time out in between bytes

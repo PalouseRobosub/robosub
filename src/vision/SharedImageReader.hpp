@@ -3,6 +3,7 @@
 
 #include <opencv2/core/core.hpp>
 #include <iostream>
+#include <string>
 #include "SharedImageHeader.hpp"
 #include "ros/ros.h"
 #include "ros/console.h"
@@ -12,19 +13,19 @@ using namespace cv;
 
 namespace rs
 {
-    class SharedImageReader
-    {
-    private:
-        string header_name;
-        Ptr<SharedImageHeader> header;
+class SharedImageReader
+{
+private:
+    string header_name;
+    Ptr<SharedImageHeader> header;
 
-    public:
-        SharedImageReader(string name);
-        ~SharedImageReader();
+public:
+    SharedImageReader(string name);
+    ~SharedImageReader();
 
-        Mat Read();
-        void operator>>(Mat image);
-    };
+    Mat Read();
+    void operator>>(Mat image);
+};
 };
 
 #endif

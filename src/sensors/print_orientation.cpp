@@ -32,12 +32,13 @@ void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "print_orientation");
+    ros::init(argc, argv, "print_orientation");
 
     ros::NodeHandle nh;
     pub = nh.advertise<robosub::Euler>("euler", 1);
 
-	ros::Subscriber orient_sub = nh.subscribe("orientation", 1, orientationCallback);
+    ros::Subscriber orient_sub = nh.subscribe("orientation", 1,
+                                              orientationCallback);
 
     ros::spin();
 

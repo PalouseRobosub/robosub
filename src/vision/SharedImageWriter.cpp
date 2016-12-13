@@ -1,14 +1,16 @@
 #include "SharedImageWriter.hpp"
+#include <string>
 
 namespace rs
 {
     SharedImageWriter::SharedImageWriter(string name, Mat image)
     {
-        unsigned long data_size = image.total() * image.elemSize();
+        uint64_t data_size = image.total() * image.elemSize();
 
         // create shared image header
         header_name = "robosub_" + name;
-        int fd = shm_open(header_name.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRWXU);
+        int fd = shm_open(header_name.c_str(), O_RDWR | O_CREAT | O_TRUNC,
+                          S_IRWXU);
         if(fd <= 0)
         {
             ROS_FATAL_STREAM(strerror(errno));
@@ -36,14 +38,16 @@ namespace rs
         ftruncate(fd, total_size);
 
         // put first frame into memory
-        void *mem = mmap(0, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0); // let os create buffer
+        void *mem = mmap(0, total_size, PROT_READ | PROT_WRITE, MAP_SHARED,
+                         fd, 0); // let os create buffer
         if(mem <= 0)
         {
             ROS_FATAL_STREAM(strerror(errno));
             ROS_FATAL_STREAM("Failed to create memory for object: " + name);
             ros::shutdown();
         }
-        header->data = (char*)mem + sizeof(SharedImageHeader); // set sim data segment to data segment of mem
+        // set sim data segment to data segment of mem
+        header->data = static_cast<char*>(mem) + sizeof(SharedImageHeader);
         sem_wait(header->sem); // lock memory
         memcpy(mem, header, sizeof(SharedImageHeader)); // copy header
         memcpy(header->data, image.data, data_size);    // copy data

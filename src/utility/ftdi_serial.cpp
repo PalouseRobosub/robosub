@@ -2,6 +2,8 @@
 #include <cstring>
 #include <iostream>
 #include <unistd.h>
+#include <vector>
+#include <string>
 
 namespace rs
 {
@@ -19,8 +21,10 @@ namespace rs
     bool FTDISerial::open(std::vector<uint8_t>& serial_number)
     {
         serial_number.push_back(0);
-        m_status = FT_OpenEx(&serial_number[0], FT_OPEN_BY_SERIAL_NUMBER, &m_handle);
-        if(m_status != FT_OK) {
+        m_status = FT_OpenEx(&serial_number[0], FT_OPEN_BY_SERIAL_NUMBER,
+                             &m_handle);
+        if(m_status != FT_OK)
+        {
             return false;
         }
 
@@ -32,7 +36,8 @@ namespace rs
         m_status |= FT_SetFlowControl(m_handle, m_flow_control, 0, 0);
         m_status |= FT_SetLatencyTimer(m_handle, 2);
 
-        if(m_status != FT_OK) {
+        if(m_status != FT_OK)
+        {
             return false;
         }
 
@@ -43,9 +48,11 @@ namespace rs
 
     bool FTDISerial::close()
     {
-        if(m_open) {
+        if(m_open)
+        {
             m_status = FT_Close(m_handle);
-            if(m_status != FT_OK) {
+            if(m_status != FT_OK)
+            {
                 return false;
             }
 
@@ -59,10 +66,12 @@ namespace rs
     {
         uint32_t bytes_read = 0;
 
-        if(!num_bytes) {
+        if(!num_bytes)
+        {
             sleep(1);
             m_status = FT_GetQueueStatus(m_handle, &num_bytes);
-            if(m_status != FT_OK) {
+            if(m_status != FT_OK)
+            {
                 return false;
             }
         }
@@ -70,7 +79,8 @@ namespace rs
         msg.resize(num_bytes);
 
         m_status = FT_Read(m_handle, &msg[0], num_bytes, &bytes_read);
-        if((bytes_read < num_bytes) || (m_status != FT_OK)) {
+        if((bytes_read < num_bytes) || (m_status != FT_OK))
+        {
             return false;
         }
 
@@ -116,7 +126,7 @@ namespace rs
         m_flow_x_on = x_on;
         m_flow_x_off = x_off;
     }
-    
+
     bool FTDISerial::populateDeviceList()
     {
         std::vector<std::vector<uint8_t>> dev_buf;
@@ -124,22 +134,26 @@ namespace rs
         uint32_t num_devs = 0;
 
         if(!FTDISerial::m_dev_list.empty() ||
-                FT_ListDevices(&num_devs, NULL, FT_LIST_NUMBER_ONLY) != FT_OK) {
+                FT_ListDevices(&num_devs, NULL, FT_LIST_NUMBER_ONLY) != FT_OK)
+        {
             return false;
         }
-        
-        for(uint32_t i = 0; i < num_devs; i++) {
+
+        for(uint32_t i = 0; i < num_devs; i++)
+        {
             dev_buf.push_back(std::vector<uint8_t>(64));
             dev_buf_ptr.push_back(&dev_buf.back()[0]);
         }
         dev_buf_ptr.push_back(NULL);
 
         if(FT_ListDevices(&dev_buf_ptr[0], &num_devs,
-                       FT_LIST_ALL | FT_OPEN_BY_SERIAL_NUMBER) != FT_OK) {
+                       FT_LIST_ALL | FT_OPEN_BY_SERIAL_NUMBER) != FT_OK)
+        {
             return false;
         }
 
-        for(uint32_t i = 0; i < num_devs; i++) {
+        for(uint32_t i = 0; i < num_devs; i++)
+        {
             FTDISerial::m_dev_list.emplace_back(dev_buf[i].begin(),
                     dev_buf[i].end());
         }

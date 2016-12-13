@@ -3,6 +3,8 @@
 #include "robosub/thruster.h"
 #include "utility/serial.hpp"
 #include "utility/test_tools.hpp"
+#include <vector>
+#include <string>
 
 typedef struct thruster_info
 {
@@ -45,11 +47,14 @@ TEST(SerialSubscriber, basicTest)
 
     /*stores the information for all of the thrusters into the mThruster_info
      struct in vector form*/
-    for(int i=0; i < my_list.size(); ++i)
+    for(int i = 0; i < my_list.size(); ++i)
     {
-        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " <<
+                         my_list[i]["name"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " <<
+                         my_list[i]["address"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " <<
+                         my_list[i]["port"]);
         Thruster_info one_thruster;
         one_thruster.name = static_cast<std::string>(my_list[i]["name"]);
         one_thruster.address = static_cast<int>(my_list[i]["address"]);
@@ -57,8 +62,9 @@ TEST(SerialSubscriber, basicTest)
         mThruster_info.push_back(one_thruster);
       }
 
-      //reads the first 24 bytes from the serial port to take them out of the way
-      mSerial.Read(waste, 24);
+    //reads the first 24 bytes from the serial port to take them out of the way
+    mSerial.Read(waste, 24);
+
     //after we published the thruster message, the thruster module should have
     //received the message, and then sent some data down the serial port, here
     //we read that data and verify it is correct

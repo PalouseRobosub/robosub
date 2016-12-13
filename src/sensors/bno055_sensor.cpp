@@ -64,7 +64,8 @@ Bno055::Axis encodeAxis(int axis)
             break;
     }
 
-    ROS_FATAL("Sensor node failed to encode axis. Ensure axis mappings are 1, 2, 3, -1, -2, or -3.");
+    ROS_FATAL("Sensor node failed to encode axis. Ensure axis mappings are "
+              "1, 2, 3, -1, -2, or -3.");
     exit(-1);
 }
 

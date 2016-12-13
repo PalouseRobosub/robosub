@@ -26,7 +26,7 @@ class VisionProcessor
     public:
         VisionProcessor();
         ~VisionProcessor();
-        
+
         Mat process(Image& image);
 
     private:
@@ -37,6 +37,5 @@ class VisionProcessor
         void getUpperBoundParams(vector<Scalar> &upper_bounds);
 
         Mat toOpenCV(Image& image);
-        
 };
 #endif

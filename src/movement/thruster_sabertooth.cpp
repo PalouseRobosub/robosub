@@ -2,6 +2,7 @@
 #include "utility/serial.hpp"
 #include "robosub/thruster.h"
 #include <string>
+#include <vector>
 
 using namespace rs;
 
@@ -73,7 +74,7 @@ void createThrusterPacket (uint8_t serial_data[4], double value, int index)
 
     //checksum
     checksum(serial_data);
- }
+}
 
 /*Message recieved, send thruster package to thrusters
   Publish thruster information with name*/
@@ -84,7 +85,6 @@ void callBack(const robosub::thruster::ConstPtr& msg)
 
     for (unsigned int i = 0; i < message.data.size(); ++i)
     {
-
       createThrusterPacket(serial_data, message.data[i], i);
 
       //send package to thrusters
@@ -140,11 +140,14 @@ int main(int argc, char **argv)
     XmlRpc::XmlRpcValue my_list;
     ros::param::get("thrusters", my_list);
 
-    for(int i=0; i < my_list.size(); ++i)
+    for(int i = 0; i < my_list.size(); ++i)
     {
-        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << my_list[i]["name"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " << my_list[i]["address"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " << my_list[i]["port"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " <<
+                         my_list[i]["name"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][address]: " <<
+                         my_list[i]["address"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][port]:    " <<
+                         my_list[i]["port"]);
         Thruster_info one_thruster;
         one_thruster.name = static_cast<std::string>(my_list[i]["name"]);
         one_thruster.address = static_cast<int>(my_list[i]["address"]);

@@ -2,6 +2,7 @@
 #define ROTATIONENGINE_HPP
 
 #include <eigen3/Eigen/Dense>
+#include <limits>
 
 using namespace Eigen;
 

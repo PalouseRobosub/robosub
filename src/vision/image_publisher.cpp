@@ -17,7 +17,8 @@ int main(int argc, char** argv)
     image_transport::ImageTransport it(nh);
 
     image_transport::Publisher pub_left = it.advertise("camera/left/image", 1);
-    image_transport::Publisher pub_right = it.advertise("camera/right/image", 1);
+    image_transport::Publisher pub_right =
+                                         it.advertise("camera/right/image", 1);
 
     ros::Rate loop_rate(5);
 
@@ -26,8 +27,10 @@ int main(int argc, char** argv)
         cv::Mat l = image_reader_left.Read();
         cv::Mat r = image_reader_right.Read();
 
-        sensor_msgs::ImagePtr l_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", l).toImageMsg();
-        sensor_msgs::ImagePtr r_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", r).toImageMsg();
+        sensor_msgs::ImagePtr l_msg =
+                cv_bridge::CvImage(std_msgs::Header(), "bgr8", l).toImageMsg();
+        sensor_msgs::ImagePtr r_msg =
+                cv_bridge::CvImage(std_msgs::Header(), "bgr8", r).toImageMsg();
 
         pub_left.publish(l_msg);
         pub_right.publish(r_msg);

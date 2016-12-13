@@ -55,7 +55,8 @@ int main()
 
     HandleError(bno.init(), "Bno055::init()");
 
-    HandleError(bno.setOperationMode(Bno055::OperationMode::Ndof), "Bno055::setOperationMode()");
+    HandleError(bno.setOperationMode(Bno055::OperationMode::Ndof),
+                "Bno055::setOperationMode()");
 
 //    /*
 //     * Perform a calibration of all sensors.
@@ -94,4 +95,3 @@ int main()
 
     return 0;
 }
-

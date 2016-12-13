@@ -6,6 +6,9 @@
 #include "utility/serial.hpp"
 #include "robosub/thruster.h"
 #include "maestro_thruster_controller.hpp"
+#include <string>
+#include <map>
+#include <vector>
 
 typedef struct thruster_info
 {
@@ -23,7 +26,8 @@ void Callback (const robosub::thruster::ConstPtr& msg)
     int result = 0;
     for (unsigned int i = 0; i < msg->data.size(); i++)
     {
-        result = thrusterController.set(msg->data[i], mThruster_info[i].channel);
+        result = thrusterController.set(msg->data[i],
+                                        mThruster_info[i].channel);
         if(result != 0)
         {
             ROS_ERROR_STREAM("Setting speed of thrusters failed.");
@@ -64,14 +68,19 @@ int main(int argc, char **argv)
     XmlRpc::XmlRpcValue thruster_settings;
     ros::param::get("thrusters", thruster_settings);
 
-    for(int i=0; i < thruster_settings.size(); ++i)
+    for(int i = 0; i < thruster_settings.size(); ++i)
     {
-        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " << thruster_settings[i]["name"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][channel]: " << thruster_settings[i]["channel"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][max_speed]:   " << thruster_settings[i]["max_speed"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][name]:    " <<
+                         thruster_settings[i]["name"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][channel]: " <<
+                         thruster_settings[i]["channel"]);
+        ROS_DEBUG_STREAM("thrusters["<< i << "][max_speed]:   " <<
+                         thruster_settings[i]["max_speed"]);
         Thruster_info one_thruster;
-        one_thruster.name = static_cast<std::string>(thruster_settings[i]["name"]);
-        one_thruster.channel = static_cast<int>(thruster_settings[i]["channel"]);
+        one_thruster.name =
+                        static_cast<std::string>(thruster_settings[i]["name"]);
+        one_thruster.channel =
+                             static_cast<int>(thruster_settings[i]["channel"]);
         max_speeds[one_thruster.channel] =
                         static_cast<double>(thruster_settings[i]["max_speed"]);
         mThruster_info.push_back(one_thruster);

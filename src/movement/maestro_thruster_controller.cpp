@@ -1,4 +1,5 @@
-#include "movement/maestro_thruster_controller.hpp"
+#include "maestro_thruster_controller.hpp"
+#include <map>
 
 namespace rs
 {
@@ -9,8 +10,6 @@ namespace rs
     MaestroThrusterController::MaestroThrusterController()
     {
         _is_initialized = false;
-
-
     }
 
 
@@ -55,7 +54,6 @@ namespace rs
 
             //default max thruster speeds to zero
             _max_speed[i] = 0.0;
-
         }
         for (auto iter = max_speed.begin(); iter != max_speed.end(); iter++)
         {
@@ -135,7 +133,8 @@ namespace rs
             ROS_DEBUG_STREAM("Sending thruster reset signal.");
             if (parseNormalized(0, command[3], command[2]))
             {
-                ROS_ERROR( "Parse Normalized encountered abnormal thruster speed.");
+                ROS_ERROR("Parse Normalized encountered abnormal "
+                          "thruster speed.");
                 return -1;
             }
 
@@ -145,14 +144,16 @@ namespace rs
                 return -1;
             }
 
-            _next_reset[channel] = ros::Time::now() + ros::Duration(reset_timeout);
+            _next_reset[channel] =
+                               ros::Time::now() + ros::Duration(reset_timeout);
 
             /*
              * Sleep to ensure that the zero pulse has propogated to the ESC.
              * Any value less than 185ms may result in the ESC not receiving
              * the zero pulse, which will cause it to malfunction
              */
-            ros::Duration(float(_post_reset_delay_ms)/1000).sleep();
+            ros::Duration(
+                        static_cast<float>(_post_reset_delay_ms)/1000).sleep();
         }
 
         /*
@@ -195,13 +196,14 @@ namespace rs
      *
      * @return Zero on success and -1 on failure.
      */
-     int MaestroThrusterController::parseNormalized(const double speed, uint8_t &msb,
-             uint8_t &lsb)
+     int MaestroThrusterController::parseNormalized(const double speed,
+                                                    uint8_t &msb, uint8_t &lsb)
      {
          //General process for determining the value:
-         //The thruster ESC expects a pulse-width value in the range of 1100-1900us
-         //with 1100us being full-reverse, 1900us full-forward, and 1500us stop.
-         //to translate -1 to 1 to this range, use the following equation:
+         //The thruster ESC expects a pulse-width value in the range of
+         //1100-1900us with 1100us being full-reverse, 1900us full-forward, and
+         //1500us stop.
+         //To translate -1 to 1 to this range, use the following equation:
          //    pulse_width = (1500 + 400*speed)
          //once the pulse-width is known, the value to send down to the maestro
          //is calculated as follows:

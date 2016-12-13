@@ -15,7 +15,6 @@ void convertCallback(const std_msgs::Float64::ConstPtr& msg)
     outmsg.data = radians;
 
     pub.publish(outmsg);
-
 }
 
 int main(int argc, char **argv)

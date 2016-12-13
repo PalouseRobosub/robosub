@@ -1,4 +1,5 @@
 #include "joystick_driver.hpp"
+#include <string>
 
 JoystickDriver::JoystickDriver(ros::NodeHandle *nh)
 {
@@ -29,8 +30,8 @@ robosub::joystick JoystickDriver::GetJoystickMessage()
     }
     if (errno != EAGAIN) //check for any errors
     {
-        //std::cerr << "JOYSTICK READ ERROR: " << string(strerror(errno)) << std::endl;
-        ROS_DEBUG("JOYSTICK READ ERROR: %s\n", std::string(strerror(errno)).c_str());
+        ROS_DEBUG("JOYSTICK READ ERROR: %s\n",
+                  std::string(strerror(errno)).c_str());
         exit(1);
     }
 
@@ -38,25 +39,26 @@ robosub::joystick JoystickDriver::GetJoystickMessage()
     robosub::joystick js_msg;
     //ROS_DEBUG("joystick_data.axisX: %f\n", joystick_data.axisX);
 
-    js_msg.axisX = (double)joystick_data.axisX;
-    js_msg.axisY = (double)joystick_data.axisY;
-    js_msg.axisZ = (double)joystick_data.axisZ;
+    js_msg.axisX = static_cast<double>(joystick_data.axisX);
+    js_msg.axisY = static_cast<double>(joystick_data.axisY);
+    js_msg.axisZ = static_cast<double>(joystick_data.axisZ);
 
     js_msg.hatX = joystick_data.hatX;
     js_msg.hatY = joystick_data.hatY;
 
-    js_msg.throttle = (double)joystick_data.throttle;
+    js_msg.throttle = static_cast<double>(joystick_data.throttle);
 
-    for(int i=0; i<12; ++i)
+    for(int i = 0; i < 12; ++i)
     {
         js_msg.buttons[i] = joystick_data.button[i];
     }
 
     //normalize all of the values
-    js_msg.axisX = js_msg.axisX / (double)AXIS_MAX;
-    js_msg.axisY = js_msg.axisY / (double)AXIS_MAX;
-    js_msg.axisZ = js_msg.axisZ / (double)AXIS_MAX;
-    js_msg.throttle = (((double)joystick_data.throttle/AXIS_MAX)+1)/2;
+    js_msg.axisX = js_msg.axisX / static_cast<double>(AXIS_MAX);
+    js_msg.axisY = js_msg.axisY / static_cast<double>(AXIS_MAX);
+    js_msg.axisZ = js_msg.axisZ / static_cast<double>(AXIS_MAX);
+    js_msg.throttle = ((static_cast<double>(joystick_data.throttle)/AXIS_MAX)
+                       +1)/2;
     js_msg.hatX /= AXIS_MAX;
     js_msg.hatY /= AXIS_MAX;
 

@@ -8,6 +8,7 @@
 #include "robosub/thruster.h"
 #include "utility/serial.hpp"
 #include "utility/test_tools.hpp"
+#include <string>
 
 //some global variables used by multiple tests
 rs::Serial mSerial;
@@ -44,7 +45,6 @@ TEST(SerialSubscriber, basicTest)
         //compare and make sure the value recieved is equal to the value sent
         EXPECT_EQ(thruster_msg.data[i], serial_data[0]);
     }
-
 }
 
 int main(int argc, char *argv[])

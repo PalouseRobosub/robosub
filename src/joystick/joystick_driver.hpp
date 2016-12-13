@@ -25,7 +25,6 @@ typedef struct
     double throttle;
 
     bool button[12];
-
 } JOYSTICK_STATE;
 
 class JoystickDriver

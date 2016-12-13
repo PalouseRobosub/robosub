@@ -145,4 +145,4 @@ private:
     std::deque<ros::Time> previous_error_times;
 };
 }
-#endif // _CONTROL_SYSTEM_H
+#endif // CONTROL_SYSTEM_H
