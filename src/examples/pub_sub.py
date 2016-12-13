@@ -11,10 +11,6 @@ class Node():
     def callback(self, degrees):
         radians = degrees.data * 3.14/180
         self.pub.publish(Float32(radians))
-        
-
-
-
 
 if __name__ == "__main__":
     rospy.init_node('degree_converter')

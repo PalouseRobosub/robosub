@@ -133,7 +133,8 @@ def ProcessLine(fn, filename, file_extension, clean_lines, line,
        extra_check_functions=[])
 
 @patch(cpplint)
-def ProcessFileData(fn, filename, file_extension, lines, error, extra_check_functions=[]):
+def ProcessFileData(fn, filename, file_extension, lines,
+                    error, extra_check_functions=[]):
     """ Tell the checker that hpp is h """
     if file_extension == 'hpp':
         fn(filename, 'h', lines, error, extra_check_functions)

@@ -19,7 +19,7 @@ def callback(msg):
     global names, pub
 
     # Loop over all the thrusters in the message
-    for i in range(0,len(msg.data)):
+    for i in range(0, len(msg.data)):
         # Pretty Print the thruster name and thrust
         print_pretty(names[i]['name'], msg.data[i])
 
@@ -40,13 +40,15 @@ if __name__ == "__main__":
 
     # Loop over the thruster names in the parameter server generating a topic
     #   for each
-    for i in range(0,len(names)):
+    for i in range(0, len(names)):
         # Push the new publisher to the dictionary
-        pub[i] = rospy.Publisher('pretty/thruster/{}'.format(names[i]['name']), Float64, queue_size=1)
+        pub[i] = rospy.Publisher('pretty/thruster/{}'.format(names[i]['name']),
+                                 Float64, queue_size=1)
 
     # Subscribe to the thruster topic
-    sub = rospy.Subscriber('thruster', thruster, callback=callback, queue_size=1)
-    
+    sub = rospy.Subscriber('thruster', thruster, callback=callback,
+                           queue_size=1)
+
     # Initialize the node (Anonymously)
     rospy.init_node('thruster_echo', anonymous=True)
 

@@ -14,25 +14,25 @@ class Node():
     def callback(self, vision_result):
         msg = control()
         rospy.info("state: {}".format(self.state))
-        #check for empty message, we can't see a buoy
+        # check for empty message, we can't see a buoy
         if len(vision_result.xPos) is 0:
             self.state = "SEARCHING"
-            #spin 10 degrees
+            # spin 10 degrees
             msg.yaw_state = control.STATE_RELATIVE
             msg.yaw_left = 10
-            #don't move forward, maintain depth
+            # don't move forward, maintain depth
             msg.forward_state = control.STATE_ERROR
             msg.forward = 0
             msg.dive_state = control.STATE_RELATIVE
             msg.dive = 0
-        else: #we see a buoy, go towards it!
+        else:  # we see a buoy, go towards it!
             self.state = "TRACKING"
             msg.yaw_state = control.STATE_ERROR
             msg.yaw_left = 10 * vision_result.xPos[0]
             msg.dive_state = control.STATE_ERROR
             msg.dive = 10 * vision_result.yPos[0]
 
-            #regulate distance
+            # regulate distance
             msg.forward_state = control.STATE_ERROR
             error = vision_result.magnitude[0] - 10000
             msg.forward = error
