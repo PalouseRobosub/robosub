@@ -131,3 +131,11 @@ def ProcessLine(fn, filename, file_extension, clean_lines, line,
        include_state, function_state, nesting_state,
        makeErrorFn(error, [], [r'(.*)should be indented \+1 space inside(.*)']),
        extra_check_functions=[])
+
+@patch(cpplint)
+def ProcessFileData(fn, filename, file_extension, lines, error, extra_check_functions=[]):
+    """ Tell the checker that hpp is h """
+    if file_extension == 'hpp':
+        fn(filename, 'h', lines, error, extra_check_functions)
+    else:
+        fn(filename, file_extension, lines, error, extra_check_functions)
