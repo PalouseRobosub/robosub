@@ -25,14 +25,7 @@ using std::vector;
  *
  * @return ret if the expression x evaluates false.
  */
-#define AbortIfNot(x, ret) \
-{ \
-    int t = (x); \
-    if (!t) \
-    { \
-        return ret;\
-    } \
-}
+#define AbortIfNot(x, ret) { int t = (x); if(!t) return ret; }
 
 /**
  * Handle expressions for automatic return on success.
@@ -41,32 +34,11 @@ using std::vector;
  *
  * @return x if the expression evaluates true.
  */
-#define AbortIf(x) \
-{ \
-    int t = (x); \
-    if (t) \
-    { \
-        return t; \
-    } \
-}
+#define AbortIf(x) { int t = (x); if(t) return t; }
 
-#define BreakIf(x) \
-{ \
-    int t = (x); \
-    if (t) \
-    { \
-        break; \
-    } \
-}
+#define BreakIf(x) { int t = (x); if(t) break; }
 
-#define ContinueIf(x) \
-{ \
-    int t = (x); \
-    if (t) \
-    { \
-        continue; \
-    } \
-}
+#define ContinueIf(x) { int t = (x); if(t) continue; }
 
 namespace rs
 {

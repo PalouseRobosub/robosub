@@ -21,15 +21,7 @@ ros::Publisher quaternion_publisher;
  * @param x The expression to evaluate.
  * @param s The string to list when exitting.
  */
-#define FatalAbortIf(x, s) \
-{ \
-    int ret = (x); \
-    if (ret) \
-    { \
-        ROS_FATAL(s); \
-        exit(-1); \
-    } \
-} \
+#define FatalAbortIf(x, s) { int ret = (x); if(ret) { ROS_FATAL(s); exit(-1); }}
 
 /**
  * Encodes an axis integral value into the Bno055::Axis type.
