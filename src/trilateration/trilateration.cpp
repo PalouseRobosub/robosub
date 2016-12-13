@@ -8,9 +8,9 @@ static constexpr double speed_sound_in_water = 1484;
 
 void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
 {
-    const double delta_x = msg->xDelta.toSec() * speed_sound_in_water;
-    const double delta_y = msg->yDelta.toSec() * speed_sound_in_water;
-    const double delta_z = msg->zDelta.toSec() * speed_sound_in_water;
+    const double delta_x = msg->xDelta.toSec() * speed_sound_in_water * -1;
+    const double delta_y = msg->yDelta.toSec() * speed_sound_in_water * -1;
+    const double delta_z = msg->zDelta.toSec() * speed_sound_in_water * -1;
     ROS_INFO_STREAM("dX = " << delta_x);
     ROS_INFO_STREAM("dY = " << delta_y);
     ROS_INFO_STREAM("dZ = " << delta_z);
@@ -27,9 +27,9 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
     const double a_y = pow((delta_y / epsilon), 2);
     const double a_z = pow((delta_z / zeta), 2);
 
-    const double b_x = delta_x / pow(delta, 2) * (pow(delta, 2) + pow(delta_x, 2));
-    const double b_y = delta_y / pow(epsilon, 2) * (pow(epsilon, 2) + pow(delta_y, 2));
-    const double b_z = delta_z / pow(zeta, 2) * (pow(zeta, 2) + pow(delta_z, 2));
+    const double b_x = delta_x / pow(delta, 2) * (pow(delta, 2) - pow(delta_x, 2));
+    const double b_y = delta_y / pow(epsilon, 2) * (pow(epsilon, 2) - pow(delta_y, 2));
+    const double b_z = delta_z / pow(zeta, 2) * (pow(zeta, 2) - pow(delta_z, 2));
 
     const double c_x = pow((pow(delta_x, 2) - pow(delta, 2)) / (2 * delta), 2);
     const double c_y = pow((pow(delta_y, 2) - pow(epsilon, 2)) / (2 * epsilon), 2);
@@ -40,7 +40,7 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
      */
     const double a = a_x + a_y + a_z - 1;
     const double b = b_x + b_y + b_z;
-    const double c = c_x + c_y + pow(z, 2);
+    const double c = c_x + c_y + c_z;
 
     /*
      * Find the determinant of the quadratic to ensure that it is not an
