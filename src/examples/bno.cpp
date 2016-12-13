@@ -16,27 +16,29 @@ using namespace rs;
  *
  * @return None.
  */
-#define HandleError(x, s) \
-{ \
-    int t = (x); \
-    if (t) \
-    { \
-        cout << s << " returned " << t << endl; \
-        int ret = bno.getSystemStatus(sys_stat, sys_err); \
-        if (ret == 0) \
-        { \
-            cout << "System status: " << ios::hex << static_cast<int>(sys_stat) << endl; \
-            if (sys_stat == 1) \
-            { \
-                cout << "Error Code: " << ios::hex << static_cast<int>(sys_err) << endl; \
-            } \
-        } \
-        else \
-        { \
-            cout << "Failed to retrieve system status." << endl; \
-        } \
-    } \
-} \
+void HandleError(int x, const char * s, Bno055& bno)
+{
+    uint8_t sys_stat, sys_err;
+    if (x)
+    {
+        cout << s << " returned " << x << endl;
+        int ret = bno.getSystemStatus(sys_stat, sys_err);
+        if (ret == 0)
+        {
+            cout << "System status: " << ios::hex <<
+                    static_cast<int>(sys_stat) << endl;
+            if (sys_stat == 1)
+            {
+                cout << "Error Code: " << ios::hex <<
+                         static_cast<int>(sys_err) << endl;
+            }
+        }
+        else
+        {
+            cout << "Failed to retrieve system status." << endl;
+        }
+    }
+}
 
 /**
  * Main entry point into the program.
@@ -46,17 +48,16 @@ using namespace rs;
 int main()
 {
     ros::Time::init();
-    uint8_t sys_stat, sys_err;
 
     Serial port;
     port.Open("/dev/ttyUSB0", 115200);
 
     Bno055 bno(port);
 
-    HandleError(bno.init(), "Bno055::init()");
+    HandleError(bno.init(), "Bno055::init()", bno);
 
     HandleError(bno.setOperationMode(Bno055::OperationMode::Ndof),
-                "Bno055::setOperationMode()");
+                "Bno055::setOperationMode()", bno);
 
 //    /*
 //     * Perform a calibration of all sensors.
@@ -64,13 +65,23 @@ int main()
 //    uint8_t acc_calib = 0, gyr_calib = 0, mag_calib = 0, sys_calib = 0;
 //    do
 //    {
-//        HandleError(bno.getSensorCalibration(Bno055::Sensor::Accelerometer, acc_calib), "Bno055::getSensorCalibration()");
-//        cout << "Accelerometer Calibration: " << static_cast<int>(acc_calib) << endl;
-//        HandleError(bno.getSensorCalibration(Bno055::Sensor::Gyroscope, gyr_calib), "Bno055::getSensorCalibration()");
-//        cout << "Gyroscope Calibration: " << static_cast<int>(gyr_calib) << endl;
-//        HandleError(bno.getSensorCalibration(Bno055::Sensor::Magnometer, mag_calib), "Bno055::getSensorCalibration()");
-//        cout << "Magnometer Calibration: " << static_cast<int>(mag_calib) << endl;
-//        HandleError(bno.getSystemCalibration(sys_calib), "Bno055::getSystemCalibration()");
+//        HandleError(bno.getSensorCalibration(Bno055::Sensor::Accelerometer,
+//                                             acc_calib),
+//                    "Bno055::getSensorCalibration()");
+//        cout << "Accelerometer Calibration: " << static_cast<int>(acc_calib)
+//             << endl;
+//        HandleError(bno.getSensorCalibration(Bno055::Sensor::Gyroscope,
+//                                             gyr_calib),
+//                    "Bno055::getSensorCalibration()");
+//        cout << "Gyroscope Calibration: " << static_cast<int>(gyr_calib)
+//             << endl;
+//        HandleError(bno.getSensorCalibration(Bno055::Sensor::Magnometer,
+//                                             mag_calib),
+//                    "Bno055::getSensorCalibration()");
+//        cout << "Magnometer Calibration: " << static_cast<int>(mag_calib)
+//             << endl;
+//        HandleError(bno.getSystemCalibration(sys_calib),
+//                    "Bno055::getSystemCalibration()");
 //        cout << "System Calibration: " << static_cast<int>(sys_calib) << endl;
 //        usleep(500000);
 //    }
@@ -82,12 +93,13 @@ int main()
     while (1)
     {
         usleep(1.0/rate*1000000);
-        HandleError(bno.readQuaternion(w, x, y, z), "Bno055::readQuaternion()");
+        HandleError(bno.readQuaternion(w, x, y, z), "Bno055::readQuaternion()",
+                    bno);
         cout << "w: " << w << endl;
         cout << "x: " << x << endl;
         cout << "y: " << y << endl;
         cout << "z: " << z << endl;
-        HandleError(bno.readEuler(roll, pitch, yaw), "Bno::readEuler()");
+        HandleError(bno.readEuler(roll, pitch, yaw), "Bno::readEuler()", bno);
         cout << "roll: " << roll << endl;
         cout << "pitch: " << pitch << endl;
         cout << "yaw: " << yaw << endl;
