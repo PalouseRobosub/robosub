@@ -14,17 +14,17 @@ uint8 POWER_SUPPLY_STATUS_HIGH_BATTERY = 9
 uint8 POWER_SUPPLY_STATUS_REPLACE      = 10
 
 # Message Variables
+bool      alive
+int32[]   status
 float32   voltageBattery
 float32   currentBattery
-float32   charge
-float32   capacity
-time      runtime
-float32   percentage
-int32[]   status
-float32   temperature
-bool      alive
 float32   voltageInput
 float32   currentInput
 float32   voltageOutput
 float32   currentOutput
+float32   percentage
+float32   temperature
+float32   charge
+float32   capacity
+time      runtime
 float32[] cellVoltages

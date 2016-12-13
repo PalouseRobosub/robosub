@@ -49,11 +49,9 @@ def upsNode():
             rospy.logwarn("UPS not detected: Is the UPS plugged in?")
         else:
             state.alive = True
-            state.voltageBattery = float(vars['battery.voltage'])
             state.capacity = float(vars['battery.capacity'])
             state.charge = ((float(vars['battery.charge']) / 100.0) *
                             state.capacity)
-            state.currentBattery = float(vars['battery.current'])
 
             state.status = upsDataToChargeStatus(vars['ups.status'])
 
@@ -70,7 +68,10 @@ def upsNode():
             state.voltageOutput = float(vars['output.voltage'])
             state.currentOutput = float(vars['output.current'])
 
-        rospy.loginfo("Sending msg")
+            state.currentBattery = float(vars['battery.current'])
+            state.voltageBattery = float(vars['battery.voltage'])
+
+        rospy.logdebug("Sending msg")
         pub.publish(state)
         rate.sleep()
 
