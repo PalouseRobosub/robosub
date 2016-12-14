@@ -31,6 +31,10 @@ def upsDataToChargeStatus(status):
     return ret
 
 def upsNode():
+
+    # Maximum capacity of the battery in Ah
+    UPS_MAX_CAPACITY = 4.2
+
     pub = rospy.Publisher('power/ups', BatteryDetailed, queue_size=1)
 
     rospy.init_node('upsNode', anonymous=False)
@@ -49,13 +53,13 @@ def upsNode():
             rospy.logwarn("UPS not detected: Is the UPS plugged in?")
         else:
             state.alive = True
-            state.capacity = float(vars['battery.capacity'])
-            state.charge = ((float(vars['battery.charge']) / 100.0) *
-                            state.capacity)
+
+            state.charge = float(vars['battery.charge'])
+            # Calculate the Ah left in the battery (TODO: check)
+            state.capacity = (float(vars['battery.capacity']) / 100 *
+                              UPS_MAX_CAPACITY * state.charge / 100)
 
             state.status = upsDataToChargeStatus(vars['ups.status'])
-
-            state.percentage = float(vars['battery.charge']) / 100.0
 
             state.temperature = (((9 * float(vars['battery.temperature'])) /
                                  5) + 32)
