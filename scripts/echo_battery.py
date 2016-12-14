@@ -3,6 +3,7 @@
 import rospy
 from robosub.msg import BatteryDetailed
 from datetime import timedelta
+
 '''
 ' This function returns a string representing the status of the Battery
 '''
@@ -25,22 +26,22 @@ def statusToString(status):
     return string
 
 '''
-' This function gets called every time a message is published to the thruster
-'  topic and calls print_pretty on each thruster in the message
+' This function gets called every time a message is published from battery
+' Information from the message is printed in a nice format
 '''
 def callback(msg):
     print "UPS Battery:"
     print "Alive: {}".format(msg.alive)
-    print "Cin: {: 9f} Vin: {: 9f}".format(msg.currentInput, msg.voltageInput)
-    print "Cout: {: 2f} Vout: {: 2f}".format(msg.currentOutput,
-                                                            msg.voltageOutput)
-    print "C_B: {: 2f} V_B: {: 2f}".format(msg.currentBattery,
-                                                            msg.voltageBattery)
+    print "Cin:  {: 2.2f}  Vin:  {: 2.2f}".format(msg.currentInput,
+                                                  msg.voltageInput)
+    print "Cout: {: 2.2f}  Vout: {: 2.2f}".format(msg.currentOutput,
+                                                  msg.voltageOutput)
+    print "C_B:  {: 2.2f}  V_B:  {: 2.2f}".format(msg.currentBattery,
+                                                  msg.voltageBattery)
     print "Status: {}".format(statusToString(msg.status))
-    print u"Temperature: {: 2f} \u00b0F".format(float(msg.temperature))
+    print u"Temperature: {: 2.2f} \u00b0F".format(float(msg.temperature))
     print "Runtime Left: {}".format(timedelta(seconds=msg.runtime.secs))
-    print "Percent Available: {} %".format(msg.percentage*100)
-    print "Charge: {} Capacity: {}".format(msg.charge, msg.capacity)
+    print "Charge: {} % Capacity: {: 1.2f} Ah".format(msg.charge, msg.capacity)
 
     # Print a nice delimiter at the end of each message
     print "---"
