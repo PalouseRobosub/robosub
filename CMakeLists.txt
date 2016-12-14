@@ -90,7 +90,7 @@ add_message_files(
   Euler.msg
   QuaternionStampedAccuracy.msg
   HydrophoneDeltas.msg
-  Position.msg
+  PositionsStamped.msg
   visionPos.msg
   visionPosArray.msg
   ObstaclePos.msg
@@ -199,7 +199,6 @@ endmacro(add_dynamic_ros_node)
 add_subdirectory(src/examples)
 add_subdirectory(src/utility)
 add_subdirectory(src/movement)
-add_subdirectory(src/trilateration)
 add_subdirectory(src/sensors)
 add_subdirectory(src/joystick)
 add_subdirectory(src/vision)

@@ -1,5 +1,0 @@
-std_msgs/Header header
-float32 distance_position_one
-float32 distance_position_two
-geometry_msgs/Vector3 position_one
-geometry_msgs/Vector3 position_two
