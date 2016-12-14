@@ -8,7 +8,7 @@ notifications:
   slack:
     rooms:
       - palouserobosub:C883XOLXAI646jXLW8zENsVE#software
-    on_success: never  
+    on_success: never
     on_failure: never
 
 #whitelist for branches to build
@@ -49,8 +49,6 @@ script:
 matrix:
   fast_finish: true
   allow_failures:
-    - env:
-      - LINT=true
     - env:
       - TEST=true
   include:
