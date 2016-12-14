@@ -58,13 +58,14 @@ void Settings::validate()
 
     if (squareSize <= 10e-6)
     {
-        ROS_ERROR_STREAM("Invalid square size " << squareSize);
+        ROS_FATAL_STREAM("Invalid square size " << squareSize);
         goodInput = false;
     }
 
     if (nrFrames <= 0)
     {
-        ROS_ERROR_STREAM("Invalid number of frames " << nrFrames);
+        ROS_FATAL_STREAM("Invalid number of frames " << nrFrames);
+        goodInput = false;
     }
 
     flag = 0;
@@ -93,8 +94,13 @@ void Settings::validate()
 
     if (calibrationPattern == NON_EXISTANT)
     {
-        ROS_ERROR_STREAM("Camera calibration mode does not exist: " << patternToUse);
+        ROS_FATAL_STREAM("Camera calibration mode does not exist: " << patternToUse);
         goodInput = false;
+    }
+
+    if (!goodInput)
+    {
+        exit(-1);
     }
 }
 
