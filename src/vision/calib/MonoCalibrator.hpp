@@ -27,7 +27,7 @@ enum Mode
     CALIBRATED = 2
 };
 
-static std::ostream & operator<<(std::ostream & out, Mode &mode)
+/*static std::stringstream & operator<<(std::stringstream & out, Mode &mode)
 {
     if (mode == DETECTION)
     {
@@ -42,7 +42,7 @@ static std::ostream & operator<<(std::ostream & out, Mode &mode)
         out << "CALIBRATED";
     }
     return out;
-}
+}*/
 
 class Settings
 {
@@ -106,9 +106,9 @@ bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distC
 
 bool runCalibrationAndSave(Settings& s, Size imageSize, Mat& cameraMatrix, Mat& distCoeffs, vector<vector<Point2f>> imagePoints);
 
-static void saveCameraParams(Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs, const vector<Mat>& rvecs, const vector<Mat>& tvecs, const vector<float>& reprojErrs, const vector<vector<Point2f>>& imagePoints, double totalAvgErr);
+void saveCameraParams(Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs, const vector<Mat>& rvecs, const vector<Mat>& tvecs, const vector<float>& reprojErrs, const vector<vector<Point2f>>& imagePoints, double totalAvgErr);
 
 void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners, Settings::Pattern patternType);
 
-static double computeReprojectionErrors( const vector<vector<Point3f>>& objectPoints, const vector<vector<Point2f>>& imagePoints, const vector<Mat>& rvecs, const vector<Mat>& tvecs, const Mat& cameraMatrix, const Mat& distCoeffs, vector<float>& perViewErrors, bool fisheye);
+double computeReprojectionErrors( const vector<vector<Point3f>>& objectPoints, const vector<vector<Point2f>>& imagePoints, const vector<Mat>& rvecs, const vector<Mat>& tvecs, const Mat& cameraMatrix, const Mat& distCoeffs, vector<float>& perViewErrors, bool fisheye);
 
