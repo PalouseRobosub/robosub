@@ -14,17 +14,16 @@ uint8 POWER_SUPPLY_STATUS_HIGH_BATTERY = 9
 uint8 POWER_SUPPLY_STATUS_REPLACE      = 10
 
 # Message Variables
-bool      alive
-int32[]   status
-float32   voltageBattery
-float32   currentBattery
-float32   voltageInput
-float32   currentInput
-float32   voltageOutput
-float32   currentOutput
-float32   percentage
-float32   temperature
-float32   charge
-float32   capacity
-time      runtime
-float32[] cellVoltages
+bool      alive          # Is the battery attached?
+int32[]   status         # Space Seperated Information
+float32   voltageBattery # Voltage of the Battery
+float32   currentBattery # Current out of the Battery
+float32   voltageInput   # Voltage of the Input
+float32   currentInput   # Current of the Input
+float32   voltageOutput  # Voltage of the Output
+float32   currentOutput  # Current of the Output
+float32   temperature    # Temperature Reading near the Battery
+float32   charge         # Percent charged
+float32   capacity       # Ah left in the battery
+time      runtime        # Time left on the battery
+float32[] cellVoltages   # Voltages of individual cells (if available)
