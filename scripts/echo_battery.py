@@ -31,11 +31,10 @@ def statusToString(status):
 def callback(msg):
     print "UPS Battery:"
     print "Alive: {}".format(msg.alive)
-    print "Inputs:  Current: {: 9f} Voltage: {: 9f}".format(msg.currentInput,
-                                                            msg.voltageInput)
-    print "Outputs: Current: {: 2f} Voltage: {: 2f}".format(msg.currentOutput,
+    print "Cin: {: 9f} Vin: {: 9f}".format(msg.currentInput, msg.voltageInput)
+    print "Cout: {: 2f} Vout: {: 2f}".format(msg.currentOutput,
                                                             msg.voltageOutput)
-    print "Battery: Current: {: 2f} Voltage: {: 2f}".format(msg.currentBattery,
+    print "C_B: {: 2f} V_B: {: 2f}".format(msg.currentBattery,
                                                             msg.voltageBattery)
     print "Status: {}".format(statusToString(msg.status))
     print u"Temperature: {: 2f} \u00b0F".format(float(msg.temperature))
