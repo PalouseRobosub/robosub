@@ -77,6 +77,13 @@ void orientationCallback(const
             msg->quaternion.y, msg->quaternion.z);
 }
 
+/**
+ * Callback function to receive the submarine's current depth.
+ *
+ * @param msg A pointer to the received message.\
+ *
+ * @return None.
+ */
 void depthCallback(const robosub::depth_stamped::ConstPtr& msg)
 {
     current_depth = msg->depth;
