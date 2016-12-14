@@ -118,7 +118,7 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
                                static_cast<double>(imWidth * imHeight);
             //Add to output
             arrayOut.data.push_back(outMsg);
-        }
+       }
     }
 
     //Show images

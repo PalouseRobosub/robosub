@@ -32,7 +32,7 @@ class VisionProcessor
     public:
         VisionProcessor();
         ~VisionProcessor();
-
+        
         Mat process(const Image& image);
 
     private:
