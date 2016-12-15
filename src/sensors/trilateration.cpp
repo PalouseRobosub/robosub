@@ -31,6 +31,7 @@ using Eigen::Vector3d;
 using Eigen::Quaterniond;
 
 ros::Publisher position_pub;
+ros::Publisher position_all_pub;
 
 /*
  * The speed of sound in water is 1484 m/s.
@@ -194,8 +195,13 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
      */
     vector<Vector3d> position_readings;
     vector<double> distance_readings;
+    const double real_z_relative_to_pinger = current_depth - pinger_depth;
+    const double pos_one_depth_difference = fabs(position_one_rectified[2] -
+            real_z_relative_to_pinger);
+    const double pos_two_depth_difference = fabs(position_two_rectified[2] -
+            real_z_relative_to_pinger);
     if (distances[0] > 0 && position_one_rectified[2] <
-            -1 * pinger_depth)
+            -1 * pinger_depth && pos_one_depth_difference < 2)
     {
         position_readings.push_back(position_one_rectified);
         distance_readings.push_back(distances[0]);
@@ -207,7 +213,7 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
     }
 
     if (distances[1] > 0 && position_two_rectified[2] <
-            -1 * pinger_depth)
+            -1 * pinger_depth && pos_two_depth_difference < 2)
     {
         position_readings.push_back(position_two_rectified);
         distance_readings.push_back(distances[1]);
@@ -223,11 +229,6 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
      * valid readings still. If the order swaps, swap the distance measurements
      * as well so that they are properly displayed in the message.
      */
-    const double real_z_relative_to_pinger = current_depth - pinger_depth;
-    const double pos_one_depth_difference = fabs(position_one_rectified[2] -
-            real_z_relative_to_pinger);
-    const double pos_two_depth_difference = fabs(position_two_rectified[2] -
-            real_z_relative_to_pinger);
     if (position_readings.size() > 1 && pos_two_depth_difference <
             pos_one_depth_difference)
     {
@@ -239,6 +240,27 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
     }
 
     /*
+     * Publish all of the rectified measurements.
+     */
+    robosub::PositionsStamped all_positions_msg;
+    geometry_msgs::Vector3 position;
+    all_positions_msg.header.stamp = ros::Time::now();
+
+    all_positions_msg.distances.push_back(distances[0]);
+    all_positions_msg.distances.push_back(distances[1]);
+
+    position.x = position_one[0];
+    position.y = position_one[1];
+    position.z = position_one[2];
+    all_positions_msg.positions.push_back(position);
+    position.x = position_two[0];
+    position.y = position_two[1];
+    position.z = position_two[2];
+    all_positions_msg.positions.push_back(position);
+
+    position_all_pub.publish(all_positions_msg);
+
+    /*
      * The current position readings are all valid and ordered by confidence.
      * Add them to a position message.
      */
@@ -248,7 +270,6 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
     {
         position_msg.distances.push_back(distance_readings[i]);
 
-        geometry_msgs::Vector3 position;
         position.x = position_readings[i][0];
         position.y = position_readings[i][1];
         position.z = position_readings[i][2];
@@ -335,6 +356,8 @@ int main(int argc, char **argv)
             depthCallback);
     position_pub =
         nh.advertise<robosub::PositionsStamped>("hydrophones/position", 1);
+    position_all_pub =
+        nh.advertise<robosub::PositionsStamped>("hydrophones/position/all", 1);
 
     /*
      * Continually handle all ROS message callbacks.
