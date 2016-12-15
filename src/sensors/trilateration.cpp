@@ -132,34 +132,24 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
     const double c = c_x + c_y + c_z;
 
     /*
-     * Find the determinant of the quadratic to ensure that it is not an
-     * imaginary solution.
-     */
-    const double determinant = pow(b, 2) - 4 * a * c;
-    if (determinant < 0)
-    {
-        ROS_ERROR_STREAM(
-                "The trilateration encountered an imaginary solution.");
-        ROS_INFO_STREAM("dX = " << delta_x);
-        ROS_INFO_STREAM("dY = " << delta_y);
-        ROS_INFO_STREAM("dZ = " << delta_z);
-        ROS_INFO_STREAM("a: " << a);
-        ROS_INFO_STREAM("b: " << b);
-        ROS_INFO_STREAM("c: " << c);
-        ROS_INFO_STREAM("Determinant: " << determinant);
-        return;
-    }
-
-    /*
      * Calculate the distance from the pinger for the two possible solutions of
      * the quadratic equation. The correct result has a valid depth reading and
      * a positive distance. The variable 'distances' represents the p_zero for
-     * solutions one and two.
+     * solutions one and two. If the solution is complex, take the magnitude of
+     * the complex number as the distance.
      */
-    double distances[2] = {
-            (-1 * b + sqrt(determinant)) / (2 * a),
-            (-1 * b - sqrt(determinant)) / (2 * a)
-    };
+    const double determinant = pow(b, 2) - 4 * a * c;
+    double distances[2];
+    if (determinant < 0)
+    {
+        distances[0] = sqrt(pow(-1 * b / 2, 2) + pow(determinant/2, 2));
+        distances[1] = distances[0];
+    }
+    else
+    {
+        distances[0] = (-1 * b + sqrt(determinant)) / (2 * a);
+        distances[1] = (-1 * b - sqrt(determinant)) / (2 * a);
+    }
 
     /*
      * Calculate the two potential position readings.
@@ -264,7 +254,9 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
         position.z = position_readings[i][2];
         position_msg.positions.push_back(position);
     }
-    position_pub.publish(position_msg);
+
+    if (position_readings.size())
+        position_pub.publish(position_msg);
 }
 
 /**
