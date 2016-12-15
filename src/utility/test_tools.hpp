@@ -84,6 +84,118 @@ private:
     std::vector<mtype> m_msgs;
     ros::Subscriber m_sub;
 };
+
+//this class is similar to the SubscriberTB, but is meant for analyzing a
+//1-D stream of data. The format_callback should be a function that takes
+//in the message datatype, and returns 1 double value, which is stored and
+//later analyzed.
+template <class mtype> class SubscriberAnalyzer
+{
+public:
+    SubscriberAnalyzer()
+    {}
+    ~SubscriberAnalyzer()
+    {}
+    void Init(std::string topic,
+              double (*format_callback)(const typename mtype::ConstPtr&))
+    {
+        ros::NodeHandle n;
+
+        m_sub = n.subscribe(topic.c_str(), 1,
+                            &SubscriberAnalyzer<mtype>::Callback, this);
+
+        m_format_function = format_callback;
+
+        m_enabled = false;
+    }
+
+    void Callback(const typename mtype::ConstPtr& msg)
+    {
+        if(m_enabled == true)
+        {
+            double data = m_format_function(msg);
+            m_data.push_back(data);
+        }
+    }
+
+    void Start()
+    {
+        m_enabled = true;
+    }
+
+    void Stop()
+    {
+        m_enabled = false;
+    }
+
+    void ClearData()
+    {
+        m_data.clear();
+    }
+
+    double GetMin()
+    {
+        if(m_data.size() == 0)
+        {
+            ROS_ERROR("no data collected, can't calculate min!");
+            return 0.0;
+        }
+
+        double min = m_data[0];
+        for (int i = 0; i < m_data.size(); ++i)
+        {
+            if (m_data[i] < min)
+            {
+                min = m_data[i];
+            }
+        }
+
+        return min;
+    }
+
+    double GetMax()
+    {
+        if(m_data.size() == 0)
+        {
+            ROS_ERROR("no data collected, can't calculate max!");
+            return 0.0;
+        }
+
+        double max = m_data[0];
+        for (int i = 0; i < m_data.size(); ++i)
+        {
+            if (m_data[i] > max)
+            {
+                max = m_data[i];
+            }
+        }
+
+        return max;
+    }
+
+    double GetAverage()
+    {
+        if(m_data.size() == 0)
+        {
+            ROS_ERROR("no data collected, can't calculate average!");
+            return 0.0;
+        }
+
+        double sum = 0.0;
+        for (int i = 0; i < m_data.size(); ++i)
+        {
+                sum += m_data[i];
+        }
+
+        return sum/m_data.size();
+    }
+
+private:
+    std::vector<double> m_data;
+    ros::Subscriber m_sub;
+    double (*m_format_function)(const typename mtype::ConstPtr&);
+    bool m_enabled;
+};
 };
 
 #endif // TEST_TOOLS_HPP

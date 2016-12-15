@@ -4,6 +4,7 @@ add_ros_node(pub_sub_example pub_sub.cpp)
 add_ros_node(fork_parent_example fork_parent.cpp)
 add_ros_node(fork_child_example fork_child.cpp)
 add_ros_node(param_example parameter.cpp)
+add_ros_node(data_analyzer_example data_analyzer.cpp)
 
 add_dynamic_ros_node(dynamicParameters_example DynamicParameters.cpp)
 
