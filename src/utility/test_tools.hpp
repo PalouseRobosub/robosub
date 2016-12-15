@@ -142,7 +142,7 @@ public:
         }
 
         double min = m_data[0];
-        for (int i = 0; i < m_data.size(); ++i)
+        for (int i = 1; i < m_data.size(); ++i)
         {
             if (m_data[i] < min)
             {
@@ -162,7 +162,7 @@ public:
         }
 
         double max = m_data[0];
-        for (int i = 0; i < m_data.size(); ++i)
+        for (int i = 1; i < m_data.size(); ++i)
         {
             if (m_data[i] > max)
             {
@@ -188,6 +188,25 @@ public:
         }
 
         return sum/m_data.size();
+    }
+
+    double GetStandardDeviation()
+    {
+        if(m_data.size() == 0)
+        {
+            ROS_ERROR("no data collected, "
+                      "can't calculate standard deviation!");
+            return 0.0;
+        }
+
+        double average = GetAverage();
+        double sum = 0.0;
+        for (int i = 0; i < m_data.size(); ++i)
+        {
+            sum += pow(m_data[i] - average, 2);
+        }
+
+        return sqrt(sum/m_data.size());
     }
 
 private:

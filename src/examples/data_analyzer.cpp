@@ -11,6 +11,7 @@ void sighandler(int sig)
     ROS_INFO("max : %lf", analyzer.GetMax());
     ROS_INFO("min : %lf", analyzer.GetMin());
     ROS_INFO("avg : %lf", analyzer.GetAverage());
+    ROS_INFO("std. dev. : %lf", analyzer.GetStandardDeviation());
 
     ros::shutdown();
 }
