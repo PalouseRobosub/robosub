@@ -131,7 +131,7 @@ int main(int argc, char **argv)
     
     ros::Subscriber leftCamSub = n.subscribe("camera/left/undistorted", 1, 
                                              leftCamCallback);
-    ros::Subscriber rightCamSub = n.subscribe("camera/right/image", 1, 
+    ros::Subscriber rightCamSub = n.subscribe("camera/right/undistorted", 1, 
                                               rightCamCallback);
     
     string topic;

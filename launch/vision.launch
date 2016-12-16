@@ -2,12 +2,22 @@
 
 <launch>
 
+    <arg name="doImShow" default="true"/>
+    <arg name="leftImage" default="camera/left/undistorted"/>
+    <arg name="rightImage" default="camera/right/undistorted"/>
+
     <node pkg="robosub" type="vision" name="red_vision" required="false">
         <remap from="vision/output_default" to="vision/buoys/red"/>
+        <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
+        <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/redVis.yaml"/>
+        <param name="processing/doImShow" value="$(arg doImShow)"/>
     </node>
     <node pkg="robosub" type="vision" name="green_vision" required="false">
         <remap from="vision/output_default" to="vision/buoys/green"/>
+        <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
+        <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/greenVis.yaml"/>
+        <param name="processing/doImShow" value="$(arg doImShow)"/>
     </node>
 </launch>
