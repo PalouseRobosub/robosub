@@ -12,6 +12,15 @@ using std::vector;
 
 ros::Publisher pub;
 
+int nLargest = 1;
+
+bool compareContourAreas(vector<Point> contour1, vector<Point> contour2)
+{
+    double i = fabs(contourArea(Mat(contour1)));
+    double j = fabs(contourArea(Mat(contour2)));
+    return (i < j);
+}
+
 void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
     //Create a vision processor
@@ -36,73 +45,99 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 
     //Create the output message
     robosub::visionPos outMsg;
-
-    //If there are no contours, no calculations needed
-    if (contours.size() >= 1)
-    {
-        //Find the area of the first contour
-        double largestArea = contourArea(contours[0], false);
-        int largestIndex = 0;
-
-        //Compare the first contour to other areas to find contour with the
-        //largest area
-        for (unsigned int i = 1; i < contours.size(); i++)
-        {
-            double area = contourArea(contours[i], false);
-            if (area > largestArea)
-            {
-                largestArea = area;
-                largestIndex = i;
-            }
-        }
-
-        //Find the moments (physical properties) of the contour
-        Moments moment;
-        moment = moments(contours[largestIndex], false);
-
-        int cx = -1;
-        int cy = -1;
-        int imWidth = msg->width;
-        int imHeight = msg->height;
-        //Using moments, find the center point of the contour
-        if (moment.m00 > 0)
-        {
-            //Find x and y coordinates with 0,0 being top left corner
-            cx = static_cast<int>(moment.m10/moment.m00);
-            cy = static_cast<int>(moment.m01/moment.m00);
-            Point2f center = cv::Point2f(cx, cy);
-            std::cout << "Center at: " << "[" << cx - (imWidth/2) << "," <<
-                                    -1*(cy-(imHeight / 2)) << "]" << std::endl;
-            circle(original, center, 5, Scalar(255, 255, 255), -1);
-            //Draw a circle on the original image for location visualization
-            circle(original, center, 4, Scalar(0, 0, 255), -1);
-        }
-
-        ROS_DEBUG_STREAM("Preparing output");
-        //Prepare the output message
-        outMsg.xPos = cx - (imWidth / 2);
-        ROS_DEBUG_STREAM("X prepared");
-        outMsg.yPos = cy - (imHeight / 2);
-        ROS_DEBUG_STREAM("Y prepared");
-        outMsg.magnitude = static_cast<double>(largestArea) /
-                           static_cast<double>(imWidth * imHeight);
-        ROS_DEBUG_STREAM("Magnitude prepared");
-    }
-
-    //Show images
+    
+    //Determine if should show images
     ros::NodeHandle nh("~");
     bool doImShow = true;
     if (!nh.getParamCached("processing/doImShow", doImShow))
     {
         ROS_DEBUG_STREAM("Could not get doImShow param, defaulting to true.");
     }
+ 
+    //Get num of contours to find
+    if (nh.getParamCached("nLargest", nLargest))
+    {
+        ROS_DEBUG_STREAM("Loaded " + ros::this_node::getName() + " nLargest: " << nLargest);
+    }
+
+    robosub::visionPosArray arrayOut;
+
+    ROS_DEBUG_STREAM("Contour size: " << contours.size());
+    //If there are no contours, no calculations needed
+    if (contours.size() >= 1)
+    {
+        std::sort(contours.begin(), contours.end(), compareContourAreas);
+        
+        //Find the area of the first contour
+        //double largestArea = contourArea(contours[0], false);
+        //int largestIndex = 0;
+
+        //Compare the first contour to other areas to find contour with the
+        //largest area
+        //for (unsigned int i = 1; i < contours.size(); i++)
+        //{
+        //    double area = contourArea(contours[i], false);
+        //    if (area > largestArea)
+        //    {
+        //        largestArea = area;
+        //        largestIndex = i;
+        //    }
+        //}
+        
+
+        for (int i = 0; i < nLargest; ++i)
+        {
+            //Find the moments (physical properties) of the contour
+            Moments moment;
+            moment = moments(contours[i], false);
+
+            int cx = -1;
+            int cy = -1;
+            int imWidth = msg->width;
+            int imHeight = msg->height;
+            //Using moments, find the center point of the contour
+            if (moment.m00 > 0)
+            {
+                //Find x and y coordinates with 0,0 being top left corner
+                cx = static_cast<int>(moment.m10/moment.m00);
+                cy = static_cast<int>(moment.m01/moment.m00);
+                if (doImShow)
+                {
+                    Point2f center = cv::Point2f(cx, cy);
+                    std::cout << "Center at: " << "[" << cx - (imWidth/2) << 
+                                 "," << -1*(cy-(imHeight / 2)) << "]" << 
+                                 std::endl;
+                    circle(original, center, 5, Scalar(255, 255, 255), -1);
+                    //Draw a circle on the original image for location 
+                    //visualization
+                    circle(original, center, 4, Scalar(0, 0, 255), -1);
+                }
+            }
+
+            ROS_DEBUG_STREAM("Preparing output");
+            //Prepare the output message
+            outMsg.xPos = cx - (imWidth / 2);
+            ROS_DEBUG_STREAM("X prepared");
+            outMsg.yPos = cy - (imHeight / 2);
+            ROS_DEBUG_STREAM("Y prepared");
+            outMsg.magnitude = static_cast<double>(contourArea(contours[i], false)) /
+                               static_cast<double>(imWidth * imHeight);
+            ROS_DEBUG_STREAM("Magnitude prepared");
+            
+            //Add to output
+            arrayOut.data.push_back(outMsg);   
+        }
+
+    }
+    
+    //Show images
     if (doImShow)
     {
-        namedWindow("Original");
-        imshow("Original", original);
+        namedWindow(ros::this_node::getName() + " Original");
+        imshow(ros::this_node::getName() + " Original", original);
 
-        namedWindow("left_mask");
-        imshow("left_mask", procOut);
+        namedWindow(ros::this_node::getName() + " left_mask");
+        imshow(ros::this_node::getName() + " left_mask", procOut);
     }
     //Wait for 1 millisecond to show images
     waitKey(1);
@@ -110,8 +145,6 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
     //Publish output message
     ROS_DEBUG_STREAM("Publishing message");
 
-    robosub::visionPosArray arrayOut;
-    arrayOut.data.push_back(outMsg);
     pub.publish(arrayOut);
 }
 
@@ -122,6 +155,7 @@ void rightCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 
     pub.publish(outMsg);
 }
+
 
 int main(int argc, char **argv)
 {
@@ -138,6 +172,7 @@ int main(int argc, char **argv)
 
     pub =
       n.advertise<robosub::visionPosArray>("vision/output_default" + topic, 1);
+
 
     ros::spin();
 
