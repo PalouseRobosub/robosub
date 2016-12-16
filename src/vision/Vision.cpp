@@ -87,6 +87,11 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 
         for (int i = 0; i < nLargest; ++i)
         {
+            if (static_cast<unsigned int>(i) >= contours.size())
+            {
+                //There are no more contours to process.
+                break;
+            }
             //Find the moments (physical properties) of the contour
             Moments moment;
             moment = moments(contours[i], false);
