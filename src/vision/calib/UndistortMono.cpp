@@ -3,6 +3,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
+#include <opencv2/calib3d.hpp>
 using namespace cv_bridge;
 using namespace cv;
 using std::string;
@@ -13,6 +14,7 @@ Mat camMat;
 Mat distCoeffs;
 
 bool isCalibrated = false;
+bool useFisheye = false;
 
 void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
@@ -25,7 +27,14 @@ void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     
     if (isCalibrated)
     {
-        undistort(temp, image_ptr->image, camMat, distCoeffs);
+        if (useFisheye)
+        {
+            fisheye::undistortImage(temp, image_ptr->image, camMat, distCoeffs, Matx33d::eye());
+        }
+        else
+        {
+            undistort(temp, image_ptr->image, camMat, distCoeffs);
+        }
     }
     
     sensor_msgs::Image outMsg;
@@ -67,7 +76,9 @@ int main (int argc, char** argv)
         string calibTime;
         fs["calibration_time"] >> calibTime;
         ROS_INFO_STREAM("Calibration was performed on: " << calibTime);
-        fs["camera_matrix"] >> camMat ;
+        fs["fisheye_model"] >> useFisheye;
+        ROS_INFO_STREAM_COND(useFisheye, "Using fisheye model.");
+        fs["camera_matrix"] >> camMat;
         fs["distortion_coefficients"] >> distCoeffs;
     }
     

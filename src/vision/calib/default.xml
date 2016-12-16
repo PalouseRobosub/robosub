@@ -6,7 +6,7 @@
     <BoardSize_Height>5</BoardSize_Height>
          
     <!-- The size of a square in some user defined metric system (pixel, millimeter)-->
-    <Square_Size>50</Square_Size>
+    <Square_Size>97</Square_Size>
                 
     <!-- The type of input used for camera calibration. One of: CHESSBOARD CIRCLES_GRID ASYMMETRIC_CIRCLES_GRID -->
     <Calibrate_Pattern>"CHESSBOARD"</Calibrate_Pattern>
@@ -15,15 +15,15 @@
      <Input_FlipAroundHorizontalAxis>0</Input_FlipAroundHorizontalAxis>
                                                                 
      <!-- Time delay between frames in case of camera. -->
-     <Input_Delay>10</Input_Delay>  
+     <Input_Delay>1</Input_Delay>  
                                                                       
      <!-- How many frames to use, for calibration. -->
-     <Calibrate_NrOfFrameToUse>25</Calibrate_NrOfFrameToUse>
+     <Calibrate_NrOfFrameToUse>100</Calibrate_NrOfFrameToUse>
      <!-- Consider only fy as a free parameter, the ratio fx/fy stays the same as in the input cameraMatrix. 
               Use or not setting. 0 - False Non-Zero - True-->
      <Calibrate_FixAspectRatio> 1 </Calibrate_FixAspectRatio>
      <!-- If true (non-zero) tangential distortion coefficients  are set to zeros and stay zero.-->
-     <Calibrate_AssumeZeroTangentialDistortion>1</Calibrate_AssumeZeroTangentialDistortion>
+     <Calibrate_AssumeZeroTangentialDistortion>0</Calibrate_AssumeZeroTangentialDistortion>
      <!-- If true (non-zero) the principal point is not changed during the global optimization.-->
      <Calibrate_FixPrincipalPointAtTheCenter> 1 </Calibrate_FixPrincipalPointAtTheCenter>
                                                                                                
@@ -44,7 +44,7 @@
      <!-- If true (non-zero) distortion coefficient k3 will be equals to zero.-->
      <Fix_K3>0</Fix_K3>
      <!-- If true (non-zero) distortion coefficient k4 will be equals to zero.-->
-     <Fix_K4>1</Fix_K4>
+     <Fix_K4>0</Fix_K4>
      <!-- If true (non-zero) distortion coefficient k5 will be equals to zero.-->
      <Fix_K5>1</Fix_K5>
 </Settings>

@@ -119,7 +119,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         Mat temp = view.clone();
         if (s.useFisheye)
         {
-            fisheye::undistortImage(temp, view, cameraMatrix, distCoeffs);
+            fisheye::undistortImage(temp, view, cameraMatrix, distCoeffs, Matx33d::eye());
         }
         else
         {
