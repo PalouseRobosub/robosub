@@ -94,6 +94,9 @@ Mat VisionProcessor::process(const Image& image)
     //Blur the image for a bit more smoothness
     medianBlur(hsv, hsv, 3);
 
+    bool doImShow = true;
+    n.getParamCached("doImShow", doImShow);
+
     Mat mask;
     //Mask the image within the threshold ranges
     for (unsigned int i = 0;
@@ -103,7 +106,11 @@ Mat VisionProcessor::process(const Image& image)
                             << lower_bounds[i] << " to " << upper_bounds[i]);
         Mat temp;
         inRange(hsv, lower_bounds[i], upper_bounds[i], temp);
-        imshow("[" + std::to_string(i) + "] Found", temp);
+        if (doImShow)
+        {
+            imshow("[" + std::to_string(i) + "] Found", temp);
+        }
+
         if (!mask.empty())
         {
             bitwise_or(mask, temp, mask);
@@ -182,7 +189,7 @@ void VisionProcessor::getScalarParamSet(string mapName,
             ROS_DEBUG_STREAM("Scalar: " << s);
             scalars.push_back(s);
         }
-        ROS_INFO_STREAM(mapName << " Params fetched");
+        ROS_DEBUG_STREAM(mapName << " Params fetched");
     }
     else
     {
