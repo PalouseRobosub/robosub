@@ -244,7 +244,7 @@ void saveCameraParams(Settings& s, Size& imageSize, Mat& cameraMatrix,
     if (!rvecs.empty() || !reprojErrs.empty())
     {
         fs << "nr_of_frames" <<
-              static_cast<int>(std::max(rvecs.size(), reprojErrs.size());
+              static_cast<int>(std::max(rvecs.size(), reprojErrs.size()));
     }
     fs << "image_width" << imageSize.width;
     fs << "image_height" << imageSize.height;
