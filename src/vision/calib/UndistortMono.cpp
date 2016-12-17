@@ -4,6 +4,8 @@
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/calib3d.hpp>
+#include <string>
+
 using namespace cv_bridge;
 using namespace cv;
 using std::string;
@@ -19,24 +21,25 @@ bool useFisheye = false;
 void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
     ROS_DEBUG_STREAM("Right Cam Callback.");
-    
+
     cv_bridge::CvImagePtr image_ptr;
     image_ptr = toCvCopy(msg->image, sensor_msgs::image_encodings::BGR8);
-    
+
     Mat temp = image_ptr->image.clone();
-    
+
     if (isCalibrated)
     {
         if (useFisheye)
         {
-            fisheye::undistortImage(temp, image_ptr->image, camMat, distCoeffs, Matx33d::eye());
+            fisheye::undistortImage(temp, image_ptr->image, camMat, distCoeffs,
+                                    Matx33d::eye());
         }
         else
         {
             undistort(temp, image_ptr->image, camMat, distCoeffs);
         }
     }
-    
+
     sensor_msgs::Image outMsg;
 
     image_ptr->toImageMsg(outMsg);
@@ -53,7 +56,8 @@ int main (int argc, char** argv)
     ros::NodeHandle n;
     image_transport::ImageTransport it(n);
 
-    ros::Subscriber rightSub = n.subscribe("/camera/left/image", 1, rightCallback);
+    ros::Subscriber rightSub = n.subscribe("/camera/left/image", 1,
+                                           rightCallback);
 
     rightPub = it.advertise("camera/left/undistorted", 1);
 
@@ -66,8 +70,8 @@ int main (int argc, char** argv)
 
     if (!fs.isOpened())
     {
-        ROS_WARN_STREAM("Right calibration file could not be opened from: " 
-                         << rightCalibFile);
+        ROS_WARN_STREAM("Right calibration file could not be opened from: " <<
+                        rightCalibFile);
     }
     else
     {
@@ -81,6 +85,6 @@ int main (int argc, char** argv)
         fs["camera_matrix"] >> camMat;
         fs["distortion_coefficients"] >> distCoeffs;
     }
-    
+
     ros::spin();
 }

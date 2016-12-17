@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 using std::vector;
 
@@ -45,7 +46,7 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 
     //Create the output message
     robosub::visionPos outMsg;
-    
+
     //Determine if should show images
     ros::NodeHandle nh("~");
     bool doImShow = true;
@@ -53,11 +54,12 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
     {
         ROS_DEBUG_STREAM("Could not get doImShow param, defaulting to true.");
     }
- 
+
     //Get num of contours to find
     if (nh.getParamCached("nLargest", nLargest))
     {
-        ROS_DEBUG_STREAM("Loaded " + ros::this_node::getName() + " nLargest: " << nLargest);
+        ROS_DEBUG_STREAM("Loaded " + ros::this_node::getName() +
+                         " nLargest: " << nLargest);
     }
 
     robosub::visionPosArray arrayOut;
@@ -67,7 +69,7 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
     if (contours.size() >= 1)
     {
         std::sort(contours.begin(), contours.end(), compareContourAreas);
-        
+
         //Find the area of the first contour
         //double largestArea = contourArea(contours[0], false);
         //int largestIndex = 0;
@@ -83,7 +85,7 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
         //        largestIndex = i;
         //    }
         //}
-        
+
 
         for (int i = 0; i < nLargest; ++i)
         {
@@ -109,11 +111,11 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
                 if (doImShow)
                 {
                     Point2f center = cv::Point2f(cx, cy);
-                    std::cout << "Center at: " << "[" << cx - (imWidth/2) << 
-                                 "," << -1*(cy-(imHeight / 2)) << "]" << 
+                    std::cout << "Center at: " << "[" << cx - (imWidth/2) <<
+                                 "," << -1*(cy-(imHeight / 2)) << "]" <<
                                  std::endl;
                     circle(original, center, 5, Scalar(255, 255, 255), -1);
-                    //Draw a circle on the original image for location 
+                    //Draw a circle on the original image for location
                     //visualization
                     circle(original, center, 4, Scalar(0, 0, 255), -1);
                 }
@@ -125,16 +127,16 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
             ROS_DEBUG_STREAM("X prepared");
             outMsg.yPos = cy - (imHeight / 2);
             ROS_DEBUG_STREAM("Y prepared");
-            outMsg.magnitude = static_cast<double>(contourArea(contours[i], false)) /
+            outMsg.magnitude = static_cast<double>(contourArea(contours[i],
+                                                   false)) /
                                static_cast<double>(imWidth * imHeight);
             ROS_DEBUG_STREAM("Magnitude prepared");
-            
-            //Add to output
-            arrayOut.data.push_back(outMsg);   
-        }
 
+            //Add to output
+            arrayOut.data.push_back(outMsg);
+        }
     }
-    
+
     //Show images
     if (doImShow)
     {
@@ -167,12 +169,12 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "vision");
 
     ros::NodeHandle n;
-    
-    ros::Subscriber leftCamSub = n.subscribe("camera/left/undistorted", 1, 
+
+    ros::Subscriber leftCamSub = n.subscribe("camera/left/undistorted", 1,
                                              leftCamCallback);
-    ros::Subscriber rightCamSub = n.subscribe("camera/right/undistorted", 1, 
+    ros::Subscriber rightCamSub = n.subscribe("camera/right/undistorted", 1,
                                               rightCamCallback);
-    
+
     string topic;
 
     pub =

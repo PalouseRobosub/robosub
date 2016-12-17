@@ -108,7 +108,8 @@ Mat VisionProcessor::process(const Image& image)
         inRange(hsv, lower_bounds[i], upper_bounds[i], temp);
         if (doImShow)
         {
-            imshow(ros::this_node::getName() + " [" + std::to_string(i) + "] Found", temp);
+            imshow(ros::this_node::getName() + " [" + std::to_string(i) +
+                   "] Found", temp);
         }
 
         if (!mask.empty())
