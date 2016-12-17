@@ -7,7 +7,8 @@ class AiManager():
     
     def __init__(self):
         self.launcher = roslaunch.ROSLaunch()
-        self.tasks = rospy.get_param("tasks")
+        self.tasks = rospy.get_param("~tasks")
+        rospy.loginfo("Init done");
 
     def begin(self):
         self.launcher.start()
