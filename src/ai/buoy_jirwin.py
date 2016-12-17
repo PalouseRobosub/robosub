@@ -5,17 +5,18 @@ from robosub.msg import visionPosArray as vision_pos_array
 from robosub.msg import control
 
 class Node():
-    
+
     def __init__(self):
         rospy.loginfo("Init done")
         self.pub = rospy.Publisher('control', control, queue_size=1)
-        self.sub = rospy.Subscriber('vision/buoys/red', vision_pos_array, self.callback)
+        self.sub = rospy.Subscriber('vision/buoys/red', vision_pos_array,
+                                    self.callback)
         self.state = "SEARCHING"
 
     def callback(self, vision_result):
         msg = control()
 
-        #maintain roll and pitch of 0
+        # maintain roll and pitch of 0
         msg.roll_state = control.STATE_ABSOLUTE
         msg.roll_right = 0
         msg.pitch_state = control.STATE_ABSOLUTE

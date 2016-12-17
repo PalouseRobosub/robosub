@@ -53,7 +53,8 @@ class Node():
             else:
                 # calculate center of gate,
                 # which is the average of the two pole positions
-                gate_center = (vision_result.data[0].xPos + vision_result.data[1].xPos) / 2
+                gate_center = (vision_result.data[0].xPos +
+                               vision_result.data[1].xPos) / 2
                 msg.yaw_state = control.STATE_ERROR
                 msg.yaw_left = 10 * gate_center
 
