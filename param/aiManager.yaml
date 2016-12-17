@@ -1,0 +1,21 @@
+tasks:
+  -  name: "Gate"
+     node: "gate_jirwin.py"
+     args: ""
+     remap_args: []
+  -  name: "Buoy_Red"
+     node: "buoy_jirwin.py"
+     args: ""
+     remap_args: []
+  -  name: "Buoy_Green"
+     node: "buoy_jirwin.py"
+     args: ""
+     remap_args: 
+        -  from: "vision/buoys/red"
+           to: "vision/buoys/green"
+  -  name: "Buoy_Yellow"
+     node: "buoy_jirwin.py"
+     args: ""
+     remap_args: 
+        -  from: "vision/buoys/red"
+           to: "vision/buoys/yellow"
