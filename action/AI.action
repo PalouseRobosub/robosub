@@ -1,0 +1,10 @@
+# Goal definition
+float32 error
+---
+# Result definition
+bool success
+---
+# Status definition
+string state
+float32 xError
+float32 yError

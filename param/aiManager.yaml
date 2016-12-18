@@ -1,21 +1,25 @@
 tasks:
   -  name: "Gate"
-     node: "gate_jirwin.py"
+     node: "gate_task" #"gate_jirwin.py"
      args: ""
      remap_args: []
+     timeout_secs: 60
   -  name: "Buoy_Red"
-     node: "buoy_jirwin.py"
+     node: "buoy_task" #"buoy_jirwin.py"
      args: ""
      remap_args: []
+     timeout_secs: 30
   -  name: "Buoy_Green"
-     node: "buoy_jirwin.py"
+     node: "buoy_task" #"buoy_jirwin.py" # "buoy_task"
      args: ""
      remap_args: 
         -  from: "vision/buoys/red"
            to: "vision/buoys/green"
+     timeout_secs: 30
   -  name: "Buoy_Yellow"
-     node: "buoy_jirwin.py"
+     node: "buoy_task" #"buoy_jirwin.py" # "buoy_task"
      args: ""
      remap_args: 
         -  from: "vision/buoys/red"
            to: "vision/buoys/yellow"
+     timeout_secs: 30

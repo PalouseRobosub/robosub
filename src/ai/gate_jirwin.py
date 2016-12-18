@@ -67,7 +67,7 @@ class Node():
         elif self.state is "CONTINUE_GATE":
             # check if we've gone straight for long enough
             if rospy.Time.now() > self.exit_time:
-                rospy.signal_shutdown()
+                rospy.signal_shutdown("Success!!")
 
             # maintain heading
             msg.yaw_state = control.STATE_RELATIVE
