@@ -76,7 +76,6 @@ TEST(ControlSystem, depth)
     //confirm depth is stable
     EXPECT_NEAR(test_depth, analyzer.GetAverage(), 0.05);
     EXPECT_LT(analyzer.GetStandardDeviation(), 0);
-
 }
 
 int main(int argc, char *argv[])
