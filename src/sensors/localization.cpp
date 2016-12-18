@@ -1,69 +1,41 @@
 #include "localization_system.hpp"
 
-#include "std_srvs/Empty.h"
-
-ros::Publisher loc_pub;
-LocalizationSystem *loc_system;
-
-void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& msg)
-{
-    geometry_msgs::Quaternion q;
-    q.w = msg->w;
-    q.x = msg->x;
-    q.y = msg->y;
-    q.z = msg->z;
-    loc_system->InputOrientation(q);
-}
-
-void accelCallback(const geometry_msgs::Vector3::ConstPtr& msg)
-{
-    geometry_msgs::Vector3 v;
-    v.x = msg->x;
-    v.y = msg->y;
-    v.z = msg->z;
-    loc_system->InputAccel(v);
-}
-
-void depthCallback(const std_msgs::Float32::ConstPtr& msg)
-{
-    std_msgs::Float32 f;
-    f.data = msg->data;
-    loc_system->InputDepth(f);
-}
-
-bool zeroPosCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep)
-{
-    loc_system->SetPosition(0.0, 0.0, 0.0);
-    loc_system->SetVelocity(0.0, 0.0, 0.0);
-
-    return true;
-}
+/*
+msg/PositionsStamped.msg
+std_msgs/Header header
+float32[] distances
+geometry_msgs/Vector3[] positions
+*/
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "converter");
+    ros::init(argc, argv, "localization");
 
     ros::NodeHandle n;
 
-    ros::ServiceServer zero_pos_service = n.advertiseService("zero_pos", zeroPosCallback);
-    ros::Subscriber orientation_sub = n.subscribe("rs_bno_data", 1, orientationCallback);
-    ros::Subscriber accel_sub = n.subscribe("rs_accel_data", 1, accelCallback);
-    ros::Subscriber depth_sub = n.subscribe("rs_depth_data", 1, depthCallback);
-    loc_pub = n.advertise<geometry_msgs::Vector3>("position", 1);
+    LocalizationSystem loc_system(1.0/33.0, 100);
 
-    loc_system = new LocalizationSystem(1.0/33.0);
+    // TODO: Change to use localization messages
+    ros::Publisher loc_pub = n.advertise<geometry_msgs::Vector3>("pf_position", 1);
+
+    // Service for resetting position and velocity
+    ros::ServiceServer reset_filter_service = n.advertiseService("reset_particle_filter", &LocalizationSystem::resetFilterCallback, &loc_system);
+
+    ros::Subscriber depth_sub = n.subscribe("depth", 1, &LocalizationSystem::depthCallback, &loc_system);
+    ros::Subscriber hydrophones_position_sub = n.subscribe("hydrophones/position", 1, &LocalizationSystem::hydrophoneCallback, &loc_system);
 
     ros::Rate r(40.0);
 
     while(ros::ok())
     {
-        loc_system->Update();
+        ros::spinOnce();
+        loc_system.Update();
+
+        //geometry_msgs::Vector3 pos = loc_system.GetLocalizationMessage();
+        //loc_pub.publish(pos);
 
         r.sleep();
-        ros::spinOnce();
     }
-
-    delete loc_system;
 
     return 0;
 }
