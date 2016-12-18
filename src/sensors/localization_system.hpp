@@ -1,62 +1,131 @@
 #include <cmath>
+#include <eigen3/Eigen/Dense>
+#include <iostream>
+#include <random>
 
-#include "ros/ros.h"
 #include "ros/console.h"
-#include "std_msgs/Float32.h"
-#include "geometry_msgs/Vector3.h"
-#include "geometry_msgs/Quaternion.h"
-#include "std_msgs/Empty.h"
+#include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
-/*
-/rs_accel_data   855 msgs    : geometry_msgs/Vector3
-/rs_bno_data     848 msgs    : geometry_msgs/Quaternion
-/rs_depth_data   852 msgs    : std_msgs/Float32
-/rs_mag_data     845 msgs    : geometry_msgs/Vector3
-*/
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/Vector3.h"
+#include "robosub/depth_stamped.h"
+#include "robosub/PositionsStamped.h"
+#include "std_msgs/Empty.h"
+#include "std_msgs/Float32.h"
+#include "std_srvs/Empty.h"
+
+using namespace Eigen;
+
+template <typename T>
+std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
+  if ( !v.empty() ) {
+    out << '[';
+    std::copy (v.begin(), v.end(), std::ostream_iterator<T>(out, ", "));
+    out << "\b\b]";
+  }
+  return out;
+}
+
+std::vector<double> CumSum(std::vector<double> v)
+{
+    std::vector<double> cumsum;
+    cumsum.push_back(v[0]);
+    for(unsigned int i=1; i<v.size(); i++)
+    {
+        cumsum.push_back(cumsum[i-1] + v[i]);
+    }
+
+    return cumsum;
+}
+
 
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(double _dt);
+    LocalizationSystem(double _dt, int _num_particles);
+    ~LocalizationSystem();
+    void InitializeParticleFilter();
 
-    void InputOrientation(geometry_msgs::Quaternion msg);
-    void InputAccel(geometry_msgs::Vector3 msg);
-    void InputDepth(std_msgs::Float32 msg);
-
-    void SetPosition(double _x, double _y, double _z);
-    void SetVelocity(double _x, double _y, double _z);
-
-    // If needed
-    //void InputOrientation(geometry_msgs::Quaternion::ConstPtr msg);
-    //void InputAccel(geometry_msgs::Vector3::ConstPtr msg);
-    //void InputDepth(std_msgs::Float32::ConstPtr msg);
+    bool resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
+    void depthCallback(const robosub::depth_stamped::ConstPtr &msg);
+    void hydrophoneCallback(const robosub::PositionsStamped::ConstPtr &msg);
 
     void Update();
 
 private:
-    void FindLinearAccel();
+    Matrix<double,4,1> StateToObservation(Matrix<double,6,1> state);
+    Matrix<double,4,1> AddObservationNoise(Matrix<double,4,1> particle_obs);
 
     double dt;
+    double num_particles;
 
-    bool new_orientation;
-    bool new_accel;
+    bool new_hydrophone;
     bool new_depth;
 
-    geometry_msgs::Quaternion orientation;
-    geometry_msgs::Vector3 accel;
-    std_msgs::Float32 depth;
+    // Multiply system_update_model x state(k-1) to get state(k)
+    Matrix<double,6,6> system_update_model;
+    // I'm not 100% sure on this. Covariance matrices are magic
+    Matrix<double,6,6> system_update_covar;
+    // system_update_variance = [x_variance, y_variance, z_variance]
+    //Matrix<double,3,1> system_update_variance;
+    // measurement_covar is diagnal (currently at least) so easier
+    // to understand
+    Matrix<double,4,4> measurement_covar;
+    // measurement_variance is noise of each sensor
+    //Matrix<double,4,1> measurement_variance;
 
-    double pos_x;
-    double pos_y;
-    double pos_z;
+    // Observation is [hydrophones/position, depth] = [hx, hy, hz, depth]
+    Matrix<double,4,1> last_observation;
+    Matrix<double,4,1> observation;
 
-    double vel_x;
-    double vel_y;
-    double vel_z;
+    // state = [x, y, z, x_vel, y_vel, z_vel]
+    // This should be global position and velocity
+    Matrix<double,6,1> last_est_state;
+    Matrix<double,6,1> est_state;
+    Matrix<double,6,1> initial_state;
 
-    double lin_accel_x;
-    double lin_accel_y;
-    double lin_accel_z;
+    std::vector<Matrix<double, 6,1> > last_particle_states;
+    std::vector<Matrix<double, 6,1> > particle_states;
+    std::vector<double> last_particle_weights;
+    std::vector<double> particle_weights;
+    // Particle observations
+    std::vector<Matrix<double, 4,1> > last_particle_obs;
+    std::vector<Matrix<double, 4,1> > particle_obs;
 
+    std::default_random_engine rand_generator;
+    std::normal_distribution<double> *norm_distribution;
+    std::uniform_real_distribution<double> *uniform_distribution;
+
+    // This is meant to emulate the matlab function randn which 
+    // returns a random value from a normal distribution with
+    // mean = 0 std dev = 1
+    double randn() { return (*norm_distribution)(rand_generator); }
+    // Uniform 0-1 random real
+    double randu() { return (*uniform_distribution)(rand_generator); }
+    MatrixXd randn_mat(int rows, int cols) 
+    { 
+        MatrixXd r(rows, cols);
+        for(int i=0; i<rows; i++)
+        {
+            for(int j=0; j<cols; j++)
+            {
+                r(i,j) = randn();
+            }
+        }
+        return r;
+    }
+
+    MatrixXd sqrt_elementwise(MatrixXd in)
+    {
+        MatrixXd out(in.rows(), in.cols());
+        for(int i=0; i<in.rows(); i++)
+        {
+            for(int j=0; j<in.cols(); j++)
+            {
+                out(i,j) = std::sqrt(in(i,j));
+            }
+        }
+        return out;
+    }
 };
