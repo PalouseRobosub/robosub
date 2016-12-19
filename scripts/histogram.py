@@ -26,12 +26,12 @@ class Histogram():
 
     def callback(self, msg):
         print "Got Message"
-        self.data.append(eval('msg.' + args.attribute))
+        self.data.append(eval('msg.' + self.args.attribute))
 
     def plot(self):
-        n, bins, patches = plt.hist(self.data, 50, normed=args.normed, facecolor=args.color, alpha=args.alpha)
+        n, bins, patches = plt.hist(self.data, 'auto', normed=self.args.normed, facecolor=self.args.color, alpha=self.args.alpha)
 
-        if args.normed:
+        if self.args.normed:
             plt.ylabel('Probability')
         else:
             plt.ylabel('Number')
