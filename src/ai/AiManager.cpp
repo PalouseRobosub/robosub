@@ -1,11 +1,13 @@
 #include "AiManager.hpp"
 #include <robosub/AIAction.h>
+#include <string>
+
 AiManager::AiManager()
 {
     try
     {
         nh.getParam("tasks", taskList);
-        
+
         ROS_INFO_STREAM("Type: " << taskList.getType());
     }
     catch (XmlRpc::XmlRpcException e)
@@ -69,7 +71,6 @@ bool AiManager::startNextTask()
                     boost::bind(&AiManager::completionCallback, this, _1, _2),
                     boost::bind(&AiManager::activationCallback, this),
                     boost::bind(&AiManager::feedbackCallback, this, _1));
-
         }
         catch (XmlRpc::XmlRpcException e)
         {
@@ -93,9 +94,9 @@ int main(int argc, char** argv)
     AiManager manager;
 
     manager.start();
-    
+
     ros::spin();
     //TODO: Send shutdown to control system just in case
-    
+
     ROS_INFO_STREAM("All tasks completed.");
 }

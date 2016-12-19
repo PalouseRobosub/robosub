@@ -36,22 +36,22 @@ class Node():
             msg.dive_state = control.STATE_RELATIVE
             msg.dive = 0
         else:  # we see a buoy, go towards it!
-            rospy.loginfo("Found data");
+            rospy.loginfo("Found data")
             self.state = "TRACKING"
             msg.yaw_state = control.STATE_ERROR
             if vision_result.data[0].xPos < 0:
-                rospy.loginfo("Should yaw left");
+                rospy.loginfo("Should yaw left")
             else:
-                rospy.loginfo("Should yaw right");
+                rospy.loginfo("Should yaw right")
             msg.yaw_left = vision_result.data[0].xPos / 10 * -1
             msg.dive_state = control.STATE_ERROR
             if vision_result.data[0].yPos > 0:
-                rospy.loginfo("Should rise");
+                rospy.loginfo("Should rise")
             else:
-                rospy.loginfo("Should dive");
- 
-            msg.dive = vision_result.data[0].yPos / 100 
-            
+                rospy.loginfo("Should dive")
+
+            msg.dive = vision_result.data[0].yPos / 100
+
             # regulate distance
             msg.forward_state = control.STATE_ERROR
             error = (1 - vision_result.data[0].magnitude) * 1000

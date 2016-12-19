@@ -1,3 +1,6 @@
+#ifndef AIMANAGER_HPP
+#define AIMANAGER_HPP
+
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <robosub/AIAction.h>
@@ -9,7 +12,7 @@ class AiManager
 {
     public:
         AiManager();
-        ~AiManager() { };
+        ~AiManager() { }
 
         void start();
     private:
@@ -24,3 +27,4 @@ class AiManager
         int currentTask;
         ros::NodeHandle nh;
 };
+#endif //AIMANAGER_HPP

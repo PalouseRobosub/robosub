@@ -1,3 +1,6 @@
+#ifndef GATETASK_HPP
+#define GATETASK_HPP
+
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <robosub/AIAction.h>
@@ -10,14 +13,13 @@ class GateTask
 {
     public:
         GateTask(std::string name);
-        ~GateTask(void) { };
+        ~GateTask(void) { }
 
         void goalCallback();
         void preemptCallback();
         void analysisCallback(const robosub::visionPosArray::ConstPtr& msg);
 
     protected:
-        
         enum class TaskState
         {
             LOST,
@@ -59,4 +61,4 @@ class GateTask
             }
         }
 };
-
+#endif //GATETASK_HPP

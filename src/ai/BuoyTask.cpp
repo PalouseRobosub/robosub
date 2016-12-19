@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <robosub/AIAction.h>
 #include "BuoyTask.hpp"
+#include <string>
 
 BuoyTask::BuoyTask(std::string name) : _as(_nh, name, false), _action_name(name)
 {
@@ -53,7 +54,7 @@ void BuoyTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
             _as.setAborted(_result);
             return;
         }
-        
+
         currentState = TaskState::SEARCHING;
 
         msg.yaw_state = robosub::control::STATE_RELATIVE;
@@ -93,11 +94,10 @@ void BuoyTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
 
         _feedback.xError = vision->data[0].xPos;
         _feedback.yError = vision->data[0].yPos;
-        
     }
 
     _feedback.state = taskToString(currentState);
-    
+
     _pub.publish(msg);
     _as.publishFeedback(_feedback);
 }

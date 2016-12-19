@@ -1,3 +1,6 @@
+#ifndef BUOYTASK_HPP
+#define BUOYTASK_HPP
+
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 #include <robosub/AIAction.h>
@@ -10,7 +13,7 @@ class BuoyTask
 {
     public:
         BuoyTask(std::string name);
-        ~BuoyTask(void) { };
+        ~BuoyTask(void) { }
 
         void goalCallback();
         void preemptCallback();
@@ -23,7 +26,7 @@ class BuoyTask
             TRACKING,
             COMPLETE
         };
-        
+
         ros::NodeHandle _nh;
         actionlib::SimpleActionServer<robosub::AIAction> _as;
         std::string _action_name;
@@ -51,3 +54,4 @@ class BuoyTask
             }
         }
 };
+#endif //BUOYTASK_HPP

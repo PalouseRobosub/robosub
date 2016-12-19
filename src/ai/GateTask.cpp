@@ -1,4 +1,5 @@
 #include "GateTask.hpp"
+#include <string>
 
 GateTask::GateTask(std::string name) : _as(_nh, name, false), _action_name(name)
 {
@@ -41,7 +42,8 @@ void GateTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
     msg.pitch_state = robosub::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
 
-    ROS_INFO_STREAM("" << _action_name << " currently " << taskToString(currentState));
+    ROS_INFO_STREAM("" << _action_name << " currently " <<
+                    taskToString(currentState));
 
     int numFound = vision->data.size();
     int gateXPos;
@@ -54,7 +56,7 @@ void GateTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
             msg.forward = 0;
             msg.dive_state = robosub::control::STATE_RELATIVE;
             msg.dive = 0;
-            
+
             switch(currentState)
             {
                 case TaskState::LOST:
@@ -74,7 +76,7 @@ void GateTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
                 case TaskState::COMPLETE:
                     break;
             }
-            
+
             _feedback.xError = -1;
             _feedback.yError = -1;
             break;
@@ -149,15 +151,15 @@ void GateTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
             }
             else
             {
-                //Centered! 
+                //Centered!
                 if ((vision->data[0].magnitude + vision->data[0].magnitude) >
                     0.3)
                 {
                     //Goal complete, we have passed through the gate
                     currentState = TaskState::COMPLETE;
                     _result.success = true;
-                    ROS_INFO_STREAM("" << _action_name << ": Passed through gate, " <<
-                                    "success!");
+                    ROS_INFO_STREAM("" << _action_name <<
+                                    ": Passed through gate, " << "success!");
                     _as.setSucceeded(_result);
                     break;
                 }
@@ -174,7 +176,7 @@ void GateTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
             _result.success = false;
             _as.setAborted(_result);
             break;
-    }        
+    }
 
     if (currentState == TaskState::COMPLETE)
     {
@@ -191,7 +193,6 @@ void GateTask::analysisCallback(const robosub::visionPosArray::ConstPtr& vision)
     prev_yaw = msg.yaw_left;
     _pub.publish(msg);
     _as.publishFeedback(_feedback);
-   
 }
 
 int main (int argc, char** argv)
