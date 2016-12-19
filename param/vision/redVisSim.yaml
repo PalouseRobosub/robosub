@@ -7,3 +7,4 @@ min:
 - {hue: 0, sat: 200, val: 200}
 - {hue: 170, sat: 175, val: 70}
 open: {height: 7, iters: 1, width: 7}
+canny: {low: 30, high: 90, size: 3}
