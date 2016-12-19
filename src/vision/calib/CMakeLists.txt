@@ -1,4 +1,4 @@
-add_ros_node(monoCalib Calibration.cpp MonoCalibrator.cpp)
+add_ros_node(monoCalib Calibration.cpp MonoCalibrator.cpp CalibrationSettings.cpp)
 target_link_libraries(monoCalib ${OpenCV_LIBRARIES})
 
 add_ros_node(undistortMono UndistortMono.cpp)

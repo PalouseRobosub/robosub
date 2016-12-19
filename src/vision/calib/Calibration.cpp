@@ -7,85 +7,108 @@
 
 using namespace cv_bridge;
 
-Settings s;
+Settings settings;
 
 bool calibFinished = false;
 vector<vector<Point2f>> imagePoints;
 Mat cameraMatrix, distCoeffs;
 Size imageSize;
-int mode = CAPTURING;
+Mode mode = Mode::CAPTURING;
 clock_t prevTimestamp = 0;
 const Scalar RED(0, 0, 255), GREEN(0, 255, 0);
 const char ESC_KEY = 27;
 
 void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
-    ROS_DEBUG_STREAM("Callback, Mode: " << mode);
+    ROS_DEBUG_STREAM("Callback, Mode: " << modeToString(mode));
     Mat view = toCvShare(msg->image, msg,
                          sensor_msgs::image_encodings::BGR8)->image;
 
-    if (mode == CAPTURING && imagePoints.size() >= (size_t)s.nrFrames)
+    //When capturing and we have enough images
+    if (mode == Mode::CAPTURING &&
+        imagePoints.size() >= (size_t)settings.nrFrames)
     {
+        //Try to calibrate
         ROS_DEBUG_STREAM("Calibrating and saving during capture");
-        if (runCalibrationAndSave(s, imageSize, cameraMatrix, distCoeffs,
+        if (runCalibrationAndSave(settings, imageSize, cameraMatrix, distCoeffs,
                                   imagePoints))
-            mode = CALIBRATED;
+        {
+            //If successful, we have calibrated
+            mode = Mode::CALIBRATED;
+        }
         else
-            mode = DETECTION;
+        {
+            //Otherwise, go back to detecting.
+            mode = Mode::DETECTION;
+        }
     }
 
     if (view.empty())
     {
         ROS_DEBUG_STREAM("Empty view");
-        if (mode != CALIBRATED && !imagePoints.empty())
+        //Nothing can be seen
+        if (mode != Mode::CALIBRATED && !imagePoints.empty())
         {
-            runCalibrationAndSave(s, imageSize, cameraMatrix, distCoeffs,
+            //If there is data and we haven't already, try calibrating
+            runCalibrationAndSave(settings, imageSize, cameraMatrix, distCoeffs,
                                   imagePoints);
         }
+        //There is no more data, we have finished
         calibFinished = true;
-        ROS_DEBUG_STREAM("Exiting after empty view. Mode: " << mode);
+        ROS_DEBUG_STREAM("Exiting after empty view. Mode: " <<
+                         modeToString(mode));
         ros::shutdown();
         return;
     }
 
     imageSize = view.size();
-    if (s.flipVertical) flip(view, view, 0);
+    if (settings.flipVertical)
+    {
+        flip(view, view, 0);
+    }
 
     vector<Point2f> pointBuf;
 
+    //Defines if we have found a board
     bool found;
 
     int chessBoardFlags = CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_NORMALIZE_IMAGE;
 
-    if (!s.useFisheye)
+    if (!settings.useFisheye)
     {
         chessBoardFlags |= CALIB_CB_FAST_CHECK;
     }
 
-    switch(s.calibrationPattern)
+    switch(settings.calibrationPattern)
     {
-        case Settings::CHESSBOARD:
+        case Settings::Pattern::CHESSBOARD:
             ROS_DEBUG_STREAM("Finding Chessboard Corners");
-            found = findChessboardCorners(view, s.boardSize, pointBuf,
+            found = findChessboardCorners(view, settings.boardSize, pointBuf,
                                           chessBoardFlags);
             break;
-        case Settings::CIRCLES_GRID:
-            found = findCirclesGrid(view, s.boardSize, pointBuf);
+        case Settings::Pattern::CIRCLES_GRID:
+            found = findCirclesGrid(view, settings.boardSize, pointBuf);
             break;
-        case Settings::ASYMMETRIC_CIRCLES_GRID:
-            found = findCirclesGrid(view, s.boardSize, pointBuf,
+        case Settings::Pattern::ASYMMETRIC_CIRCLES_GRID:
+            found = findCirclesGrid(view, settings.boardSize, pointBuf,
                                     CALIB_CB_ASYMMETRIC_GRID);
             break;
         default:
+            ROS_ERROR_STREAM("Uknown Pattern used in settings");
             found = false;
             break;
     }
 
     if (found)
     {
+        //There is a board in view and we have seen it!
         ROS_DEBUG_STREAM("Pattern found");
-        if (s.calibrationPattern == Settings::CHESSBOARD)
+        if (settings.calibrationPattern == Settings::Pattern::CHESSBOARD)
         {
+            /*
+             * With a chessboard, there are internal corners being tracked,
+             * cornerSubPix gives a more accurate location of these corners.
+            */
             Mat viewGray;
             cvtColor(view, viewGray, COLOR_BGR2GRAY);
             cornerSubPix(viewGray, pointBuf, Size(11, 11), Size(-1, -1),
@@ -96,39 +119,43 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         imagePoints.push_back(pointBuf);
 
         ROS_DEBUG_STREAM("Drawing corners...");
-        drawChessboardCorners(view, s.boardSize, Mat(pointBuf), found);
+        //Visualize corners for user
+        drawChessboardCorners(view, settings.boardSize, Mat(pointBuf), found);
     }
     else
     {
         ROS_DEBUG_STREAM("Pattern not found");
     }
 
-    string outMsg = (mode == CALIBRATED) ? "Calibrated" : "Calibrating";
+    string outMsg = (mode == Mode::CALIBRATED) ? "Calibrated" : "Calibrating";
 
     int baseLine = 0;
     Size textSize = getTextSize(outMsg, 1, 1.0, 1, &baseLine);
     Point textOrigin(view.cols - 2*textSize.width - 10, 10);
 
-    if (mode == CAPTURING)
+    //Add further information for user of how much data has been captured
+    if (mode == Mode::CAPTURING)
     {
         ROS_DEBUG_STREAM("Capturing");
-        if (s.showUndistorted)
+        if (settings.showUndistorted)
         {
-            outMsg = format("%d/%d Undist",
-                            static_cast<int>(imagePoints.size()), s.nrFrames);
+            outMsg += format(" %d/%d Undist",
+                            static_cast<int>(imagePoints.size()),
+                            settings.nrFrames);
         }
         else
         {
-            outMsg = format("%d/%d", static_cast<int>(imagePoints.size()),
-                            s.nrFrames);
+            outMsg += format(" %d/%d", static_cast<int>(imagePoints.size()),
+                            settings.nrFrames);
         }
     }
 
-    if (mode == CALIBRATED && s.showUndistorted)
+    if (mode == Mode::CALIBRATED && settings.showUndistorted)
     {
         ROS_DEBUG_STREAM("Undistorting image...");
+        outMsg += " Undist."; //Tell user when showing undistorted
         Mat temp = view.clone();
-        if (s.useFisheye)
+        if (settings.useFisheye)
         {
             fisheye::undistortImage(temp, view, cameraMatrix, distCoeffs,
                                     Matx33d::eye());
@@ -140,10 +167,11 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     }
 
     ROS_DEBUG_STREAM("Adding text to image");
-    putText(view, outMsg, textOrigin, 1, 1, mode == CALIBRATED ? GREEN : RED);
+    putText(view, outMsg, textOrigin, 1, 1,
+            mode == Mode::CALIBRATED ? GREEN : RED); //Show info to user
 
     imshow("Image", view);
-    char key = static_cast<char>(waitKey(s.delay));
+    char key = static_cast<char>(waitKey(settings.delay));
 
     if (key == ESC_KEY)
     {
@@ -153,11 +181,12 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         return;
     }
 
-    if (key == 'u' && mode == CALIBRATED)
+    if (key == 'u' && mode == Mode::CALIBRATED)
     {
-        s.showUndistorted = !s.showUndistorted;
+        settings.showUndistorted = !settings.showUndistorted;
         ROS_INFO_STREAM("Now showing " <<
-                        (s.showUndistorted ? "Undistorted" : "Distorted") <<
+                        (settings.showUndistorted ?
+                        "Undistorted" : "Distorted") <<
                         " image.");
     }
 }
@@ -181,29 +210,28 @@ int main (int argc, char* argv[])
     FileStorage fs(inputSettingsFile, FileStorage::READ);
     if (!fs.isOpened())
     {
-        ROS_ERROR_STREAM("Could not open configuration file: " <<
+        ROS_FATAL_STREAM("Could not open configuration file: " <<
                          inputSettingsFile);
         return -1;
     }
-    ROS_DEBUG_STREAM("File opened");
+    ROS_DEBUG_STREAM("Settings file opened");
 
-    fs["Settings"] >> s;
-    ROS_DEBUG_STREAM("Data stored");
+    fs["Settings"] >> settings;
+    ROS_DEBUG_STREAM("Settings data fetched");
     fs.release();
 
-    if (!s.goodInput)
+    if (!settings.goodInput)
     {
-        ROS_ERROR_STREAM("Invalid input detected!");
+        ROS_FATAL_STREAM("Invalid settings input detected!");
         return -1;
     }
-    ROS_DEBUG_STREAM("Input validated");
+    ROS_DEBUG_STREAM("Settings input validated");
 
     ros::Subscriber sub = n.subscribe("/camera/right/image", 1, imageCallback);
 
-    ROS_INFO_STREAM("Settings Read and validated");
+    ROS_INFO_STREAM("Settings read and validated");
 
-    ROS_DEBUG_STREAM("Spinning...");
-
+    ROS_INFO_STREAM("To exit calibration and attempt to save, press ESC");
     ros::spin();
 
     ROS_INFO_STREAM("Calibration complete!");

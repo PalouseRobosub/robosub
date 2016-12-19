@@ -3,142 +3,37 @@
 #include <algorithm>
 #include <vector>
 
-void Settings::write(FileStorage& fs) const
+std::string modeToString(Mode & mode)
 {
-    fs << "{"
-                << "BoardSize_Width"    << boardSize.width
-                << "BoardSize_Height"   << boardSize.height
-                << "Square_Size"        << squareSize
-                << "Calibrate_Pattern"  << patternToUse
-                << "Calibrate_NrOfFrameToUse" << nrFrames
-                << "Calibrate_FixAspectRatio" << aspectRatio
-                << "Calibrate_AssumeZeroTangentialDistortion" <<
-                    calibZeroTangentDist
-                << "Calibrate_FixPrincipalPointAtTheCenter" <<
-                    calibFixPrincipalPoint
-                << "Write_DetectedFeaturePoints" << writePoints
-                << "Write_extrinsicParameters" << writeExtrinsics
-                << "Write_outputFileName" << outputFileName
-                << "Show_UndistortedImage" << showUndistorted
-                << "Input_FlipAroundHorizontalAxis" << flipVertical
-                << "Input_Delay"        << delay
-       << "}";
-}
-
-void Settings::read(const FileNode& node)
-{
-    node["BoardSize_Width" ] >> boardSize.width;
-    node["BoardSize_Height"] >> boardSize.height;
-    node["Calibrate_Pattern"] >> patternToUse;
-    node["Square_Size"]  >> squareSize;
-    node["Calibrate_NrOfFrameToUse"] >> nrFrames;
-    node["Calibrate_FixAspectRatio"] >> aspectRatio;
-    node["Write_DetectedFeaturePoints"] >> writePoints;
-    node["Write_extrinsicParameters"] >> writeExtrinsics;
-    node["Write_outputFileName"] >> outputFileName;
-    node["Calibrate_AssumeZeroTangentialDistortion"] >> calibZeroTangentDist;
-    node["Calibrate_FixPrincipalPointAtTheCenter"] >> calibFixPrincipalPoint;
-    node["Calibrate_UseFisheyeModel"] >> useFisheye;
-    node["Input_FlipAroundHorizontalAxis"] >> flipVertical;
-    node["Show_UndistortedImage"] >> showUndistorted;
-    node["Input_Delay"] >> delay;
-    node["Fix_K1"] >> fixK1;
-    node["Fix_K2"] >> fixK2;
-    node["Fix_K3"] >> fixK3;
-    node["Fix_K4"] >> fixK4;
-    node["Fix_K5"] >> fixK5;
-
-    validate();
-}
-
-void Settings::validate()
-{
-    goodInput = true;
-    if (boardSize.width <= 0 || boardSize.height <= 0)
+    switch(mode)
     {
-        ROS_FATAL_STREAM("Invalid Board size: " << boardSize.width << " " <<
-                         boardSize.height);
-        goodInput = false;
-    }
-
-    if (squareSize <= 10e-6)
-    {
-        ROS_FATAL_STREAM("Invalid square size " << squareSize);
-        goodInput = false;
-    }
-
-    if (nrFrames <= 0)
-    {
-        ROS_FATAL_STREAM("Invalid number of frames " << nrFrames);
-        goodInput = false;
-    }
-
-    flag = 0;
-    if (calibFixPrincipalPoint) flag |= CALIB_FIX_PRINCIPAL_POINT;
-    if (calibZeroTangentDist) flag |= CALIB_ZERO_TANGENT_DIST;
-    if (aspectRatio) flag |= CALIB_FIX_ASPECT_RATIO;
-    if (fixK1) flag |= CALIB_FIX_K1;
-    if (fixK2) flag |= CALIB_FIX_K2;
-    if (fixK3) flag |= CALIB_FIX_K3;
-    if (fixK4) flag |= CALIB_FIX_K4;
-    if (fixK5) flag |= CALIB_FIX_K5;
-
-    if (useFisheye)
-    {
-        flag = fisheye::CALIB_FIX_SKEW | fisheye::CALIB_RECOMPUTE_EXTRINSIC;
-        if (fixK1) flag |= fisheye::CALIB_FIX_K1;
-        if (fixK2) flag |= fisheye::CALIB_FIX_K2;
-        if (fixK3) flag |= fisheye::CALIB_FIX_K3;
-        if (fixK4) flag |= fisheye::CALIB_FIX_K4;
-    }
-
-    calibrationPattern = NON_EXISTANT;
-    if (!patternToUse.compare("CHESSBOARD")) calibrationPattern = CHESSBOARD;
-    if (!patternToUse.compare("CIRCLES_GRID"))
-    {
-        calibrationPattern = CIRCLES_GRID;
-    }
-
-    if (!patternToUse.compare("ASYMMETRIC_CIRCLES_GRID"))
-    {
-        calibrationPattern = ASYMMETRIC_CIRCLES_GRID;
-    }
-
-    if (calibrationPattern == NON_EXISTANT)
-    {
-        ROS_FATAL_STREAM("Camera calibration mode does not exist: " <<
-                         patternToUse);
-        goodInput = false;
-    }
-
-    if (!goodInput)
-    {
-        exit(-1);
+        case Mode::DETECTION:
+            return "DETECTION";
+        case Mode::CAPTURING:
+            return "CAPTURING";
+        case Mode::CALIBRATED:
+            return "CALIBRATED";
+        default:
+            return "UNKNOWN";
     }
 }
 
-
-bool Settings::readStringList(const string& filename, vector<string>& l)
+void read(const FileNode& node, Settings& x,
+          const Settings& default_value)
 {
-    l.clear();
-    FileStorage fs(filename, FileStorage::READ);
-    if (!fs.isOpened())
+    if (node.empty())
     {
-        return false;
+        x = default_value;
     }
-
-    FileNode n = fs.getFirstTopLevelNode();
-    if (n.type() != FileNode::SEQ)
+    else
     {
-        return false;
+        x.read(node);
     }
+}
 
-    for (FileNodeIterator it = n.begin(); it != n.end(); it++)
-    {
-        l.push_back((string)*it);
-    }
-
-    return true;
+void write(FileStorage& fs, const Settings& s)
+{
+    s.write(fs);
 }
 
 bool runCalibrationAndSave(Settings& s, Size imageSize, Mat& cameraMatrix,
@@ -371,12 +266,12 @@ void calcBoardCornerPositions(Size boardSize, float squareSize,
         {
             switch(patternType)
             {
-                case Settings::CHESSBOARD:
-                case Settings::CIRCLES_GRID:
+                case Settings::Pattern::CHESSBOARD:
+                case Settings::Pattern::CIRCLES_GRID:
                     corners.push_back(Point3f(j * squareSize, i * squareSize,
                                               0));
                     break;
-                case Settings::ASYMMETRIC_CIRCLES_GRID:
+                case Settings::Pattern::ASYMMETRIC_CIRCLES_GRID:
                     corners.push_back(Point3f((2 * j + i % 2) * squareSize,
                                               i * squareSize, 0));
                     break;

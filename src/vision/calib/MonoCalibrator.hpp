@@ -2,9 +2,7 @@
 #define MONOCALIBRATOR_HPP
 
 #include <ros/ros.h>
-#include <sstream>
-#include <string>
-#include <vector>
+#include "CalibrationSettings.hpp"
 #include <ctime>
 #include <iostream>
 #include <opencv2/core.hpp>
@@ -14,98 +12,25 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
+#include <string>
+#include <vector>
 
 using namespace cv;
 using namespace std;
 
-enum Mode
+enum class Mode
 {
     DETECTION = 0,
     CAPTURING = 1,
     CALIBRATED = 2
 };
 
-/*static std::stringstream & operator<<(std::stringstream & out, Mode &mode)
-{
-    if (mode == DETECTION)
-    {
-        out << "DETECTION";
-    }
-    else if (mode == CAPTURING)
-    {
-        out << "CAPTURING";
-    }
-    else
-    {
-        out << "CALIBRATED";
-    }
-    return out;
-}*/
+std::string modeToString(Mode &mode);
 
-class Settings
-{
-    public:
-        Settings() : goodInput(false) {}
-        enum Pattern
-        {
-            NON_EXISTANT,
-            CHESSBOARD,
-            CIRCLES_GRID,
-            ASYMMETRIC_CIRCLES_GRID
-        };
+void read(const FileNode& node, Settings& x,
+          const Settings& default_value = Settings());
 
-        void write(FileStorage& fs) const;
-        void read(const FileNode& node);
-
-        void validate();
-
-        static bool readStringList(const string& filename, vector<string>& l);
-
-    //private:
-        Size boardSize;
-        Pattern calibrationPattern;
-        float squareSize;
-        int nrFrames;
-        float aspectRatio;
-        int delay;
-        bool writePoints;
-        bool writeExtrinsics;
-        bool calibZeroTangentDist;
-        bool calibFixPrincipalPoint;
-        bool flipVertical;
-        string outputFileName;
-        bool showUndistorted;
-        string input;
-        bool useFisheye;
-        bool fixK1;
-        bool fixK2;
-        bool fixK3;
-        bool fixK4;
-        bool fixK5;
-
-        bool goodInput;
-        int flag;
-    private:
-        string patternToUse;
-};
-
-static inline void read(const FileNode& node, Settings& x,
-                        const Settings& default_value = Settings())
-{
-    if (node.empty())
-    {
-        x = default_value;
-    }
-    else
-    {
-        x.read(node);
-    }
-}
-
-static inline void write(FileStorage& fs, const Settings& s)
-{
-    s.write(fs);
-}
+void write(FileStorage& fs, const Settings& s);
 
 bool runCalibration(Settings& s, Size& imageSize, Mat& cameraMatrix,
                     Mat& distCoeffs, vector<vector<Point2f>> imagePoints,

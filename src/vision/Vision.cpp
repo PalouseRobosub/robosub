@@ -1,13 +1,14 @@
 #include "VisionProcessor.hpp"
-#include "wfov_camera_msgs/WFOVImage.h"
-#include "sensor_msgs/Image.h"
 #include "robosub/visionPos.h"
 #include "robosub/visionPosArray.h"
-#include "opencv2/highgui.hpp"
-#include <iostream>
-#include <vector>
-#include <string>
+
 #include <algorithm>
+#include <iostream>
+#include "opencv2/highgui.hpp"
+#include "sensor_msgs/Image.h"
+#include <string>
+#include <vector>
+#include "wfov_camera_msgs/WFOVImage.h"
 
 using std::vector;
 
@@ -24,29 +25,7 @@ bool compareContourAreas(vector<Point> contour1, vector<Point> contour2)
 
 void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
-    //Create a vision processor
-    VisionProcessor vp;
-
-    //Process the image using the VisionProcessor
-    Mat processed = vp.process(*msg);
-
-    //Clone the output image for showing
-    Mat procOut = processed.clone();
-
-    //Create a Mat of the original image for showing
-    Mat original = cv_bridge::toCvShare(msg,
-                                    sensor_msgs::image_encodings::BGR8)->image;
-
-    //Find contours
-    vector<vector<Point>> contours;
-    vector<Vec4i> hierarchy;
-
-    findContours(processed, contours, hierarchy, CV_RETR_TREE,
-                 CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-
-    //Create the output message
-    robosub::visionPos outMsg;
-
+    ///Fetch parameters///
     //Determine if should show images
     ros::NodeHandle nh("~");
     bool doImShow = true;
@@ -61,39 +40,43 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
         ROS_DEBUG_STREAM("Loaded " + ros::this_node::getName() +
                          " nLargest: " << nLargest);
     }
+    //Create a vision processor
+    VisionProcessor vp;
 
-    robosub::visionPosArray arrayOut;
+    //Process the image using the VisionProcessor
+    Mat processed = vp.process(*msg);
+
+    //Clone the output image for showing if requested
+    Mat procOut;
+
+    if (doImShow)
+    {
+        procOut = processed.clone();
+    }
+
+    //Create a Mat of the original image for showing
+    Mat original = cv_bridge::toCvShare(msg,
+                                    sensor_msgs::image_encodings::BGR8)->image;
+
+    //Find contours
+    vector<vector<Point>> contours;
+    vector<Vec4i> hierarchy;
+
+    findContours(processed, contours, hierarchy, CV_RETR_TREE,
+                 CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+        robosub::visionPosArray arrayOut;
 
     ROS_DEBUG_STREAM("Contour size: " << contours.size());
     //If there are no contours, no calculations needed
     if (contours.size() >= 1)
     {
+        //Sort contours by size
         std::sort(contours.begin(), contours.end(), compareContourAreas);
 
-        //Find the area of the first contour
-        //double largestArea = contourArea(contours[0], false);
-        //int largestIndex = 0;
-
-        //Compare the first contour to other areas to find contour with the
-        //largest area
-        //for (unsigned int i = 1; i < contours.size(); i++)
-        //{
-        //    double area = contourArea(contours[i], false);
-        //    if (area > largestArea)
-        //    {
-        //        largestArea = area;
-        //        largestIndex = i;
-        //    }
-        //}
-
-
-        for (int i = 0; i < nLargest; ++i)
+        for (int i = 0; i < nLargest &&
+                        static_cast<unsigned int>(i) < contours.size(); ++i)
         {
-            if (static_cast<unsigned int>(i) >= contours.size())
-            {
-                //There are no more contours to process.
-                break;
-            }
             //Find the moments (physical properties) of the contour
             Moments moment;
             moment = moments(contours[i], false);
@@ -111,9 +94,8 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
                 if (doImShow)
                 {
                     Point2f center = cv::Point2f(cx, cy);
-                    std::cout << "Center at: " << "[" << cx - (imWidth/2) <<
-                                 "," << -1*(cy-(imHeight / 2)) << "]" <<
-                                 std::endl;
+                    ROS_INFO_STREAM("Center at: " << "[" << cx - (imWidth/2) <<
+                                 "," << -1*(cy-(imHeight / 2)) << "]");
                     circle(original, center, 5, Scalar(255, 255, 255), -1);
                     //Draw a circle on the original image for location
                     //visualization
@@ -122,16 +104,15 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
             }
 
             ROS_DEBUG_STREAM("Preparing output");
+            ///Create the output message
+            robosub::visionPos outMsg;
+
             //Prepare the output message
             outMsg.xPos = cx - (imWidth / 2);
-            ROS_DEBUG_STREAM("X prepared");
             outMsg.yPos = cy - (imHeight / 2);
-            ROS_DEBUG_STREAM("Y prepared");
             outMsg.magnitude = static_cast<double>(contourArea(contours[i],
                                                    false)) /
                                static_cast<double>(imWidth * imHeight);
-            ROS_DEBUG_STREAM("Magnitude prepared");
-
             //Add to output
             arrayOut.data.push_back(outMsg);
         }
@@ -145,18 +126,17 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 
         namedWindow(ros::this_node::getName() + " left_mask");
         imshow(ros::this_node::getName() + " left_mask", procOut);
+        //Wait for 1 millisecond to show images
+        waitKey(1);
     }
-    //Wait for 1 millisecond to show images
-    waitKey(1);
 
     //Publish output message
-    ROS_DEBUG_STREAM("Publishing message");
-
     pub.publish(arrayOut);
 }
 
 void rightCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
+    //Currently unused
     robosub::visionPosArray outMsg;
 
 

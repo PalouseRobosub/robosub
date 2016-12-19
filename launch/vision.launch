@@ -2,11 +2,13 @@
 
 <launch>
 
-    <arg name="doImShow" default="true"/>
+    <arg name="doImShow" default="false"/>
     <arg name="leftImage" default="camera/left/undistorted"/>
     <arg name="rightImage" default="camera/right/undistorted"/>
     
     <arg name="simulated" default="false"/>
+
+    <rosparam param="/visualize_thrusters" subst_value="True" if="$(arg simulated)">false</rosparam>
 
     <node pkg="robosub" type="vision" name="red_vision" required="false">
         <remap from="vision/output_default" to="vision/buoys/red"/>
