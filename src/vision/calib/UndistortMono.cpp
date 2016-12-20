@@ -1,5 +1,5 @@
 #include "wfov_camera_msgs/WFOVImage.h"
-#include <cv_bridge/cv_bridge.h>
+#include <cv3_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>

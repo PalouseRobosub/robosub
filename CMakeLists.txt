@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
   tf
   image_transport
-  cv_bridge
+  cv3_bridge
   pointgrey_camera_driver
 )
 
