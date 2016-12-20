@@ -3,6 +3,7 @@
 
 #include <ros/ros.h>
 #include "CalibrationSettings.hpp"
+#include <ctime>
 #include <iostream>
 #include <opencv2/core.hpp>
 #include <opencv2/core/utility.hpp>
