@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 
 <launch>
-	<node pkg="robosub" type="control" name="control" required="false"/>
-    <rosparam command="load" file="$(find robosub)/param/thruster.yaml" />
-    <rosparam command="load" file="$(find robosub)/param/control.yaml" />
+    <arg name="sub_name" default="cobalt"/>
+
+    <rosparam command="load" file="$(find robosub)/param/$(arg sub_name).yaml"/>
+    <node pkg="robosub" type="control" name="control" required="false"/>
 </launch>
