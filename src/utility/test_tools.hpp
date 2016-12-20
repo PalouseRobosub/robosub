@@ -142,7 +142,7 @@ public:
         }
 
         double min = m_data[0];
-        for (int i = 1; i < m_data.size(); ++i)
+        for (unsigned int i = 1; i < m_data.size(); ++i)
         {
             if (m_data[i] < min)
             {
@@ -162,7 +162,7 @@ public:
         }
 
         double max = m_data[0];
-        for (int i = 1; i < m_data.size(); ++i)
+        for (unsigned int i = 1; i < m_data.size(); ++i)
         {
             if (m_data[i] > max)
             {
@@ -182,7 +182,7 @@ public:
         }
 
         double sum = 0.0;
-        for (int i = 0; i < m_data.size(); ++i)
+        for (unsigned int i = 0; i < m_data.size(); ++i)
         {
                 sum += m_data[i];
         }
@@ -201,7 +201,7 @@ public:
 
         double average = GetAverage();
         double sum = 0.0;
-        for (int i = 0; i < m_data.size(); ++i)
+        for (unsigned int i = 0; i < m_data.size(); ++i)
         {
             sum += pow(m_data[i] - average, 2);
         }
