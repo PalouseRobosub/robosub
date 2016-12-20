@@ -121,13 +121,17 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
     //Show images
     if (doImShow)
     {
-        namedWindow(ros::this_node::getName() + " Original");
         imshow(ros::this_node::getName() + " Original", original);
 
-        namedWindow(ros::this_node::getName() + " left_mask");
         imshow(ros::this_node::getName() + " left_mask", procOut);
         //Wait for 1 millisecond to show images
         waitKey(1);
+    }
+    else
+    {
+        destroyAllWindows();
+        //destroyWindow(ros::this_node::getName() + " Original");
+        //destroyWindow(ros::this_node::getName() + " left_mask");
     }
 
     //Publish output message
@@ -160,6 +164,11 @@ int main(int argc, char **argv)
     pub =
       n.advertise<robosub::visionPosArray>("vision/output_default" + topic, 1);
 
+    //Create named windows
+    namedWindow(ros::this_node::getName() + " Original");
+    namedWindow(ros::this_node::getName() + " left_mask");
+    
+    ROS_INFO_STREAM("Init done");
 
     ros::spin();
 

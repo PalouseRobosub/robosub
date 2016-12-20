@@ -12,7 +12,7 @@
         This prevents visualization from messing with color detection-->
     <rosparam param="/visualize_thrusters" subst_value="True" if="$(arg simulated)">false</rosparam>
 
-    <node pkg="robosub" type="vision" name="red_vision" required="false">
+    <node pkg="robosub" type="vision" name="red_vision" output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/red"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -22,7 +22,7 @@
         <param name="nLargest" value="1"/>
     </node>
 
-    <node pkg="robosub" type="vision" name="green_vision" required="false">
+    <node pkg="robosub" type="vision" name="green_vision" output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/green"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -32,7 +32,7 @@
         <param name="nLargest" value="1"/>
     </node>
 
-    <node pkg="robosub" type="vision" name="yellow_vision" required="false">
+    <node pkg="robosub" type="vision" name="yellow_vision" output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/yellow"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -42,7 +42,7 @@
         <param name="nLargest" value="1"/>
     </node>
 
-    <node pkg="robosub" type="vision" name="gate_vision" required="false">
+    <node pkg="robosub" type="vision" name="gate_vision" output="screen" required="false">
         <remap from="vision/output_default" to="vision/start_gate"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
