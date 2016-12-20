@@ -42,7 +42,7 @@ before_script:
   - cd ..
 
 script:
-  - if [ "$BUILD" == "true"] ; then catkin_make; fi
+  - if [ "$BUILD" == "true" ] ; then catkin_make; fi
   - if [ "$TEST" == "true" ] ; then catkin_make run_tests; catkin_test_results; fi
   - if [ "$LINT" == "true" ] ; then catkin_make roslint; fi
 
