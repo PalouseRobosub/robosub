@@ -134,14 +134,14 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
     pub.publish(arrayOut);
 }
 
-void rightCamCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
+/*void rightCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
     //Currently unused
     robosub::visionPosArray outMsg;
 
 
     pub.publish(outMsg);
-}
+}*/
 
 
 int main(int argc, char **argv)
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber leftCamSub = n.subscribe("camera/left/undistorted", 1,
                                              leftCamCallback);
-    ros::Subscriber rightCamSub = n.subscribe("camera/right/undistorted", 1,
+    //ros::Subscriber rightCamSub = n.subscribe("camera/right/undistorted", 1,
                                               rightCamCallback);
 
     string topic;
