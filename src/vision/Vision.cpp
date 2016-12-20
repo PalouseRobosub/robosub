@@ -167,7 +167,7 @@ int main(int argc, char **argv)
     //Create named windows
     namedWindow(ros::this_node::getName() + " Original");
     namedWindow(ros::this_node::getName() + " left_mask");
-    
+
     ROS_INFO_STREAM("Init done");
 
     ros::spin();
