@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 <!--This launchfile should contain important nodes that we should always have
 running, such as the UPS power monitor. This launchfile will be run as a system

@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
     <node name="joystick_control" pkg="robosub" type="joystick_control" />
     <node name="joystick_driver" pkg="robosub" type="joystick_driver" />
