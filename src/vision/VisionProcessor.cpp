@@ -116,8 +116,8 @@ Mat VisionProcessor::process(const Image& image)
     //verify canny params
     if (lowThresh > highThresh)
     {
-        //Low should not be less than high
-        ROS_WARN_STREAM("Canny low threshold is less than the high threshold" <<
+        //High should not be less than low
+        ROS_WARN_STREAM("Canny high threshold is less than the low threshold" <<
                         ". Setting high to three times low.");
         highThresh = lowThresh * 3;
         n.setParam("canny/high", highThresh);

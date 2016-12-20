@@ -8,6 +8,8 @@
     
     <arg name="simulated" default="false"/>
 
+    <!--Set /visualize_thrusters to false if being simulated.
+        This prevents visualization from messing with color detection-->
     <rosparam param="/visualize_thrusters" subst_value="True" if="$(arg simulated)">false</rosparam>
 
     <node pkg="robosub" type="vision" name="red_vision" required="false">

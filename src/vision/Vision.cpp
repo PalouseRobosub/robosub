@@ -65,7 +65,7 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
     findContours(processed, contours, hierarchy, CV_RETR_TREE,
                  CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
-        robosub::visionPosArray arrayOut;
+    robosub::visionPosArray arrayOut;
 
     ROS_DEBUG_STREAM("Contour size: " << contours.size());
     //If there are no contours, no calculations needed
