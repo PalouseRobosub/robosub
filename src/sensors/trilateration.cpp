@@ -16,10 +16,10 @@
  */
 
 #include "robosub/HydrophoneDeltas.h"
-#include "robosub/PositionsStamped.h"
+#include "robosub/PositionArrayStamped.h"
 #include "robosub/QuaternionStampedAccuracy.h"
 #include "robosub/depth_stamped.h"
-#include "geometry_msgs/Vector3.h"
+#include "geometry_msgs/Point.h"
 #include "ros/ros.h"
 #include <eigen3/Eigen/Geometry>
 #include <eigen3/Eigen/Dense>
@@ -220,7 +220,7 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
     }
     else
     {
-        ROS_INFO_STREAM("Position two invalid:\n" << position_two_rectified <<
+        ROS_DEBUG_STREAM("Position two invalid:\n" << position_two_rectified <<
                 "\nDistance: " << distances[1]);
     }
 
@@ -240,44 +240,46 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
     }
 
     /*
-     * Publish all of the rectified measurements.
+     * Publish all of the rectified measurements regardless of validity.
      */
-    robosub::PositionsStamped all_positions_msg;
-    geometry_msgs::Vector3 position;
-    all_positions_msg.header.stamp = ros::Time::now();
-
-    all_positions_msg.distances.push_back(distances[0]);
-    all_positions_msg.distances.push_back(distances[1]);
+    robosub::PositionArrayStamped all_positions_msg;
+    robosub::Position position_msg;
+    geometry_msgs::Point position;
 
     position.x = position_one[0];
     position.y = position_one[1];
     position.z = position_one[2];
-    all_positions_msg.positions.push_back(position);
+    position_msg.position = position;
+    position_msg.distance = distances[0];
+    all_positions_msg.positions.push_back(position_msg);
+
     position.x = position_two[0];
     position.y = position_two[1];
     position.z = position_two[2];
-    all_positions_msg.positions.push_back(position);
+    position_msg.position = position;
+    position_msg.distance = distances[1];
+    all_positions_msg.positions.push_back(position_msg);
 
+    all_positions_msg.header.stamp = ros::Time::now();
     position_all_pub.publish(all_positions_msg);
 
     /*
-     * The current position readings are all valid and ordered by confidence.
-     * Add them to a position message.
+     * Publish all validated position measurements ordered by confidence.
      */
-    robosub::PositionsStamped position_msg;
-    position_msg.header.stamp = ros::Time::now();
+    robosub::PositionArrayStamped valid_positions_msg;
+    valid_positions_msg.header.stamp = ros::Time::now();
     for (unsigned int i = 0; i < position_readings.size(); ++i)
     {
-        position_msg.distances.push_back(distance_readings[i]);
-
         position.x = position_readings[i][0];
         position.y = position_readings[i][1];
         position.z = position_readings[i][2];
-        position_msg.positions.push_back(position);
+        position_msg.distance = distance_readings[i];
+        position_msg.position = position;
+
+        valid_positions_msg.positions.push_back(position_msg);
     }
 
-    if (position_readings.size())
-        position_pub.publish(position_msg);
+    position_pub.publish(valid_positions_msg);
 }
 
 /**
@@ -319,21 +321,21 @@ int main(int argc, char **argv)
     if (ros::param::getCached("hydrophones/reference/x",
                 reference_hydrophone_position[0]) == false)
     {
-        ROS_FATAL("Failed to load reference hydrophone position.");
+        ROS_FATAL("Failed to load X reference hydrophone position.");
         return -1;
     }
 
     if (ros::param::getCached("hydrophones/reference/y",
                 reference_hydrophone_position[1]) == false)
     {
-        ROS_FATAL("Failed to load reference hydrophone position.");
+        ROS_FATAL("Failed to load Y reference hydrophone position.");
         return -1;
     }
 
     if (ros::param::getCached("hydrophones/reference/z",
                 reference_hydrophone_position[2]) == false)
     {
-        ROS_FATAL("Failed to load reference hydrophone position.");
+        ROS_FATAL("Failed to load Z reference hydrophone position.");
         return -1;
     }
 
@@ -354,10 +356,10 @@ int main(int argc, char **argv)
             orientationCallback);
     ros::Subscriber depth_sub = nh.subscribe("depth", 1,
             depthCallback);
-    position_pub =
-        nh.advertise<robosub::PositionsStamped>("hydrophones/position", 1);
-    position_all_pub =
-        nh.advertise<robosub::PositionsStamped>("hydrophones/position/all", 1);
+    position_pub = nh.advertise<robosub::PositionArrayStamped>(
+            "hydrophones/position", 1);
+    position_all_pub = nh.advertise<robosub::PositionArrayStamped>(
+            "hydrophones/position/all", 1);
 
     /*
      * Continually handle all ROS message callbacks.

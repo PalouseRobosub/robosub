@@ -90,7 +90,8 @@ add_message_files(
   Euler.msg
   QuaternionStampedAccuracy.msg
   HydrophoneDeltas.msg
-  PositionsStamped.msg
+  Position.msg
+  PositionArrayStamped.msg
   visionPos.msg
   visionPosArray.msg
   ObstaclePos.msg
