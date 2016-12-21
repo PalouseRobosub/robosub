@@ -2,6 +2,7 @@
 #include <eigen3/Eigen/Dense>
 #include <iostream>
 #include <random>
+#include <vector>
 
 #include "ros/console.h"
 #include "ros/ros.h"
@@ -16,6 +17,8 @@
 #include "std_srvs/Empty.h"
 
 using namespace Eigen;
+
+#define PRINT_THROTTLE(x) if(num_iterations % 25 == 0) { x }
 
 template <typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
@@ -50,23 +53,34 @@ public:
     bool resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
     void depthCallback(const robosub::depth_stamped::ConstPtr &msg);
     void hydrophoneCallback(const robosub::PositionsStamped::ConstPtr &msg);
+    void linAccelCallback(const geometry_msgs::Vector3::ConstPtr &msg);
 
     void Update();
 
+    Matrix<double,4,1> state_to_observation(Matrix<double,6,1> state);
+    Matrix<double,4,1> add_observation_noise(Matrix<double,4,1> particle_obs);
+
+    geometry_msgs::Vector3 GetLocalizationMessage();
+
 private:
-    Matrix<double,4,1> StateToObservation(Matrix<double,6,1> state);
-    Matrix<double,4,1> AddObservationNoise(Matrix<double,4,1> particle_obs);
+
+    int num_iterations;
 
     double dt;
     double num_particles;
 
     bool new_hydrophone;
     bool new_depth;
+    bool new_lin_velocity;
+
+    geometry_msgs::Vector3 lin_velocity;
 
     // Multiply system_update_model x state(k-1) to get state(k)
     Matrix<double,6,6> system_update_model;
     // I'm not 100% sure on this. Covariance matrices are magic
     Matrix<double,6,6> system_update_covar;
+
+    Matrix<double,6,1> initial_distribution;
     // system_update_variance = [x_variance, y_variance, z_variance]
     //Matrix<double,3,1> system_update_variance;
     // measurement_covar is diagnal (currently at least) so easier
@@ -85,6 +99,7 @@ private:
     Matrix<double,6,1> est_state;
     Matrix<double,6,1> initial_state;
 
+    // Could convert to 3-d matrices
     std::vector<Matrix<double, 6,1> > last_particle_states;
     std::vector<Matrix<double, 6,1> > particle_states;
     std::vector<double> last_particle_weights;
@@ -97,6 +112,7 @@ private:
     std::normal_distribution<double> *norm_distribution;
     std::uniform_real_distribution<double> *uniform_distribution;
 
+public:
     // This is meant to emulate the matlab function randn which 
     // returns a random value from a normal distribution with
     // mean = 0 std dev = 1
