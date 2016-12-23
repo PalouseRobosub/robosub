@@ -17,10 +17,10 @@ int main(int argc, char **argv)
 
     ros::NodeHandle n;
 
-    LocalizationSystem loc_system(1.0/33.0, 5);
+    LocalizationSystem loc_system(1.0/33.0, 100);
 
     // TODO: Change to use localization messages
-    ros::Publisher loc_pub = n.advertise<geometry_msgs::Vector3>("pf_position", 1);
+    ros::Publisher loc_pub = n.advertise<geometry_msgs::Vector3Stamped>("pf_position", 1);
 
     // Service for resetting position and velocity
     ros::ServiceServer reset_filter_service = n.advertiseService("reset_particle_filter", &LocalizationSystem::resetFilterCallback, &loc_system);
@@ -29,16 +29,18 @@ int main(int argc, char **argv)
     ros::Subscriber hydrophones_position_sub = n.subscribe("hydrophones/position", 1, &LocalizationSystem::hydrophoneCallback, &loc_system);
     ros::Subscriber accel_sub = n.subscribe("rs_lin_accel_data", 1, &LocalizationSystem::linAccelCallback, &loc_system);
 
-    ros::Rate r(40.0);
+    ros::Rate r(60.0);
 
     while(ros::ok())
     {
         ros::spinOnce();
-        loc_system.Update();
-        //geometry_msgs::Vector3 pos = loc_system.GetLocalizationMessage();
-        //loc_pub.publish(pos);
-        r.sleep();
 
+        loc_system.Update();
+
+        geometry_msgs::Vector3Stamped pos = loc_system.GetLocalizationMessage();
+        loc_pub.publish(pos);
+
+        r.sleep();
 
         //ROS_INFO_STREAM(loc_system.randn() << " : " << loc_system.randu());
 
@@ -47,7 +49,7 @@ int main(int argc, char **argv)
         //ROS_INFO_STREAM("CumSum(t): " << CumSum(t));
 
         //Matrix<double,6,1> state;
-        //Matrix<double,4,1> obs;
+        //Matrix<double,7,1> obs;
 
         //state(0,0) = 28.0;
         //state(1,0) = 10.0;
