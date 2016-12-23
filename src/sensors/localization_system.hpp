@@ -9,16 +9,17 @@
 #include "tf/transform_datatypes.h"
 
 #include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/Vector3.h"
+#include "geometry_msgs/Vector3Stamped.h"
 #include "robosub/depth_stamped.h"
-#include "robosub/PositionsStamped.h"
+#include "robosub/PositionArrayStamped.h"
 #include "std_msgs/Empty.h"
 #include "std_msgs/Float32.h"
 #include "std_srvs/Empty.h"
 
 using namespace Eigen;
 
-#define PRINT_THROTTLE(x) if(num_iterations % 25 == 0) { x }
+#define PRINT_THROTTLE(x) if(num_iterations % 50 == 0) { x }
+//#define PRINT_THROTTLE(x) if(0 && num_iterations % 50 == 0) { x }
 
 template <typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
@@ -42,32 +43,53 @@ std::vector<double> CumSum(std::vector<double> v)
     return cumsum;
 }
 
+double vector_max(std::vector<double> v)
+{
+    if(v.size() == 0)
+    {
+        return 0.0;
+    }
+
+    double max = v[0];
+    for(unsigned int i=1; i<v.size(); i++)
+    {
+        if(v[i] > max)
+        {
+            max = v[i];
+        }
+    }
+
+    return max;
+}
 
 class LocalizationSystem
 {
 public:
     LocalizationSystem(double _dt, int _num_particles);
     ~LocalizationSystem();
+    void ReloadParams();
     void InitializeParticleFilter();
 
     bool resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
     void depthCallback(const robosub::depth_stamped::ConstPtr &msg);
-    void hydrophoneCallback(const robosub::PositionsStamped::ConstPtr &msg);
-    void linAccelCallback(const geometry_msgs::Vector3::ConstPtr &msg);
+    void hydrophoneCallback(const robosub::PositionArrayStamped::ConstPtr &msg);
+    void linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
 
     void Update();
 
-    Matrix<double,4,1> state_to_observation(Matrix<double,6,1> state);
-    Matrix<double,4,1> add_observation_noise(Matrix<double,4,1> particle_obs);
+    Matrix<double,7,1> state_to_observation(Matrix<double,6,1> state);
+    Matrix<double,7,1> add_observation_noise(Matrix<double,7,1> particle_obs);
 
-    geometry_msgs::Vector3 GetLocalizationMessage();
+    geometry_msgs::Vector3Stamped GetLocalizationMessage();
 
 private:
 
     int num_iterations;
 
     double dt;
-    double num_particles;
+    int num_particles;
+    double pinger_depth;
+    ros::Time last_lin_accel_receive_time;
 
     bool new_hydrophone;
     bool new_depth;
@@ -85,13 +107,13 @@ private:
     //Matrix<double,3,1> system_update_variance;
     // measurement_covar is diagnal (currently at least) so easier
     // to understand
-    Matrix<double,4,4> measurement_covar;
+    Matrix<double,7,7> measurement_covar;
     // measurement_variance is noise of each sensor
-    //Matrix<double,4,1> measurement_variance;
+    //Matrix<double,7,1> measurement_variance;
 
-    // Observation is [hydrophones/position, depth] = [hx, hy, hz, depth]
-    Matrix<double,4,1> last_observation;
-    Matrix<double,4,1> observation;
+    // Observation is [hydrophones_position, lin_accel, depth] = [hx, hy, hz, lx, ly, lz, d]
+    Matrix<double,7,1> last_observation;
+    Matrix<double,7,1> observation;
 
     // state = [x, y, z, x_vel, y_vel, z_vel]
     // This should be global position and velocity
@@ -105,8 +127,8 @@ private:
     std::vector<double> last_particle_weights;
     std::vector<double> particle_weights;
     // Particle observations
-    std::vector<Matrix<double, 4,1> > last_particle_obs;
-    std::vector<Matrix<double, 4,1> > particle_obs;
+    std::vector<Matrix<double, 7,1> > last_particle_obs;
+    std::vector<Matrix<double, 7,1> > particle_obs;
 
     std::default_random_engine rand_generator;
     std::normal_distribution<double> *norm_distribution;
@@ -143,5 +165,13 @@ public:
             }
         }
         return out;
+    }
+
+    double gaussian_prob(double mean, double sigma, double x)
+    {
+        double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) / 2.0) / std::sqrt(2.0 * 3.1415 * std::pow(sigma, 2));
+        //PRINT_THROTTLE(ROS_INFO_STREAM("gaussian_prob(" << mean << "), " << sigma << "), "
+        PRINT_THROTTLE(ROS_INFO("gaussian_prob(%f, %f, %f) = %f", mean, sigma, x, p););
+        return p;
     }
 };
