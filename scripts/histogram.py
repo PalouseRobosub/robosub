@@ -2,38 +2,41 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import rospy
-import subprocess
-import importlib
 import signal
+import rostopic
 
 def sig_handler(signum, frame):
     global h
-    h.plot()
+    if h is not None:
+        h.plot()
 
 class Histogram():
-
     def __init__(self, arguments):
         self.args = arguments
 
-        # Determine type of topic we are to listen to
-        output = subprocess.Popen(['rostopic', 'type', self.args.topic],
-                                  stdout=subprocess.PIPE).communicate()[0]
-        type = output.split('/')
-        i = importlib.import_module(type[0] + ".msg", type[1])
+        # Get the class type of the requested topic, blocking until it exists
+        t_type = rostopic.get_topic_class(self.args.topic, blocking=True)
 
-        self.sub = rospy.Subscriber(self.args.topic, getattr(i, type[1][:-1]),
+        # Subscribe to the topic
+        self.sub = rospy.Subscriber(self.args.topic, t_type[0],
                                     callback=self.callback)
-        print "Subscribed to {}".format(self.args.topic)
+
+        rospy.loginfo("Subscribed to {}".format(self.args.topic))
         self.data = []
 
     def callback(self, msg):
-        print "Got Message"
+        rospy.logdebug("Got {} Message".format(self.args.topic.split('/')[:-1]))
         self.data.append(eval('msg.' + self.args.attribute))
 
     def plot(self):
-        n, bins, patches = plt.hist(self.data, 'auto', normed=self.args.normed,
-                                    facecolor=self.args.color,
-                                    alpha=self.args.alpha)
+        try:
+            n, bins, patches = plt.hist(self.data, int(self.args.bins),
+                                        normed=1, facecolor=self.args.color,
+                                        alpha=self.args.alpha)
+        except ValueError:
+            n, bins, patches = plt.hist(self.data, self.args.bins, normed=1,
+                                        facecolor=self.args.color,
+                                        alpha=self.args.alpha)
 
         if self.args.normed:
             plt.ylabel('Probability')
@@ -44,6 +47,9 @@ class Histogram():
         plt.title('Histogram of {}'.format(args.topic))
 
         plt.show()
+
+    def __del__(self):
+        self.sub.unregister()
 
 if __name__ == "__main__":
     global h
@@ -61,6 +67,8 @@ if __name__ == "__main__":
                         help="Choose the color of the bars in the plot")
     parser.add_argument('--alpha', type=float, default=0.75,
                         help="Alpha of the color to use")
+    parser.add_argument('--bins', default='auto',
+                        help="Number of bins to use for the histogram")
     args = parser.parse_args()
 
     h = Histogram(args)
