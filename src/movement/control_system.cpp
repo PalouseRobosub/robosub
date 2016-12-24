@@ -235,26 +235,51 @@ namespace robosub
                      * by adding in the new goal to the current goal to make it
                      * relative to the current state.
                      */
+
+                    //if we just want to maintain our current state
+                    if(control_values[i] == 0)
+                    {
+                        //if the previous goal was absolute, we can just reuse
+                        //the last absolute goal
+                        if (this->goal_types[i] ==
+                            robosub::control::STATE_ABSOLUTE)
+                        {
+                            this->goals[i] = this->goals[i];
+                        }
+                        //else, we should use our current state as the new
+                        //absolute goal
+                        else
+                        {
+                            this->goals[i] = state_vector[i];
+                        }
+                    }
+                    //else, the update is non-zero, use the normal update logic
+                    else
+                    {
+                        if(i < 3)
+                        {
+                            this->goals[i] = state_vector[i] +
+                                             control_values[i];
+                        }
+                        else if (i == 3)
+                        {
+                            this->goals[i] = wraparound(state_vector[i] +
+                                    control_values[i], -180.0, 180.0);
+                        }
+                        else if (i == 4)
+                        {
+                            this->goals[i] = wraparound(state_vector[i] +
+                                    control_values[i], -90.0, 90.0);
+                        }
+                        else if (i == 5)
+                        {
+                            this->goals[i] = wraparound(state_vector[i] +
+                                    control_values[i], -180.0, 180.0);
+                        }
+                    }
+
                     this->goal_types[i] = robosub::control::STATE_ABSOLUTE;
-                    if(i < 3)
-                    {
-                        this->goals[i] = state_vector[i] + control_values[i];
-                    }
-                    else if (i == 3)
-                    {
-                        this->goals[i] = wraparound(state_vector[i] +
-                                control_values[i], -180.0, 180.0);
-                    }
-                    else if (i == 4)
-                    {
-                        this->goals[i] = wraparound(state_vector[i] +
-                                control_values[i], -90.0, 90.0);
-                    }
-                    else if (i == 5)
-                    {
-                        this->goals[i] = wraparound(state_vector[i] +
-                                control_values[i], -180.0, 180.0);
-                    }
+
                     break;
 
                 case robosub::control::STATE_ERROR:
