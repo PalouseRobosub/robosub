@@ -1,14 +1,10 @@
+#!/usr/bin/env python
+
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
 import rospy
-import signal
 import rostopic
-
-def sig_handler(signum, frame):
-    global h
-    if h is not None:
-        h.plot()
 
 class Histogram():
     def __init__(self, arguments):
@@ -24,11 +20,15 @@ class Histogram():
         rospy.loginfo("Subscribed to {}".format(self.args.topic))
         self.data = []
 
+        plt.ion()
+        plt.show()
+
     def callback(self, msg):
-        rospy.logdebug("Got {} Message".format(self.args.topic.split('/')[:-1]))
+        rospy.logdebug("Got {} Message".format(self.args.topic))
         self.data.append(eval('msg.' + self.args.attribute))
 
     def plot(self):
+        rospy.logdebug("Plotting Update")
         try:
             n, bins, patches = plt.hist(self.data, int(self.args.bins),
                                         normed=1, facecolor=self.args.color,
@@ -46,15 +46,19 @@ class Histogram():
         plt.xlabel('Value')
         plt.title('Histogram of {}'.format(args.topic))
 
-        plt.show()
+        plt.pause(0.05)
+        plt.gca().clear()
 
     def __del__(self):
         self.sub.unregister()
 
+def timerCallback(timerEvent):
+    global h
+    rospy.logdebug("Timer Triggered")
+    h.plot()
+
 if __name__ == "__main__":
     global h
-
-    signal.signal(signal.SIGINT, sig_handler)
 
     rospy.init_node("Histogram", anonymous=True)
 
@@ -72,5 +76,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     h = Histogram(args)
+
+    rospy.Timer(rospy.Duration(1), timerCallback)
 
     rospy.spin()
