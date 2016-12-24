@@ -232,8 +232,7 @@ namespace robosub
                 case robosub::control::STATE_RELATIVE:
                     /*
                      * Set the current state to absolute, but update the goal
-                     * by adding in the new goal to the current goal to make it
-                     * relative to the current state.
+                     * by adding the new goal relative to the current state.
                      */
 
                     //if we just want to maintain our current state
@@ -244,7 +243,10 @@ namespace robosub
                         if (this->goal_types[i] ==
                             robosub::control::STATE_ABSOLUTE)
                         {
-                            this->goals[i] = this->goals[i];
+                            //here we don't need to change the current goal, so
+                            //do nothing. If we were to have code here, it
+                            //would look like:
+                            //this->goals[i] = this->goals[i];
                         }
                         //else, we should use our current state as the new
                         //absolute goal
