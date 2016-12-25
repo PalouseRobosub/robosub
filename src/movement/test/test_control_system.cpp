@@ -21,7 +21,6 @@ TEST(ControlSystem, depth)
 
     rs::SubscriberAnalyzer<robosub::depth_stamped> analyzer;
 
-
     analyzer.Init("depth", &get_depth_data);
 
     robosub::control msg;
@@ -41,7 +40,6 @@ TEST(ControlSystem, depth)
     msg.dive_state = robosub::control::STATE_ABSOLUTE;
     msg.dive = test_depth;
 
-
     //fill out a control message to stay level and go to depth
     pub.publish(msg);
     analyzer.Start();
@@ -59,7 +57,6 @@ TEST(ControlSystem, depth)
     //confirm we didn't dive too deep
     EXPECT_LT(test_depth - overshoot_allowed, analyzer.GetMin());
 
-
     ROS_INFO("maintaining depth to check steady-state oscillation...");
     analyzer.ClearData();
     analyzer.Start();
@@ -72,10 +69,9 @@ TEST(ControlSystem, depth)
     }
     analyzer.Stop();
 
-
     //confirm depth is stable
     EXPECT_NEAR(test_depth, analyzer.GetAverage(), 0.05);
-    EXPECT_LT(analyzer.GetStandardDeviation(), 0);
+    EXPECT_LT(analyzer.GetStandardDeviation(), 0.01);
 }
 
 int main(int argc, char *argv[])

@@ -1,0 +1,40 @@
+control:
+    proportional:
+        x: 1.0
+        y: 1.0
+        z: 4.0
+        psi: 0.04 #roll
+        phi: 0.04 #pitch
+        theta: 0.07 #yaw
+    integral:
+        x: 0.0
+        y: 0.0
+        z: 1.0
+        psi: 0.0
+        phi: 0.0
+        theta: 0.0
+    derivative:
+        x: 0.0
+        y: 0.0
+        z: 1.5
+        psi: 0.0
+        phi: 0.0
+        theta: 0.0
+    windup:
+        x: 5.0
+        y: 5.0
+        z: 0.5
+        psi: 45.0
+        phi: 45.0
+        theta: 45.0
+    hysteresis:
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        psi: 0.0
+        phi: 0.0
+        theta: 0.0
+    limits:
+        rotation: 0.5
+        translation: 0.5
+
