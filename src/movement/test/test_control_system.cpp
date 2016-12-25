@@ -18,6 +18,8 @@ TEST(ControlSystem, depth)
 {
     double test_depth = -2;
     double overshoot_allowed  = 0.1;
+    double average_threshold = 0.05;
+    double std_dev_allowed = 0.01;
 
     rs::SubscriberAnalyzer<robosub::depth_stamped> analyzer;
 
@@ -70,8 +72,8 @@ TEST(ControlSystem, depth)
     analyzer.Stop();
 
     //confirm depth is stable
-    EXPECT_NEAR(test_depth, analyzer.GetAverage(), 0.05);
-    EXPECT_LT(analyzer.GetStandardDeviation(), 0.01);
+    EXPECT_NEAR(test_depth, analyzer.GetAverage(), average_threshold);
+    EXPECT_LT(analyzer.GetStandardDeviation(), std_dev_allowed);
 }
 
 int main(int argc, char *argv[])
