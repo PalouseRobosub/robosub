@@ -238,22 +238,15 @@ namespace robosub
                     //if we just want to maintain our current state
                     if(control_values[i] == 0)
                     {
-                        //if the previous goal was absolute, we can just reuse
-                        //the last absolute goal
-                        if (this->goal_types[i] ==
+                        //if the previous goal was not absolute we should use
+                        //our current state as the new absolute goal
+                        if (this->goal_types[i] !=
                             robosub::control::STATE_ABSOLUTE)
-                        {
-                            //here we don't need to change the current goal, so
-                            //do nothing. If we were to have code here, it
-                            //would look like:
-                            //this->goals[i] = this->goals[i];
-                        }
-                        //else, we should use our current state as the new
-                        //absolute goal
-                        else
                         {
                             this->goals[i] = state_vector[i];
                         }
+                        //else, the previous goal was absolute, we can just
+                        //reuse the last absolute goal (don't need to change)
                     }
                     //else, the update is non-zero, use the normal update logic
                     else
