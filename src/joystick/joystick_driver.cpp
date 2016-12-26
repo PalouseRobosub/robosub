@@ -8,6 +8,8 @@ JoystickDriver::JoystickDriver(ros::NodeHandle *nh)
 
     if(!(node->getParam("device", device)))
     {
+        ROS_WARN("Unable to load device from param file, using default ("
+                 "'/dev/input/js0')");
         device = "/dev/input/js0";
     }
     ROS_INFO("device: %s", device.c_str());
@@ -113,12 +115,14 @@ int main(int argc, char **argv)
 
     ros::Publisher pub;
     pub = nh.advertise<robosub::joystick>("joystick_driver", 1);
+    nh = ros::NodeHandle("joystick_driver");
 
     int rate;
 
     // Set default rate to 10 if param fails to load
     if(!nh.getParam("rate", rate))
     {
+        ROS_WARN("Unable to load rate from param file, using default (10)");
         rate = 10;
     }
 
