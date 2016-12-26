@@ -11,7 +11,7 @@
 
 #include <ros/ros.h>
 #include <ros/console.h>
-#include "robosub/joystick.h" // Joystick Msg
+#include "robosub/gamepad.h" // Gamepad Msg
 
 typedef struct
 {
@@ -19,12 +19,14 @@ typedef struct
     double axisY;
     double axisZ;
 
+    double axisRX;
+    double axisRY;
+    double axisRZ;
+
     int hatX;
     int hatY;
 
-    double throttle;
-
-    bool button[12];
+    bool button[11];
 } GAMEPAD_STATE;
 
 class GamepadDriver
@@ -44,19 +46,8 @@ private:
     //loadable parameters
     std::string device;
 
-    double axisXdeadzone;
-    double axisYdeadzone;
-    double axisZdeadzone;
-
-    double x_scaling_power;
-    double y_scaling_power;
-    double z_scaling_power;
-
-    double min_depth;
-    double max_depth;
-
 public:
-    robosub::joystick GetGamepadMessage();
+    robosub::gamepad GetGamepadMessage();
     void shutdown();
 
     GamepadDriver(ros::NodeHandle *n);

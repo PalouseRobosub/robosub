@@ -1,10 +1,13 @@
 #include "gamepad_driver.hpp"
 #include <string>
 
-std::ostream& operator<<(std::ostream& os, const js_event& e)
+using std::endl;
+using std::ostream;
+
+ostream& operator<<(ostream& os, const js_event& e)
 {
-    os << "time:  " << e.time << std::endl;
-    os << "value: " << e.value << std::endl;
+    os << "time:  " << e.time << endl;
+    os << "value: " << e.value << endl;
     os << "type:  ";
 
     switch (e.type & ~JS_EVENT_INIT)
@@ -22,26 +25,28 @@ std::ostream& operator<<(std::ostream& os, const js_event& e)
     {
         os << " (INIT)";
     }
-    os << std::endl;
-    os << "number:  " << (int) e.number << std::endl << std::endl;
+    os << endl;
+    os << "number:  " <<  static_cast<int>(e.number) << endl << endl;
 
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, GAMEPAD_STATE& state)
+ostream& operator<<(ostream& os, GAMEPAD_STATE& state)
 {
-    os << "axisX: " << state.axisX << std::endl;
-    os << "axisY: " << state.axisY << std::endl;
-    os << "axisZ: " << state.axisZ << std::endl;
+    os << "axisX: " << state.axisX << endl;
+    os << "axisY: " << state.axisY << endl;
+    os << "axisZ: " << state.axisZ << endl;
 
-    os << "hatX:  " << state.hatX << std::endl;
-    os << "hatY:  " << state.hatY << std::endl;
+    os << "axisRX: " << state.axisRX << endl;
+    os << "axisRY: " << state.axisRY << endl;
+    os << "axisRZ: " << state.axisRZ << endl;
 
-    os << "throttle: " << state.throttle << std::endl;
+    os << "hatX:  " << state.hatX << endl;
+    os << "hatY:  " << state.hatY << endl;
 
-    for (unsigned int i = 0; i < 12; ++i)
+    for (unsigned int i = 0; i < 11; ++i)
     {
-        os << "button: " << i+1 << ":  " << state.button[i] << std::endl;
+        os << "button: " << i+1 << ":  " << state.button[i] << endl;
     }
 
     return os;
@@ -55,6 +60,7 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
     if(!(node->getParam("device", device)))
     {
         device = "/dev/input/js0";
+        ROS_WARN("Unable to open device from params");
     }
     ROS_INFO("device: %s", device.c_str());
 
@@ -68,7 +74,7 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
     }
 }
 
-robosub::joystick GamepadDriver::GetGamepadMessage()
+robosub::gamepad GamepadDriver::GetGamepadMessage()
 {
     while(read(fd, &e, sizeof(e)) > 0)
     {
@@ -82,36 +88,42 @@ robosub::joystick GamepadDriver::GetGamepadMessage()
     }
 
     // Create joystick msg
-    robosub::joystick js_msg;
+    robosub::gamepad gp_msg;
     //ROS_DEBUG("gamepad_data.axisX: %f\n", gamepad_data.axisX);
 
-    js_msg.axisX = static_cast<double>(gamepad_data.axisX);
-    js_msg.axisY = static_cast<double>(gamepad_data.axisY);
-    js_msg.axisZ = static_cast<double>(gamepad_data.axisZ);
+    gp_msg.axisX = static_cast<double>(gamepad_data.axisX);
+    gp_msg.axisY = static_cast<double>(gamepad_data.axisY);
+    gp_msg.axisZ = static_cast<double>(gamepad_data.axisZ);
 
-    js_msg.hatX = gamepad_data.hatX;
-    js_msg.hatY = gamepad_data.hatY;
+    gp_msg.axisRX = static_cast<double>(gamepad_data.axisRX);
+    gp_msg.axisRY = static_cast<double>(gamepad_data.axisRY);
+    gp_msg.axisRZ = static_cast<double>(gamepad_data.axisRZ);
 
-    js_msg.throttle = static_cast<double>(gamepad_data.throttle);
+    gp_msg.hatX = gamepad_data.hatX;
+    gp_msg.hatY = gamepad_data.hatY;
 
-    for(int i = 0; i < 12; ++i)
+    for(int i = 0; i < 11; ++i)
     {
-        js_msg.buttons[i] = gamepad_data.button[i];
+        gp_msg.buttons[i] = gamepad_data.button[i];
     }
 
     //normalize all of the values
-    js_msg.axisX = js_msg.axisX / static_cast<double>(AXIS_MAX);
-    js_msg.axisY = js_msg.axisY / static_cast<double>(AXIS_MAX);
-    js_msg.axisZ = js_msg.axisZ / static_cast<double>(AXIS_MAX);
-    js_msg.throttle = ((static_cast<double>(gamepad_data.throttle)/AXIS_MAX)
-                       +1)/2;
-    js_msg.hatX /= AXIS_MAX;
-    js_msg.hatY /= AXIS_MAX;
+    gp_msg.axisX = gp_msg.axisX / static_cast<double>(AXIS_MAX);
+    gp_msg.axisY = gp_msg.axisY / static_cast<double>(AXIS_MAX);
+    gp_msg.axisZ = gp_msg.axisZ / static_cast<double>(AXIS_MAX);
 
-    js_msg.axisX *= -1.0;
-    js_msg.axisX = (js_msg.axisX == -0.0) ? 0.0 : js_msg.axisX;
+    gp_msg.axisRX = gp_msg.axisRX / static_cast<double>(AXIS_MAX);
+    gp_msg.axisRY = gp_msg.axisRY / static_cast<double>(AXIS_MAX);
+    gp_msg.axisRZ = gp_msg.axisRZ / static_cast<double>(AXIS_MAX);
 
-    return js_msg;
+    gp_msg.hatX /= AXIS_MAX;
+    gp_msg.hatY /= AXIS_MAX;
+
+    // Invert X axis
+    /* js_msg.axisX *= -1.0; */
+    /* js_msg.axisX = (js_msg.axisX == -0.0) ? 0.0 : js_msg.axisX; */
+
+    return gp_msg;
 }
 
 void GamepadDriver::parse_event()
@@ -134,12 +146,18 @@ void GamepadDriver::parse_event()
             gamepad_data.axisZ = e.value;
             break;
         case 3: //throttle, up is negative
-            gamepad_data.throttle = e.value;
+            gamepad_data.axisRX = e.value;
             break;
         case 4: //hat left-right, left is negative
-            gamepad_data.hatY = e.value;
+            gamepad_data.axisRY = e.value;
             break;
         case 5: //hat up-down, forward is negative
+            gamepad_data.axisRZ = e.value;
+            break;
+        case 6: //hat left-right, left is negative
+            gamepad_data.hatY = e.value;
+            break;
+        case 7: //hat up-down, forward is negative
             gamepad_data.hatX = e.value;
             break;
         }
@@ -158,7 +176,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Publisher pub;
-    pub = nh.advertise<robosub::joystick>("gamepad_driver", 1);
+    pub = nh.advertise<robosub::gamepad>("gamepad_driver", 1);
+    nh = ros::NodeHandle("gamepad_driver");
 
     int rate;
 
@@ -166,6 +185,7 @@ int main(int argc, char **argv)
     if(!nh.getParam("rate", rate))
     {
         rate = 10;
+        ROS_WARN("Unable to get rate from params");
     }
 
     ros::Rate r(rate);

@@ -86,6 +86,7 @@ add_message_files(
   control.msg
   control_status.msg
   joystick.msg
+  gamepad.msg
   depth_stamped.msg
   Euler.msg
   QuaternionStampedAccuracy.msg
