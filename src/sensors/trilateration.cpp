@@ -350,7 +350,7 @@ int main(int argc, char **argv)
      * Subscribe to the time delta message and publish a derived position
      * topic.
      */
-    ros::Subscriber delta_sub = nh.subscribe("hydrophone/30khz/delta", 1,
+    ros::Subscriber delta_sub = nh.subscribe("hydrophones/30khz/delta", 1,
             deltaCallback);
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
             orientationCallback);
