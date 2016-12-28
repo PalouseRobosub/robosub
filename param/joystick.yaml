@@ -9,5 +9,5 @@ joystick_control:
     z_scaling_power: 2.0
 
 joystick_driver:
-    device: "/dev/input/js1"
+    device: "/dev/input/js0"
     rate: "10"
