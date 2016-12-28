@@ -21,39 +21,41 @@ double z_scaling_power = 0.0;
 double rx_scaling_power = 0.0;
 double ry_scaling_power = 0.0;
 double rz_scaling_power = 0.0;
-/*
-void dead_scale(double *value, double deadzone, double scaling_power)
+
+double dead_scale(double value, double deadzone, double scaling_power)
 {
     double num;
-    num = (fabs(*value) - deadzone);
+    num = (fabs(value) - deadzone);
     if( num < 0)
         num = 0;
 
-    double sgn = (*value > 0) ? 1.0 : -1.0;
-    *value = pow( num/(1-deadzone), scaling_power ) * sgn;
+    double sgn = (value > 0) ? 1.0 : -1.0;
+    return pow( num/(1-deadzone), scaling_power ) * sgn;
 }
-*/
+
 
 void gamepadToControlCallback(const robosub::gamepad msg)
 {
     //scale and apply deadzones
-    //dead_scale(msg.axisX, axisXdeadzone, x_scaling_power);
-    //dead_scale(msg.axisY, axisYdeadzone, y_scaling_power);
-    //dead_scale(msg.axisZ, axisZdeadzone, z_scaling_power);
+    double axisX = dead_scale(msg.axisX, axisXdeadzone, x_scaling_power);
+    double axisY = dead_scale(msg.axisY, axisYdeadzone, y_scaling_power);
+    double axisZ = dead_scale(msg.axisZ, axisZdeadzone, z_scaling_power);
+    double axisRX = dead_scale(msg.axisRX, axisRXdeadzone, rx_scaling_power);
+    double axisRZ = dead_scale(msg.axisRZ, axisRZdeadzone, rz_scaling_power);
 
     //Generate a control packet out of the type to send to control module
     robosub::control outmsg;
     outmsg.forward_state = outmsg.STATE_ERROR;
     outmsg.strafe_state  = outmsg.STATE_ERROR;
-    outmsg.dive_state    = outmsg.STATE_ERROR;
+    outmsg.dive_state    = outmsg.STATE_RELATIVE;
     outmsg.yaw_state     = outmsg.STATE_RELATIVE;
-    outmsg.forward = -static_cast<double>(msg.axisX);
-    outmsg.strafe_left = -msg.axisY;
-    outmsg.yaw_left = msg.axisRX;
-    outmsg.dive = static_cast<double>(msg.axisZ) -
-                  static_cast<double>(msg.axisRZ);
+    outmsg.forward = -static_cast<double>(axisX);
+    outmsg.strafe_left = -axisY;
+    outmsg.yaw_left = axisRX;
+    outmsg.dive = static_cast<double>(axisZ) -
+                  static_cast<double>(axisRZ);
 
-    if (!msg.axisRX)
+    if (!axisRX)
     {
         outmsg.yaw_state = outmsg.STATE_NONE;
         outmsg.yaw_left = 0;
@@ -107,8 +109,6 @@ int main(int argc, char **argv)
     nh = ros::NodeHandle("gamepad_control");
 
     // Load settings
-    nh.getParam("min_depth", min_depth);
-    nh.getParam("max_depth", max_depth);
     nh.getParam("axisXdeadzone", axisXdeadzone);
     nh.getParam("axisYdeadzone", axisYdeadzone);
     nh.getParam("axisZdeadzone", axisZdeadzone);
@@ -122,8 +122,6 @@ int main(int argc, char **argv)
     nh.getParam("ry_scaling_power", ry_scaling_power);
     nh.getParam("rz_scaling_power", rz_scaling_power);
 
-    ROS_INFO("min_depth %f", min_depth);
-    ROS_INFO("max_depth %f", max_depth);
     ROS_INFO("axisXdeadzone %f", axisXdeadzone);
     ROS_INFO("axisYdeadzone %f", axisYdeadzone);
     ROS_INFO("axisZdeadzone %f", axisZdeadzone);
