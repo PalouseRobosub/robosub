@@ -1,57 +1,6 @@
 #include "gamepad_driver.hpp"
 #include <string>
 
-using std::endl;
-using std::ostream;
-
-ostream& operator<<(ostream& os, const js_event& e)
-{
-    os << "time:  " << e.time << endl;
-    os << "value: " << e.value << endl;
-    os << "type:  ";
-
-    switch (e.type & ~JS_EVENT_INIT)
-    {
-        case JS_EVENT_BUTTON:
-            os << "BUTTON";
-            break;
-        case JS_EVENT_AXIS:
-            os << "AXIS";
-        default:
-            os << "UNKNOWN";
-    }
-
-    if (e.type & JS_EVENT_INIT)
-    {
-        os << " (INIT)";
-    }
-    os << endl;
-    os << "number:  " <<  static_cast<int>(e.number) << endl << endl;
-
-    return os;
-}
-
-ostream& operator<<(ostream& os, GAMEPAD_STATE& state)
-{
-    os << "axisX: " << state.axisX << endl;
-    os << "axisY: " << state.axisY << endl;
-    os << "axisZ: " << state.axisZ << endl;
-
-    os << "axisRX: " << state.axisRX << endl;
-    os << "axisRY: " << state.axisRY << endl;
-    os << "axisRZ: " << state.axisRZ << endl;
-
-    os << "hatX:  " << state.hatX << endl;
-    os << "hatY:  " << state.hatY << endl;
-
-    for (unsigned int i = 0; i < 11; ++i)
-    {
-        os << "button: " << i+1 << ":  " << state.button[i] << endl;
-    }
-
-    return os;
-}
-
 GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
 {
     node = nh;
@@ -87,9 +36,8 @@ robosub::gamepad GamepadDriver::GetGamepadMessage()
         exit(1);
     }
 
-    // Create joystick msg
+    // Create gamepad msg
     robosub::gamepad gp_msg;
-    //ROS_DEBUG("gamepad_data.axisX: %f\n", gamepad_data.axisX);
 
     gp_msg.axisX = static_cast<double>(gamepad_data.axisX);
     gp_msg.axisY = static_cast<double>(gamepad_data.axisY);
@@ -119,10 +67,6 @@ robosub::gamepad GamepadDriver::GetGamepadMessage()
     gp_msg.hatX /= AXIS_MAX;
     gp_msg.hatY /= AXIS_MAX;
 
-    // Invert X axis
-    /* js_msg.axisX *= -1.0; */
-    /* js_msg.axisX = (js_msg.axisX == -0.0) ? 0.0 : js_msg.axisX; */
-
     return gp_msg;
 }
 
@@ -136,28 +80,28 @@ void GamepadDriver::parse_event()
     case JS_EVENT_AXIS:
         switch(e.number)
         {
-        case 0: //left_right_axis, left is negative
-            gamepad_data.axisY = e.value;
-            break;
-        case 1: //forward_back_axis, forward is negative
+        case 0: //Left stick: left-right-axis, left is negative
             gamepad_data.axisX = e.value;
             break;
-        case 2: //twist axis, left is negative
+        case 1: //Left stick: forward-back-axis, forward is negative
+            gamepad_data.axisY = e.value;
+            break;
+        case 2: //left trigger
             gamepad_data.axisZ = e.value;
             break;
-        case 3: //throttle, up is negative
+        case 3: //Right stick: left-right-axis, left is negative
             gamepad_data.axisRX = e.value;
             break;
-        case 4: //hat left-right, left is negative
+        case 4: //Right stick: forward-back-axis, forward is negative
             gamepad_data.axisRY = e.value;
             break;
-        case 5: //hat up-down, forward is negative
+        case 5: //right trigger
             gamepad_data.axisRZ = e.value;
             break;
-        case 6: //hat left-right, left is negative
+        case 6: //dpad left-right, left is negative
             gamepad_data.hatY = e.value;
             break;
-        case 7: //hat up-down, forward is negative
+        case 7: //dpad up-down, forward is negative
             gamepad_data.hatX = e.value;
             break;
         }

@@ -7,8 +7,6 @@
 ros::Publisher pub;
 
 // Settings
-double min_depth = 0.0;
-double max_depth = 0.0;
 double axisXdeadzone = 0.0;
 double axisYdeadzone = 0.0;
 double axisZdeadzone = 0.0;
@@ -49,11 +47,11 @@ void gamepadToControlCallback(const robosub::gamepad msg)
     outmsg.strafe_state  = outmsg.STATE_ERROR;
     outmsg.dive_state    = outmsg.STATE_RELATIVE;
     outmsg.yaw_state     = outmsg.STATE_RELATIVE;
-    outmsg.forward = -static_cast<double>(axisX);
-    outmsg.strafe_left = -axisY;
+    outmsg.forward = -static_cast<double>(axisY);
+    outmsg.strafe_left = -axisX;
     outmsg.yaw_left = axisRX;
-    outmsg.dive = static_cast<double>(axisZ) -
-                  static_cast<double>(axisRZ);
+    outmsg.dive = 0.5 * (static_cast<double>(axisZ) -
+                  static_cast<double>(axisRZ));
 
     if (!axisRX)
     {
@@ -134,7 +132,6 @@ int main(int argc, char **argv)
     ROS_INFO("rx_scaling_power %f", rx_scaling_power);
     ROS_INFO("ry_scaling_power %f", ry_scaling_power);
     ROS_INFO("rz_scaling_power %f", rz_scaling_power);
-
 
     ros::spin();
 
