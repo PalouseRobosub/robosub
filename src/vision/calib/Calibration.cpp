@@ -127,7 +127,8 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         ROS_DEBUG_STREAM("Pattern not found");
     }
 
-    string outMsg = (mode == CalibrationMode::CALIBRATED) ? "Calibrated" : "Calibrating";
+    string outMsg = (mode == CalibrationMode::CALIBRATED) ?
+                    "Calibrated" : "Calibrating";
 
     int baseLine = 0;
     Size textSize = getTextSize(outMsg, 1, 1.0, 1, &baseLine);
@@ -167,9 +168,10 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     }
 
     ROS_DEBUG_STREAM("Adding text to image");
-    putText(view, outMsg, textOrigin, 1, 1,
-            mode == CalibrationMode::CALIBRATED ? GREEN : RED); //Show info to user
 
+    //Show info to user
+    putText(view, outMsg, textOrigin, 1, 1,
+            mode == CalibrationMode::CALIBRATED ? GREEN : RED);
     imshow("Image", view);
     char key = static_cast<char>(waitKey(settings.delay));
 
