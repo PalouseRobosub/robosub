@@ -159,10 +159,7 @@ int main(int argc, char **argv)
     //ros::Subscriber rightCamSub = n.subscribe("camera/right/undistorted", 1,
     //                                          rightCamCallback);
 
-    string topic;
-
-    pub =
-      n.advertise<robosub::visionPosArray>("vision/output_default" + topic, 1);
+    pub = n.advertise<robosub::visionPosArray>("vision/output_default", 1);
 
     //Create named windows
     namedWindow(ros::this_node::getName() + " Original");
