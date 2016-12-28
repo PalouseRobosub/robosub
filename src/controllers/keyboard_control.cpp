@@ -56,10 +56,22 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         robosub::control msg = base_msg;
-        uint8_t key = getKey();
+        uint8_t key;
         vector<uint8_t> keys;
+
+        // Get all of the codes for the key combination
+        // 255 denotes the end of the combintation
+        do {
+            key = getKey();
+            keys.push_back(key);
+        } while(255 != key);
+
         tcflush(fileno(stdin), TCIFLUSH);
-        switch (key)
+
+        // If problems are occuring check the key codes
+        ROS_DEBUG_STREAM(keys);
+
+        switch (keys[0])
         {
             case 'w':
                 msg.forward = 1;
@@ -86,71 +98,46 @@ int main(int argc, char **argv)
                 msg.dive = 0.25;
                 break;
             case 27:  // Escape Code for special keys
-                keys.push_back(getKey()); // Get second code
-                keys.push_back(getKey()); // Get third code
-
-                if ('[' == keys[0])  // Ctrl is not pressed
+                switch(keys[2])
                 {
-                    switch(keys[1])
-                    {
-                        case 'A':  // Up Key pressed
-                            msg.forward = 1;
-                            break;
-                        case 'B':  // Down Key pressed
-                            msg.forward = -1;
-                            break;
-                        case 'C':  // Right key pressed
-                            msg.strafe_left = -1;
-                            break;
-                        case 'D':  // Left key pressed
-                            msg.strafe_left = 1;
-                            break;
-                        case '5':  // Page up Key pressed
-                            msg.dive = 0.25;
-                            break;
-                        case '6':  // Page down Key pressed
-                            msg.dive = -0.25;
-                            break;
-                        case '1':
-                            keys.push_back(getKey());
-                            keys.push_back(getKey());
-                            keys.push_back(getKey());
-                            keys.push_back(getKey());
-                            std::cout << keys << std::endl;
-                            switch(keys[4])
-                            {
-                                case 'A':  // Up Key
-                                    msg.pitch_down = 10;
-                                    break;
-                                case 'B':  // Down Key
-                                    msg.pitch_down = -10;
-                                    break;
-                                case 'C':  // Right Key
-                                    msg.yaw_left = -10;
-                                    break;
-                                case 'D':  // Left Key
-                                    msg.yaw_left = 10;
-                                    break;
-                            }
-                    }
-                }
-                else if ('O' == keys[0])  // Ctrl is pressed
-                {
-                    switch(keys[1])
-                    {
-                        case 'A':  // Up Key pressed
-                            msg.pitch_down = 10;
-                            break;
-                        case 'B':  // Down Key pressed
-                            msg.pitch_down = -10;
-                            break;
-                        case 'C':  // Right Key pressed
-                            msg.yaw_left = -10;
-                            break;
-                        case 'D':  // Left Key pressed
-                            msg.yaw_left = 10;
-                            break;
-                    }
+                    case 'A':  // Up Key pressed
+                        msg.forward = 1;
+                        break;
+                    case 'B':  // Down Key pressed
+                        msg.forward = -1;
+                        break;
+                    case 'C':  // Right key pressed
+                        msg.strafe_left = -1;
+                        break;
+                    case 'D':  // Left key pressed
+                        msg.strafe_left = 1;
+                        break;
+                    case '5':  // Page up Key pressed
+                        msg.dive = 0.25;
+                        break;
+                    case '6':  // Page down Key pressed
+                        msg.dive = -0.25;
+                        break;
+                    case '1':  // Multi-key combination
+                        // Currently not discriminating on which one:
+                        // Can add features later by checking keys[4] for
+                        // Ctrl, shift, or alt, or a combination of them
+                        // Use `showkey -a` to see the differences
+                        switch(keys[5])
+                        {
+                            case 'A':  // Up Key
+                                msg.pitch_down = 10;
+                                break;
+                            case 'B':  // Down Key
+                                msg.pitch_down = -10;
+                                break;
+                            case 'C':  // Right Key
+                                msg.yaw_left = -10;
+                                break;
+                            case 'D':  // Left Key
+                                msg.yaw_left = 10;
+                                break;
+                        }
                 }
                 break;
         }
