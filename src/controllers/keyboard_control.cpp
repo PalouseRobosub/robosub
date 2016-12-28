@@ -11,7 +11,7 @@ std::ostream& operator<<(std::ostream& os, vector<uint8_t> v)
 {
     for (auto iter = v.begin(); iter < v.end(); ++iter)
     {
-        os << (int)*iter << ' ';
+        os << static_cast<int>(*iter) << ' ';
     }
 
     return os;
@@ -61,7 +61,8 @@ int main(int argc, char **argv)
 
         // Get all of the codes for the key combination
         // 255 denotes the end of the combintation
-        do {
+        do
+        {
             key = getKey();
             keys.push_back(key);
         } while(255 != key);
