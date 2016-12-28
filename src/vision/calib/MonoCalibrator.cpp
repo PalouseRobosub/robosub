@@ -3,15 +3,15 @@
 #include <algorithm>
 #include <vector>
 
-std::string modeToString(Mode & mode)
+std::string modeToString(CalibrationMode & mode)
 {
     switch(mode)
     {
-        case Mode::DETECTION:
+        case CalibrationMode::DETECTION:
             return "DETECTION";
-        case Mode::CAPTURING:
+        case CalibrationMode::CAPTURING:
             return "CAPTURING";
-        case Mode::CALIBRATED:
+        case CalibrationMode::CALIBRATED:
             return "CALIBRATED";
         default:
             return "UNKNOWN";

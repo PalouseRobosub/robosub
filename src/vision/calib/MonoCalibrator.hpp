@@ -18,14 +18,15 @@
 using namespace cv;
 using namespace std;
 
-enum class Mode
+
+enum class CalibrationMode
 {
     DETECTION = 0,
     CAPTURING = 1,
     CALIBRATED = 2
 };
 
-std::string modeToString(Mode &mode);
+std::string modeToString(CalibrationMode &mode);
 
 void read(const FileNode& node, Settings& x,
           const Settings& default_value = Settings());

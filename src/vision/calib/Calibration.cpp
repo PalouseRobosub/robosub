@@ -13,19 +13,19 @@ bool calibFinished = false;
 vector<vector<Point2f>> imagePoints;
 Mat cameraMatrix, distCoeffs;
 Size imageSize;
-Mode mode = Mode::CAPTURING;
+CalibrationMode mode = CalibrationMode::CAPTURING;
 clock_t prevTimestamp = 0;
 const Scalar RED(0, 0, 255), GREEN(0, 255, 0);
 const char ESC_KEY = 27;
 
 void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
-    ROS_DEBUG_STREAM("Callback, Mode: " << modeToString(mode));
+    ROS_DEBUG_STREAM("Callback, CalibrationMode: " << modeToString(mode));
     Mat view = toCvShare(msg->image, msg,
                          sensor_msgs::image_encodings::BGR8)->image;
 
     //When capturing and we have enough images
-    if (mode == Mode::CAPTURING &&
+    if (mode == CalibrationMode::CAPTURING &&
         imagePoints.size() >= (size_t)settings.nrFrames)
     {
         //Try to calibrate
@@ -34,12 +34,12 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
                                   imagePoints))
         {
             //If successful, we have calibrated
-            mode = Mode::CALIBRATED;
+            mode = CalibrationMode::CALIBRATED;
         }
         else
         {
             //Otherwise, go back to detecting.
-            mode = Mode::DETECTION;
+            mode = CalibrationMode::DETECTION;
         }
     }
 
@@ -47,7 +47,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     {
         ROS_DEBUG_STREAM("Empty view");
         //Nothing can be seen
-        if (mode != Mode::CALIBRATED && !imagePoints.empty())
+        if (mode != CalibrationMode::CALIBRATED && !imagePoints.empty())
         {
             //If there is data and we haven't already, try calibrating
             runCalibrationAndSave(settings, imageSize, cameraMatrix, distCoeffs,
@@ -55,7 +55,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         }
         //There is no more data, we have finished
         calibFinished = true;
-        ROS_DEBUG_STREAM("Exiting after empty view. Mode: " <<
+        ROS_DEBUG_STREAM("Exiting after empty view. CalibrationMode: " <<
                          modeToString(mode));
         ros::shutdown();
         return;
@@ -127,14 +127,14 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         ROS_DEBUG_STREAM("Pattern not found");
     }
 
-    string outMsg = (mode == Mode::CALIBRATED) ? "Calibrated" : "Calibrating";
+    string outMsg = (mode == CalibrationMode::CALIBRATED) ? "Calibrated" : "Calibrating";
 
     int baseLine = 0;
     Size textSize = getTextSize(outMsg, 1, 1.0, 1, &baseLine);
     Point textOrigin(view.cols - 2*textSize.width - 10, 10);
 
     //Add further information for user of how much data has been captured
-    if (mode == Mode::CAPTURING)
+    if (mode == CalibrationMode::CAPTURING)
     {
         ROS_DEBUG_STREAM("Capturing");
         if (settings.showUndistorted)
@@ -150,7 +150,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         }
     }
 
-    if (mode == Mode::CALIBRATED && settings.showUndistorted)
+    if (mode == CalibrationMode::CALIBRATED && settings.showUndistorted)
     {
         ROS_DEBUG_STREAM("Undistorting image...");
         outMsg += " Undist."; //Tell user when showing undistorted
@@ -168,7 +168,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 
     ROS_DEBUG_STREAM("Adding text to image");
     putText(view, outMsg, textOrigin, 1, 1,
-            mode == Mode::CALIBRATED ? GREEN : RED); //Show info to user
+            mode == CalibrationMode::CALIBRATED ? GREEN : RED); //Show info to user
 
     imshow("Image", view);
     char key = static_cast<char>(waitKey(settings.delay));
@@ -181,7 +181,7 @@ void imageCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         return;
     }
 
-    if (key == 'u' && mode == Mode::CALIBRATED)
+    if (key == 'u' && mode == CalibrationMode::CALIBRATED)
     {
         settings.showUndistorted = !settings.showUndistorted;
         ROS_INFO_STREAM("Now showing " <<
