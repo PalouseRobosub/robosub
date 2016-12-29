@@ -26,8 +26,11 @@ bool compareContourAreas(vector<Point> contour1, vector<Point> contour2)
 void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
     ///Fetch parameters///
-    //Determine if should show images
+    
+    //Create a nodehandle that gets private parameters
     ros::NodeHandle nh("~");
+    
+    //Determine if should show images
     bool doImShow = true;
     if (!nh.getParamCached("processing/doImShow", doImShow))
     {
@@ -41,10 +44,10 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
                          " nLargest: " << nLargest);
     }
     //Create a vision processor
-    VisionProcessor vp;
+    VisionProcessor processor;
 
     //Process the image using the VisionProcessor
-    Mat processed = vp.process(*msg);
+    Mat processed = processor.process(*msg);
 
     //Clone the output image for showing if requested
     Mat procOut;
@@ -159,6 +162,10 @@ int main(int argc, char **argv)
     //ros::Subscriber rightCamSub = n.subscribe("camera/right/undistorted", 1,
     //                                          rightCamCallback);
 
+    /*
+     * This output topic should be remapped when launched to avoid conflicts.
+     * See vision.launch for examples
+     */
     pub = n.advertise<robosub::visionPosArray>("vision/output_default", 1);
 
     //Create named windows
