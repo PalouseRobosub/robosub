@@ -26,10 +26,10 @@ bool compareContourAreas(vector<Point> contour1, vector<Point> contour2)
 void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
 {
     ///Fetch parameters///
-    
+
     //Create a nodehandle that gets private parameters
     ros::NodeHandle nh("~");
-    
+
     //Determine if should show images
     bool doImShow = true;
     if (!nh.getParamCached("processing/doImShow", doImShow))
