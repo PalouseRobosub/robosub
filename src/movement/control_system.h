@@ -96,6 +96,7 @@ private:
     Vector6d P, I, D;
     Vector6d windup, hysteresis;
     Vector6d sub_mass;
+    double buoyancy_offset = 0.0;
 
     /*
      * Define the motor matrix (inverted) used to solve for the motor commands.

@@ -182,6 +182,8 @@ namespace robosub
         ros::param::getCached("control/hysteresis/psi", hysteresis[3]);
         ros::param::getCached("control/hysteresis/phi", hysteresis[4]);
         ros::param::getCached("control/hysteresis/theta", hysteresis[5]);
+
+        ros::param::getCached("control/buoyancy_offset", buoyancy_offset);
     }
 
     /**
@@ -455,10 +457,18 @@ namespace robosub
         m_accel += I.cwiseProduct(current_integral);
         m_accel += D.cwiseProduct(current_derivative);
 
+
         /*
          * Convert accelerations to force by multipling by masses.
          */
         Vector6d m_force = m_accel.cwiseProduct(sub_mass);
+
+        /*
+         * Add additional force to diving to offset buoyance force. This allows
+         * use to use smaller PID gains to maintain depth and makes things
+         * behave much nicer.
+         */
+        m_force[2] += buoyancy_offset;
 
         /*
          * Grab the current orientation of the submarine for rotating the

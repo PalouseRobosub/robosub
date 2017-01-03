@@ -9,6 +9,4 @@
         <arg name="gui" value="false"/>
     </include>
 
-    <!-- override control parameters -->
-    <rosparam command="load" file="$(find robosub)/param/test/control.yaml" />
 </launch>
