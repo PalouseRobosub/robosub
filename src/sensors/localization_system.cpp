@@ -1,8 +1,7 @@
 #include "localization_system.hpp"
 
-LocalizationSystem::LocalizationSystem(double _dt, int _num_particles)
+LocalizationSystem::LocalizationSystem(int _num_particles)
 {
-    dt = _dt;
     num_particles = _num_particles;
 
     new_hydrophone = new_depth = new_lin_velocity = false;
@@ -13,8 +12,8 @@ LocalizationSystem::LocalizationSystem(double _dt, int _num_particles)
     //std::chrono::high_resolution_clock::time_point t = std::chrono::high_resolution_clock::now();
     //rand_generator.seed(static_cast<int>(t.time_since_epoch()));
 
-    ReloadParams();
     InitializeParticleFilter();
+    ReloadParams();
 }
 
 LocalizationSystem::~LocalizationSystem()
@@ -29,6 +28,44 @@ void LocalizationSystem::ReloadParams()
     {
         ROS_ERROR("pinger depth failed to load");
         ros::shutdown();
+    }
+
+    if(!ros::param::has("localization/"))
+    {
+        ROS_FATAL("localization parameters not found");
+        ros::shutdown();
+    }
+
+    ros::param::getCached("localization/initial_state/x_pos", initial_state(0,0));
+    ros::param::getCached("localization/initial_state/y_pos", initial_state(1,0));
+    ros::param::getCached("localization/initial_state/z_pos", initial_state(2,0));
+    ros::param::getCached("localization/initial_state/x_lin_vel", initial_state(3,0));
+    ros::param::getCached("localization/initial_state/y_lin_vel", initial_state(4,0));
+    ros::param::getCached("localization/initial_state/z_lin_vel", initial_state(5,0));
+
+    ros::param::getCached("localization/variance/state_update_x_pos_variance", system_update_covar(0,0));
+    ros::param::getCached("localization/variance/state_update_y_pos_variance", system_update_covar(1,1));
+    ros::param::getCached("localization/variance/state_update_z_pos_variance", system_update_covar(2,2));
+    ros::param::getCached("localization/variance/state_update_x_vel_pos_variance", system_update_covar(3,3));
+    ros::param::getCached("localization/variance/state_update_y_vel_pos_variance", system_update_covar(4,4));
+    ros::param::getCached("localization/variance/state_update_z_vel_pos_variance", system_update_covar(5,5));
+
+    ros::param::getCached("localization/variance/x_pos_initial_stddev", initial_distribution(0,0));
+    ros::param::getCached("localization/variance/y_pos_initial_stddev", initial_distribution(1,0));
+    ros::param::getCached("localization/variance/z_pos_initial_stddev", initial_distribution(2,0));
+    ros::param::getCached("localization/variance/x_lin_vel_initial_stddev", initial_distribution(3,0));
+    ros::param::getCached("localization/variance/y_lin_vel_initial_stddev", initial_distribution(4,0));
+    ros::param::getCached("localization/variance/z_lin_vel_initial_stddev", initial_distribution(5,0));
+
+    ros::param::getCached("localization/variance/hydrophone_x_variance", measurement_covar(0,0));
+    ros::param::getCached("localization/variance/hydrophone_y_variance", measurement_covar(1,1));
+    ros::param::getCached("localization/variance/hydrophone_z_variance", measurement_covar(2,2));
+    ros::param::getCached("localization/variance/lin_velocity_x_variance", measurement_covar(3,3));
+    ros::param::getCached("localization/variance/lin_velocity_y_variance", measurement_covar(4,4));
+    ros::param::getCached("localization/variance/lin_velocity_z_variance", measurement_covar(5,5));
+    if(!ros::param::getCached("localization/variance/depth_variance", measurement_covar(6,6)))
+    {
+        ROS_INFO("could not load localization/variance/depth_variance");
     }
 }
 
@@ -47,36 +84,19 @@ void LocalizationSystem::InitializeParticleFilter()
 {
     num_iterations = 0;
 
-    lin_velocity.x = 0.0;
-    lin_velocity.y = 0.0;
-    lin_velocity.z = 0.0;
+    orientation.setW(1.0);
+    orientation.setX(0.0);
+    orientation.setY(0.0);
+    orientation.setZ(0.0);
 
     system_update_model.setZero();
     system_update_covar.setZero();
+    measurement_covar.setZero();
     initial_state.setZero();
     observation.setZero();
 
     est_state.setZero();
     last_est_state.setZero();
-
-    initial_state(0,0) = -30.0;
-    initial_state(1,0) = -20.0;
-    //initial_state(2,0) = 0.0;
-    //initial_state(3,0) = 0.0;
-    //initial_state(4,0) = 0.0;
-    //initial_state(5,0) = 0.0;
-
-    // TODO: Tune
-    // measurement covariance matrix along diagnol
-    // measurement_covar is covar of [hydrophones_position, lin_accel, depth] =
-    // [hx, hy, hz, lx, ly, lz, d]
-    measurement_covar(0,0) = 4.0;
-    measurement_covar(1,1) = 4.0;
-    measurement_covar(2,2) = 4.0;
-    measurement_covar(3,3) = 2.0;
-    measurement_covar(4,4) = 2.0;
-    measurement_covar(5,5) = 2.0;
-    measurement_covar(6,6) = 0.5;
 
     // system_update_model =
     // | 1  0  0  dt 0  0  |
@@ -91,22 +111,13 @@ void LocalizationSystem::InitializeParticleFilter()
     system_update_model(3,3) = 1;
     system_update_model(4,4) = 1;
     system_update_model(5,5) = 1;
-    //system_update_model(0,3) = dt;
-    //system_update_model(1,4) = dt;
-    //system_update_model(2,5) = dt;
 
     // Intial std_devs of position around pinger
     initial_distribution.setZero();
-    initial_distribution(0,0) = 5.0;
-    initial_distribution(1,0) = 5.0;
-    initial_distribution(2,0) = -2.0;
-    initial_distribution(3,0) = 0.1;
-    initial_distribution(4,0) = 0.1;
-    initial_distribution(5,0) = 0.1;
 
     // TODO: Tune
     // system_update_covariance =
-    system_update_covar = system_update_covar.Identity() * 0.4;
+
 
     for(int n=0; n<num_particles; n++)
     {
@@ -148,44 +159,73 @@ void LocalizationSystem::depthCallback(const robosub::depth_stamped::ConstPtr &m
 
 void LocalizationSystem::hydrophoneCallback(const robosub::PositionArrayStamped::ConstPtr &msg)
 {
-    // pinger_depth = -4.9
-    // depth is pinger_depth + hz
-    // state_z is depth?
-    observation(0,0) = msg->positions[0].position.x;
-    observation(1,0) = msg->positions[0].position.y;
-    observation(2,0) = msg->positions[0].position.z;
-    new_hydrophone = true;
+    // TODO: Fix segfault here
+    // Apparently msg does not always contain positions[0]
+    // Bug in hydrophones or should I just ignore msgs of length 0?
+    // Ignoring for now
+    if(msg->positions.size() > 0)
+    {
+        observation(0,0) = msg->positions[0].position.x;
+        observation(1,0) = msg->positions[0].position.y;
+        observation(2,0) = msg->positions[0].position.z;
+        new_hydrophone = true;
+    }
 }
 
 void LocalizationSystem::linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
-    // This is the glorified dead reckoning part...
-    ros::Duration dt = ros::Time::now() - last_lin_accel_receive_time;
-    lin_velocity.x += msg->vector.x * dt.toSec();
-    lin_velocity.y += msg->vector.y * dt.toSec();
-    lin_velocity.z += msg->vector.z * dt.toSec();
-    // TEMP
-    //system_update_model(0,3) = dt.toSec();
-    //system_update_model(1,4) = dt.toSec();
-    //system_update_model(2,5) = dt.toSec();
+    dt = ros::Time::now() - last_lin_accel_receive_time;
+    rel_lin_accel[0] = msg->vector.x;
+    rel_lin_accel[1] = msg->vector.y;
+    rel_lin_accel[2] = msg->vector.z;
 
-    //observation(3,0) = lin_velocity.x;
-    //observation(4,0) = lin_velocity.y;
-    //observation(5,0) = lin_velocity.z;
+    // comment this block to remove lin_velocity from movement update step
+    calculate_absolute_lin_accel();
 
-    observation(3,0) = 0.0;
-    observation(4,0) = 0.0;
-    observation(5,0) = 0.0;
+    PRINT_THROTTLE(ROS_INFO_STREAM("dt: " << dt.toSec()););
+    PRINT_THROTTLE(ROS_INFO("orientation:\n(%f, <%f, %f, %f>)",
+                orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getW()););
+    PRINT_THROTTLE(ROS_INFO("rel_lin_accel:\n<%f, %f, %f>", rel_lin_accel[0], rel_lin_accel[1], rel_lin_accel[2]););
+    PRINT_THROTTLE(ROS_INFO("abs_lin_accel:\n<%f, %f, %f>", abs_lin_accel[0], abs_lin_accel[1], abs_lin_accel[2]););
 
-    //ROS_INFO_STREAM("lin_velocity: " << lin_velocity);
+    system_update_model(0,3) = dt.toSec();
+    system_update_model(1,4) = dt.toSec();
+    system_update_model(2,5) = dt.toSec();
+    observation(3,0) += abs_lin_accel[0] * dt.toSec();
+    observation(4,0) += abs_lin_accel[1] * dt.toSec();
+    observation(5,0) += abs_lin_accel[2] * dt.toSec();
+    PRINT_THROTTLE(ROS_INFO_STREAM("observation: \n" << observation);)
+    // comment this block to remove lin_velocity from movement update step
 
     new_lin_velocity = true;
     last_lin_accel_receive_time = ros::Time::now();
 }
 
+void LocalizationSystem::orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr &msg)
+{
+    orientation.setX(msg->quaternion.x);
+    orientation.setY(msg->quaternion.y);
+    orientation.setZ(msg->quaternion.z);
+    orientation.setW(msg->quaternion.w);
+}
+
 bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep)
 {
     return true;
+}
+
+// TODO: Verify correctness
+void LocalizationSystem::calculate_absolute_lin_accel()
+{
+    tf::Quaternion orientation_conjugate;
+    orientation_conjugate.setX(orientation.getX() * -1.0);
+    orientation_conjugate.setY(orientation.getY() * -1.0);
+    orientation_conjugate.setZ(orientation.getZ() * -1.0);
+    orientation_conjugate.setW(orientation.getW());
+
+    tf::Matrix3x3 rot_m = tf::Matrix3x3(orientation_conjugate);
+
+    abs_lin_accel = rot_m * rel_lin_accel;
 }
 
 Matrix<double,7,1> LocalizationSystem::state_to_observation(Matrix<double,6,1> state)
@@ -195,22 +235,20 @@ Matrix<double,7,1> LocalizationSystem::state_to_observation(Matrix<double,6,1> s
     // state = [x, y, z, x_vel, y_vel, z_vel]
     // observation = [hx, hy, hz, lx, ly, lz, depth]
 
-    // Position
-    // TODO: Need to define coordinates since x,y,z is global frame, hx,hy,hz
-    // is relative to pinger
+    // Position relative to pinger
     obs(0,0) = state(0,0);
     obs(1,0) = state(1,0);
-    obs(2,0) = state(2,0) - pinger_depth;
+    obs(2,0) = state(2,0);
 
     // Lin Accel
-    //obs(3,0) = state(3,0);
-    //obs(4,0) = state(4,0);
-    //obs(5,0) = state(5,0);
-    obs(3,0) = 0.0;
-    obs(4,0) = 0.0;
-    obs(5,0) = 0.0;
+    obs(3,0) = state(3,0);
+    obs(4,0) = state(4,0);
+    obs(5,0) = state(5,0);
+    //obs(3,0) = 0.0;
+    //obs(4,0) = 0.0;
+    //obs(5,0) = 0.0;
 
-    obs(6,0) = state(2,0);
+    obs(6,0) = pinger_depth + state(2,0);
 
     return obs;
 }
@@ -222,13 +260,15 @@ Matrix<double,7,1> LocalizationSystem::add_observation_noise(Matrix<double,7,1> 
 
 void LocalizationSystem::Update()
 {
+    ReloadParams();
     // Getto ros message filter
+    // TODO: Figure out when to run update loop
     // TODO: This probably doesn't work anymore. Possibly run iteration on any
     // new sensor reading, keeping old readings same.
-    ReloadParams();
-    new_lin_velocity = true;
-    if(new_hydrophone && new_depth && new_lin_velocity)
+    if(new_hydrophone || new_depth || new_lin_velocity)
     {
+        PRINT_THROTTLE(ROS_INFO_STREAM("system_update_covar: " << system_update_covar);)
+        PRINT_THROTTLE(ROS_INFO_STREAM("measurement_covar: " << measurement_covar);)
         PRINT_THROTTLE(ROS_INFO_STREAM("==================================");)
         PRINT_THROTTLE(ROS_INFO_STREAM("num_iterations: " << num_iterations);)
         double particle_weights_sum = 0.0;
@@ -245,32 +285,43 @@ void LocalizationSystem::Update()
             particle_obs[n] = add_observation_noise(particle_obs[n]);
             //PRINT_THROTTLE(ROS_INFO_STREAM("particle_obs + obs_noise[" << n << "]: " << particle_obs[n]);)
 
-            // This is dense but it is the multivariate normal distribution function found here:
-            // https://en.wikipedia.org/wiki/Multivariate_normal_distribution
-            // https://wikimedia.org/api/rest_v1/media/math/render/svg/077fb81ca53daa87ecdce68c70df278f46e77298
-            //Matrix<double,7,1> diff;
-            //diff = particle_obs[n] - observation;
-            //particle_weights[n] = std::exp( -0.5 * diff.transpose() *
-                    //measurement_covar.inverse() * diff ) / std::sqrt(
-                    //(2.0*3.14*measurement_covar).determinant() );
-
-            // Method 2
+            // Calculate particle weights
+            // TODO: If no hydrophone update ignore hydrophones?
             particle_weights[n] = 1.0;
             for(unsigned int i=0; i<observation.rows(); i++)
             {
-                // For now dont consider lin_velocity
-                if(i == 3 || i == 4 || i == 5)
+                /*
+                // !!EXPERIMENT!!
+                // If hydrophones are stale skip updating particle weights based
+                // on hydrophone readings
+                if(!new_hydrophone && i < 3)
                 {
                     continue;
                 }
-                // double gaussian_prob(double mean, double sigma, double x)
-                particle_weights[n] *= gaussian_prob(observation(i, 0), std::sqrt(measurement_covar(i, i)), particle_obs[n](i, 0));
+                // If lin_vel is stale skip updating particle weights based
+                // on lin_acl readings
+                if(!new_lin_velocity && i >= 3 && i < 6)
+                {
+                    continue;
+                }
+                // If depth is stale skip updating particle weights based
+                // on depth readings
+                if(!new_depth && i == 6)
+                {
+                    continue;
+                }
+                // !!EXPERIMENT!!
+                */
+
+                particle_weights[n] *= gaussian_prob(observation(i, 0),
+                        std::sqrt(measurement_covar(i, i)),
+                        particle_obs[n](i, 0));
             }
 
             //PRINT_THROTTLE(ROS_INFO_STREAM("particle_obs[n]: " << particle_obs[n]);)
             //PRINT_THROTTLE(ROS_INFO_STREAM("observation: " << observation);)
             //PRINT_THROTTLE(ROS_INFO_STREAM("diff: " << diff);)
-            PRINT_THROTTLE(ROS_INFO_STREAM("particle_weights[" << n << "]: " << particle_weights[n]);)
+            //PRINT_THROTTLE(ROS_INFO_STREAM("particle_weights[" << n << "]: " << particle_weights[n]);)
 
             // Need to get sum for normalization
             particle_weights_sum += particle_weights[n];
@@ -343,6 +394,14 @@ void LocalizationSystem::Update()
         for(int i=0; i<num_particles; i++)
         {
             est_state += particle_states[i] * particle_weights[i];
+        }
+
+        for(int i=0; i<est_state.rows(); i++)
+        {
+            if(std::isnan(est_state(i, 0)))
+            {
+                est_state(i, 0) = 0.0;
+            }
         }
 
         PRINT_THROTTLE(ROS_INFO_STREAM("est_state: " << std::endl << est_state);)

@@ -9,6 +9,7 @@
 #include "tf/transform_datatypes.h"
 
 #include "geometry_msgs/Quaternion.h"
+#include "robosub/QuaternionStampedAccuracy.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "robosub/depth_stamped.h"
 #include "robosub/PositionArrayStamped.h"
@@ -18,8 +19,9 @@
 
 using namespace Eigen;
 
-#define PRINT_THROTTLE(x) if(num_iterations % 50 == 0) { x }
-//#define PRINT_THROTTLE(x) if(0 && num_iterations % 50 == 0) { x }
+#define PT_RATE 50
+#define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
+//#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
 
 template <typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
@@ -65,7 +67,7 @@ double vector_max(std::vector<double> v)
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(double _dt, int _num_particles);
+    LocalizationSystem(int _num_particles);
     ~LocalizationSystem();
     void ReloadParams();
     void InitializeParticleFilter();
@@ -74,19 +76,21 @@ public:
     void depthCallback(const robosub::depth_stamped::ConstPtr &msg);
     void hydrophoneCallback(const robosub::PositionArrayStamped::ConstPtr &msg);
     void linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
+    void orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr &msg);
 
     void Update();
 
+    void calculate_absolute_lin_accel();
     Matrix<double,7,1> state_to_observation(Matrix<double,6,1> state);
     Matrix<double,7,1> add_observation_noise(Matrix<double,7,1> particle_obs);
 
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
 
 private:
+    // TODO: Explain each matrix
 
     int num_iterations;
 
-    double dt;
     int num_particles;
     double pinger_depth;
     ros::Time last_lin_accel_receive_time;
@@ -95,7 +99,10 @@ private:
     bool new_depth;
     bool new_lin_velocity;
 
-    geometry_msgs::Vector3 lin_velocity;
+    ros::Duration dt;
+    tf::Vector3 rel_lin_accel;
+    tf::Vector3 abs_lin_accel;
+    tf::Quaternion orientation;
 
     // Multiply system_update_model x state(k-1) to get state(k)
     Matrix<double,6,6> system_update_model;
@@ -105,8 +112,7 @@ private:
     Matrix<double,6,1> initial_distribution;
     // system_update_variance = [x_variance, y_variance, z_variance]
     //Matrix<double,3,1> system_update_variance;
-    // measurement_covar is diagnal (currently at least) so easier
-    // to understand
+    // measurement_covar is TODO:
     Matrix<double,7,7> measurement_covar;
     // measurement_variance is noise of each sensor
     //Matrix<double,7,1> measurement_variance;
@@ -171,7 +177,7 @@ public:
     {
         double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) / 2.0) / std::sqrt(2.0 * 3.1415 * std::pow(sigma, 2));
         //PRINT_THROTTLE(ROS_INFO_STREAM("gaussian_prob(" << mean << "), " << sigma << "), "
-        PRINT_THROTTLE(ROS_INFO("gaussian_prob(%f, %f, %f) = %f", mean, sigma, x, p););
+        //PRINT_THROTTLE(ROS_INFO("gaussian_prob(%f, %f, %f) = %f", mean, sigma, x, p););
         return p;
     }
 };
