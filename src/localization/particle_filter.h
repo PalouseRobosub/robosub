@@ -85,6 +85,7 @@ public:
     ~ParticleFilter();
     void Update();
     tf::Vector3 GetPosition();
+    void Reset();
 
     void InputDepth(const double depth);
     void InputHydrophone(const tf::Vector3 position);
@@ -94,6 +95,11 @@ private:
     void initialize();
     void reload_params();
 
+    void update_particle_states();
+    void update_particle_weights();
+    void resample_particles();
+    void estimate_state();
+
     Matrix<double,7,1> state_to_observation(Matrix<double,6,1> state);
     Matrix<double,7,1> add_observation_noise(Matrix<double,7,1> particle_obs);
 
@@ -101,7 +107,6 @@ private:
     int num_iterations;
     double pinger_depth;
 
-    tf::Quaternion orientation;
     tf::Vector3 estimated_position;
 
     // Multiply system_update_model x state(k-1) to get state(k)
@@ -112,10 +117,8 @@ private:
     Matrix<double,6,1> initial_distribution;
     Matrix<double,7,7> measurement_covar;
 
-    Matrix<double,7,1> last_observation;
     Matrix<double,7,1> observation;
 
-    Matrix<double,6,1> last_est_state;
     Matrix<double,6,1> est_state;
     Matrix<double,6,1> initial_state;
 

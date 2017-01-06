@@ -32,12 +32,13 @@ public:
     void linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr &msg);
 
-    void calculate_absolute_lin_accel();
-    void Update();
-
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
 
+    void Update();
+
 private:
+    void calculate_absolute_lin_accel();
+
     ParticleFilter pf;
 
     bool new_hydrophone;

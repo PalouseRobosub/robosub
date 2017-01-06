@@ -21,6 +21,13 @@ void ParticleFilter::initialize()
 {
     num_iterations = 0;
 
+    last_particle_states.clear();
+    particle_states.clear();
+    last_particle_weights.clear();
+    particle_weights.clear();
+    last_particle_obs.clear();
+    particle_obs.clear();
+
     system_update_model.setZero();
     system_update_covar.setZero();
     measurement_covar.setZero();
@@ -28,7 +35,6 @@ void ParticleFilter::initialize()
     observation.setZero();
 
     est_state.setZero();
-    last_est_state.setZero();
 
     // system_update_model =
     // | 1  0  0  dt 0  0  |
@@ -47,13 +53,8 @@ void ParticleFilter::initialize()
     // Intial std_devs of position around pinger
     initial_distribution.setZero();
 
-    // TODO: Tune
-    // system_update_covariance =
-
-
     for(int n=0; n<num_particles; n++)
     {
-        // TODO: Randomly distribute initial particle_states
         Matrix<double,6,1> s;
         for(int j=0; j<initial_state.rows(); j++)
         {
@@ -62,16 +63,19 @@ void ParticleFilter::initialize()
         }
         last_particle_states = particle_states;
 
-        //ROS_INFO_STREAM("initial_particle_states: " << particle_states);
-
         // Zeroed at this point
         particle_obs.push_back(observation);
         last_particle_obs.push_back(observation);
-        last_particle_weights.push_back(0);
         particle_weights.push_back(0);
     }
 
     ROS_INFO_STREAM("Finished PF init");
+}
+
+void ParticleFilter::Reset()
+{
+    initialize();
+    reload_params();
 }
 
 void ParticleFilter::reload_params()
@@ -123,7 +127,9 @@ tf::Vector3 ParticleFilter::GetPosition()
     return estimated_position;
 }
 
-//bool resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
+// TODO: Should input functions have mutexes since they modify observation
+// directly?
+
 void ParticleFilter::InputDepth(const double depth)
 {
     observation(6,0) = depth;
@@ -170,66 +176,36 @@ Matrix<double,7,1> ParticleFilter::add_observation_noise(Matrix<double,7,1> obs)
     return obs + (sqrt_elementwise(measurement_covar) * randn_mat(obs.rows(), 1));
 }
 
-void ParticleFilter::Update()
+void ParticleFilter::update_particle_states()
 {
-    reload_params();
-
-    PRINT_THROTTLE(ROS_INFO_STREAM("system_update_covar: " << system_update_covar););
-    PRINT_THROTTLE(ROS_INFO_STREAM("measurement_covar: " << measurement_covar););
-    PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
-    PRINT_THROTTLE(ROS_INFO_STREAM("num_iterations: " << num_iterations););
-
-    double particle_weights_sum = 0.0;
     for(int n=0; n<num_particles; n++)
     {
         // Update each particle_states state based on the update model plus noise
         particle_states[n] = system_update_model * last_particle_states[n] + sqrt_elementwise(system_update_covar) * randn_mat(6,1);
-        //PRINT_THROTTLE(ROS_INFO_STREAM("particle_states[" << n << "]: " << particle_states[n]););
 
         // Update each particle_states observation based on its state
         particle_obs[n] = state_to_observation(particle_states[n]);
-        //PRINT_THROTTLE(ROS_INFO_STREAM("particle_obs[" << n << "]: " << particle_obs[n]););
         // add noise to observations
         particle_obs[n] = add_observation_noise(particle_obs[n]);
-        //PRINT_THROTTLE(ROS_INFO_STREAM("particle_obs + obs_noise[" << n << "]: " << particle_obs[n]););
+    }
+}
 
+void ParticleFilter::update_particle_weights()
+{
+    double particle_weights_sum = 0.0;
+    for(int n=0; n<num_particles; n++)
+    {
         // Calculate particle weights
-        // TODO: If no hydrophone update ignore hydrophones?
         particle_weights[n] = 1.0;
         for(unsigned int i=0; i<observation.rows(); i++)
         {
-            /*
-            // !!EXPERIMENT!!
-            // If hydrophones are stale skip updating particle weights based
-            // on hydrophone readings
-            if(!new_hydrophone && i < 3)
-            {
-            continue;
-            }
-            // If lin_vel is stale skip updating particle weights based
-            // on lin_acl readings
-            if(!new_lin_velocity && i >= 3 && i < 6)
-            {
-            continue;
-            }
-            // If depth is stale skip updating particle weights based
-            // on depth readings
-            if(!new_depth && i == 6)
-            {
-            continue;
-            }
-            // !!EXPERIMENT!!
-            */
+            // TODO: Update selectively based on whether sensor readings are
+            // current or not?
 
             particle_weights[n] *= gaussian_prob(observation(i, 0),
                     std::sqrt(measurement_covar(i, i)),
                     particle_obs[n](i, 0));
         }
-
-        //PRINT_THROTTLE(ROS_INFO_STREAM("particle_obs[n]: " << particle_obs[n]););
-        //PRINT_THROTTLE(ROS_INFO_STREAM("observation: " << observation););
-        //PRINT_THROTTLE(ROS_INFO_STREAM("diff: " << diff););
-        //PRINT_THROTTLE(ROS_INFO_STREAM("particle_weights[" << n << "]: " << particle_weights[n]););
 
         // Need to get sum for normalization
         particle_weights_sum += particle_weights[n];
@@ -249,37 +225,15 @@ void ParticleFilter::Update()
             particle_weights[n] /= particle_weights_sum;
         }
     }
+}
 
-    /*
-       last_particle_states = particle_states;
-       last_particle_weights = particle_weights;
+void ParticleFilter::resample_particles()
+{
     // Resample particles
-    //
-    // TODO: Explain algorithm
-    PRINT_THROTTLE(ROS_INFO_STREAM("particle_weights: " << particle_weights););
-    std::vector<double> weights_cumsum = CumSum(particle_weights);
-    PRINT_THROTTLE(ROS_INFO_STREAM("weights_cumsum: " <<  weights_cumsum););
-    double threshold;
-    for(int i=0; i<num_particles; i++)
-    {
-    threshold = randu();
-    for(int j=0; j<num_particles; j++)
-    {
-    if(threshold <= weights_cumsum[j])
-    {
-    particle_states[i] = last_particle_states[j];
-    break;
-    }
-    }
-    }
-    */
-
     std::vector<Matrix<double, 6,1> > p;
     int index = int(randu() * num_particles);
     double beta = 0.0;
     double max_w = vector_max(particle_weights);
-    // Resample particles
-    // method 2
     for(int i=0; i<num_particles; i++)
     {
         beta += randu() * 2.0 * max_w;
@@ -291,10 +245,12 @@ void ParticleFilter::Update()
         }
         p.push_back(particle_states[index]);
     }
-
     particle_states = p;
     last_particle_states = particle_states;
+}
 
+void ParticleFilter::estimate_state()
+{
     // Estimate state from all particle_states
     // Just weighted averaging for now
     est_state.setZero();
@@ -312,11 +268,30 @@ void ParticleFilter::Update()
         }
     }
 
-    PRINT_THROTTLE(ROS_INFO_STREAM("est_state: " << std::endl << est_state););
-
     estimated_position.setX(est_state(0,0));
     estimated_position.setY(est_state(1,0));
     estimated_position.setZ(est_state(2,0));
+}
+
+void ParticleFilter::Update()
+{
+    PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
+
+    reload_params();
+
+    update_particle_states();
+
+    update_particle_weights();
+
+    resample_particles();
+
+    estimate_state();
+
+    // TODO: Add sanity check to estimated state and reinitialize filter if
+    // needed (Possibly just check if est_state is roughly within bounds of
+    // pool)
+
+    PRINT_THROTTLE(ROS_INFO_STREAM("est_state: " << std::endl << est_state););
 
     num_iterations++;
 }
