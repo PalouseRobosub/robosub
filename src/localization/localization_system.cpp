@@ -39,12 +39,6 @@ void LocalizationSystem::calculate_absolute_lin_accel()
     abs_lin_accel = rot_m * rel_lin_accel;
 }
 
-//*********************//
-// Observation updates //
-//*********************//
-
-// Should callbacks have mutexes?
-
 void LocalizationSystem::depthCallback(const robosub::depth_stamped::ConstPtr &msg)
 {
     pf.InputDepth(msg->depth);
@@ -98,7 +92,7 @@ void LocalizationSystem::orientationCallback(const robosub::QuaternionStampedAcc
 
 bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep)
 {
-    //pf.Reset();
+    pf.Reset();
     return true;
 }
 

@@ -1,13 +1,6 @@
 #include "localization_system.hpp"
 #include <eigen3/Eigen/Dense>
 
-/*
-msg/PositionsStamped.msg
-std_msgs/Header header
-float32[] distances
-geometry_msgs/Vector3[] positions
-*/
-
 using namespace Eigen;
 
 
@@ -48,26 +41,6 @@ int main(int argc, char **argv)
         loc_pub.publish(pos);
 
         r.sleep();
-
-        //ROS_INFO_STREAM(loc_system.randn() << " : " << loc_system.randu());
-
-        //std::vector<double> t = {1.1, 5.6, 1.1, 0.0, 100.0};
-        //ROS_INFO_STREAM("t: " << t);
-        //ROS_INFO_STREAM("CumSum(t): " << CumSum(t));
-
-        //Matrix<double,6,1> state;
-        //Matrix<double,7,1> obs;
-
-        //state(0,0) = 28.0;
-        //state(1,0) = 10.0;
-        //state(2,0) = -3.0;
-        //state(3,0) = state(4,0) = state(5,0) = 0.0;
-
-        //obs = loc_system.state_to_observation(state);
-        //ROS_INFO_STREAM("obs: " << obs);
-
-        //obs = loc_system.add_observation_noise(obs);
-        //ROS_INFO_STREAM("obs: " << obs);
     }
 
     return 0;
