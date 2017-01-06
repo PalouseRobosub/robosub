@@ -8,15 +8,6 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
-#include "geometry_msgs/Quaternion.h"
-#include "robosub/QuaternionStampedAccuracy.h"
-#include "geometry_msgs/Vector3Stamped.h"
-#include "robosub/depth_stamped.h"
-#include "robosub/PositionArrayStamped.h"
-#include "std_msgs/Empty.h"
-#include "std_msgs/Float32.h"
-#include "std_srvs/Empty.h"
-
 using namespace Eigen;
 
 #define PT_RATE 50
@@ -24,8 +15,10 @@ using namespace Eigen;
 //#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
 
 template <typename T>
-std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) {
-  if ( !v.empty() ) {
+std::ostream& operator<< (std::ostream& out, const std::vector<T>& v) 
+{
+  if ( !v.empty() ) 
+  {
     out << '[';
     std::copy (v.begin(), v.end(), std::ostream_iterator<T>(out, ", "));
     out << "\b\b]";
@@ -64,45 +57,52 @@ double vector_max(std::vector<double> v)
     return max;
 }
 
-class LocalizationSystem
+MatrixXd sqrt_elementwise(MatrixXd in)
+{
+    MatrixXd out(in.rows(), in.cols());
+    for(int i=0; i<in.rows(); i++)
+    {
+        for(int j=0; j<in.cols(); j++)
+        {
+            out(i,j) = std::sqrt(in(i,j));
+        }
+    }
+    return out;
+}
+
+double gaussian_prob(double mean, double sigma, double x)
+{
+    double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) / 2.0) / std::sqrt(2.0 * 3.1415 * std::pow(sigma, 2));
+    //PRINT_THROTTLE(ROS_INFO_STREAM("gaussian_prob(" << mean << "), " << sigma << "), "
+    //PRINT_THROTTLE(ROS_INFO("gaussian_prob(%f, %f, %f) = %f", mean, sigma, x, p););
+    return p;
+}
+
+class ParticleFilter
 {
 public:
-    LocalizationSystem(int _num_particles);
-    ~LocalizationSystem();
-    void ReloadParams();
-    void InitializeParticleFilter();
-
-    bool resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
-    void depthCallback(const robosub::depth_stamped::ConstPtr &msg);
-    void hydrophoneCallback(const robosub::PositionArrayStamped::ConstPtr &msg);
-    void linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
-    void orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr &msg);
-
+    ParticleFilter(int _num_particles);
+    ~ParticleFilter();
     void Update();
+    tf::Vector3 GetPosition();
 
-    void calculate_absolute_lin_accel();
+    void InputDepth(const double depth);
+    void InputHydrophone(const tf::Vector3 position);
+    void InputLinAccel(const tf::Vector3 linaccel, const double dt);
+
+private:
+    void initialize();
+    void reload_params();
+
     Matrix<double,7,1> state_to_observation(Matrix<double,6,1> state);
     Matrix<double,7,1> add_observation_noise(Matrix<double,7,1> particle_obs);
 
-    geometry_msgs::Vector3Stamped GetLocalizationMessage();
-
-private:
-    // TODO: Explain each matrix
-
-    int num_iterations;
-
     int num_particles;
+    int num_iterations;
     double pinger_depth;
-    ros::Time last_lin_accel_receive_time;
 
-    bool new_hydrophone;
-    bool new_depth;
-    bool new_lin_velocity;
-
-    ros::Duration dt;
-    tf::Vector3 rel_lin_accel;
-    tf::Vector3 abs_lin_accel;
     tf::Quaternion orientation;
+    tf::Vector3 estimated_position;
 
     // Multiply system_update_model x state(k-1) to get state(k)
     Matrix<double,6,6> system_update_model;
@@ -110,19 +110,11 @@ private:
     Matrix<double,6,6> system_update_covar;
 
     Matrix<double,6,1> initial_distribution;
-    // system_update_variance = [x_variance, y_variance, z_variance]
-    //Matrix<double,3,1> system_update_variance;
-    // measurement_covar is TODO:
     Matrix<double,7,7> measurement_covar;
-    // measurement_variance is noise of each sensor
-    //Matrix<double,7,1> measurement_variance;
 
-    // Observation is [hydrophones_position, lin_accel, depth] = [hx, hy, hz, lx, ly, lz, d]
     Matrix<double,7,1> last_observation;
     Matrix<double,7,1> observation;
 
-    // state = [x, y, z, x_vel, y_vel, z_vel]
-    // This should be global position and velocity
     Matrix<double,6,1> last_est_state;
     Matrix<double,6,1> est_state;
     Matrix<double,6,1> initial_state;
@@ -132,6 +124,7 @@ private:
     std::vector<Matrix<double, 6,1> > particle_states;
     std::vector<double> last_particle_weights;
     std::vector<double> particle_weights;
+
     // Particle observations
     std::vector<Matrix<double, 7,1> > last_particle_obs;
     std::vector<Matrix<double, 7,1> > particle_obs;
@@ -140,13 +133,14 @@ private:
     std::normal_distribution<double> *norm_distribution;
     std::uniform_real_distribution<double> *uniform_distribution;
 
-public:
     // This is meant to emulate the matlab function randn which 
     // returns a random value from a normal distribution with
     // mean = 0 std dev = 1
     double randn() { return (*norm_distribution)(rand_generator); }
+
     // Uniform 0-1 random real
     double randu() { return (*uniform_distribution)(rand_generator); }
+
     MatrixXd randn_mat(int rows, int cols) 
     { 
         MatrixXd r(rows, cols);
@@ -158,26 +152,5 @@ public:
             }
         }
         return r;
-    }
-
-    MatrixXd sqrt_elementwise(MatrixXd in)
-    {
-        MatrixXd out(in.rows(), in.cols());
-        for(int i=0; i<in.rows(); i++)
-        {
-            for(int j=0; j<in.cols(); j++)
-            {
-                out(i,j) = std::sqrt(in(i,j));
-            }
-        }
-        return out;
-    }
-
-    double gaussian_prob(double mean, double sigma, double x)
-    {
-        double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) / 2.0) / std::sqrt(2.0 * 3.1415 * std::pow(sigma, 2));
-        //PRINT_THROTTLE(ROS_INFO_STREAM("gaussian_prob(" << mean << "), " << sigma << "), "
-        //PRINT_THROTTLE(ROS_INFO("gaussian_prob(%f, %f, %f) = %f", mean, sigma, x, p););
-        return p;
     }
 };
