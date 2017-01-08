@@ -63,4 +63,11 @@ class Settings
         string patternToUse;
 };
 
+void read(const FileNode& node, Settings& x,
+          const Settings& default_value = Settings());
+
+void write(FileStorage& fs, const Settings& s);
+
+
+
 #endif //CALIBRATIONSETTINGS_HPP

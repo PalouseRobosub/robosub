@@ -28,11 +28,6 @@ enum class CalibrationMode
 
 std::string modeToString(CalibrationMode &mode);
 
-void read(const FileNode& node, Settings& x,
-          const Settings& default_value = Settings());
-
-void write(FileStorage& fs, const Settings& s);
-
 bool runCalibration(Settings& s, Size& imageSize, Mat& cameraMatrix,
                     Mat& distCoeffs, vector<vector<Point2f>> imagePoints,
                     vector<Mat>& rvecs, vector<Mat>& tvecs,

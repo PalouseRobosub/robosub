@@ -6,3 +6,4 @@ min:
 - {hue: 0, sat: 150, val: 0}
 open: {height: 7, iters: 1, width: 7}
 canny: {low: 30, high: 90, size: 3}
+stereo: {nDisparities: 80, SADWindowSize: 21}

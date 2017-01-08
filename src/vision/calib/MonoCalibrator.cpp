@@ -18,23 +18,6 @@ std::string modeToString(CalibrationMode & mode)
     }
 }
 
-void read(const FileNode& node, Settings& x,
-          const Settings& default_value)
-{
-    if (node.empty())
-    {
-        x = default_value;
-    }
-    else
-    {
-        x.read(node);
-    }
-}
-
-void write(FileStorage& fs, const Settings& s)
-{
-    s.write(fs);
-}
 
 bool runCalibrationAndSave(Settings& s, Size imageSize, Mat& cameraMatrix,
                            Mat& distCoeffs, vector<vector<Point2f>> imagePoints)

@@ -145,3 +145,21 @@ bool Settings::readStringList(const string& filename, vector<string>& l)
 
     return true;
 }
+
+void read(const FileNode& node, Settings& x,
+          const Settings& default_value)
+{
+    if (node.empty())
+    {
+        x = default_value;
+    }
+    else
+    {
+        x.read(node);
+    }
+}
+
+void write(FileStorage& fs, const Settings& s)
+{
+    s.write(fs);
+}
