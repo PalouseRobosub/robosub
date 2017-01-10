@@ -4,7 +4,11 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 #include <image_transport/image_transport.h>
-#include <cv3_bridge/cv_bridge.h>
+#if ROS_VERSION_MINIMUM(1, 12, 0)
+    #include <cv_bridge/cv_bridge.h>
+#else
+    #include <cv3_bridge/cv_bridge.h>
+#endif
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>

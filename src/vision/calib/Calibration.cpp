@@ -1,6 +1,11 @@
+#include <ros/ros.h>
 #include "MonoCalibrator.hpp"
 #include "wfov_camera_msgs/WFOVImage.h"
-#include <cv3_bridge/cv_bridge.h>
+#if ROS_VERSION_MINIMUM(1, 12, 0)
+    #include <cv_bridge/cv_bridge.h>
+#else
+    #include <cv3_bridge/cv_bridge.h>
+#endif
 #include <sensor_msgs/image_encodings.h>
 #include <string>
 #include <vector>

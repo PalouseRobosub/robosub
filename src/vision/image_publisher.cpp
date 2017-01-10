@@ -2,8 +2,11 @@
 
 #include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
-#include <cv3_bridge/cv_bridge.h>
-
+#if ROS_VERSION_MINIMUM(1, 12, 0)
+    #include <cv_bridge/cv_bridge.h>
+#else
+    #include <cv3_bridge/cv_bridge.h>
+#endif
 #include "SharedImageReader.hpp"
 
 int main(int argc, char** argv)

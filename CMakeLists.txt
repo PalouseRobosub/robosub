@@ -12,6 +12,23 @@ set(CMAKE_CXX_FLAGS "-Wall -Werror -std=c++11 ${CMAKE_CXX_FLAGS}")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+if ("$ENV{ROS_DISTRO}" STRGREATER "indigo")
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  rospy
+  dynamic_reconfigure
+  std_msgs
+  message_generation
+  roslint
+  rostest
+  message_filters
+  tf
+  image_transport
+  cv_bridge
+  pointgrey_camera_driver
+)
+
+else ()
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -26,6 +43,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv3_bridge
   pointgrey_camera_driver
 )
+endif()
 
 find_package(OpenCV REQUIRED)
 

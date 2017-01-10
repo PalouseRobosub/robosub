@@ -1,7 +1,11 @@
-#include "wfov_camera_msgs/WFOVImage.h"
-#include <cv3_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
 #include <ros/ros.h>
+#include "wfov_camera_msgs/WFOVImage.h"
+#if ROS_VERSION_MINIMUM(1, 12, 0)
+    #include <cv_bridge/cv_bridge.h>
+#else
+    #include <cv3_bridge/cv_bridge.h>
+#endif
+#include <sensor_msgs/image_encodings.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/calib3d.hpp>
 #include <string>
