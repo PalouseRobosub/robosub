@@ -2,9 +2,11 @@
 
 #include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
-#if ROS_VERSION_MINIMUM(1, 12, 0)
+// The following #if is to use the correct version of the cv_bridge
+// Kinetic by default uses OpenCV3 so we don't need the custom build
+#if ROS_VERSION_MINIMUM(1, 12, 0)  // Running Kinetic
     #include <cv_bridge/cv_bridge.h>
-#else
+#else  // Running Indigo
     #include <cv3_bridge/cv_bridge.h>
 #endif
 #include "SharedImageReader.hpp"
