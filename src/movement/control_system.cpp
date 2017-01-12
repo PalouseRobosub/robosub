@@ -374,7 +374,7 @@ namespace robosub
 
         for (int state_index = 3, i = 0; i < 3; ++i, ++state_index)
         {
-            if(goal_types[i] == robosub::control::STATE_ERROR)
+            if(goal_types[state_index] == robosub::control::STATE_ERROR)
             {
                 rotation_goals[i] = state_vector[state_index] +
                         goals[state_index];
