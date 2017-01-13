@@ -10,21 +10,21 @@ localization:
         z_lin_vel: 0.0
     variance:
         # measurement covariance matrix
-        hydrophone_x_variance: 0.2
-        hydrophone_y_variance: 0.2
-        hydrophone_z_variance: 0.2
-        lin_velocity_x_variance: 2.0
-        lin_velocity_y_variance: 2.0
-        lin_velocity_z_variance: 2.0
-        depth_variance: 0.2
+        hydrophone_x_variance: 0.5
+        hydrophone_y_variance: 0.5
+        hydrophone_z_variance: 0.5
+        lin_vel_x_variance: 0.1
+        lin_vel_y_variance: 0.1
+        lin_vel_z_variance: 0.1
+        depth_variance: 0.1
 
         # state update covariance matrix
         state_update_x_pos_variance: 0.2
         state_update_y_pos_variance: 0.2
         state_update_z_pos_variance: 0.2
-        state_update_x_vel_pos_variance: 0.2
-        state_update_y_vel_pos_variance: 0.2
-        state_update_z_vel_pos_variance: 0.2
+        state_update_x_lin_vel_variance: 0.2
+        state_update_y_lin_vel_variance: 0.2
+        state_update_z_lin_vel_variance: 0.2
 
         # initial distribution stddevs
         x_pos_initial_stddev: 5.0

@@ -20,6 +20,7 @@ ParticleFilter::~ParticleFilter()
 void ParticleFilter::initialize()
 {
     num_iterations = 0;
+    new_hydrophone = false;
 
     last_particle_states.clear();
     particle_states.clear();
@@ -53,6 +54,8 @@ void ParticleFilter::initialize()
     // Intial std_devs of position around pinger
     initial_distribution.setZero();
 
+    reload_params();
+
     for(int n=0; n<num_particles; n++)
     {
         Matrix<double,6,1> s;
@@ -68,6 +71,8 @@ void ParticleFilter::initialize()
         last_particle_obs.push_back(observation);
         particle_weights.push_back(0);
     }
+
+    last_update_time = ros::Time::now();
 
     ROS_INFO_STREAM("Finished PF init");
 }
@@ -102,9 +107,9 @@ void ParticleFilter::reload_params()
     ros::param::getCached("localization/variance/state_update_x_pos_variance", system_update_covar(0,0));
     ros::param::getCached("localization/variance/state_update_y_pos_variance", system_update_covar(1,1));
     ros::param::getCached("localization/variance/state_update_z_pos_variance", system_update_covar(2,2));
-    ros::param::getCached("localization/variance/state_update_x_vel_pos_variance", system_update_covar(3,3));
-    ros::param::getCached("localization/variance/state_update_y_vel_pos_variance", system_update_covar(4,4));
-    ros::param::getCached("localization/variance/state_update_z_vel_pos_variance", system_update_covar(5,5));
+    ros::param::getCached("localization/variance/state_update_x_lin_vel_variance", system_update_covar(3,3));
+    ros::param::getCached("localization/variance/state_update_y_lin_vel_variance", system_update_covar(4,4));
+    ros::param::getCached("localization/variance/state_update_z_lin_vel_variance", system_update_covar(5,5));
 
     ros::param::getCached("localization/variance/x_pos_initial_stddev", initial_distribution(0,0));
     ros::param::getCached("localization/variance/y_pos_initial_stddev", initial_distribution(1,0));
@@ -116,9 +121,9 @@ void ParticleFilter::reload_params()
     ros::param::getCached("localization/variance/hydrophone_x_variance", measurement_covar(0,0));
     ros::param::getCached("localization/variance/hydrophone_y_variance", measurement_covar(1,1));
     ros::param::getCached("localization/variance/hydrophone_z_variance", measurement_covar(2,2));
-    ros::param::getCached("localization/variance/lin_velocity_x_variance", measurement_covar(3,3));
-    ros::param::getCached("localization/variance/lin_velocity_y_variance", measurement_covar(4,4));
-    ros::param::getCached("localization/variance/lin_velocity_z_variance", measurement_covar(5,5));
+    ros::param::getCached("localization/variance/lin_vel_x_variance", measurement_covar(3,3));
+    ros::param::getCached("localization/variance/lin_vel_y_variance", measurement_covar(4,4));
+    ros::param::getCached("localization/variance/lin_vel_z_variance", measurement_covar(5,5));
     ros::param::getCached("localization/variance/depth_variance", measurement_covar(6,6));
 }
 
@@ -130,29 +135,39 @@ tf::Vector3 ParticleFilter::GetPosition()
 // TODO: Should input functions have mutexes since they modify observation
 // directly?
 
-void ParticleFilter::InputDepth(const double depth)
+void ParticleFilter::InputDepth(const double depth, const ros::Time msg_time)
 {
     observation(6,0) = depth;
 }
 
-void ParticleFilter::InputHydrophone(const tf::Vector3 position)
+void ParticleFilter::InputHydrophone(const tf::Vector3 position, const ros::Time msg_time)
 {
     observation(0,0) = position.getX();
     observation(1,0) = position.getY();
     observation(2,0) = position.getZ();
+
+    new_hydrophone = true;
+
+    last_hydrophone_time = msg_time;
 }
 
-void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt)
+// TODO: Synchronous update but accumulate lin accels
+// TODO: Investigate if inputting lin velocity directly would be better and
+// running filter on lin velocity update in localization class, e.g using a
+// seperate filter, would be more effective
+void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt, const ros::Time msg_time)
 {
-    observation(3,0) = linaccel.getX();
-    observation(4,0) = linaccel.getY();
-    observation(5,0) = linaccel.getZ();
+    // Integrate lin accel to get lin velocity
+    observation(3,0) += linaccel.getX() * dt;
+    observation(4,0) += linaccel.getY() * dt;
+    observation(5,0) += linaccel.getZ() * dt;
+
     system_update_model(0,3) = dt;
     system_update_model(1,4) = dt;
     system_update_model(2,5) = dt;
 }
 
-Matrix<double,7,1> ParticleFilter::state_to_observation(Matrix<double,6,1> state)
+Matrix<double,7,1> ParticleFilter::state_to_observation(Matrix<double,6,1> state, Matrix<double,6,1> last_state, double dt)
 {
     Matrix<double,7,1> obs;
 
@@ -161,10 +176,12 @@ Matrix<double,7,1> ParticleFilter::state_to_observation(Matrix<double,6,1> state
     obs(1,0) = state(1,0);
     obs(2,0) = state(2,0);
 
-    // Lin Accel
-    obs(3,0) = state(3,0);
-    obs(4,0) = state(4,0);
-    obs(5,0) = state(5,0);
+    // Lin Velocity
+    // Pull this from last state?
+    // TODO: Get dt between last_state and state
+    obs(3,0) = (state(3,0) - last_state(3,0)) * dt;
+    obs(4,0) = (state(4,0) - last_state(4,0)) * dt;
+    obs(5,0) = (state(5,0) - last_state(5,0)) * dt;
 
     obs(6,0) = pinger_depth + state(2,0);
 
@@ -176,17 +193,12 @@ Matrix<double,7,1> ParticleFilter::add_observation_noise(Matrix<double,7,1> obs)
     return obs + (sqrt_elementwise(measurement_covar) * randn_mat(obs.rows(), 1));
 }
 
+// Update each particle_states state based on the update model plus noise
 void ParticleFilter::update_particle_states()
 {
     for(int n=0; n<num_particles; n++)
     {
-        // Update each particle_states state based on the update model plus noise
         particle_states[n] = system_update_model * last_particle_states[n] + sqrt_elementwise(system_update_covar) * randn_mat(6,1);
-
-        // Update each particle_states observation based on its state
-        particle_obs[n] = state_to_observation(particle_states[n]);
-        // add noise to observations
-        particle_obs[n] = add_observation_noise(particle_obs[n]);
     }
 }
 
@@ -195,6 +207,11 @@ void ParticleFilter::update_particle_weights()
     double particle_weights_sum = 0.0;
     for(int n=0; n<num_particles; n++)
     {
+        // Update each particle_states observation based on its state
+        particle_obs[n] = state_to_observation(particle_states[n], last_particle_states[n], update_dt.toSec());
+        // add noise to observations
+        particle_obs[n] = add_observation_noise(particle_obs[n]);
+
         // Calculate particle weights
         particle_weights[n] = 1.0;
         for(unsigned int i=0; i<observation.rows(); i++)
@@ -202,9 +219,12 @@ void ParticleFilter::update_particle_weights()
             // TODO: Update selectively based on whether sensor readings are
             // current or not?
 
-            particle_weights[n] *= gaussian_prob(observation(i, 0),
+            double p = gaussian_prob(observation(i, 0),
                     std::sqrt(measurement_covar(i, i)),
                     particle_obs[n](i, 0));
+
+            // TODO: if(p corresponds to old enough sensor data, ignore)
+            particle_weights[n] *= p;
         }
 
         // Need to get sum for normalization
@@ -273,9 +293,18 @@ void ParticleFilter::estimate_state()
     estimated_position.setZ(est_state(2,0));
 }
 
+void ParticleFilter::zero_system_update_dt()
+{
+    system_update_model(0,3) = 0.0;
+    system_update_model(1,4) = 0.0;
+    system_update_model(2,5) = 0.0;
+}
+
 void ParticleFilter::Update()
 {
     PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
+
+    update_dt = ros::Time::now() - last_update_time;
 
     reload_params();
 
@@ -287,11 +316,15 @@ void ParticleFilter::Update()
 
     estimate_state();
 
+    //zero_system_update_dt();
+
     // TODO: Add sanity check to estimated state and reinitialize filter if
     // needed (Possibly just check if est_state is roughly within bounds of
     // pool)
 
     PRINT_THROTTLE(ROS_INFO_STREAM("est_state: " << std::endl << est_state););
 
+    new_hydrophone = false;
+    last_update_time = ros::Time::now();
     num_iterations++;
 }

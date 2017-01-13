@@ -45,7 +45,7 @@ private:
     bool new_depth;
     bool new_lin_velocity;
 
-    ros::Time last_lin_accel_receive_time;
+    ros::Time last_lin_accel_time;
     ros::Duration dt;
 
     tf::Quaternion orientation;

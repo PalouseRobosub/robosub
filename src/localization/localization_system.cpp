@@ -9,7 +9,7 @@ LocalizationSystem::LocalizationSystem(int _num_particles) : pf(_num_particles)
     orientation.setY(0.0);
     orientation.setZ(0.0);
 
-    last_lin_accel_receive_time = ros::Time::now();
+    last_lin_accel_time = ros::Time::now();
 }
 
 geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
@@ -37,11 +37,14 @@ void LocalizationSystem::calculate_absolute_lin_accel()
     tf::Matrix3x3 rot_m = tf::Matrix3x3(orientation_conjugate);
 
     abs_lin_accel = rot_m * rel_lin_accel;
+
+    //ROS_INFO("rel_lin_accel:\n[%f, %f, %f]", rel_lin_accel.getX(), rel_lin_accel.getY(), rel_lin_accel.getZ());
+    //ROS_INFO("abs_lin_accel:\n[%f, %f, %f]", abs_lin_accel.getX(), abs_lin_accel.getY(), abs_lin_accel.getZ());
 }
 
 void LocalizationSystem::depthCallback(const robosub::depth_stamped::ConstPtr &msg)
 {
-    pf.InputDepth(msg->depth);
+    pf.InputDepth(msg->depth, msg->header.stamp);
     new_depth = true;
 }
 
@@ -53,31 +56,23 @@ void LocalizationSystem::hydrophoneCallback(const robosub::PositionArrayStamped:
                         msg->positions[0].position.y,
                         msg->positions[0].position.z);
 
-        pf.InputHydrophone(pos);
+        pf.InputHydrophone(pos, msg->header.stamp);
         new_hydrophone = true;
     }
 }
 
 void LocalizationSystem::linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
-    dt = ros::Time::now() - last_lin_accel_receive_time;
+    dt = msg->header.stamp - last_lin_accel_time;
     rel_lin_accel[0] = msg->vector.x;
     rel_lin_accel[1] = msg->vector.y;
     rel_lin_accel[2] = msg->vector.z;
 
     calculate_absolute_lin_accel();
 
-    /*
-    PRINT_THROTTLE(ROS_INFO_STREAM("dt: " << dt.toSec()););
-    PRINT_THROTTLE(ROS_INFO("orientation:\n(%f, <%f, %f, %f>)",
-                orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getW()););
-    PRINT_THROTTLE(ROS_INFO("rel_lin_accel:\n<%f, %f, %f>", rel_lin_accel[0], rel_lin_accel[1], rel_lin_accel[2]););
-    PRINT_THROTTLE(ROS_INFO("abs_lin_accel:\n<%f, %f, %f>", abs_lin_accel[0], abs_lin_accel[1], abs_lin_accel[2]););
-    */
-
-    pf.InputLinAccel(abs_lin_accel, dt.toSec());
+    pf.InputLinAccel(abs_lin_accel, dt.toSec(), msg->header.stamp);
     new_lin_velocity = true;
-    last_lin_accel_receive_time = ros::Time::now();
+    last_lin_accel_time = msg->header.stamp;
 }
 
 void LocalizationSystem::orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr &msg)
@@ -87,7 +82,7 @@ void LocalizationSystem::orientationCallback(const robosub::QuaternionStampedAcc
     orientation.setZ(msg->quaternion.z);
     orientation.setW(msg->quaternion.w);
 
-    //pf.InputOrientation(orientation);
+    //pf.InputOrientation(orientation, msg->header.stamp);
 }
 
 bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep)
