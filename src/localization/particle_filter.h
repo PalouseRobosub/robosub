@@ -10,7 +10,7 @@
 
 using namespace Eigen;
 
-#define PT_RATE 50
+#define PT_RATE 10
 #define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
 //#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
 
@@ -87,9 +87,9 @@ public:
     tf::Vector3 GetPosition();
     void Reset();
 
-    void InputDepth(const double depth);
-    void InputHydrophone(const tf::Vector3 position);
-    void InputLinAccel(const tf::Vector3 linaccel, const double dt);
+    void InputDepth(const double depth, const ros::Time msg_time);
+    void InputHydrophone(const tf::Vector3 position, const ros::Time msg_time);
+    void InputLinAccel(const tf::Vector3 linaccel, const double dt, const ros::Time msg_time);
 
 private:
     void initialize();
@@ -99,13 +99,18 @@ private:
     void update_particle_weights();
     void resample_particles();
     void estimate_state();
+    void zero_system_update_dt();
 
-    Matrix<double,7,1> state_to_observation(Matrix<double,6,1> state);
+    Matrix<double,7,1> state_to_observation(Matrix<double,6,1> state, Matrix<double,6,1> last_state, double dt);
     Matrix<double,7,1> add_observation_noise(Matrix<double,7,1> particle_obs);
 
     int num_particles;
     int num_iterations;
     double pinger_depth;
+    ros::Time last_update_time;
+    ros::Duration update_dt;
+    ros::Time last_hydrophone_time;
+    bool new_hydrophone;
 
     tf::Vector3 estimated_position;
 
