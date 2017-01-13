@@ -10,7 +10,6 @@
 #include <string>
 
 #include <ros/ros.h>
-#include <ros/console.h>
 #include "robosub/gamepad.h" // Gamepad Msg
 
 typedef struct
@@ -26,7 +25,9 @@ typedef struct
     int hatX;
     int hatY;
 
-    bool button[11];
+    bool button[19];
+
+    bool type;
 } GAMEPAD_STATE;
 
 class GamepadDriver
@@ -38,6 +39,7 @@ private:
     //constants
     int AXIS_MAX;
     int fd;
+    char name[128];
     js_event e;
     GAMEPAD_STATE gamepad_data;
 

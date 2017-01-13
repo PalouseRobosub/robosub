@@ -21,6 +21,20 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
         exit(1);
         return;
     }
+
+    // Get the string name for the controller
+    // Examples: Sony PLAYSTATION(R)3 Controller
+    //           Microsoft X-Box One pad
+    if (ioctl(fd, JSIOCGNAME(sizeof(name)), name) < 0)
+    {
+        strncpy(name, "Unknown", sizeof(name));
+    }
+    ROS_INFO("Name: %s\n", name);
+
+    // Set the internal type for the gamepad based on the first character
+    // 0: XBOX controller
+    // 1: PlayStation controller
+    gamepad_data.type = (name[0] != 'M');
 }
 
 robosub::gamepad GamepadDriver::GetGamepadMessage()
@@ -50,7 +64,8 @@ robosub::gamepad GamepadDriver::GetGamepadMessage()
     gp_msg.hatX = gamepad_data.hatX;
     gp_msg.hatY = gamepad_data.hatY;
 
-    for(int i = 0; i < 11; ++i)
+    // get all the buttons. PlayStation has 8 more possible buttons
+    for(int i = 0; i < 11 + 8*gamepad_data.type; ++i)
     {
         gp_msg.buttons[i] = gamepad_data.button[i];
     }
@@ -66,6 +81,9 @@ robosub::gamepad GamepadDriver::GetGamepadMessage()
 
     gp_msg.hatX /= AXIS_MAX;
     gp_msg.hatY /= AXIS_MAX;
+
+    // Set the type
+    gp_msg.type = gamepad_data.type;
 
     return gp_msg;
 }
@@ -86,16 +104,27 @@ void GamepadDriver::parse_event()
         case 1: //Left stick: forward-back-axis, forward is negative
             gamepad_data.axisY = e.value;
             break;
-        case 2: //left trigger
-            gamepad_data.axisZ = e.value;
+        case 2:
+            //left trigger
+            if (!gamepad_data.type) gamepad_data.axisZ = e.value;
+            //Right stick: left-right-axis, left is negative
+            else gamepad_data.axisRX = e.value;
             break;
-        case 3: //Right stick: left-right-axis, left is negative
-            gamepad_data.axisRX = e.value;
+        case 3:
+            //Right stick: left-right-axis, left is negative
+            if (!gamepad_data.type) gamepad_data.axisRX = e.value;
+            //Right stick: up-down-axis, forward is negative
+            else gamepad_data.axisRY = e.value;
             break;
-        case 4: //Right stick: forward-back-axis, forward is negative
-            gamepad_data.axisRY = e.value;
+        case 4:
+        case 12:
+            //Right stick: forward-back-axis, forward is negative
+            if (!gamepad_data.type) gamepad_data.axisRY = e.value;
+            //Left trigger
+            else gamepad_data.axisZ = e.value;
             break;
         case 5: //right trigger
+        case 13:
             gamepad_data.axisRZ = e.value;
             break;
         case 6: //dpad left-right, left is negative
@@ -117,6 +146,7 @@ void GamepadDriver::shutdown()
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "gamepad_driver");
+
     ros::NodeHandle nh;
 
     ros::Publisher pub;

@@ -9,4 +9,6 @@ float64 axisRZ
 int32 hatX
 int32 hatY
 
-bool[11] buttons
+bool[19] buttons
+
+bool type

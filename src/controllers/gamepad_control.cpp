@@ -1,5 +1,4 @@
 #include "ros/ros.h"
-#include "ros/console.h"
 #include "std_msgs/Float64.h"
 #include "robosub/gamepad.h"
 #include "robosub/control.h"
@@ -31,7 +30,6 @@ double dead_scale(double value, double deadzone, double scaling_power)
     return pow( num/(1-deadzone), scaling_power ) * sgn;
 }
 
-
 void gamepadToControlCallback(const robosub::gamepad msg)
 {
     //scale and apply deadzones
@@ -59,7 +57,8 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         outmsg.yaw_left = 0;
     }
 
-    if (!msg.buttons[0])
+    // Using Xbox controller
+    if (!msg.type && !msg.buttons[0])
     {
         if (msg.hatX)
         {
@@ -75,6 +74,32 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         {
             outmsg.roll_state  = outmsg.STATE_RELATIVE;
             outmsg.roll_right = static_cast<double>(msg.hatY) * 10;
+        }
+        else
+        {
+            outmsg.roll_state = outmsg.STATE_NONE;
+            outmsg.roll_right = 0;
+        }
+    }
+    // Using PlayStation controller
+    else if (msg.type && !msg.buttons[14])
+    {
+        if (msg.buttons[4] || msg.buttons[6])
+        {
+            outmsg.pitch_state = outmsg.STATE_RELATIVE;
+            outmsg.pitch_down = static_cast<double>(msg.buttons[4]
+                                                    - msg.buttons[6]) * 10;
+        }
+        else
+        {
+            outmsg.pitch_state = outmsg.STATE_NONE;
+            outmsg.pitch_down = 0;
+        }
+        if (msg.buttons[5] || msg.buttons[7])
+        {
+            outmsg.roll_state = outmsg.STATE_RELATIVE;
+            outmsg.roll_right = static_cast<double>(msg.buttons[5]
+                                                    - msg.buttons[7]) * 10;
         }
         else
         {
