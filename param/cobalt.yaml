@@ -160,7 +160,7 @@ sensor:
             z: 0
 hydrophones:
     pinger:
-        depth: -4.9
+        depth: -4.1
     reference:
         x: 0
         y: 0
