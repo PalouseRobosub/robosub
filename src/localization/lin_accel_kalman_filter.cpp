@@ -109,7 +109,7 @@ void LinAccelKalmanFilter::InputLinAccel(const geometry_msgs::Vector3Stamped::Co
         obs(2,0) = abs_lin_accel[2];
         // TODO: Load param
         double pinger_depth = -4.1;
-        obs(3,0) = -pinger_depth + depth;
+        obs(3,0) = -1.0 * (pinger_depth - depth);
 
         update(obs, dt.toSec());
     }
