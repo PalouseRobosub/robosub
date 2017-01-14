@@ -1,11 +1,9 @@
 blur_iters: 1
-close: {height: 7, iters: 2, width: 7}
+close: {height: 15, iters: 3, width: 15}
 doImShow: true
 max:
-- {hue: 20, sat: 255, val: 255}
-- {hue: 100, sat: 210, val: 200}
+- {hue: 15, sat: 240, val: 240}
 min:
-- {hue: 10, sat: 200, val: 100}
-- {hue: 0, sat: 0, val: 0}
-open: {height: 7, iters: 1, width: 7}
+- {hue: 10, sat: 100, val: 100}
+open: {height: 3, iters: 1, width: 3}
 canny: {low: 30, high: 90, size: 3}

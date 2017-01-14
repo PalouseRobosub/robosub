@@ -12,6 +12,10 @@ class Node():
         self.sub = rospy.Subscriber('vision/buoys/red', vision_pos_array,
                                     self.callback)
         self.state = "SEARCHING"
+        self.completeTime = None
+        self.duration = 2
+        self.errorGoal = 0.1
+        self.distGoal = 0.01
 
     def callback(self, vision_result):
         msg = control()
@@ -21,44 +25,76 @@ class Node():
         msg.roll_right = 0
         msg.pitch_state = control.STATE_ABSOLUTE
         msg.pitch_down = 0
+        msg.forward_state = control.STATE_ERROR
+        msg.forward = 0
 
         rospy.loginfo("state: {}".format(self.state))
+    
+        if self.state is "COMPLETE" and self.completeTime is not None:
+            msg.forward_state = control.STATE_ERROR
+            if self.completeTime + rospy.Duration(self.duration) < rospy.get_rostime():
+                msg.forward = 0
+                rospy.loginfo("Truly complete")
+                rospy.signal_shutdown(0)
+            else:
+                rospy.loginfo("Complete, but reversing from buoy")
+                msg.forward = -10
+            msg.yaw_state = control.STATE_RELATIVE
+            msg.yaw_left = 0
+            msg.dive_state = control.STATE_RELATIVE
+            msg.dive = 0
+
         # check for empty message, we can't see a buoy
-        if len(vision_result.data) < 1:
-            rospy.loginfo("Found no data")
+        elif len(vision_result.data) < 1:
+            if self.state is "TRACKING":
+                rospy.logerr("Lost buoy...")
             self.state = "SEARCHING"
             # spin 10 degrees
             msg.yaw_state = control.STATE_RELATIVE
-            msg.yaw_left = 20
+            msg.yaw_left = 10
             # don't move forward, maintain depth
             msg.forward_state = control.STATE_ERROR
             msg.forward = 0
             msg.dive_state = control.STATE_RELATIVE
             msg.dive = 0
+        elif abs(vision_result.data[0].xPos) < self.errorGoal and \
+             abs(vision_result.data[0].yPos) < self.errorGoal:
+            msg.forward_state = control.STATE_RELATIVE
+            msg.yaw_state = control.STATE_RELATIVE
+            msg.yaw_left = 0
+            msg.dive_state = control.STATE_RELATIVE
+            msg.dive = 0
+            rospy.loginfo("Centered on buoy, now ramming...")
+            if vision_result.data[0].magnitude < self.distGoal:
+                msg.forward = 10
+                self.state = "RAMMING"
+                rospy.loginfo("{} from goal".format(self.distGoal - vision_result.data[0].magnitude))
+            else:
+                msg.forward = 0
+                self.state = "COMPLETE"
+                self.completeTime = rospy.get_rostime()
+                rospy.loginfo("Complete time: {}".format(self.completeTime))
+
         else:  # we see a buoy, go towards it!
-            rospy.loginfo("Found data")
             self.state = "TRACKING"
-            msg.yaw_state = control.STATE_ERROR
-            if vision_result.data[0].xPos < 0:
-                rospy.loginfo("Should yaw left")
+            if abs(vision_result.data[0].xPos) > self.errorGoal:
+                msg.yaw_state = control.STATE_RELATIVE
+                msg.yaw_left = vision_result.data[0].xPos * \
+                               ((1 - (vision_result.data[0].magnitude * 10)) *\
+                               -50)
+                rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
+                msg.dive_state = control.STATE_RELATIVE
+                msg.dive = 0
             else:
-                rospy.loginfo("Should yaw right")
-            msg.yaw_left = vision_result.data[0].xPos / 10 * -1
-            msg.dive_state = control.STATE_ERROR
-            if vision_result.data[0].yPos > 0:
-                rospy.loginfo("Should rise")
-            else:
-                rospy.loginfo("Should dive")
+                msg.yaw_state = control.STATE_RELATIVE
+                msg.yaw_left = 0
+                msg.dive_state = control.STATE_RELATIVE
+                msg.dive = vision_result.data[0].yPos * \
+                           ((1 - (vision_result.data[0].magnitude * 10)) * -5)
+                rospy.loginfo("Dive error: {}".format(msg.dive))
 
-            msg.dive = vision_result.data[0].yPos / 100
+        
 
-            # regulate distance
-            msg.forward_state = control.STATE_ERROR
-            error = (1 - vision_result.data[0].magnitude) * 1000
-            msg.forward = error
-
-
-        rospy.loginfo("Dive state: {}".format(msg.dive_state))
         self.pub.publish(msg)
 
 

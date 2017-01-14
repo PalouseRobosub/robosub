@@ -1,88 +1,168 @@
 #!/usr/bin/env python
 
+import sys
+import getopt
 import rospy
 from robosub.msg import visionPosArray as vision_pos_array
 from robosub.msg import control
 
 
 class Node():
-    def __init__(self):
+    def __init__(self, commandArgs):
         rospy.loginfo("Init done")
+        
+        self.duration = None
+
+        try:
+            opts, args = getopt.getopt(commandArgs, "hd:", ["duration="])
+        except getopt.GetoptError:
+            print "Usage: gate_jirwin.py -d <duration>"
+            sys.exit(2)
+        for opt, arg in opts:
+            if opt == '-h':
+                print "Usage: gate_jirwin.py -d <duration>"
+                print "       or"
+                print "       gate_jirwin.py --duration=<duration>"
+                sys.exit()
+            elif opt in ("-d", "--duration"):
+                integerArg = int(arg)
+                self.duration = integerArg
+                rospy.loginfo("Setting duration to {} seconds.".format(self.duration))
+
         self.pub = rospy.Publisher('control', control, queue_size=1)
         self.sub = rospy.Subscriber('vision/start_gate', vision_pos_array,
                                     self.callback)
-        self.state = "SEARCHING"
-        self.dir = "LEFT"
+        self.state = "SEARCHING_LEFT"
+        self.errorGoal = 0.1
+        self.prev_yaw = 0
+        self.completeTime = None
 
+    def noneFound(self, msg, vision):
+        msg.yaw_state = control.STATE_ERROR
+        msg.forward_state = control.STATE_ERROR
+        msg.forward = 0
+        msg.dive_state = control.STATE_ABSOLUTE
+        msg.dive = -2
+
+        if self.state is "LOST":
+            msg.yaw_left = 10
+        elif self.state is "SEARCHING LEFT":
+            self.state = "SEARCHING RIGHT"
+            msg.yaw_left = -10
+        elif self.state is "SEARCHING RIGHT":
+            self.state = "SEARCHING LEFT"
+            msg.yaw_left = 10
+        elif self.state is "TRACKING":
+            self.state = "LOST"
+            msg.yaw_left = 0
+        else:
+            # Complete
+            pass
+
+        return msg
+
+    def oneFound(self, msg, vision):
+        if self.state is "LOST":
+            if vision.data[0].xPos < 0:
+                self.state = "SEARCHING_RIGHT"
+                msg.yaw_left = -10
+            else:
+                self.state = "SEARCHING_LEFT"
+                msg.yaw_left = 10
+        elif self.state is "SEARCHING_LEFT" or self.state is "SEARCHING_RIGHT":
+            pass
+        elif self.state is "TRACKING":
+            msg.forward_state = control.STATE_ERROR
+            msg.forward = 0
+            msg.yaw_state = control.STATE_ERROR
+            msg.yaw_left = self.prev_yaw * -1
+            if msg.yaw_left > 0:
+                self.state = "SEARCHING_LEFT"
+            elif msg.yaw_left < 0:
+                self.state = "SEARCHING_RIGHT"
+            else:
+                if vision.data[0].xPos < 0:
+                    self.state = "SEARCHING_RIGHT"
+                    msg.yaw_left = 10
+                else:
+                    self.state = "SEARCHING_LEFT"
+                    msg.yaw_left = -10
+
+        return msg
+
+    def twoFound(self, msg, vision):
+        self.state = "TRACKING"
+
+        gateXPos = (vision.data[0].xPos + vision.data[1].xPos) / 2
+        gateYPos = (vision.data[0].yPos + vision.data[1].yPos) / 2
+
+        if abs(gateXPos) > self.errorGoal:
+            msg.yaw_state = control.STATE_RELATIVE
+            msg.yaw_left = gateXPos * -50
+            rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
+        elif abs(gateYPos) > self.errorGoal:
+            msg.dive_state = control.STATE_RELATIVE
+            msg.dive = gateYPos * -50
+            rospy.loginfo("Dive error: {}".format(msg.dive))
+        else:
+            if (vision.data[0].magnitude + vision.data[1].magnitude) > 0.012:
+                self.state = "COMPLETE"
+            else:
+                msg.yaw_state = control.STATE_RELATIVE
+                msg.yaw_left = 0
+                msg.dive_state = control.STATE_RELATIVE
+                msg.dive = 0
+                msg.forward_state = control.STATE_ERROR
+                msg.forward = 10
+        return msg
+ 
+   
     def callback(self, vision_result):
+        performTask = {0: self.noneFound,
+                       1: self.oneFound,
+                       2: self.twoFound,
+        }
+        
         msg = control()
 
-        if self.state is "SEARCHING":
-            rospy.loginfo("state: {0} {1}".format(self.state, self.dir))
-        else:
-            rospy.loginfo("state: {}".format(self.state))
+        msg.roll_state = control.STATE_ABSOLUTE
+        msg.roll_right = 0
+        msg.pitch_state = control.STATE_ABSOLUTE
+        msg.pitch_down = 0
+
+        rospy.loginfo("state: {}".format(self.state))
+
+        if self.state is not "COMPLETE":
+            numFound = len(vision_result.data)
+            msg = performTask[numFound](msg, vision_result)
+        elif not self.completeTime:
+                self.completeTime = rospy.get_rostime()
+                rospy.loginfo("Complete time: {}".format(self.completeTime))
 
         # always maintain depth at 1 meter
         msg.dive_state = control.STATE_ABSOLUTE
         msg.dive = -1
 
-        if self.state is "SEARCHING":
-            if len(vision_result.data) > 1:  # if we can see the entire gate
-                self.state = "TRACKING_GATE"
-            else:  # can't see whole gate, spin
-                # spin 10 degrees
-                msg.yaw_state = control.STATE_RELATIVE
-                if self.dir is "LEFT":
-                    msg.yaw_left = 10
-                else:
-                    msg.yaw_left = -10
-                # don't move forward
-                msg.forward_state = control.STATE_ERROR
+        if self.state is "COMPLETE" and self.completeTime is not None:
+            msg.forward_state = control.STATE_ERROR
+            if self.completeTime + rospy.Duration(self.duration) < rospy.get_rostime():
                 msg.forward = 0
-        elif self.state is "TRACKING_GATE":
-            if len(vision_result.data) < 1:  # if we can no longer see the gate
-                # set to blindly continue going forward for a bit
-                self.exit_time = rospy.Time.now() + rospy.Duration.from_sec(10)
-                self.state = "CONTINUE_GATE"
-            elif len(vision_result.data) < 2:
-                self.state = "SEARCHING"
-                if self.dir is "LEFT":
-                    self.dir = "RIGHT"
-                else:
-                    self.dir = "LEFT"
+                rospy.loginfo("Truly complete")
+                rospy.signal_shutdown(0)
             else:
-                # calculate center of gate,
-                # which is the average of the two pole positions
-                gate_center = (vision_result.data[0].xPos +
-                               vision_result.data[1].xPos) / 2
-                msg.yaw_state = control.STATE_ERROR
-                msg.yaw_left = 10 * gate_center
-
-                # go forward
-                msg.forward_state = control.STATE_ERROR
+                rospy.loginfo("Complete, but moving through gate")
                 msg.forward = 10
-
-        # at this point, we should be blindly going forward for a bit to pass
-        # through the gate
-        elif self.state is "CONTINUE_GATE":
-            # check if we've gone straight for long enough
-            if rospy.Time.now() > self.exit_time:
-                rospy.signal_shutdown("Success!!")
-
-            # maintain heading
             msg.yaw_state = control.STATE_RELATIVE
             msg.yaw_left = 0
+            msg.dive_state = control.STATE_RELATIVE
+            msg.dive = 0
 
-            # go straight
-            msg.forward_state = control.STATE_ERROR
-            msg.forward = 10
-        else:
-            rospy.error("got into uncaught state: {}".format(self.state))
-
-
+        self.prev_yaw = msg.yaw_left
         self.pub.publish(msg)
+
+
 
 if __name__ == "__main__":
     rospy.init_node('jirwin_gate_task')
-    node = Node()
+    node = Node(sys.argv[1:])
     rospy.spin()

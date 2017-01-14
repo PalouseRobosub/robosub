@@ -25,7 +25,8 @@ class AiManager():
             try:
                 process = self.launcher.launch(node)
             except roslaunch.RLException as e:
-                rospy.logerr(e.strerror)
+                rospy.logerr(e.message)
+                break
 
             rospy.loginfo("Running " + l["name"] + " Task")
             launch_time = rospy.get_rostime()
