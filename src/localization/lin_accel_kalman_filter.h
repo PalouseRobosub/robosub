@@ -1,6 +1,7 @@
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include <iostream>
+#include <string>
 #include <random>
 #include <vector>
 
@@ -17,6 +18,51 @@ using namespace Eigen;
 #define PT_RATE 20
 #define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
 //#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
+
+bool getParamCachedMatrix(std::string param_name, Eigen::Ref<Eigen::MatrixXd> mat)
+{
+    XmlRpc::XmlRpcValue param;
+    if(!ros::param::getCached(param_name, param))
+    {
+        return false;
+    }
+
+    int nrows = mat.rows();
+    int ncols = mat.cols();
+
+    if(param.size() != nrows)
+    {
+        ROS_WARN_STREAM("number of rows of param " << param_name << " does not match number of rows of inputted matix");
+        return false;
+    }
+
+    int i = 0;
+    int j = 0;
+    for(i=0; i<nrows; i++)
+    {
+        XmlRpc::XmlRpcValue row = param[i];
+
+        for(j=0; j<ncols; j++)
+        {
+            if(row.size() != ncols)
+            {
+                ROS_WARN_STREAM("number of columns of param " << param_name << " does not match number of columns of inputted matix");
+                return false;
+            }
+
+            if(row[j].getType() == XmlRpc::XmlRpcValue::TypeDouble)
+            {
+                mat(i,j) = static_cast<double>(row[j]);
+            }
+            else if(row[j].getType() == XmlRpc::XmlRpcValue::TypeInt)
+            {
+                mat(i,j) = static_cast<double>(static_cast<int>(row[j]));
+            }
+        }
+    }
+
+    return true;
+}
 
 class LinAccelKalmanFilter
 {
@@ -44,8 +90,9 @@ private:
     ros::Time last_lin_accel_time;
     ros::Duration dt;
     tf::Quaternion orientation;
-    bool orientation_received;
+    bool orientation_initialized;
 
+    Matrix<double,9,1> x0;
     Matrix<double,9,1> x;
     Matrix<double,9,1> x_prev;
 

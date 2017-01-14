@@ -6,7 +6,6 @@ LinAccelKalmanFilter::LinAccelKalmanFilter(ros::NodeHandle _nh)
     pub = nh.advertise<geometry_msgs::Vector3Stamped>("dead_reckoning", 1);
 
     initialize();
-    reload_params();
 }
 
 LinAccelKalmanFilter::~LinAccelKalmanFilter()
@@ -29,21 +28,18 @@ void LinAccelKalmanFilter::initialize()
     y.setZero();
     s.setZero();
 
-    Q.setIdentity() * 0.2;
-    R.setIdentity() * 0.2;
-
-    P.setIdentity() * 0.4;
-
     A.setIdentity();
     update_A(1.0/33.0);
 
     H(0,6) = H(1,7) = H(2,8) = 1.0;
 
-    x(0,0) = x_prev(0,0) = -30.0;
-    x(1,0) = x_prev(1,0) = -20.0;
-    x(2,0) = x_prev(2,0) = 4.9;
+    reload_params();
 
-    orientation_received = false;
+    x(0,0) = x_prev(0,0) = x0(0,0);
+    x(1,0) = x_prev(1,0) = x0(1,0);
+    x(2,0) = x_prev(2,0) = x0(2,0);
+
+    orientation_initialized = false;
 
     ROS_INFO_STREAM("Finished KF init");
 }
@@ -56,21 +52,20 @@ void LinAccelKalmanFilter::reload_params()
         ros::shutdown();
     }
 
-    /*
-    ros::param::getCached("localization/initial_state/x_pos", initial_state(0,0));
-    ros::param::getCached("localization/initial_state/y_pos", initial_state(1,0));
-    ros::param::getCached("localization/initial_state/z_pos", initial_state(2,0));
-    ros::param::getCached("localization/initial_state/x_lin_vel", initial_state(3,0));
-    ros::param::getCached("localization/initial_state/y_lin_vel", initial_state(4,0));
-    ros::param::getCached("localization/initial_state/z_lin_vel", initial_state(5,0));
+    getParamCachedMatrix("kalman_filter/Q", Q);
+    getParamCachedMatrix("kalman_filter/R", R);
+    getParamCachedMatrix("kalman_filter/P", P);
+    getParamCachedMatrix("kalman_filter/X0", x0);
 
-    */
+    PRINT_THROTTLE(ROS_INFO_STREAM("Q: " << Q););
+    PRINT_THROTTLE(ROS_INFO_STREAM("R: " << R););
+    PRINT_THROTTLE(ROS_INFO_STREAM("P: " << P););
+    PRINT_THROTTLE(ROS_INFO_STREAM("x0: " << x0););
 }
 
 bool LinAccelKalmanFilter::reset(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep)
 {
     initialize();
-    reload_params();
 
     return true;
 }
@@ -102,7 +97,7 @@ void LinAccelKalmanFilter::InputLinAccel(const geometry_msgs::Vector3Stamped::Co
     rel_lin_accel[1] = msg->vector.y;
     rel_lin_accel[2] = msg->vector.z;
 
-    if(orientation_received)
+    if(orientation_initialized)
     {
         tf::Vector3 abs_lin_accel = calculate_absolute_lin_accel(rel_lin_accel, orientation);
 
@@ -122,13 +117,13 @@ void LinAccelKalmanFilter::InputOrientation(const robosub::QuaternionStampedAccu
     orientation.setZ(msg->quaternion.z);
     orientation.setW(msg->quaternion.w);
 
-    orientation_received = true;
+    orientation_initialized = true;
 }
 
 void LinAccelKalmanFilter::update_A(double dt)
 {
     A(0,3) = A(1,4) = A(2,5) = A(3,6) = A(4,7) = A(5,8) = dt;
-    A(0,6) = A(1,7) = A(2,8) = dt * dt;
+    A(0,6) = A(1,7) = A(2,8) = 0.5 * (dt * dt);
 
     PRINT_THROTTLE(ROS_INFO_STREAM("A:\n" << A););
 }
