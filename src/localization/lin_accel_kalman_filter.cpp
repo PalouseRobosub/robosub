@@ -17,6 +17,34 @@ void LinAccelKalmanFilter::initialize()
 {
     num_iterations = 0;
 
+    x.setZero();
+    x_prev.setZero();
+    P.setZero();
+    A.setZero();
+    B.setZero();
+    Q.setZero();
+    H.setZero();
+    R.setZero();
+    k.setZero();
+    y.setZero();
+    s.setZero();
+
+    Q.setIdentity() * 0.2;
+    R.setIdentity() * 0.2;
+
+    P.setIdentity() * 0.4;
+
+    A.setIdentity();
+    update_A(1.0/33.0);
+
+    H(0,6) = H(1,7) = H(2,8) = 1.0;
+
+    x(0,0) = x_prev(0,0) = -30.0;
+    x(1,0) = x_prev(1,0) = -20.0;
+    x(2,0) = x_prev(2,0) = 4.9;
+
+    orientation_received = false;
+
     ROS_INFO_STREAM("Finished KF init");
 }
 
@@ -64,24 +92,27 @@ tf::Vector3 LinAccelKalmanFilter::calculate_absolute_lin_accel(tf::Vector3 rel_l
 
 void LinAccelKalmanFilter::InputLinAccel(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
-    last_lin_accel_time = msg->header.stamp;
+    PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
+
     dt = msg->header.stamp - last_lin_accel_time;
+    last_lin_accel_time = msg->header.stamp;
 
     tf::Vector3 rel_lin_accel;
     rel_lin_accel[0] = msg->vector.x;
     rel_lin_accel[1] = msg->vector.y;
     rel_lin_accel[2] = msg->vector.z;
 
-    last_lin_accel_time = msg->header.stamp;
+    if(orientation_received)
+    {
+        tf::Vector3 abs_lin_accel = calculate_absolute_lin_accel(rel_lin_accel, orientation);
 
-    tf::Vector3 abs_lin_accel = calculate_absolute_lin_accel(rel_lin_accel, orientation);
+        Matrix<double,3,1> obs;
+        obs(0,0) = abs_lin_accel[0];
+        obs(1,0) = abs_lin_accel[1];
+        obs(2,0) = abs_lin_accel[2];
 
-    Matrix<double,3,1> obs;
-    obs(0,0) = abs_lin_accel[0];
-    obs(1,0) = abs_lin_accel[1];
-    obs(2,0) = abs_lin_accel[2];
-
-    update(obs, dt.toSec());
+        update(obs, dt.toSec());
+    }
 }
 
 void LinAccelKalmanFilter::InputOrientation(const robosub::QuaternionStampedAccuracy::ConstPtr &msg)
@@ -90,54 +121,75 @@ void LinAccelKalmanFilter::InputOrientation(const robosub::QuaternionStampedAccu
     orientation.setY(msg->quaternion.y);
     orientation.setZ(msg->quaternion.z);
     orientation.setW(msg->quaternion.w);
+
+    orientation_received = true;
 }
 
 void LinAccelKalmanFilter::update_A(double dt)
 {
+    A(0,3) = A(1,4) = A(2,5) = A(3,6) = A(4,7) = A(5,8) = dt;
+    A(0,6) = A(1,7) = A(2,8) = dt * dt;
 
+    PRINT_THROTTLE(ROS_INFO_STREAM("A:\n" << A););
 }
 
-Matrix<double, 9,1> LinAccelKalmanFilter::run_filter(Matrix<double,3,1> obs, double dt)
+Matrix<double, 9,1> LinAccelKalmanFilter::run_filter(Matrix<double,3,1> obs)
 {
+    PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
+
     // predict state forward
     x = A * x_prev;
+    PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
     // estimate prediction covariance
     P = A * P * A.transpose() + Q;
+    PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
     // get error between reality and prediction
     y = obs - H * x;
+    PRINT_THROTTLE(ROS_INFO_STREAM("y:\n" << y););
     // add real error to predicted probability
     s = H * P * H.transpose() + R;
+    PRINT_THROTTLE(ROS_INFO_STREAM("s:\n" << s););
     // find kalman gain
     k = P * H.transpose() * s.inverse();
+    PRINT_THROTTLE(ROS_INFO_STREAM("k:\n" << k););
     // update predicted state with kalman gain
     x = x + k * y;
+    PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
     // update predicted covariances with kalmain gain
     P = (Matrix<double,9,9>::Identity() - k * H) * P;
+    PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
+
+    PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
+
+    x_prev = x;
 
     return x;
 }
 
 void LinAccelKalmanFilter::update(Matrix<double,3,1> obs, double dt)
 {
-    PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
+    PRINT_THROTTLE(ROS_INFO_STREAM("obs: " << obs););
 
     reload_params();
 
     update_A(dt);
 
-    run_filter(obs, dt);
+    Matrix<double, 9,1> predicted_state = run_filter(obs);
 
-    publish();
+    PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" << predicted_state););
+
+    publish(predicted_state);
 
     num_iterations++;
 }
 
-void LinAccelKalmanFilter::publish()
+// TODO: Publish whole state
+void LinAccelKalmanFilter::publish(Matrix<double,9,1> predicted_state)
 {
     geometry_msgs::Vector3Stamped msg;
-    msg.vector.x = x(0,0);
-    msg.vector.y = x(1,0);
-    msg.vector.z = x(2,0);
+    msg.vector.x = predicted_state(6,0);
+    msg.vector.y = predicted_state(7,0);
+    msg.vector.z = predicted_state(8,0);
 
     msg.header.stamp = ros::Time::now();
 

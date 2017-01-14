@@ -14,7 +14,7 @@
 
 using namespace Eigen;
 
-#define PT_RATE 50
+#define PT_RATE 20
 #define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
 //#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
 
@@ -33,9 +33,9 @@ private:
     void reload_params();
     tf::Vector3 calculate_absolute_lin_accel(tf::Vector3 rel_lin_accel, tf::Quaternion orientation);
     void update_A(double dt);
-    Matrix<double, 9,1> run_filter(Matrix<double,3,1> obs, double dt);
+    Matrix<double, 9,1> run_filter(Matrix<double,3,1> obs);
     void update(Matrix<double,3,1> obs, double dt);
-    void publish();
+    void publish(Matrix<double,9,1> predicted_state);
 
     ros::NodeHandle nh;
     ros::Publisher pub;
@@ -44,6 +44,7 @@ private:
     ros::Time last_lin_accel_time;
     ros::Duration dt;
     tf::Quaternion orientation;
+    bool orientation_received;
 
     Matrix<double,9,1> x;
     Matrix<double,9,1> x_prev;
