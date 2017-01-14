@@ -32,6 +32,7 @@ void LinAccelKalmanFilter::initialize()
     update_A(1.0/33.0);
 
     H(0,6) = H(1,7) = H(2,8) = 1.0;
+    H(3,2) = 1.0;
 
     reload_params();
 
@@ -40,6 +41,7 @@ void LinAccelKalmanFilter::initialize()
     x(2,0) = x_prev(2,0) = x0(2,0);
 
     orientation_initialized = false;
+    depth_initialized = false;
 
     ROS_INFO_STREAM("Finished KF init");
 }
@@ -97,14 +99,17 @@ void LinAccelKalmanFilter::InputLinAccel(const geometry_msgs::Vector3Stamped::Co
     rel_lin_accel[1] = msg->vector.y;
     rel_lin_accel[2] = msg->vector.z;
 
-    if(orientation_initialized)
+    if(orientation_initialized && depth_initialized)
     {
         tf::Vector3 abs_lin_accel = calculate_absolute_lin_accel(rel_lin_accel, orientation);
 
-        Matrix<double,3,1> obs;
+        Matrix<double,4,1> obs;
         obs(0,0) = abs_lin_accel[0];
         obs(1,0) = abs_lin_accel[1];
         obs(2,0) = abs_lin_accel[2];
+        // TODO: Load param
+        double pinger_depth = -4.1;
+        obs(3,0) = -pinger_depth + depth;
 
         update(obs, dt.toSec());
     }
@@ -120,6 +125,13 @@ void LinAccelKalmanFilter::InputOrientation(const robosub::QuaternionStampedAccu
     orientation_initialized = true;
 }
 
+void LinAccelKalmanFilter::InputDepth(const robosub::depth_stamped::ConstPtr &msg)
+{
+    depth = msg->depth;
+
+    depth_initialized = true;
+}
+
 void LinAccelKalmanFilter::update_A(double dt)
 {
     A(0,3) = A(1,4) = A(2,5) = A(3,6) = A(4,7) = A(5,8) = dt;
@@ -128,7 +140,7 @@ void LinAccelKalmanFilter::update_A(double dt)
     PRINT_THROTTLE(ROS_INFO_STREAM("A:\n" << A););
 }
 
-Matrix<double, 9,1> LinAccelKalmanFilter::run_filter(Matrix<double,3,1> obs)
+Matrix<double, 9,1> LinAccelKalmanFilter::run_filter(Matrix<double,4,1> obs)
 {
     PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
 
@@ -161,7 +173,7 @@ Matrix<double, 9,1> LinAccelKalmanFilter::run_filter(Matrix<double,3,1> obs)
     return x;
 }
 
-void LinAccelKalmanFilter::update(Matrix<double,3,1> obs, double dt)
+void LinAccelKalmanFilter::update(Matrix<double,4,1> obs, double dt)
 {
     PRINT_THROTTLE(ROS_INFO_STREAM("obs: " << obs););
 

@@ -11,6 +11,7 @@
 
 #include "robosub/QuaternionStampedAccuracy.h"
 #include "robosub/Float32ArrayStamped.h"
+#include "robosub/depth_stamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Empty.h"
 
@@ -74,14 +75,15 @@ public:
 
     void InputLinAccel(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputOrientation(const robosub::QuaternionStampedAccuracy::ConstPtr &msg);
+    void InputDepth(const robosub::depth_stamped::ConstPtr &msg);
 
 private:
     void initialize();
     void reload_params();
     tf::Vector3 calculate_absolute_lin_accel(tf::Vector3 rel_lin_accel, tf::Quaternion orientation);
     void update_A(double dt);
-    Matrix<double, 9,1> run_filter(Matrix<double,3,1> obs);
-    void update(Matrix<double,3,1> obs, double dt);
+    Matrix<double, 9,1> run_filter(Matrix<double,4,1> obs);
+    void update(Matrix<double,4,1> obs, double dt);
     void publish(Matrix<double,9,1> predicted_state);
 
     ros::NodeHandle nh;
@@ -91,7 +93,9 @@ private:
     ros::Time last_lin_accel_time;
     ros::Duration dt;
     tf::Quaternion orientation;
+    double depth;
     bool orientation_initialized;
+    bool depth_initialized;
 
     Matrix<double,9,1> x0;
     Matrix<double,9,1> x;
@@ -102,10 +106,10 @@ private:
     Matrix<double,9,9> A;
     Matrix<double,9,8> B;
     Matrix<double,9,9> Q;
-    Matrix<double,3,9> H;
-    Matrix<double,3,3> R;
+    Matrix<double,4,9> H;
+    Matrix<double,4,4> R;
 
-    Matrix<double,9,3> k;
-    Matrix<double,3,1> y;
-    Matrix<double,3,3> s;
+    Matrix<double,9,4> k;
+    Matrix<double,4,1> y;
+    Matrix<double,4,4> s;
 };
