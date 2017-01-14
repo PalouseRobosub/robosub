@@ -10,6 +10,7 @@
 #include "tf/transform_datatypes.h"
 
 #include "robosub/QuaternionStampedAccuracy.h"
+#include "robosub/Float32ArrayStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Empty.h"
 

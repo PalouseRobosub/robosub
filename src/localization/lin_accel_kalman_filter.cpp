@@ -3,7 +3,7 @@
 LinAccelKalmanFilter::LinAccelKalmanFilter(ros::NodeHandle _nh)
 {
     nh = _nh;
-    pub = nh.advertise<geometry_msgs::Vector3Stamped>("dead_reckoning", 1);
+    pub = nh.advertise<robosub::Float32ArrayStamped>("dead_reckoning", 1);
 
     initialize();
 }
@@ -181,10 +181,12 @@ void LinAccelKalmanFilter::update(Matrix<double,3,1> obs, double dt)
 // TODO: Publish whole state
 void LinAccelKalmanFilter::publish(Matrix<double,9,1> predicted_state)
 {
-    geometry_msgs::Vector3Stamped msg;
-    msg.vector.x = predicted_state(6,0);
-    msg.vector.y = predicted_state(7,0);
-    msg.vector.z = predicted_state(8,0);
+    robosub::Float32ArrayStamped msg;
+
+    for(int i=0; i<9; i++)
+    {
+        msg.data.push_back(predicted_state(i,0));
+    }
 
     msg.header.stamp = ros::Time::now();
 
