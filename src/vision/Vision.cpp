@@ -111,8 +111,10 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
             robosub::visionPos outMsg;
 
             //Prepare the output message
-            outMsg.xPos = (cx - (imWidth / 2)) / static_cast<double>(imWidth / 2);
-            outMsg.yPos = (cy - (imHeight / 2)) / static_cast<double>(imWidth / 2);
+            outMsg.xPos = (cx - (imWidth / 2)) /
+                          static_cast<double>(imWidth / 2);
+            outMsg.yPos = (cy - (imHeight / 2)) /
+                          static_cast<double>(imWidth / 2);
             outMsg.magnitude = static_cast<double>(contourArea(contours[i],
                                                    false)) /
                                static_cast<double>(imWidth * imHeight);
