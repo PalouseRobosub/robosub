@@ -10,7 +10,7 @@ from robosub.msg import control
 class Node():
     def __init__(self, commandArgs):
         rospy.loginfo("Init done")
-        
+
         self.duration = None
 
         try:
@@ -27,7 +27,8 @@ class Node():
             elif opt in ("-d", "--duration"):
                 integerArg = int(arg)
                 self.duration = integerArg
-                rospy.loginfo("Setting duration to {} seconds.".format(self.duration))
+                rospy.loginfo("Setting duration to {} seconds.".format(
+                              self.duration))
 
         self.pub = rospy.Publisher('control', control, queue_size=1)
         self.sub = rospy.Subscriber('vision/start_gate', vision_pos_array,
@@ -115,14 +116,14 @@ class Node():
                 msg.forward_state = control.STATE_ERROR
                 msg.forward = 10
         return msg
- 
-   
+
+
     def callback(self, vision_result):
         performTask = {0: self.noneFound,
                        1: self.oneFound,
                        2: self.twoFound,
-        }
-        
+                       }
+
         msg = control()
 
         msg.roll_state = control.STATE_ABSOLUTE
@@ -145,7 +146,8 @@ class Node():
 
         if self.state is "COMPLETE" and self.completeTime is not None:
             msg.forward_state = control.STATE_ERROR
-            if self.completeTime + rospy.Duration(self.duration) < rospy.get_rostime():
+            if self.completeTime + rospy.Duration(self.duration) <\
+               rospy.get_rostime():
                 msg.forward = 0
                 rospy.loginfo("Truly complete")
                 rospy.signal_shutdown(0)

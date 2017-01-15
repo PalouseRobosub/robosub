@@ -29,10 +29,11 @@ class Node():
         msg.forward = 0
 
         rospy.loginfo("state: {}".format(self.state))
-    
+
         if self.state is "COMPLETE" and self.completeTime is not None:
             msg.forward_state = control.STATE_ERROR
-            if self.completeTime + rospy.Duration(self.duration) < rospy.get_rostime():
+            if self.completeTime + rospy.Duration(self.duration) < \
+               rospy.get_rostime():
                 msg.forward = 0
                 rospy.loginfo("Truly complete")
                 rospy.signal_shutdown(0)
@@ -57,8 +58,8 @@ class Node():
             msg.forward = 0
             msg.dive_state = control.STATE_RELATIVE
             msg.dive = 0
-        elif abs(vision_result.data[0].xPos) < self.errorGoal and \
-             abs(vision_result.data[0].yPos) < self.errorGoal:
+        elif (abs(vision_result.data[0].xPos) < self.errorGoal and
+              abs(vision_result.data[0].yPos) < self.errorGoal):
             msg.forward_state = control.STATE_RELATIVE
             msg.yaw_state = control.STATE_RELATIVE
             msg.yaw_left = 0
@@ -68,7 +69,8 @@ class Node():
             if vision_result.data[0].magnitude < self.distGoal:
                 msg.forward = 10
                 self.state = "RAMMING"
-                rospy.loginfo("{} from goal".format(self.distGoal - vision_result.data[0].magnitude))
+                rospy.loginfo("{} from goal".format(self.distGoal -
+                              vision_result.data[0].magnitude))
             else:
                 msg.forward = 0
                 self.state = "COMPLETE"
@@ -79,9 +81,9 @@ class Node():
             self.state = "TRACKING"
             if abs(vision_result.data[0].xPos) > self.errorGoal:
                 msg.yaw_state = control.STATE_RELATIVE
-                msg.yaw_left = vision_result.data[0].xPos * \
-                               ((1 - (vision_result.data[0].magnitude * 10)) *\
-                               -50)
+                msg.yaw_left = (vision_result.data[0].xPos *
+                                (1 - (vision_result.data[0].magnitude * 10)) *
+                                (-50))
                 rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
                 msg.dive_state = control.STATE_RELATIVE
                 msg.dive = 0
@@ -89,11 +91,10 @@ class Node():
                 msg.yaw_state = control.STATE_RELATIVE
                 msg.yaw_left = 0
                 msg.dive_state = control.STATE_RELATIVE
-                msg.dive = vision_result.data[0].yPos * \
-                           ((1 - (vision_result.data[0].magnitude * 10)) * -5)
+                msg.dive = (vision_result.data[0].yPos *
+                            ((1 - (vision_result.data[0].magnitude * 10)) * -5))
                 rospy.loginfo("Dive error: {}".format(msg.dive))
 
-        
 
         self.pub.publish(msg)
 
