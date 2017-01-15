@@ -46,7 +46,6 @@ void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
         }
     }
 
-    
     sensor_msgs::Image outMsg;
 
     image_ptr->toImageMsg(outMsg);
