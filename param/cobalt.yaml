@@ -1,6 +1,6 @@
 ports:
-    thruster: "/"
-    sensor: "/dev/ttyUSB0"
+    thruster: "/dev/maestro_control"
+    sensor: "/dev/bno055"
 thrusters:
     -   name: "dive_front_left"
         channel: 8
