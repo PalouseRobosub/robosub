@@ -58,7 +58,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
     }
 
     // Using Xbox controller
-    if (!msg.type && !msg.buttons[0])
+    if (robosub::gamepad::XBOX == msg.type && !msg.buttons[0])
     {
         if (msg.hatX)
         {
@@ -82,7 +82,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         }
     }
     // Using PlayStation controller
-    else if (msg.type && !msg.buttons[14])
+    else if (robosub::gamepad::PS3 == msg.type && !msg.buttons[14])
     {
         if (msg.buttons[4] || msg.buttons[6])
         {

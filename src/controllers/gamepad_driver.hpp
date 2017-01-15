@@ -27,7 +27,7 @@ typedef struct
 
     bool button[19];
 
-    bool type;
+    uint8_t type;
 } GAMEPAD_STATE;
 
 class GamepadDriver
@@ -40,6 +40,7 @@ private:
     int AXIS_MAX;
     int fd;
     char name[128];
+    uint8_t num_btns;
     js_event e;
     GAMEPAD_STATE gamepad_data;
 

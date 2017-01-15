@@ -9,7 +9,7 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
     if(!(node->getParam("device", device)))
     {
         device = "/dev/input/js0";
-        ROS_WARN("Unable to open device from params");
+        ROS_WARN("Unable to open device from params, using default");
     }
     ROS_INFO("device: %s", device.c_str());
 
@@ -27,14 +27,32 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
     //           Microsoft X-Box One pad
     if (ioctl(fd, JSIOCGNAME(sizeof(name)), name) < 0)
     {
-        strncpy(name, "Unknown", sizeof(name));
+        ROS_FATAL ("Unable to query the gamepad for its name");
+        exit(1);
     }
-    ROS_INFO("Name: %s\n", name);
+    // Get the number of buttons on the gamepad
+    if (ioctl(fd, JSIOCGBUTTONS, &num_btns) < 0)
+    {
+        ROS_FATAL ("Unable to query the gamepad for its number of buttons.");
+        exit(1);
+    }
+    ROS_INFO("Name: %s", name);
+    ROS_INFO("Number of Buttons: %d", num_btns);
 
-    // Set the internal type for the gamepad based on the first character
-    // 0: XBOX controller
-    // 1: PlayStation controller
-    gamepad_data.type = (name[0] != 'M');
+    // Set the internal type for the gamepad based on the name
+    if (0 == strncmp(name, "Microsoft", 9))
+    {
+        gamepad_data.type = robosub::gamepad::XBOX;
+    }
+    else if (0 == strncmp(name, "Sony Playstation", 16))
+    {
+        gamepad_data.type = robosub::gamepad::PS3;
+    }
+    else
+    {
+        ROS_ERROR("Unkown Controller type");
+        exit(1);
+    }
 }
 
 robosub::gamepad GamepadDriver::GetGamepadMessage()
@@ -65,7 +83,7 @@ robosub::gamepad GamepadDriver::GetGamepadMessage()
     gp_msg.hatY = gamepad_data.hatY;
 
     // get all the buttons. PlayStation has 8 more possible buttons
-    for(int i = 0; i < 11 + 8*gamepad_data.type; ++i)
+    for(int i = 0; i < num_btns; ++i)
     {
         gp_msg.buttons[i] = gamepad_data.button[i];
     }
@@ -159,7 +177,7 @@ int main(int argc, char **argv)
     if(!nh.getParam("rate", rate))
     {
         rate = 10;
-        ROS_WARN("Unable to get rate from params");
+        ROS_WARN("Unable to get rate from params, using default: 10");
     }
 
     ros::Rate r(rate);

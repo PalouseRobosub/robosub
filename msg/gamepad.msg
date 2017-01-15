@@ -11,4 +11,8 @@ int32 hatY
 
 bool[19] buttons
 
-bool type
+uint8 type
+
+#enum for type
+uint8 XBOX = 0
+uint8 PS3  = 1
