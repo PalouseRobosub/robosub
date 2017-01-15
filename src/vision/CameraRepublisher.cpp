@@ -8,7 +8,7 @@ image_transport::Publisher bottomPub;
 
 void leftCallback(const wfov_camera_msgs::WFOVImage::ConstPtr &msg)
 {
-    leftPub.publish(msg->image);    
+    leftPub.publish(msg->image);
 }
 
 void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr &msg)
