@@ -1,6 +1,7 @@
 #include "StereoCalibrator.hpp"
 #include "wfov_camera_msgs/WFOVImage.h"
 #include <cv3_bridge/cv_bridge.h>
+#include <opencv2/highgui.hpp>
 #include <sensor_msgs/image_encodings.h>
 #include <string>
 #include <vector>
@@ -14,8 +15,11 @@ void leftCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
     Mat view = toCvShare(msg->image, msg,
                          sensor_msgs::image_encodings::BGR8)->image;
-
+    
     stereoCalib->submitLeftImg(view);
+    imshow("Left", view);
+
+    waitKey(1);
 }
 
 void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
@@ -24,6 +28,9 @@ void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
                          sensor_msgs::image_encodings::BGR8)->image;
 
     stereoCalib->submitRightImg(view);
+    imshow("Right", view);
+
+    waitKey(1);
 }
 
 int main (int argc, char* argv[])
@@ -72,8 +79,15 @@ int main (int argc, char* argv[])
     ROS_INFO_STREAM("Settings read and validated");
 
     ros::Rate r(10);
+    int numGathered = 0;
     while (ros::ok() && stereoCalib->getNumValidPairs() < settings.nrFrames)
     {
+        if(stereoCalib->getNumValidPairs() > numGathered)
+        {
+            ROS_INFO_STREAM("Completed " << numGathered << "/" <<
+                            settings.nrFrames);
+            numGathered = stereoCalib->getNumValidPairs();
+        }
         ros::spinOnce();
         r.sleep();
     }

@@ -27,7 +27,8 @@ void StereoCalibrator::submitLeftImg(const Mat &leftImg)
     vector<Point2f> corners;
     if (findChessboardCorners(leftImg, boardSize, corners,
                               CALIB_CB_ADAPTIVE_THRESH |
-                              CALIB_CB_NORMALIZE_IMAGE))
+                              CALIB_CB_NORMALIZE_IMAGE |
+                              CALIB_CB_FAST_CHECK))
     {
         hasLeft = true;
     }
@@ -45,7 +46,8 @@ void StereoCalibrator::submitRightImg(const Mat &rightImg)
     vector<Point2f> corners;
     if (findChessboardCorners(rightImg, boardSize, corners,
                               CALIB_CB_ADAPTIVE_THRESH |
-                              CALIB_CB_NORMALIZE_IMAGE))
+                              CALIB_CB_NORMALIZE_IMAGE |
+                              CALIB_CB_FAST_CHECK))
     {
         hasRight = true;
     }
