@@ -110,7 +110,7 @@ void leftCamCallback(const sensor_msgs::Image::ConstPtr& msg)
             ///Create the output message
             robosub::visionPos outMsg;
 
-            //Prepare the output message
+            //Move (0,0) to center and normalize the values to [-1, 1]
             outMsg.xPos = (cx - (imWidth / 2)) /
                           static_cast<double>(imWidth / 2);
             outMsg.yPos = (cy - (imHeight / 2)) /

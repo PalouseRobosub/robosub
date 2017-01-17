@@ -7,12 +7,14 @@ from robosub.msg import visionPosArray as vision_pos_array
 from robosub.msg import control
 
 
-class Node():
+class GateTask():
     def __init__(self, commandArgs):
         rospy.loginfo("Init done")
 
-        self.duration = None
+        #Set blind forward duration default to 1 second
+        self.duration = 1
 
+        #Use command line arguments to get duration
         try:
             opts, args = getopt.getopt(commandArgs, "hd:", ["duration="])
         except getopt.GetoptError:
@@ -20,13 +22,14 @@ class Node():
             sys.exit(2)
         for opt, arg in opts:
             if opt == '-h':
+                #Print usage message
                 print "Usage: gate_jirwin.py -d <duration>"
                 print "       or"
                 print "       gate_jirwin.py --duration=<duration>"
                 sys.exit()
             elif opt in ("-d", "--duration"):
-                integerArg = int(arg)
-                self.duration = integerArg
+                #Fetch duration
+                self.duration = int(arg)
                 rospy.loginfo("Setting duration to {} seconds.".format(
                               self.duration))
 
@@ -34,7 +37,9 @@ class Node():
         self.sub = rospy.Subscriber('vision/start_gate', vision_pos_array,
                                     self.callback)
         self.state = "SEARCHING_LEFT"
+        #How far off center the gate should be
         self.errorGoal = 0.1
+        #Used to determine if moving we were moving left or right last
         self.prev_yaw = 0
         self.completeTime = None
 
@@ -100,11 +105,11 @@ class Node():
         if abs(gateXPos) > self.errorGoal:
             msg.yaw_state = control.STATE_RELATIVE
             msg.yaw_left = gateXPos * -50
-            rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
+            rospy.loginfo("Yaw output: {}".format(msg.yaw_left))
         elif abs(gateYPos) > self.errorGoal:
             msg.dive_state = control.STATE_RELATIVE
             msg.dive = gateYPos * -50
-            rospy.loginfo("Dive error: {}".format(msg.dive))
+            rospy.loginfo("Dive output: {}".format(msg.dive))
         else:
             if (vision.data[0].magnitude + vision.data[1].magnitude) > 0.012:
                 self.state = "COMPLETE"
@@ -149,10 +154,10 @@ class Node():
             if self.completeTime + rospy.Duration(self.duration) <\
                rospy.get_rostime():
                 msg.forward = 0
-                rospy.loginfo("Truly complete")
+                rospy.loginfo("Complete")
                 rospy.signal_shutdown(0)
             else:
-                rospy.loginfo("Complete, but moving through gate")
+                rospy.loginfo("Moving through gate")
                 msg.forward = 10
             msg.yaw_state = control.STATE_RELATIVE
             msg.yaw_left = 0
@@ -166,5 +171,5 @@ class Node():
 
 if __name__ == "__main__":
     rospy.init_node('jirwin_gate_task')
-    node = Node(sys.argv[1:])
+    node = GateTask(sys.argv[1:])
     rospy.spin()
