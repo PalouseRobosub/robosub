@@ -13,17 +13,17 @@ class BuoyTask():
                                     self.callback)
         self.state = "SEARCHING"
         self.completeTime = None
-        #How long the sub moves backward for
+        # How long the sub moves backward for
         self.duration = 2
-        #How close to center the buoy needs to be (abs)
+        # How close to center the buoy needs to be (abs)
         self.errorGoal = 0.1
-        #How close the sub has to get before reversing
+        # How close the sub has to get before reversing
         self.distGoal = 0.01
 
     def callback(self, vision_result):
         msg = control()
 
-        # maintain roll and pitch of 0
+        # Maintain roll and pitch of 0
         msg.roll_state = control.STATE_ABSOLUTE
         msg.roll_right = 0
         msg.pitch_state = control.STATE_ABSOLUTE
@@ -84,10 +84,10 @@ class BuoyTask():
             self.state = "TRACKING"
             if abs(vision_result.data[0].xPos) > self.errorGoal:
                 msg.yaw_state = control.STATE_RELATIVE
-                #Calculates the yaw by multiplying the xPos of the buoy by a
-                #scalar as well as the inverse of 10 times the magnitude.
-                #When distance becomes more accurate, this will need to be
-                #updated.
+                # Calculates the yaw by multiplying the xPos of the buoy by a
+                # scalar as well as the inverse of 10 times the magnitude.
+                # When distance becomes more accurate, this will need to be
+                # updated.
                 msg.yaw_left = (vision_result.data[0].xPos *
                                 (1 - (vision_result.data[0].magnitude * 10)) *
                                 (-50))
@@ -98,10 +98,10 @@ class BuoyTask():
                 msg.yaw_state = control.STATE_RELATIVE
                 msg.yaw_left = 0
                 msg.dive_state = control.STATE_RELATIVE
-                #Calculates the dive by multiplying the yPos of the buoy by a
-                #scalar as well as the inverse of 10 times the magnitude.
-                #When distance becomes more accurate, this will need to be
-                #updated.
+                # Calculates the dive by multiplying the yPos of the buoy by a
+                # scalar as well as the inverse of 10 times the magnitude.
+                # When distance becomes more accurate, this will need to be
+                # updated.
                 msg.dive = (vision_result.data[0].yPos *
                             ((1 - (vision_result.data[0].magnitude * 10)) * -5))
                 rospy.loginfo("Dive error: {}".format(msg.dive))

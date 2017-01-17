@@ -11,10 +11,10 @@ class GateTask():
     def __init__(self, commandArgs):
         rospy.loginfo("Init done")
 
-        #Set blind forward duration default to 1 second
+        # Set blind forward duration default to 1 second
         self.duration = 1
 
-        #Use command line arguments to get duration
+        # Use command line arguments to get duration
         try:
             opts, args = getopt.getopt(commandArgs, "hd:", ["duration="])
         except getopt.GetoptError:
@@ -22,13 +22,13 @@ class GateTask():
             sys.exit(2)
         for opt, arg in opts:
             if opt == '-h':
-                #Print usage message
+                # Print usage message
                 print "Usage: gate_jirwin.py -d <duration>"
                 print "       or"
                 print "       gate_jirwin.py --duration=<duration>"
                 sys.exit()
             elif opt in ("-d", "--duration"):
-                #Fetch duration
+                # Fetch duration
                 self.duration = int(arg)
                 rospy.loginfo("Setting duration to {} seconds.".format(
                               self.duration))
@@ -37,9 +37,9 @@ class GateTask():
         self.sub = rospy.Subscriber('vision/start_gate', vision_pos_array,
                                     self.callback)
         self.state = "SEARCHING_LEFT"
-        #How far off center the gate should be
+        # How far off center the gate should be
         self.errorGoal = 0.1
-        #Used to determine if moving we were moving left or right last
+        # Used to determine if moving we were moving left or right last
         self.prev_yaw = 0
         self.completeTime = None
 
