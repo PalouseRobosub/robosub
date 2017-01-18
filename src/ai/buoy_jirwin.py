@@ -69,6 +69,10 @@ class BuoyTask():
             msg.dive_state = control.STATE_RELATIVE
             msg.dive = 0
             rospy.loginfo("Centered on buoy, now ramming...")
+            # Magnitude is currently a crude distance measurement relating the
+            # area of the object to the area of the image. This will need to be
+            # updated when the magnitude calculation is replaced by stereo
+            # disparity calculations.
             if vision_result.data[0].magnitude < self.distGoal:
                 msg.forward = 10
                 self.state = "RAMMING"
@@ -84,10 +88,8 @@ class BuoyTask():
             self.state = "TRACKING"
             if abs(vision_result.data[0].xPos) > self.errorGoal:
                 msg.yaw_state = control.STATE_RELATIVE
-                # Calculates the yaw by multiplying the xPos of the buoy by a
-                # scalar as well as the inverse of 10 times the magnitude.
-                # When distance becomes more accurate, this will need to be
-                # updated.
+                # Calculation found by testing, will be updated with magnitude
+                # changes.
                 msg.yaw_left = (vision_result.data[0].xPos *
                                 (1 - (vision_result.data[0].magnitude * 10)) *
                                 (-50))
@@ -98,10 +100,8 @@ class BuoyTask():
                 msg.yaw_state = control.STATE_RELATIVE
                 msg.yaw_left = 0
                 msg.dive_state = control.STATE_RELATIVE
-                # Calculates the dive by multiplying the yPos of the buoy by a
-                # scalar as well as the inverse of 10 times the magnitude.
-                # When distance becomes more accurate, this will need to be
-                # updated.
+                # Calculation found by testing, will be updated with magnitude
+                # changes.
                 msg.dive = (vision_result.data[0].yPos *
                             ((1 - (vision_result.data[0].magnitude * 10)) * -5))
                 rospy.loginfo("Dive error: {}".format(msg.dive))

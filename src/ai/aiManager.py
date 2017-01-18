@@ -40,8 +40,8 @@ class AiManager():
 
             # Wait for either the process to die or for its timeout to expire
             while (process.is_alive() and
-                   rospy.get_rostime() - rospy.Duration(task["timeout_secs"]) <
-                   launch_time):
+                   rospy.get_rostime() - launch_time <
+                   rospy.Duration(task["timeout_secs"])):
                 pass
 
             # Kill the process if it has timed out.

@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-
     <node pkg="robosub" type="aiManager.py" name="ai_manager" required="false" output="screen">
         <rosparam command="load" file="$(find robosub)/param/aiManager.yaml"/>
     </node> 
-    
 </launch>
