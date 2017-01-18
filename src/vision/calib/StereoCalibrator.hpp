@@ -29,6 +29,7 @@ class StereoCalibrator
 
         void submitLeftImg(const Mat &leftImg);
         void submitRightImg(const Mat &rightImg);
+        void submitImgs(const Mat &rightImg, const Mat &leftImg);
 
         void calibrate();
 

@@ -22,6 +22,22 @@ StereoCalibrator::~StereoCalibrator()
     outputFile.release();
 }
 
+void StereoCalibrator::submitImgs(const Mat &rightImg, const Mat &leftImg)
+{
+    vector<Point2f> corners;
+    if (findChessboardCorners(rightImg, boardSize, corners,
+                              CALIB_CB_ADAPTIVE_THRESH |
+                              CALIB_CB_NORMALIZE_IMAGE |
+                              CALIB_CB_FAST_CHECK)
+        && findChessboardCorners(leftImg, boardSize, corners,
+                                 CALIB_CB_ADAPTIVE_THRESH |
+                                 CALIB_CB_NORMALIZE_IMAGE |
+                                 CALIB_CB_FAST_CHECK))
+    {
+        validPairs.push_back(pair<Mat, Mat>(rightImg.clone(), leftImg.clone()));
+    }
+}
+
 void StereoCalibrator::submitLeftImg(const Mat &leftImg)
 {
     vector<Point2f> corners;

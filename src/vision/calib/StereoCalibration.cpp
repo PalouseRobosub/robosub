@@ -6,7 +6,13 @@
 #include <string>
 #include <vector>
 
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+
 using namespace cv_bridge;
+using wfov_camera_msgs::WFOVImage;
+
+using message_filters::TimeSynchronizer;
 
 Settings settings;
 StereoCalibrator *stereoCalib;
@@ -29,6 +35,32 @@ void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 
     stereoCalib->submitRightImg(view);
     imshow("Right", view);
+
+    waitKey(1);
+}
+
+void callback(const WFOVImage::ConstPtr &rightImg, const WFOVImage::ConstPtr &leftImg)
+{
+    string statString = "one message";
+    if (rightImg && leftImg)
+    {
+        statString = "both messages!!";
+    }
+    else if (!rightImg && !leftImg)
+    {
+        statString = "no messages";
+    }
+    ROS_INFO_STREAM("Synchronized callback with " << statString);
+    Mat rview = toCvShare(rightImg->image, rightImg,
+                         sensor_msgs::image_encodings::BGR8)->image;
+
+    Mat lview = toCvShare(leftImg->image, leftImg,
+                         sensor_msgs::image_encodings::BGR8)->image;
+
+    stereoCalib->submitImgs(rview, lview);
+
+    imshow("Right", rview);
+    imshow("Left", lview);
 
     waitKey(1);
 }
@@ -69,9 +101,12 @@ int main (int argc, char* argv[])
     }
     ROS_DEBUG_STREAM("Settings input validated");
 
-    ros::Subscriber rsub = n.subscribe("/camera/right/image", 1, rightCallback);
-    ros::Subscriber lsub = n.subscribe("/camera/left/image", 1, leftCallback);
+    message_filters::Subscriber<WFOVImage> rsub(n, "/camera/right/image", 1);
+    message_filters::Subscriber<WFOVImage> lsub(n, "/camera/left/image", 1);
 
+    TimeSynchronizer<WFOVImage, WFOVImage> sync(rsub, lsub, 10);
+    sync.registerCallback(boost::bind(&callback, _1, _2));
+    
     stereoCalib = new StereoCalibrator(settings.boardSize, settings.squareSize,
                                        settings.outputFileName,
                                        false, settings.showUndistorted);
