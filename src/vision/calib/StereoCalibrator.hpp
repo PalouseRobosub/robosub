@@ -44,6 +44,9 @@ class StereoCalibrator
 
         vector<pair<Mat, Mat>> validPairs;
 
+        vector<vector<Point2f>> imagePoints1;
+        vector<vector<Point2f>> imagePoints2;
+        
         Mat imgTemp;
 
         bool hasLeft;

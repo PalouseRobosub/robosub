@@ -7,12 +7,14 @@
 #include <vector>
 
 #include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 
 using namespace cv_bridge;
 using wfov_camera_msgs::WFOVImage;
 
-using message_filters::TimeSynchronizer;
+using message_filters::Synchronizer;
+using message_filters::sync_policies::ApproximateTime;
 
 Settings settings;
 StereoCalibrator *stereoCalib;
@@ -41,16 +43,6 @@ void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 
 void callback(const WFOVImage::ConstPtr &rightImg, const WFOVImage::ConstPtr &leftImg)
 {
-    string statString = "one message";
-    if (rightImg && leftImg)
-    {
-        statString = "both messages!!";
-    }
-    else if (!rightImg && !leftImg)
-    {
-        statString = "no messages";
-    }
-    ROS_INFO_STREAM("Synchronized callback with " << statString);
     Mat rview = toCvShare(rightImg->image, rightImg,
                          sensor_msgs::image_encodings::BGR8)->image;
 
@@ -58,11 +50,6 @@ void callback(const WFOVImage::ConstPtr &rightImg, const WFOVImage::ConstPtr &le
                          sensor_msgs::image_encodings::BGR8)->image;
 
     stereoCalib->submitImgs(rview, lview);
-
-    imshow("Right", rview);
-    imshow("Left", lview);
-
-    waitKey(1);
 }
 
 int main (int argc, char* argv[])
@@ -104,9 +91,12 @@ int main (int argc, char* argv[])
     message_filters::Subscriber<WFOVImage> rsub(n, "/camera/right/image", 1);
     message_filters::Subscriber<WFOVImage> lsub(n, "/camera/left/image", 1);
 
-    TimeSynchronizer<WFOVImage, WFOVImage> sync(rsub, lsub, 10);
+    Synchronizer<ApproximateTime<WFOVImage, WFOVImage>> sync(
+                         ApproximateTime<WFOVImage, WFOVImage>(10), rsub, lsub);
     sync.registerCallback(boost::bind(&callback, _1, _2));
-    
+   
+    ROS_INFO_STREAM("Output filename: " << settings.outputFileName);
+
     stereoCalib = new StereoCalibrator(settings.boardSize, settings.squareSize,
                                        settings.outputFileName,
                                        false, settings.showUndistorted);

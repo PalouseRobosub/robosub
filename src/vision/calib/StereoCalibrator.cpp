@@ -24,18 +24,28 @@ StereoCalibrator::~StereoCalibrator()
 
 void StereoCalibrator::submitImgs(const Mat &rightImg, const Mat &leftImg)
 {
-    vector<Point2f> corners;
-    if (findChessboardCorners(rightImg, boardSize, corners,
+    vector<Point2f> rightCorners;
+    vector<Point2f> leftCorners;
+    if (findChessboardCorners(rightImg, boardSize, rightCorners,
                               CALIB_CB_ADAPTIVE_THRESH |
                               CALIB_CB_NORMALIZE_IMAGE |
                               CALIB_CB_FAST_CHECK)
-        && findChessboardCorners(leftImg, boardSize, corners,
+        && findChessboardCorners(leftImg, boardSize, leftCorners,
                                  CALIB_CB_ADAPTIVE_THRESH |
                                  CALIB_CB_NORMALIZE_IMAGE |
                                  CALIB_CB_FAST_CHECK))
     {
+        drawChessboardCorners(rightImg, boardSize, Mat(rightCorners), true);
+        drawChessboardCorners(leftImg, boardSize, Mat(leftCorners), true);
         validPairs.push_back(pair<Mat, Mat>(rightImg.clone(), leftImg.clone()));
+        
+        imagePoints1.push_back(rightCorners);
+        imagePoints2.push_back(leftCorners);
     }
+
+    imshow("right", rightImg);
+    imshow("left", leftImg);
+    waitKey(1);
 }
 
 void StereoCalibrator::submitLeftImg(const Mat &leftImg)
@@ -87,11 +97,10 @@ void StereoCalibrator::calibrate()
 
     Size imageSize = validPairs[1].first.size();
 
-    vector<vector<Point2f>> imagePoints[2];
     vector<vector<Point3f>> objectPoints;
 
-    imagePoints[0].resize(validPairs.size());
-    imagePoints[1].resize(validPairs.size());
+    imagePoints1.resize(validPairs.size());
+    imagePoints2.resize(validPairs.size());
     objectPoints.resize(validPairs.size());
 
     for (unsigned int i = 0; i < validPairs.size(); i++)
@@ -109,14 +118,25 @@ void StereoCalibrator::calibrate()
     ROS_INFO_STREAM("Running stereo calibration");
 
     Mat cameraMatrix[2], distCoeffs[2];
-    cameraMatrix[0] = initCameraMatrix2D(objectPoints, imagePoints[0],
+    
+    ROS_INFO_STREAM("Image points 1 size: " << imagePoints1.size());
+    for (unsigned int i = 0; i < imagePoints1.size(); i++)
+    {
+        ROS_INFO_STREAM("Image points 1 [" << i << "] size: " << imagePoints1[i].size());
+    }
+    ROS_INFO_STREAM("Object points size: " << objectPoints.size());
+    //ROS_INFO_STREAM("Image points 2 check vector: " << imagePoints2.getMat(0).checkVector(2, CV_32F));
+    cameraMatrix[0] = initCameraMatrix2D(objectPoints, imagePoints1,
                                          imageSize, 0);
-    cameraMatrix[1] = initCameraMatrix2D(objectPoints, imagePoints[1],
+    ROS_INFO_STREAM("Created cameraMatrix 0");
+    cameraMatrix[1] = initCameraMatrix2D(objectPoints, imagePoints2,
                                          imageSize, 0);
+
+    ROS_INFO_STREAM("Created camera matrices.");
 
     Mat R, T, E, F;
 
-    double rms = stereoCalibrate(objectPoints, imagePoints[0], imagePoints[1],
+    double rms = stereoCalibrate(objectPoints, imagePoints1, imagePoints2,
                                  cameraMatrix[0], distCoeffs[0],
                                  cameraMatrix[1], distCoeffs[1],
                                  imageSize, R, T, E, F,
@@ -139,24 +159,25 @@ void StereoCalibrator::calibrate()
 
     for (unsigned int i = 0; i < validPairs.size(); i++)
     {
-        int npt = static_cast<int>(imagePoints[0][i].size());
-        Mat imgpt[2];
+        int npt = static_cast<int>(imagePoints1[i].size());
+        Mat imgpt1, imgpt2;
 
-        for (int k = 0; k < 2; k++)
-        {
-            imgpt[k] = Mat(imagePoints[k][i]);
-            undistortPoints(imgpt[k], imgpt[k], cameraMatrix[k], distCoeffs[k],
-                            Mat(), cameraMatrix[k]);
-            computeCorrespondEpilines(imgpt[k], k+1, F, lines[k]);
-        }
+        imgpt1 = Mat(imagePoints1[i]);
+        imgpt2 = Mat(imagePoints2[i]);
+        undistortPoints(imgpt1, imgpt1, cameraMatrix[0], distCoeffs[0],
+                        Mat(), cameraMatrix[0]);
+        undistortPoints(imgpt2, imgpt2, cameraMatrix[1], distCoeffs[1],
+                        Mat(), cameraMatrix[1]);
+        computeCorrespondEpilines(imgpt1, 1, F, lines[0]);
+        computeCorrespondEpilines(imgpt2, 2, F, lines[1]);
 
         for (int j = 0; j < npt; j++)
         {
-            double errij = fabs(imagePoints[0][i][j].x*lines[1][j][0] +
-                                imagePoints[0][i][j].x*lines[1][j][1] +
+            double errij = fabs(imagePoints1[i][j].x*lines[1][j][0] +
+                                imagePoints1[i][j].x*lines[1][j][1] +
                                 lines[1][j][2]) +
-                           fabs(imagePoints[1][i][j].x*lines[0][j][0] +
-                                imagePoints[1][i][j].x*lines[0][j][1] +
+                           fabs(imagePoints2[i][j].x*lines[0][j][0] +
+                                imagePoints2[i][j].x*lines[0][j][1] +
                                 lines[0][j][2]);
             err += errij;
         }
@@ -194,14 +215,14 @@ void StereoCalibrator::calibrate()
     if (!useCalibrated)
     {
         vector<Point2f> allimgpt[2];
-        for (int k = 0; k < 2; k++)
+        for (unsigned int i = 0; i < validPairs.size(); i++)
         {
-            for (unsigned int i = 0; i < validPairs.size(); i++)
-            {
-                std::copy(imagePoints[k][i].begin(), imagePoints[k][i].end(),
-                          back_inserter(allimgpt[k]));
-            }
+            std::copy(imagePoints1[i].begin(), imagePoints1[i].end(),
+                      back_inserter(allimgpt[0]));
+            std::copy(imagePoints2[i].begin(), imagePoints2[i].end(),
+                      back_inserter(allimgpt[1]));
         }
+        
         Mat F = findFundamentalMat(Mat(allimgpt[0]), Mat(allimgpt[1]),
                                    FM_8POINT, 0, 0);
         Mat H1, H2;
@@ -245,7 +266,9 @@ void StereoCalibrator::calibrate()
             Mat rimg, cimg;
 
             remap(img, rimg, rmap[k][0], rmap[k][1], INTER_LINEAR);
-            cvtColor(rimg, cimg, COLOR_GRAY2BGR);
+            ROS_INFO_STREAM("Rimg type: " << rimg.type());
+            cimg = rimg.clone();
+            //cvtColor(rimg, cimg, COLOR_GRAY2BGR);
             Mat canvasPart = !isVerticalStereo ? canvas(Rect(w*k, 0, w, h)) :
                                                  canvas(Rect(0, h*k, w, h));
             resize(cimg, canvasPart, canvasPart.size(), 0, 0, INTER_AREA);
