@@ -272,6 +272,8 @@ public:
 
     int readQuaternion(double &w, double &x, double &y, double &z);
 
+    int readLinearAcceleration(double &x, double &y, double &z);
+
     int readTemperature(uint16_t &temp);
 
     int remapAxes(Axis x, Axis y, Axis z);

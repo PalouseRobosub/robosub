@@ -6,6 +6,7 @@
 #include "utility/serial.hpp"
 #include <cstdint>
 #include "tf/transform_datatypes.h"
+#include "geometry_msgs/Vector3Stamped.h"
 
 static constexpr double _PI_OVER_180 = 3.14159 / 180.0;
 static constexpr double _180_OVER_PI = 180.0 / 3.14159;
@@ -14,6 +15,7 @@ using namespace rs;
 
 ros::Publisher euler_publisher;
 ros::Publisher quaternion_publisher;
+ros::Publisher linear_acceleration_publisher;
 
 /**
  * Fatally exits if expression x evalutes true.
@@ -74,11 +76,14 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     /*
-     * Advertise the stamped quaternion sensor data to the world.
+     * Advertise the stamped quaternion and acceleration sensor
+     * data to the software.
      */
     quaternion_publisher =
             nh.advertise<robosub::QuaternionStampedAccuracy>("orientation", 1);
     euler_publisher = nh.advertise<robosub::Euler>("orientation/pretty", 1);
+    linear_acceleration_publisher =
+        nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
 
     /*
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
@@ -221,6 +226,7 @@ int main(int argc, char **argv)
         uint8_t confidence_level = 0;
         robosub::QuaternionStampedAccuracy quaternion_message;
         robosub::Euler euler_message;
+        geometry_msgs::Vector3Stamped linear_acceleration_message;
 
         /*
          * Read a quaternion from the sensor, take the current time, and
@@ -257,6 +263,17 @@ int main(int argc, char **argv)
         euler_message.pitch = pitch * _180_OVER_PI;
         euler_message.yaw = yaw * _180_OVER_PI;
         euler_publisher.publish(euler_message);
+
+        /*
+         * Read and publish the linear acceleration from the Bno055.
+         */
+        FatalAbortIf(sensor.readLinearAcceleration(x, y, z),
+                "Failed to read linear acceleration.");
+        linear_acceleration_message.header.stamp = ros::Time::now();
+        linear_acceleration_message.vector.x = x;
+        linear_acceleration_message.vector.y = y;
+        linear_acceleration_message.vector.z = z;
+        linear_acceleration_publisher.publish(linear_acceleration_message);
 
         ros::spinOnce();
         r.sleep();

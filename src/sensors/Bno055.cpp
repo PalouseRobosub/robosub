@@ -128,6 +128,32 @@ namespace rs
     }
 
     /**
+     * Read the linear acceleration information.
+     *
+     * @note This data is represented in m/s^2.
+     *
+     * @param x The linear acceleration along the X axis.
+     * @param y The linear acceleration along the Y axis.
+     * @param z The linear acceleration along the Z axis.
+     *
+     * @return Zero upon success or a non-zero error code.
+     */
+    int Bno055::readLinearAcceleration(double &x, double &y, double &z)
+    {
+        vector<uint8_t> data;
+        AbortIf(read_register(Bno055::Register::LIA_Data_X_LSB, data, 6));
+
+        x = static_cast<int16_t>(data[0] |
+                static_cast<uint16_t>(data[1]) << 8) / 100.0;
+        y = static_cast<int16_t>(data[2] |
+                static_cast<uint16_t>(data[3]) << 8) / 100.0;
+        z = static_cast<int16_t>(data[4] |
+                static_cast<uint16_t>(data[5]) << 8) / 100.0;
+
+        return 0;
+    }
+
+    /**
      * Read the quaternion orientation information.
      *
      * @param[out] w Location to store w reading.
