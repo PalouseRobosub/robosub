@@ -141,6 +141,14 @@ namespace rs
     int Bno055::readLinearAcceleration(double &x, double &y, double &z)
     {
         vector<uint8_t> data;
+
+        /*
+         * Read linear acceleration values for the X, Y, and Z axis. According
+         * to [Table 3-33], the data represented in these registers is 100
+         * m/s^2 per LSB when UNIT_SEL is set to 0 for linear acceleration
+         * [default]. This class does not current support non-default unit
+         * selection, so the scalar constant will always be 1/100.
+         */
         AbortIf(read_register(Bno055::Register::LIA_Data_X_LSB, data, 6));
 
         x = static_cast<int16_t>(data[0] |
