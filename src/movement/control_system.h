@@ -11,7 +11,7 @@
 #include "robosub/QuaternionStampedAccuracy.h"
 #include "robosub/control.h"
 #include "robosub/control_status.h"
-#include "robosub/depth_stamped.h"
+#include "robosub/Float32Stamped.h"
 #include "robosub/thruster.h"
 #include "ros/ros.h"
 #include "rotation_engine.hpp"
@@ -43,7 +43,7 @@ public:
     void InputControlMessage(const robosub::control::ConstPtr& msg);
     void InputOrientationMessage(
             const robosub::QuaternionStampedAccuracy::ConstPtr& quat_msg);
-    void InputDepthMessage(const robosub::depth_stamped::ConstPtr& depth_msg);
+    void InputDepthMessage(const robosub::Float32Stamped::ConstPtr& depth_msg);
     void ReloadPIDParams();
     robosub::thruster CalculateThrusterMessage();
     robosub::control_status GetControlStatus();
