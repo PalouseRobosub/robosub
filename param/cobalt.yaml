@@ -138,6 +138,8 @@ control:
         rotation: 0.5
         translation: 0.5
     buoyancy_offset: 0.0
+depth:
+    rate: 10
 sensor:
     rate: 20
     axis:
