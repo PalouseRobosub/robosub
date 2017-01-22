@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-    <arg name="sub_name" default="cobalt"/>
-
-    <rosparam command="load" file="$(find robosub)/param/$(arg sub_name).yaml"/>
-    <node pkg="robosub" type="control" name="control" required="false"/>
-</launch>

@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="robosub" type="thruster_sabertooth" name="thruster" required="true"/>
+    <node pkg="robosub" type="control" name="control" required="true"/>
+    <node name="imu" pkg="rosserial_python" type="ryan_serial.py" args="/dev/ttyACM0"/>
+</launch>
