@@ -3,7 +3,7 @@
  *
  * @brief Arduino uno is used for reading the BlueRobotics MS5837 depth sensor.
  */
-#include "Float32Stamped.h"
+#include "robosub/Float32Stamped.h"
 
 
 #include <MS5837.h>
