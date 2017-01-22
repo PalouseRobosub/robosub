@@ -18,7 +18,7 @@
 #include "robosub/HydrophoneDeltas.h"
 #include "robosub/PositionArrayStamped.h"
 #include "robosub/QuaternionStampedAccuracy.h"
-#include "robosub/depth_stamped.h"
+#include "robosub/Float32Stamped.h"
 #include "geometry_msgs/Point.h"
 #include "ros/ros.h"
 #include <eigen3/Eigen/Geometry>
@@ -85,9 +85,9 @@ void orientationCallback(const
  *
  * @return None.
  */
-void depthCallback(const robosub::depth_stamped::ConstPtr& msg)
+void depthCallback(const robosub::Float32Stamped::ConstPtr& msg)
 {
-    current_depth = msg->depth;
+    current_depth = msg->data;
 }
 
 /**
