@@ -1,2 +1,2 @@
 Header header
-float64 depth
+float32 depth
