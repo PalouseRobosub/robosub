@@ -1,23 +1,24 @@
-#include "maestro_thruster_controller.hpp"
+#include "MaestroThrusterDriver"
 #include <map>
 
 namespace rs
 {
     /**
      * Constructor.
-     *
      */
-    MaestroThrusterController::MaestroThrusterController()
+    MaestroThrusterDriver::MaestroThrusterDriver() :
+        _is_initialized(false),
+        _port(nullptr),
+        _max_speed(),
+        _post_reset_delay_ms(185),
+        _next_reset(),
     {
-        _is_initialized = false;
     }
-
 
     /**
      * Deconstructor.
-     *
      */
-    MaestroThrusterController::~MaestroThrusterController()
+    MaestroThrusterDriver::~MaestroThrusterDriver()
     {
     }
 
@@ -33,33 +34,34 @@ namespace rs
      * @param port The serial port to be used for communicating with the
      *        thrusters. This port may be changed during runtime.
      */
-    int MaestroThrusterController::init(
+    int MaestroThrusterDriver::init(
                             std::map<uint8_t, double> max_speed,
                             Serial *port,
-                            const int post_reset_delay_ms)
+                            const double post_reset_delay_ms)
     {
         if(setPort(port) != 0)
         {
             return -1;
         }
 
-
-        //initialze thruster settings
-        //loop over all possible channels (0-11)
+        /*
+         * Initialize all data maps to indicate that resets need to occur
+         * immediately (for arming signals) and initialize max speed to zero.
+         */
         ros::Time now = ros::Time::now();
         for(uint8_t i = 0; i < max_thrusters; ++i)
         {
-            //initialze reset time
             _next_reset[i] = now;
-
-            //default max thruster speeds to zero
             _max_speed[i] = 0.0;
         }
+
+        /*
+         * Properly overwrite the max speed of zero with provided max speed
+         * values.
+         */
         for (auto iter = max_speed.begin(); iter != max_speed.end(); iter++)
         {
-            //set max speed for thrusters
-            uint8_t thruster_key;
-            thruster_key = iter->first;
+            const uint8_t thruster_key = iter->first;
             _max_speed[thruster_key] = max_speed[thruster_key];
         }
 
@@ -82,21 +84,23 @@ namespace rs
      *
      * @return Zero upon success and -1 upon failure.
      */
-    int MaestroThrusterController::setPort(Serial *port)
+    int MaestroThrusterDriver::setPort(Serial *port)
     {
         _port = port;
-        if (_port != nullptr)
+        if (_port == nullptr)
         {
-            uint8_t detect_byte = 0xAA;
-            if (port->Write(&detect_byte, 1) != 1)
-            {
-                ROS_ERROR("Serial port failed to write baud-detection bit.");
-                return -1;
-            }
-            return 0;
+            ROS_ERROR("Serial port pointer supplied is not a valid pointer.");
+            return -1;
         }
-        ROS_ERROR("Serial port pointer supplied is not a valid pointer.");
-        return -1;
+
+        const uint8_t detect_byte = 0xAA;
+        if (port->Write(&detect_byte, 1) != 1)
+        {
+            ROS_ERROR("Serial port failed to write baud-detection bit.");
+            return -1;
+        }
+
+        return 0;
     }
 
     /**
@@ -106,14 +110,13 @@ namespace rs
      *
      * @return 0 on success and -1 on failure.
      */
-    int MaestroThrusterController::set(double speed, const uint8_t &channel)
+    int MaestroThrusterDriver::set(double speed, const uint8_t &channel)
     {
         if(_is_initialized != true)
         {
             ROS_ERROR("motor controller used before being initialized");
             return -1;
         }
-
 
         /*
          * Create an array of bytes. A thruster command requires 4 bytes
@@ -144,8 +147,8 @@ namespace rs
                 return -1;
             }
 
-            _next_reset[channel] =
-                               ros::Time::now() + ros::Duration(reset_timeout);
+            _next_reset[channel] = ros::Time::now() +
+                    ros::Duration(reset_timeout);
 
             /*
              * Sleep to ensure that the zero pulse has propogated to the ESC.
@@ -153,7 +156,7 @@ namespace rs
              * the zero pulse, which will cause it to malfunction
              */
             ros::Duration(
-                        static_cast<float>(_post_reset_delay_ms)/1000).sleep();
+                    static_cast<double>(_post_reset_delay_ms/1000).sleep();
         }
 
         /*
@@ -184,11 +187,12 @@ namespace rs
     }
 
     /**
-     * Parses a normalized speed value into a Maestro-compatible
-     * number.
+     * Parses a normalized thrust value into a Maestro-compatible
+     * command.
      *
      * @param speed The normalized speed to parse. Values must fall
-     *        within the range [-1,1].
+     *        within the range [-1,1] and represent a ratio of the
+     *        total thruster force desired.
      * @param[out] msb The location to store the most significant bit
      *             of the result.
      * @param[out] lsb The location to store the least significant bit
@@ -196,28 +200,37 @@ namespace rs
      *
      * @return Zero on success and -1 on failure.
      */
-     int MaestroThrusterController::parseNormalized(const double speed,
+     int MaestroThrusterDriver::parseNormalized(const double speed,
                                                     uint8_t &msb, uint8_t &lsb)
      {
-         //General process for determining the value:
-         //The thruster ESC expects a pulse-width value in the range of
-         //1100-1900us with 1100us being full-reverse, 1900us full-forward, and
-         //1500us stop.
-         //To translate -1 to 1 to this range, use the following equation:
-         //    pulse_width = (1500 + 400*speed)
-         //once the pulse-width is known, the value to send down to the maestro
-         //is calculated as follows:
-         //     msb = (pulse_width*4) >> 7
-         //     lsb = (pulse_width*4) & 0x7F
          if (speed < -1 || speed > 1) return -1;
-
-         const uint16_t speed_microseconds = speed*400;
-         const uint16_t quarter_microseconds = (1500+speed_microseconds)*4;
+         /*
+          * To convert the normalized speed into a thruster
+          * command, the two characteristic equations found for
+          * either positive or negative force need to be applied
+          * to the desired thrust output.
+          */
+         uint16_t signal;
+         if (speed < 0)
+         {
+            signal = a_negative * pow(speed, 3) + pow(b_negative, 2) * speed +
+                c_negative * speed + d_negative;
+         }
+         else if (speed > 0)
+         {
+            signal = a_positive * pow(speed, 3) + pow(b_positive, 2) * speed +
+                c_positive * speed + d_positive;
+         }
+         else
+         {
+            signal = 1500;
+         }
 
          /*
           * Store results into supplied locations.
           */
-         msb = quarter_microseconds >> 7; lsb = quarter_microseconds & 0x7F;
+         msb = signal >> 7;
+         lsb = signal & 0x7F;
 
          return 0;
      }

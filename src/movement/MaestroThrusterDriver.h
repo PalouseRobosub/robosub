@@ -2,8 +2,7 @@
  * @author Ryan Summers
  * @date 10-25-2016
  *
- * @brief Provides declaration and definitions of the thruster controller
- *        class.
+ * @brief Provides declaration and definitions of the thruster driver class.
  *
  * @note Any documentation specified in this file refers to information located
  *       at https://www.pololu.com/docs/0J40. Information is formatted into
@@ -11,19 +10,19 @@
  *       subsection 5.
  */
 
-#ifndef MAESTRO_THRUSTER_CONTROLLER_HPP
-#define MAESTRO_THRUSTER_CONTROLLER_HPP
+#ifndef MAESTRO_THRUSTER_DRIVER_H
+#define MAESTRO_THRUSTER_DRIVER_H
 
-#include "utility/serial.hpp"
+#include <map>
 #include <ros/ros.h>
 #include <vector>
-#include <map>
 
+#include "utility/serial.hpp"
 
 namespace rs
 {
 /**
- * Thruster controlling class.
+ * Maestro thruster driver class.
  *
  * @brief This class provides an interface for communicating with the
  *        Pololu Maestro servo controller. These servo commands are then
@@ -34,7 +33,7 @@ namespace rs
  * @tparam max_speed The software limit on the maximum speed that any
  *         thruster may be set to.
  */
-class MaestroThrusterController
+class MaestroThrusterDriver
 {
     /*
      * Specifies the delay in seconds after which a reset signal (1500
@@ -53,13 +52,12 @@ class MaestroThrusterController
      * the minimum time (in milliseconds) needed for reset signal to
      * propagate from the maestro to the ESC, determined emperically
      */
-    static constexpr int min_post_reset_delay_ms = 185;
-
+    static constexpr double min_post_reset_delay_ms = 185;
 
 public:
-    MaestroThrusterController();
+    MaestroThrusterDriver();
 
-    ~MaestroThrusterController();
+    ~MaestroThrusterDriver();
 
     int init(std::map<uint8_t, double> max_speed, Serial *port,
         const int post_reset_delay_ms = min_post_reset_delay_ms );
@@ -67,11 +65,8 @@ public:
     int set(double speed, const uint8_t &channel);
 
 private:
-    int setPort(Serial *port);
-
     /*
-     * Have we sucessfully called init?
-     *
+     * Specified true if the thrusters have been initialized.
      */
     bool _is_initialized;
 
@@ -86,8 +81,6 @@ private:
      */
     std::map<uint8_t, double> _max_speed;
 
-
-
     /*
      * The delay (in milliseconds) to sleep after every reset cycle.  This
      * value must be greater than, or equal, to 185ms.
@@ -95,14 +88,36 @@ private:
     double _post_reset_delay_ms;
 
     /*
-     * Represents the time of the next reset command for each thruster. The Maestro requires
-     * an arming command of 1500 microseconds at least once every 2 minutes
-     * and 35 seconds. This is unspecified behavior in the datasheet and
-     * has been confirmed as a defect from the manufacturer.
+     * Represents the time of the next reset command for each thruster. The
+     * Maestro requires an arming command of 1500 microseconds at least once
+     * every 2 minutes and 35 seconds. This is unspecified behavior in the
+     * datasheet and has been confirmed as a defect from the manufacturer.
      * Experimentally, it has been found that this reset signal must be
      * continued for atleast 185ms.
      */
     std::map<uint8_t, ros::Time> _next_reset;
+
+    /*
+     * These values describe the characteristic polynomials fit
+     * to the BlueRobotics T200 thruster data for both positive
+     * thrust and negative thrust respectively. The equation
+     * takes the following form:
+     *     (signal) = A * thrust^3 + B * thrust^2 + C * thrust + D
+     *
+     * A plot of these polynomials can be seen in Robosub issue
+     * 163. The values were derived using numpy on positive and
+     * negative data from BlueRobotics separately with a cubic
+     * polynomial fit.
+     */
+    const double a_negative = 0.344109681;
+    const double b_negative = 5.60788321;
+    const double c_negative = 62.9115428;
+    const double d_negative = 1466.87528;
+
+    const double a_positive = 0.246947716;
+    const double b_positive = -5.22636229;
+    const double c_positive = 62.7351509;
+    const double d_positive = 1513.80845;
 
     /**
      * Maestro-defined serial bytes that have special meaning to the
@@ -191,7 +206,9 @@ private:
 
     int parseNormalized(const double speed, uint8_t &msb, uint8_t
             &lsb);
+
+    int setPort(Serial *port);
 };
 }
 
-#endif // MAESTRO_THRUSTER_CONTROLLER_HPP
+#endif // MAESTRO_THRUSTER_DRIVER_H
