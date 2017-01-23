@@ -1,11 +1,13 @@
-#include "particle_filter.h"
+#include "localization/particle_filter.h"
+#include <vector>
 
 ParticleFilter::ParticleFilter(int _num_particles)
 {
     num_particles = _num_particles;
 
     norm_distribution = new std::normal_distribution<double>(0.0, 1.0);
-    uniform_distribution = new std::uniform_real_distribution<double>(0.0, 1.0);
+    uniform_distribution =
+                          new std::uniform_real_distribution<double>(0.0, 1.0);
 
     initialize();
     reload_params();
@@ -44,24 +46,25 @@ void ParticleFilter::initialize()
     // | 0  0  0  1  0  0  |
     // | 0  0  0  0  1  0  |
     // | 0  0  0  0  0  1  |
-    system_update_model(0,0) = 1;
-    system_update_model(1,1) = 1;
-    system_update_model(2,2) = 1;
-    system_update_model(3,3) = 1;
-    system_update_model(4,4) = 1;
-    system_update_model(5,5) = 1;
+    system_update_model(0, 0) = 1;
+    system_update_model(1, 1) = 1;
+    system_update_model(2, 2) = 1;
+    system_update_model(3, 3) = 1;
+    system_update_model(4, 4) = 1;
+    system_update_model(5, 5) = 1;
 
     // Intial std_devs of position around pinger
     initial_distribution.setZero();
 
     reload_params();
 
-    for(int n=0; n<num_particles; n++)
+    for(int n = 0; n < num_particles; n++)
     {
-        Matrix<double,6,1> s;
-        for(int j=0; j<initial_state.rows(); j++)
+        Matrix<double, 6, 1> s;
+        for(int j = 0; j < initial_state.rows(); j++)
         {
-            s(j,0) = initial_state(j,0) + randn() * initial_distribution(j,0);
+            s(j, 0) = initial_state(j, 0) + randn() *
+                      initial_distribution(j, 0);
             particle_states.push_back(s);
         }
         last_particle_states = particle_states;
@@ -97,34 +100,62 @@ void ParticleFilter::reload_params()
         ros::shutdown();
     }
 
-    ros::param::getCached("localization/initial_state/x_pos", initial_state(0,0));
-    ros::param::getCached("localization/initial_state/y_pos", initial_state(1,0));
-    ros::param::getCached("localization/initial_state/z_pos", initial_state(2,0));
-    ros::param::getCached("localization/initial_state/x_lin_vel", initial_state(3,0));
-    ros::param::getCached("localization/initial_state/y_lin_vel", initial_state(4,0));
-    ros::param::getCached("localization/initial_state/z_lin_vel", initial_state(5,0));
+    ros::param::getCached("localization/initial_state/x_pos",
+                          initial_state(0, 0));
+    ros::param::getCached("localization/initial_state/y_pos",
+                          initial_state(1, 0));
+    ros::param::getCached("localization/initial_state/z_pos",
+                          initial_state(2, 0));
+    ros::param::getCached("localization/initial_state/x_lin_vel",
+                          initial_state(3, 0));
+    ros::param::getCached("localization/initial_state/y_lin_vel",
+                          initial_state(4, 0));
+    ros::param::getCached("localization/initial_state/z_lin_vel",
+                          initial_state(5, 0));
 
-    ros::param::getCached("localization/variance/state_update_x_pos_variance", system_update_covar(0,0));
-    ros::param::getCached("localization/variance/state_update_y_pos_variance", system_update_covar(1,1));
-    ros::param::getCached("localization/variance/state_update_z_pos_variance", system_update_covar(2,2));
-    ros::param::getCached("localization/variance/state_update_x_lin_vel_variance", system_update_covar(3,3));
-    ros::param::getCached("localization/variance/state_update_y_lin_vel_variance", system_update_covar(4,4));
-    ros::param::getCached("localization/variance/state_update_z_lin_vel_variance", system_update_covar(5,5));
+    ros::param::getCached("localization/variance/state_update_x_pos_variance",
+                          system_update_covar(0, 0));
+    ros::param::getCached("localization/variance/state_update_y_pos_variance",
+                          system_update_covar(1, 1));
+    ros::param::getCached("localization/variance/state_update_z_pos_variance",
+                          system_update_covar(2, 2));
+    ros::param::getCached(
+                       "localization/variance/state_update_x_lin_vel_variance",
+                       system_update_covar(3, 3));
+    ros::param::getCached(
+                       "localization/variance/state_update_y_lin_vel_variance",
+                       system_update_covar(4, 4));
+    ros::param::getCached(
+                       "localization/variance/state_update_z_lin_vel_variance",
+                       system_update_covar(5, 5));
 
-    ros::param::getCached("localization/variance/x_pos_initial_stddev", initial_distribution(0,0));
-    ros::param::getCached("localization/variance/y_pos_initial_stddev", initial_distribution(1,0));
-    ros::param::getCached("localization/variance/z_pos_initial_stddev", initial_distribution(2,0));
-    ros::param::getCached("localization/variance/x_lin_vel_initial_stddev", initial_distribution(3,0));
-    ros::param::getCached("localization/variance/y_lin_vel_initial_stddev", initial_distribution(4,0));
-    ros::param::getCached("localization/variance/z_lin_vel_initial_stddev", initial_distribution(5,0));
+    ros::param::getCached("localization/variance/x_pos_initial_stddev",
+                          initial_distribution(0, 0));
+    ros::param::getCached("localization/variance/y_pos_initial_stddev",
+                          initial_distribution(1, 0));
+    ros::param::getCached("localization/variance/z_pos_initial_stddev",
+                          initial_distribution(2, 0));
+    ros::param::getCached("localization/variance/x_lin_vel_initial_stddev",
+                          initial_distribution(3, 0));
+    ros::param::getCached("localization/variance/y_lin_vel_initial_stddev",
+                          initial_distribution(4, 0));
+    ros::param::getCached("localization/variance/z_lin_vel_initial_stddev",
+                          initial_distribution(5, 0));
 
-    ros::param::getCached("localization/variance/hydrophone_x_variance", measurement_covar(0,0));
-    ros::param::getCached("localization/variance/hydrophone_y_variance", measurement_covar(1,1));
-    ros::param::getCached("localization/variance/hydrophone_z_variance", measurement_covar(2,2));
-    ros::param::getCached("localization/variance/lin_vel_x_variance", measurement_covar(3,3));
-    ros::param::getCached("localization/variance/lin_vel_y_variance", measurement_covar(4,4));
-    ros::param::getCached("localization/variance/lin_vel_z_variance", measurement_covar(5,5));
-    ros::param::getCached("localization/variance/depth_variance", measurement_covar(6,6));
+    ros::param::getCached("localization/variance/hydrophone_x_variance",
+                          measurement_covar(0, 0));
+    ros::param::getCached("localization/variance/hydrophone_y_variance",
+                          measurement_covar(1, 1));
+    ros::param::getCached("localization/variance/hydrophone_z_variance",
+                          measurement_covar(2, 2));
+    ros::param::getCached("localization/variance/lin_vel_x_variance",
+                          measurement_covar(3, 3));
+    ros::param::getCached("localization/variance/lin_vel_y_variance",
+                          measurement_covar(4, 4));
+    ros::param::getCached("localization/variance/lin_vel_z_variance",
+                          measurement_covar(5, 5));
+    ros::param::getCached("localization/variance/depth_variance",
+                          measurement_covar(6, 6));
 }
 
 tf::Vector3 ParticleFilter::GetPosition()
@@ -137,14 +168,15 @@ tf::Vector3 ParticleFilter::GetPosition()
 
 void ParticleFilter::InputDepth(const double depth, const ros::Time msg_time)
 {
-    observation(6,0) = depth;
+    observation(6, 0) = depth;
 }
 
-void ParticleFilter::InputHydrophone(const tf::Vector3 position, const ros::Time msg_time)
+void ParticleFilter::InputHydrophone(const tf::Vector3 position,
+                                     const ros::Time msg_time)
 {
-    observation(0,0) = position.getX();
-    observation(1,0) = position.getY();
-    observation(2,0) = position.getZ();
+    observation(0, 0) = position.getX();
+    observation(1, 0) = position.getY();
+    observation(2, 0) = position.getZ();
 
     new_hydrophone = true;
 
@@ -155,73 +187,81 @@ void ParticleFilter::InputHydrophone(const tf::Vector3 position, const ros::Time
 // TODO: Investigate if inputting lin velocity directly would be better and
 // running filter on lin velocity update in localization class, e.g using a
 // seperate filter, would be more effective
-void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt, const ros::Time msg_time)
+void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt,
+                                   const ros::Time msg_time)
 {
     // Integrate lin accel to get lin velocity
-    observation(3,0) += linaccel.getX() * dt;
-    observation(4,0) += linaccel.getY() * dt;
-    observation(5,0) += linaccel.getZ() * dt;
+    observation(3, 0) += linaccel.getX() * dt;
+    observation(4, 0) += linaccel.getY() * dt;
+    observation(5, 0) += linaccel.getZ() * dt;
 
-    system_update_model(0,3) = dt;
-    system_update_model(1,4) = dt;
-    system_update_model(2,5) = dt;
+    system_update_model(0, 3) = dt;
+    system_update_model(1, 4) = dt;
+    system_update_model(2, 5) = dt;
 }
 
-Matrix<double,7,1> ParticleFilter::state_to_observation(Matrix<double,6,1> state, Matrix<double,6,1> last_state, double dt)
+Matrix<double, 7, 1> ParticleFilter::state_to_observation(
+    Matrix<double, 6, 1> state, Matrix<double, 6, 1> last_state, double dt)
 {
-    Matrix<double,7,1> obs;
+    Matrix<double, 7, 1> obs;
 
     // Position relative to pinger
-    obs(0,0) = state(0,0);
-    obs(1,0) = state(1,0);
-    obs(2,0) = state(2,0);
+    obs(0, 0) = state(0, 0);
+    obs(1, 0) = state(1, 0);
+    obs(2, 0) = state(2, 0);
 
     // Lin Velocity
     // Pull this from last state?
     // TODO: Get dt between last_state and state
-    obs(3,0) = (state(3,0) - last_state(3,0)) * dt;
-    obs(4,0) = (state(4,0) - last_state(4,0)) * dt;
-    obs(5,0) = (state(5,0) - last_state(5,0)) * dt;
+    obs(3, 0) = (state(3, 0) - last_state(3, 0)) * dt;
+    obs(4, 0) = (state(4, 0) - last_state(4, 0)) * dt;
+    obs(5, 0) = (state(5, 0) - last_state(5, 0)) * dt;
 
-    obs(6,0) = pinger_depth + state(2,0);
+    obs(6, 0) = pinger_depth + state(2, 0);
 
     return obs;
 }
 
-Matrix<double,7,1> ParticleFilter::add_observation_noise(Matrix<double,7,1> obs)
+Matrix<double, 7, 1> ParticleFilter::add_observation_noise(
+    Matrix<double, 7, 1> obs)
 {
-    return obs + (sqrt_elementwise(measurement_covar) * randn_mat(obs.rows(), 1));
+    return obs +
+           (sqrt_elementwise(measurement_covar) * randn_mat(obs.rows(), 1));
 }
 
 // Update each particle_states state based on the update model plus noise
 void ParticleFilter::update_particle_states()
 {
-    for(int n=0; n<num_particles; n++)
+    for(int n = 0; n < num_particles; n++)
     {
-        particle_states[n] = system_update_model * last_particle_states[n] + sqrt_elementwise(system_update_covar) * randn_mat(6,1);
+        particle_states[n] = system_update_model * last_particle_states[n] +
+                             sqrt_elementwise(system_update_covar) *
+                             randn_mat(6, 1);
     }
 }
 
 void ParticleFilter::update_particle_weights()
 {
     double particle_weights_sum = 0.0;
-    for(int n=0; n<num_particles; n++)
+    for(int n = 0; n < num_particles; n++)
     {
         // Update each particle_states observation based on its state
-        particle_obs[n] = state_to_observation(particle_states[n], last_particle_states[n], update_dt.toSec());
+        particle_obs[n] = state_to_observation(particle_states[n],
+                                               last_particle_states[n],
+                                               update_dt.toSec());
         // add noise to observations
         particle_obs[n] = add_observation_noise(particle_obs[n]);
 
         // Calculate particle weights
         particle_weights[n] = 1.0;
-        for(unsigned int i=0; i<observation.rows(); i++)
+        for(unsigned int i = 0; i < observation.rows(); i++)
         {
             // TODO: Update selectively based on whether sensor readings are
             // current or not?
 
             double p = gaussian_prob(observation(i, 0),
-                    std::sqrt(measurement_covar(i, i)),
-                    particle_obs[n](i, 0));
+                                     std::sqrt(measurement_covar(i, i)),
+                                     particle_obs[n](i, 0));
 
             // TODO: if(p corresponds to old enough sensor data, ignore)
             particle_weights[n] *= p;
@@ -233,12 +273,12 @@ void ParticleFilter::update_particle_weights()
     last_particle_obs = particle_obs;
 
     // Normalize weights so that they sum to 1
-    for(int n=0; n<num_particles; n++)
+    for(int n = 0; n < num_particles; n++)
     {
         if(particle_weights_sum == 0.0)
         {
             // TODO: Reinit here
-            particle_weights[n] = 1.0/(float)num_particles;
+            particle_weights[n] = 1.0 / static_cast<float>(num_particles);
         }
         else
         {
@@ -250,11 +290,11 @@ void ParticleFilter::update_particle_weights()
 void ParticleFilter::resample_particles()
 {
     // Resample particles
-    std::vector<Matrix<double, 6,1> > p;
-    int index = int(randu() * num_particles);
+    std::vector<Matrix<double, 6, 1> > p;
+    int index = static_cast<int>(randu() * num_particles);
     double beta = 0.0;
     double max_w = vector_max(particle_weights);
-    for(int i=0; i<num_particles; i++)
+    for(int i = 0; i < num_particles; i++)
     {
         beta += randu() * 2.0 * max_w;
 
@@ -274,13 +314,13 @@ void ParticleFilter::estimate_state()
     // Estimate state from all particle_states
     // Just weighted averaging for now
     est_state.setZero();
-    Matrix<double,6,1> state_sum;
-    for(int i=0; i<num_particles; i++)
+    Matrix<double, 6, 1> state_sum;
+    for(int i = 0; i < num_particles; i++)
     {
         est_state += particle_states[i] * particle_weights[i];
     }
 
-    for(int i=0; i<est_state.rows(); i++)
+    for(int i = 0; i < est_state.rows(); i++)
     {
         if(std::isnan(est_state(i, 0)))
         {
@@ -288,16 +328,16 @@ void ParticleFilter::estimate_state()
         }
     }
 
-    estimated_position.setX(est_state(0,0));
-    estimated_position.setY(est_state(1,0));
-    estimated_position.setZ(est_state(2,0));
+    estimated_position.setX(est_state(0, 0));
+    estimated_position.setY(est_state(1, 0));
+    estimated_position.setZ(est_state(2, 0));
 }
 
 void ParticleFilter::zero_system_update_dt()
 {
-    system_update_model(0,3) = 0.0;
-    system_update_model(1,4) = 0.0;
-    system_update_model(2,5) = 0.0;
+    system_update_model(0, 3) = 0.0;
+    system_update_model(1, 4) = 0.0;
+    system_update_model(2, 5) = 0.0;
 }
 
 void ParticleFilter::Update()

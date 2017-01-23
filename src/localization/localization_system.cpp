@@ -38,17 +38,21 @@ void LocalizationSystem::calculate_absolute_lin_accel()
 
     abs_lin_accel = rot_m * rel_lin_accel;
 
-    //ROS_INFO("rel_lin_accel:\n[%f, %f, %f]", rel_lin_accel.getX(), rel_lin_accel.getY(), rel_lin_accel.getZ());
-    //ROS_INFO("abs_lin_accel:\n[%f, %f, %f]", abs_lin_accel.getX(), abs_lin_accel.getY(), abs_lin_accel.getZ());
+    //ROS_INFO("rel_lin_accel:\n[%f, %f, %f]", rel_lin_accel.getX(),
+    //         rel_lin_accel.getY(), rel_lin_accel.getZ());
+    //ROS_INFO("abs_lin_accel:\n[%f, %f, %f]", abs_lin_accel.getX(),
+    //         abs_lin_accel.getY(), abs_lin_accel.getZ());
 }
 
-void LocalizationSystem::depthCallback(const robosub::depth_stamped::ConstPtr &msg)
+void LocalizationSystem::depthCallback(const robosub::depth_stamped::ConstPtr
+                                       &msg)
 {
     pf.InputDepth(msg->depth, msg->header.stamp);
     new_depth = true;
 }
 
-void LocalizationSystem::hydrophoneCallback(const robosub::PositionArrayStamped::ConstPtr &msg)
+void LocalizationSystem::hydrophoneCallback(const
+        robosub::PositionArrayStamped::ConstPtr &msg)
 {
     if(msg->positions.size() > 0)
     {
@@ -61,7 +65,8 @@ void LocalizationSystem::hydrophoneCallback(const robosub::PositionArrayStamped:
     }
 }
 
-void LocalizationSystem::linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
+void LocalizationSystem::linAccelCallback(const
+        geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     dt = msg->header.stamp - last_lin_accel_time;
     rel_lin_accel[0] = msg->vector.x;
@@ -75,7 +80,8 @@ void LocalizationSystem::linAccelCallback(const geometry_msgs::Vector3Stamped::C
     last_lin_accel_time = msg->header.stamp;
 }
 
-void LocalizationSystem::orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr &msg)
+void LocalizationSystem::orientationCallback(const
+        robosub::QuaternionStampedAccuracy::ConstPtr &msg)
 {
     orientation.setX(msg->quaternion.x);
     orientation.setY(msg->quaternion.y);
@@ -85,7 +91,8 @@ void LocalizationSystem::orientationCallback(const robosub::QuaternionStampedAcc
     //pf.InputOrientation(orientation, msg->header.stamp);
 }
 
-bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep)
+bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req,
+        std_srvs::Empty::Response &rep)
 {
     pf.Reset();
     return true;
