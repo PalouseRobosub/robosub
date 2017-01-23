@@ -5,7 +5,7 @@
 #include "ros/ros.h"
 #include "utility/serial.hpp"
 #include "robosub/thruster.h"
-#include "maestro_thruster_controller.hpp"
+#include "MaestroThrusterDriver.h"
 #include <string>
 #include <map>
 #include <vector>
@@ -18,7 +18,7 @@ typedef struct thruster_info
 
 using namespace rs;
 Serial serial;
-MaestroThrusterController thrusterController;
+MaestroThrusterDriver thrusterController;
 std::vector<Thruster_info> mThruster_info;
 
 void Callback (const robosub::thruster::ConstPtr& msg)

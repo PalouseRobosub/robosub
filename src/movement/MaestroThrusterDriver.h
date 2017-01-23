@@ -60,7 +60,7 @@ public:
     ~MaestroThrusterDriver();
 
     int init(std::map<uint8_t, double> max_speed, Serial *port,
-        const int post_reset_delay_ms = min_post_reset_delay_ms );
+        const double post_reset_delay_ms = min_post_reset_delay_ms );
 
     int set(double speed, const uint8_t &channel);
 

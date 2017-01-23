@@ -1,4 +1,4 @@
-#include "MaestroThrusterDriver"
+#include "MaestroThrusterDriver.h"
 #include <map>
 
 namespace rs
@@ -11,7 +11,7 @@ namespace rs
         _port(nullptr),
         _max_speed(),
         _post_reset_delay_ms(185),
-        _next_reset(),
+        _next_reset()
     {
     }
 
@@ -93,7 +93,7 @@ namespace rs
             return -1;
         }
 
-        const uint8_t detect_byte = 0xAA;
+        uint8_t detect_byte = 0xAA;
         if (port->Write(&detect_byte, 1) != 1)
         {
             ROS_ERROR("Serial port failed to write baud-detection bit.");
@@ -156,7 +156,7 @@ namespace rs
              * the zero pulse, which will cause it to malfunction
              */
             ros::Duration(
-                    static_cast<double>(_post_reset_delay_ms/1000).sleep();
+                    static_cast<double>(_post_reset_delay_ms/1000)).sleep();
         }
 
         /*
