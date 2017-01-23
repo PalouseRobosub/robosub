@@ -11,7 +11,8 @@ namespace rs
         _port(nullptr),
         _max_speed(),
         _post_reset_delay_ms(185),
-        _next_reset()
+        _next_reset(),
+        _max_thrust_kgf(0)
     {
     }
 
@@ -43,6 +44,33 @@ namespace rs
         {
             return -1;
         }
+
+        /*
+         * Load the maximum thruster force and the back thrust
+         * ratio from the settings.
+         */
+        double max_thrust_newtons = 0;
+        double back_thrust_ratio = 0;
+        if (ros::param::getCached("control/max_thrust", max_thrust_newtons) ==
+                false)
+        {
+            ROS_ERROR("Failed to load maximum thruster force.");
+            return -1;
+        }
+        if (ros::param::getCached("control/back_thrust_ratio",
+                    back_thrust_ratio) == false)
+        {
+            ROS_ERROR("Failed to load the back thrust ratio.");
+            return -1;
+        }
+
+        /*
+         * Convert the maximum thrust available in any given
+         * direction to be the back thrust ratio multiplied by the
+         * maximum thrust converted to KgF. The scaling factor
+         * for converting newtons to KgF is 0.101972.
+         */
+        _max_thrust_kgf = max_thrust_newtons * 0.101972 * back_thrust_ratio;
 
         /*
          * Initialize all data maps to indicate that resets need to occur
@@ -174,10 +202,23 @@ namespace rs
             speed = _max_speed[channel] * ((speed < 0)? -1 : 1);
         }
 
-        if (parseNormalized(speed, command[3], command[2]))
+        const int signal = parseNormalized(speed, command[3], command[2]);
+
+        if (signal < 0)
         {
             ROS_ERROR("Parse Normalized encountered abnormal thruster speed.");
             return -1;
+        }
+
+        /*
+         * The BasicESC has a signal deadband of +/- 25
+         * microseconds on the signal pulse. Print out information
+         * if the signal is in the dead-band to inform the
+         * operator that the thruster should not spin.
+         */
+        if (abs(signal - 1500) < 25)
+        {
+            ROS_INFO("Parsed signal is in thruster dead-band.");
         }
 
         /*
@@ -190,36 +231,54 @@ namespace rs
      * Parses a normalized thrust value into a Maestro-compatible
      * command.
      *
-     * @param speed The normalized speed to parse. Values must fall
-     *        within the range [-1,1] and represent a ratio of the
-     *        total thruster force desired.
+     * @param normalized_force The normalized speed to parse.
+     *        Values must fall within the range [-1,1] and
+     *        represent a ratio of the total thruster force
+     *        desired.
      * @param[out] msb The location to store the most significant bit
      *             of the result.
      * @param[out] lsb The location to store the least significant bit
      *             of the result.
      *
-     * @return Zero on success and -1 on failure.
+     * @return The thruster command signal on success and -1 on
+     *         failure.
      */
-     int MaestroThrusterDriver::parseNormalized(const double speed,
+     int MaestroThrusterDriver::parseNormalized(const double normalized_force,
                                                     uint8_t &msb, uint8_t &lsb)
      {
-         if (speed < -1 || speed > 1) return -1;
+         if (normalized_force < -1 || normalized_force > 1)
+         {
+             return -1;
+         }
+
          /*
           * To convert the normalized speed into a thruster
           * command, the two characteristic equations found for
           * either positive or negative force need to be applied
-          * to the desired thrust output.
+          * to the desired thrust output. The characteristic
+          * equations take in the thrust as KgF, so convert the
+          * normalized thrust value to KgF. The result of this polynomial will
+          * be the signal to send to the thruster. Note that
+          * thruster signals are centered around 1500, going down
+          * to 1100 for negative and up to 1900 for positive
+          * signals.
           */
-         uint16_t signal;
-         if (speed < 0)
+         int signal = 0;
+         const double force_kgf = normalized_force * _max_thrust_kgf;
+
+         if (force_kgf > 0)
          {
-            signal = a_negative * pow(speed, 3) + pow(b_negative, 2) * speed +
-                c_negative * speed + d_negative;
+            signal = a_positive * pow(force_kgf, 3) +
+                     b_positive * pow(force_kgf, 2) +
+                     c_positive * force_kgf +
+                     d_positive;
          }
-         else if (speed > 0)
+         else if (force_kgf < 0)
          {
-            signal = a_positive * pow(speed, 3) + pow(b_positive, 2) * speed +
-                c_positive * speed + d_positive;
+            signal = a_negative * pow(force_kgf, 3) +
+                     b_negative * pow(force_kgf, 2) +
+                     c_negative * force_kgf +
+                     d_negative;
          }
          else
          {
@@ -232,6 +291,6 @@ namespace rs
          msb = signal >> 7;
          lsb = signal & 0x7F;
 
-         return 0;
+         return signal;
      }
 }

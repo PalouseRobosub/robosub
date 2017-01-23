@@ -10,8 +10,8 @@
  *       subsection 5.
  */
 
-#ifndef MAESTRO_THRUSTER_DRIVER_H
-#define MAESTRO_THRUSTER_DRIVER_H
+#ifndef MAESTROTHRUSTERDRIVER_H
+#define MAESTROTHRUSTERDRIVER_H
 
 #include <map>
 #include <ros/ros.h>
@@ -98,6 +98,12 @@ private:
     std::map<uint8_t, ros::Time> _next_reset;
 
     /*
+     * Specifies the maximum thrust that may be applied in either
+     * direction in units of kgf.
+     */
+    double _max_thrust_kgf;
+
+    /*
      * These values describe the characteristic polynomials fit
      * to the BlueRobotics T200 thruster data for both positive
      * thrust and negative thrust respectively. The equation
@@ -109,15 +115,15 @@ private:
      * negative data from BlueRobotics separately with a cubic
      * polynomial fit.
      */
-    const double a_negative = 0.344109681;
-    const double b_negative = 5.60788321;
-    const double c_negative = 62.9115428;
-    const double d_negative = 1466.87528;
+    const double a_negative = 3.13223349;
+    const double b_negative = 24.45656912;
+    const double c_negative = 135.16956211;
+    const double d_negative = 1466.0982307;
 
-    const double a_positive = 0.246947716;
-    const double b_positive = -5.22636229;
-    const double c_positive = 62.7351509;
-    const double d_positive = 1513.80845;
+    const double a_positive = 2.64609994;
+    const double b_positive = -25.40194653;
+    const double c_positive = 138.30716827;
+    const double d_positive = 1513.80844695;
 
     /**
      * Maestro-defined serial bytes that have special meaning to the
@@ -211,4 +217,4 @@ private:
 };
 }
 
-#endif // MAESTRO_THRUSTER_DRIVER_H
+#endif // MAESTROTHRUSTERDRIVER_H
