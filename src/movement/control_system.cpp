@@ -400,6 +400,38 @@ namespace robosub
                 r3D(rotation_goals));
 
         /*
+         * Have yaw pursue the supplement angle to the goal when yaw and roll
+         * errors are both greater than +/- 90 degrees
+         */
+        if (fabs(rotation_error(2,0)) > 90 && fabs(rotation_error(0,0)) > 90)
+        {
+            if (rotation_error(2,0) > 0)
+            {
+                rotation_error(2,0) -= 180;
+            }
+            else
+            {
+                rotation_error(2,0) += 180;
+            }
+
+            if (rotation_error(0,0) > 0)
+            {
+                rotation_error(0,0) -= 180;
+            }
+            else
+            {
+                rotation_error(0,0) += 180;
+            }
+        }
+
+        /* 
+         * Multiply the pitch error by the cosine (in degrees) of the yaw error
+         * to use positive feedback for pitch to assist yaw when yawing more
+         * than 90 degrees.
+         */
+        rotation_error(1,0) *= cos(rotation_error(2,0) * 3.1415 / 180);
+
+        /*
          * Update the current error vector with the calculated errors.
          */
         current_error = Vector6d::Zero();
