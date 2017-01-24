@@ -7,12 +7,7 @@ namespace rs
      * Constructor.
      */
     MaestroThrusterDriver::MaestroThrusterDriver() :
-        _is_initialized(false),
-        _port(nullptr),
-        _max_speed(),
-        _post_reset_delay_ms(185),
-        _next_reset(),
-        _max_thrust_kgf(0)
+        _is_initialized(false)
     {
     }
 
@@ -57,7 +52,7 @@ namespace rs
             ROS_ERROR("Failed to load maximum thruster force.");
             return -1;
         }
-        if (ros::param::getCached("control/back_thrust_ratio",
+        if (ros::param::get("control/back_thrust_ratio",
                     back_thrust_ratio) == false)
         {
             ROS_ERROR("Failed to load the back thrust ratio.");
@@ -263,7 +258,7 @@ namespace rs
           * to 1100 for negative and up to 1900 for positive
           * signals.
           */
-         int signal = 0;
+         uint16_t signal = 0;
          const double force_kgf = normalized_force * _max_thrust_kgf;
 
          if (force_kgf > 0)
