@@ -46,7 +46,7 @@ namespace rs
          */
         double max_thrust_newtons = 0;
         double back_thrust_ratio = 0;
-        if (ros::param::getCached("control/max_thrust", max_thrust_newtons) ==
+        if (ros::param::get("control/max_thrust", max_thrust_newtons) ==
                 false)
         {
             ROS_ERROR("Failed to load maximum thruster force.");
