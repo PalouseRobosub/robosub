@@ -43,6 +43,8 @@ public:
     void InputControlMessage(const robosub::control::ConstPtr& msg);
     void InputOrientationMessage(
             const robosub::QuaternionStampedAccuracy::ConstPtr& quat_msg);
+    void InputLocalizationMessage(
+            const geometry_msgs::Vector3::ConstPtr& vector_msg);
     void InputDepthMessage(const robosub::Float32Stamped::ConstPtr& depth_msg);
     void ReloadPIDParams();
     robosub::thruster CalculateThrusterMessage();

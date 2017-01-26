@@ -35,9 +35,12 @@ int main(int argc, char **argv)
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
             &ControlSystem::InputOrientationMessage, control_system);
 
+    ros::Subscriber localization_sub = nh.subscribe("position/real", 1,
+            &ControlSystem::InputLocalizationMessage, control_system);
+
     ros::Subscriber control_sub = nh.subscribe("control", 1,
             &ControlSystem::InputControlMessage, control_system);
-
+    
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
 
     rs::ThrottledPublisher<robosub::control_status>
