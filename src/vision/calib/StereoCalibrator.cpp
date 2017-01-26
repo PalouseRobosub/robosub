@@ -125,17 +125,25 @@ void StereoCalibrator::calibrate()
         ROS_INFO_STREAM("Image points 1 [" << i << "] size: " << imagePoints1[i].size());
     }
     ROS_INFO_STREAM("Object points size: " << objectPoints.size());
+    for (unsigned int i = 0; i < objectPoints.size(); i++)
+    {
+        ROS_INFO_STREAM("Object points [" << i << "] size: " << objectPoints[i].size());
+    }
     //ROS_INFO_STREAM("Image points 2 check vector: " << imagePoints2.getMat(0).checkVector(2, CV_32F));
     cameraMatrix[0] = initCameraMatrix2D(objectPoints, imagePoints1,
                                          imageSize, 0);
-    ROS_INFO_STREAM("Created cameraMatrix 0");
+    ROS_INFO_STREAM("Created cameraMatrix 0? " << !cameraMatrix[0].empty());
     cameraMatrix[1] = initCameraMatrix2D(objectPoints, imagePoints2,
                                          imageSize, 0);
 
-    ROS_INFO_STREAM("Created camera matrices.");
+    ROS_INFO_STREAM("Distortion coeffs 1 empty? " << distCoeffs[0].empty());
+
+    ROS_INFO_STREAM("Created cameraMatrix 1? " << !cameraMatrix[1].empty());
+
+    ROS_INFO_STREAM("Distortion coeffs 2 empty? " << distCoeffs[1].empty());
 
     Mat R, T, E, F;
-
+    ROS_INFO_STREAM("Using image size of: " << imageSize);
     double rms = stereoCalibrate(objectPoints, imagePoints1, imagePoints2,
                                  cameraMatrix[0], distCoeffs[0],
                                  cameraMatrix[1], distCoeffs[1],
@@ -145,10 +153,15 @@ void StereoCalibrator::calibrate()
                                  CALIB_USE_INTRINSIC_GUESS +
                                  CALIB_SAME_FOCAL_LENGTH +
                                  CALIB_RATIONAL_MODEL +
-                                 CALIB_FIX_K3 + CALIB_FIX_K4 + CALIB_FIX_K5,
+                                 CALIB_FIX_K3 + CALIB_FIX_K4,
                                  TermCriteria(TermCriteria::COUNT +
                                              TermCriteria::EPS, 100, 1e-5));
 
+    /*double rms = fisheye::stereoCalibrate(objectPoints, imagePoints1,
+                                          imagePoints2, cameraMatrix[0],
+                                          distCoeffs[0], cameraMatrix[1],
+                                          distCoeffs[1], imageSize, R, T);
+    */
     ROS_INFO_STREAM("Calibrated with RMS error of: " << rms);
 
 
