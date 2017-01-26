@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber control_sub = nh.subscribe("control", 1,
             &ControlSystem::InputControlMessage, control_system);
-    
+
     ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
 
     rs::ThrottledPublisher<robosub::control_status>
