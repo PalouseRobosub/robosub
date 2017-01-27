@@ -497,7 +497,7 @@ namespace robosub
         Vector3d current_orientation;
         current_orientation[0] = state_vector[3];
         current_orientation[1] = state_vector[4];
-        current_orientation[2] = 0;
+        current_orientation[2] = state_vector[5];
 
         /*
          * Normalize the translational forces based on the current orientation
