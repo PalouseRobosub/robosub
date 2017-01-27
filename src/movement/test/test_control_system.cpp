@@ -4,14 +4,14 @@
 #include "utility/test_tools.hpp"
 #include <vector>
 #include <string>
-#include "robosub/depth_stamped.h"
+#include "robosub/Float32Stamped.h"
 
 ros::Publisher pub;
 
 //function for extracting the depth data
-double get_depth_data(const robosub::depth_stamped::ConstPtr& msg)
+double get_depth_data(const robosub::Float32Stamped::ConstPtr& msg)
 {
-    return msg->depth;
+    return msg->data;
 }
 
 TEST(ControlSystem, depth)
@@ -21,7 +21,7 @@ TEST(ControlSystem, depth)
     double average_threshold = 0.05;
     double std_dev_allowed = 0.01;
 
-    rs::SubscriberAnalyzer<robosub::depth_stamped> analyzer;
+    rs::SubscriberAnalyzer<robosub::Float32Stamped> analyzer;
 
     analyzer.Init("depth", &get_depth_data);
 
