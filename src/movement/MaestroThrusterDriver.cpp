@@ -66,6 +66,7 @@ namespace rs
          * for converting newtons to KgF is 0.101972.
          */
         _max_thrust_kgf = max_thrust_newtons * 0.101972 * back_thrust_ratio;
+        ROS_INFO_STREAM("Maximum thrust in KgF: " << _max_thrust_kgf);
 
         /*
          * Initialize all data maps to indicate that resets need to occur
@@ -157,7 +158,7 @@ namespace rs
         if (now > _next_reset[channel])
         {
             ROS_DEBUG_STREAM("Sending thruster reset signal.");
-            if (parseNormalized(0, command[3], command[2]))
+            if (parseNormalized(0, command[3], command[2]) < 0)
             {
                 ROS_ERROR("Parse Normalized encountered abnormal "
                           "thruster speed.");
@@ -211,7 +212,7 @@ namespace rs
          * if the signal is in the dead-band to inform the
          * operator that the thruster should not spin.
          */
-        if (abs(signal - 1500) < 25)
+        if (signal != 1500 && abs(signal - 1500) < 25)
         {
             ROS_INFO("Parsed signal is in thruster dead-band.");
         }
@@ -259,7 +260,14 @@ namespace rs
           * signals.
           */
          uint16_t signal = 0;
-         const double force_kgf = normalized_force * _max_thrust_kgf;
+         double force_kgf = normalized_force * _max_thrust_kgf;
+
+         if (std::fabs(force_kgf) < _minimum_thrust_kgf)
+         {
+            force_kgf = 0;
+         }
+
+         ROS_INFO_STREAM("Force (KgF): " << force_kgf);
 
          if (force_kgf > 0)
          {
