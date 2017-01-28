@@ -43,6 +43,8 @@ class MaestroThrusterDriver
      */
     static constexpr double reset_timeout = 120.0;
 
+    static constexpr double _minimum_thrust_kgf = 0.01;
+
     /*
      * The number of thrusters to be controlled by the Maestro.
      */
@@ -120,10 +122,10 @@ private:
     const double c_negative = 135.16956211;
     const double d_negative = 1466.0982307;
 
-    const double a_positive = 2.64609994;
-    const double b_positive = -25.40194653;
-    const double c_positive = 138.30716827;
-    const double d_positive = 1513.80844695;
+    const double a_positive = 1.23903743;
+    const double b_positive = -13.2491571;
+    const double c_positive = 108.242813;
+    const double d_positive = 1532.70802;
 
     /**
      * Maestro-defined serial bytes that have special meaning to the
