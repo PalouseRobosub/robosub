@@ -497,8 +497,16 @@ namespace robosub
         Vector3d current_orientation;
         current_orientation[0] = state_vector[3];
         current_orientation[1] = state_vector[4];
-        current_orientation[2] = state_vector[5];
 
+        if (goal_types[0] == robosub::control::STATE_ABSOLUTE ||
+            goal_types[1] == robosub::control::STATE_ABSOLUTE)
+        {
+            current_orientation[2] = state_vector[5];
+        }
+        else
+        {
+            current_orientation[2] = 0;
+        }
         /*
          * Normalize the translational forces based on the current orientation
          * of the submarine and calculate the translation control for each
