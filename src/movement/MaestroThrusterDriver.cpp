@@ -267,7 +267,7 @@ namespace rs
             force_kgf = 0;
          }
 
-         ROS_INFO_STREAM("Force (KgF): " << force_kgf);
+         ROS_DEBUG_STREAM("Force (KgF): " << force_kgf);
 
          if (force_kgf > 0)
          {
