@@ -194,7 +194,7 @@ namespace rs
 
         if(fabs(speed) > _max_speed[channel])
         {
-            ROS_INFO("Software-limiting thruster speed.");
+            ROS_DEBUG_THROTTLE(1, "Software-limiting thruster speed.");
             speed = _max_speed[channel] * ((speed < 0)? -1 : 1);
         }
 
@@ -214,7 +214,7 @@ namespace rs
          */
         if (signal != 1500 && abs(signal - 1500) < 25)
         {
-            ROS_INFO("Parsed signal is in thruster dead-band.");
+            ROS_WARN("Parsed signal is in thruster dead-band.");
         }
 
         /*
