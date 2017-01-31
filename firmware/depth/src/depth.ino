@@ -5,7 +5,6 @@
  */
 #include "robosub/Float32Stamped.h"
 
-
 #include <MS5837.h>
 #include <ros.h>
 #include <std_msgs/Float32.h>
@@ -21,6 +20,7 @@ robosub::Float32Stamped depth_msg;
 ros::Publisher depth_data_pub("depth", &depth_msg);
 
 double cycle_delay = 0;
+double depth_offset = 0;
 
 void setup()
 {
@@ -75,6 +75,7 @@ void setup()
     if (n.getParam("depth/rate", &rate, 1) == false)
     {
         rate = 10;
+        n.loginfo("Failed to load depth rate. Defaulting to 10Hz.");
     }
 
     /*
@@ -84,9 +85,19 @@ void setup()
     if (rate > 20)
     {
         rate = 20;
+        n.logwarn("Depth rate was capped to 20Hz.");
     }
 
-    cycle_delay = 1 / static_cast<float>(rate) * 1000;
+    /*
+     * Load the depth sensor offset parameter from the parameter server.
+     */
+    if (n.getParam("depth/offset", &depth_offset, 1) == false)
+    {
+        n.logwarn("Failed to load depth offset.");
+        depth_offset = 0;
+    }
+
+    cycle_delay = 1.0 / static_cast<float>(rate) * 1000;
 }
 
 void loop()
@@ -98,11 +109,8 @@ void loop()
      * The depth sensor output specifies positive value as depth,
      * however the submarine prints depth as negative. Invert it
      * and remove the depth sensor offset.
-     *
-     * TODO: The addition of +1 should be a parameter loaded in
-     *       from the param server.
      */
-    depth_msg.data = -1 * (depth_sensor.depth() + 1);
+    depth_msg.data = -1 * (depth_sensor.depth() + depth_offset);
     depth_data_pub.publish(&depth_msg);
 
     n.spinOnce();
