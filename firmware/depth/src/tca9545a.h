@@ -6,17 +6,19 @@
  */
 #ifndef TCA9545A_H
 #define TCA9545A_H
+
+#include <Wire.h>
+
 class Tca9545a
 {
-
 public:
     enum class Channel : uint8_t
     {
-        None,
-        One,
-        Two,
-        Three,
-        Four
+        None = 0,
+        One = 0b1,
+        Two = 0b10,
+        Three = 0b100,
+        Four = 0b1000
     };
 
     Tca9545a(const int reset_pin, bool a0_high, bool a1_high) :
@@ -25,7 +27,7 @@ public:
     {
     }
 
-    int init(Channel channel)
+    int init(Channel channel);
 
     int setChannel(Channel _channel);
 
@@ -35,9 +37,6 @@ private:
     Channel _current_channel;
     const int _reset_pin;
     const uint8_t _i2c_address;
-
-    int read_control_register(uint8_t &control_register);
-    int write_control_register(uint8_t control_register);
-}
+};
 
 #endif //TCA9545A_H
