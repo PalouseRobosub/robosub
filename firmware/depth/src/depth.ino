@@ -15,7 +15,7 @@ robosub::Float32Stamped depth_msg;
 ros::Publisher depth_data_pub("depth", &depth_msg);
 
 double cycle_delay = 0;
-double depth_offset = 0;
+float depth_offset = 0;
 
 void setup()
 {

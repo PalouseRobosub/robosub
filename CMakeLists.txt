@@ -73,7 +73,7 @@ roslint_custom(${CMAKE_CURRENT_LIST_DIR}/tools/linters/cpplint "--extensions=cpp
 # To change the options for the python linter edit the PYLINT.cfg file in the
 #     tools/linters directory
 set(ROSLINT_PYTHON_OPTS "--config=tools/linters/PYLINT.cfg")
-roslint_python()
+roslint_python("./")
 
 ################################################
 ## Declare ROS messages, services and actions ##
