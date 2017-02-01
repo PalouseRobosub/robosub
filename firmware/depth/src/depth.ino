@@ -1,4 +1,5 @@
-#include "robosub/Float32Stamped.h"
+#include "robosub/Float32ArrayStamped.h"
+#include "tca9545a.h"
 
 #include <MS5837.h>
 #include <ros.h>
@@ -6,11 +7,16 @@
 #include <stdint.h>
 #include <Wire.h>
 
-MS5837 depth_sensor;
+/*
+ * The MUX reset pin is on A1, which maps to 25 in the standard Arduino pinout.
+ */
+Tca9545a mux(25, false, false);
+
+MS5837 depth_sensor[4];
 
 ros::NodeHandle n;
 
-robosub::Float32Stamped depth_msg;
+robosub::Float32ArrayStamped depth_msg;
 
 ros::Publisher depth_data_pub("depth", &depth_msg);
 
@@ -47,16 +53,26 @@ void setup()
     Wire.setClock(100000);
 
     /*
-     * Initialize the depth sensor with the fluid density of
+     * Initialize the depth sensors with the fluid density of
      * water (997 kg/m^3).
      */
-    depth_sensor.init();
-    depth_sensor.setFluidDensity(997.0f);
+    mux.setChannel(Tca9545a::Channel::One);
+    depth_sensor[0].init();
+    depth_sensor[0].setFluidDensity(997.0f);
+    mux.setChannel(Tca9545a::Channel::Two);
+    depth_sensor[1].init();
+    depth_sensor[1].setFluidDensity(997.0f);
+    mux.setChannel(Tca9545a::Channel::Three);
+    depth_sensor[2].init();
+    depth_sensor[2].setFluidDensity(997.0f);
+    mux.setChannel(Tca9545a::Channel::Four);
+    depth_sensor[3].init();
+    depth_sensor[3].setFluidDensity(997.0f);
 
     /*
-     * Delay 500ms to ensure that the depth sensor has time to
+     * Delay 500ms to ensure that the depth sensors have time to
      * properly initialize and then display a message to the
-     * console that the depth sensor has initialize.
+     * console that the depth sensors have initialized.
      */
     delay(500);
     n.loginfo("Depth sensor initialized.");
@@ -97,16 +113,30 @@ void setup()
 
 void loop()
 {
-    depth_sensor.read();
+    float depths[4];
+
+    mux.setChannel(Tca9545a::Channel::One);
+    depth_sensor[0].read();
+    mux.setChannel(Tca9545a::Channel::Two);
+    depth_sensor[1].read();
+    mux.setChannel(Tca9545a::Channel::Three);
+    depth_sensor[2].read();
+    mux.setChannel(Tca9545a::Channel::Four);
+    depth_sensor[3].read();
+
     depth_msg.header.stamp = n.now();
+    depth_msg.data = depths;
+    depth_msg.data_length = 4;
 
     /*
      * The depth sensor output specifies positive value as depth,
      * however the submarine prints depth as negative. Invert it
      * and remove the depth sensor offset.
      */
-    depth_msg.data = -1 * (depth_sensor.depth() + depth_offset);
-    depth_data_pub.publish(&depth_msg);
+    depths[0] = -1 * (depth_sensor[0].depth() + depth_offset);
+    depths[1] = -1 * (depth_sensor[1].depth() + depth_offset);
+    depths[2] = -1 * (depth_sensor[2].depth() + depth_offset);
+    depths[3] = -1 * (depth_sensor[3].depth() + depth_offset);
 
     n.spinOnce();
     delay(cycle_delay);

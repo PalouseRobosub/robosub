@@ -107,7 +107,7 @@ add_message_files(
   control_status.msg
   joystick.msg
   gamepad.msg
-  Float32Stamped.msg
+  Float32ArrayStamped.msg
   Euler.msg
   QuaternionStampedAccuracy.msg
   HydrophoneDeltas.msg

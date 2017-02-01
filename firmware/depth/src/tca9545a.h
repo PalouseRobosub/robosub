@@ -8,6 +8,7 @@
 #define TCA9545A_H
 
 #include <Wire.h>
+#include "Arduino.h"
 
 class Tca9545a
 {
@@ -31,7 +32,7 @@ public:
 
     int setChannel(Channel _channel);
 
-    int reset();
+    void reset();
 
 private:
     Channel _current_channel;

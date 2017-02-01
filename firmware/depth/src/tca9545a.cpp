@@ -34,7 +34,7 @@ int Tca9545a::setChannel(Channel channel)
      * Ensure that one data byte is written and that the transmission completes
      * without errors.
      */
-    if (Wire.write(reinterpret_cast<uint8_t>(channel)) != 1)
+    if (Wire.write(static_cast<uint8_t>(channel)) != 1)
     {
         return -1;
     }
