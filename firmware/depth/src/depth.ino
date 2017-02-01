@@ -1,8 +1,3 @@
-/*
- * Author: Zachary Pratt
- *
- * @brief Arduino uno is used for reading the BlueRobotics MS5837 depth sensor.
- */
 #include "robosub/Float32Stamped.h"
 
 #include <MS5837.h>
@@ -75,7 +70,7 @@ void setup()
     if (n.getParam("depth/rate", &rate, 1) == false)
     {
         rate = 10;
-        n.loginfo("Failed to load depth rate. Defaulting to 10Hz.");
+        n.logwarn("Failed to load depth rate. Defaulting to 10Hz.");
     }
 
     /*
