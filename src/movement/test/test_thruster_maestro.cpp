@@ -64,7 +64,8 @@ TEST(Maestro, basicTest)
         mSerial.Read(maestro_data, 4);
 
         //calculate the thruster speed value of the packet
-        double actual_force = byte_to_force_ratio(maestro_data[2], maestro_data[3]);
+        double actual_force = byte_to_force_ratio(maestro_data[2],
+                maestro_data[3]);
 
         //check to make sure the command and channel bytes are correct.
         EXPECT_EQ(maestro_data[0], 0x84);
