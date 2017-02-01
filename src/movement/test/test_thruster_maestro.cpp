@@ -14,7 +14,7 @@
 
 rs::Serial mSerial;
 ros::Publisher pub;
-double byte_check(uint8_t byte2, uint8_t byte3);
+double byte_to_force_ratio(uint8_t byte2, uint8_t byte3);
 std::vector<uint8_t> channels;
 double max_thrust;
 
