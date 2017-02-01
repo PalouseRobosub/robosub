@@ -1,8 +1,9 @@
 //This file is designed to test the Maestro Thruster node, which
-//receives messages of the robosub/thruster type, and then sends the exact
-//received value through a serial port. This example sends a single thruster
-//message with several thrusters inside, and then listens on a serial port to
-//confirm that the received values are the same as the sent values.
+//receives messages of the robosub/thruster type, parses the normalized value,
+//and transmits the thruster signal over the serial port.
+//This example sends a single thruster message with several thrusters inside,
+//and then listens on a serial port to confirm that the received values are
+//correct.
 #include <gtest/gtest.h>
 #include "ros/ros.h"
 #include "robosub/thruster.h"
@@ -15,7 +16,7 @@ rs::Serial mSerial;
 ros::Publisher pub;
 double byte_check(uint8_t byte2, uint8_t byte3);
 std::vector<uint8_t> channels;
-std::vector<double> max_speeds;
+double max_thrust;
 
 //The test will act like it is both the control system and the maestro
 //Several values that the control system might send are sent to the thruster
@@ -24,9 +25,8 @@ std::vector<double> max_speeds;
 TEST(Maestro, basicTest)
 {
     //allocate an array of bytes that will be used to receive serial data from
-    //the serial port. I use the arbitrarily large size of
+    //the serial port. I use the arbitrarily large size of 256.
     uint8_t maestro_data[256] = {0};
-
 
     //create an empty thruster message to send to the thruster module
     robosub::thruster maestro_msg;
@@ -35,7 +35,7 @@ TEST(Maestro, basicTest)
         maestro_msg.data.push_back(0.0);
     }
 
-    //send initial message to make the thruster module send it's reset signal.
+    //send initial message to make the thruster module send its reset signal.
     //This test isn't checking for it, so we just flush the serial buffer and
     //throw it away
     pub.publish(maestro_msg);
@@ -56,7 +56,7 @@ TEST(Maestro, basicTest)
     ros::Duration(1).sleep();
 
     //after we published the thruster message, the thruster module should have
-    //received the message, and then sent some data down the serial port, here
+    //received the message and then sent some data down the serial port. Here
     //we read that data and verify it is correct
     for(unsigned int i = 0; i < maestro_msg.data.size(); ++i)
     {
@@ -64,35 +64,62 @@ TEST(Maestro, basicTest)
         mSerial.Read(maestro_data, 4);
 
         //calculate the thruster speed value of the packet
-        double actual_speed = byte_check(maestro_data[2], maestro_data[3]);
+        double actual_force = byte_to_force_ratio(maestro_data[2], maestro_data[3]);
 
-        //check to make sure the command byte is correct
+        //check to make sure the command and channel bytes are correct.
         EXPECT_EQ(maestro_data[0], 0x84);
-        //check to make sure the channel byte is correct
         EXPECT_EQ(maestro_data[1], channels[i]);
 
-        //compare and make sure the thruster speed value recieved is equal to
-        //the value sent (include thruster max-speed throttling)
-        double expected_speed = maestro_msg.data[i];
-        if(fabs(expected_speed) > max_speeds[i])
+        //compare and make sure the thruster speed value received is equal to
+        //the value sent (include thruster software hard-limit throttling to
+        //10 Amps).
+        double expected_force = maestro_msg.data[i] * max_thrust;
+        if (expected_force > 31.32)
         {
-            expected_speed = max_speeds[i] * ((expected_speed < 0)? -1 : 1);
+            expected_force = 31.32;
         }
-        EXPECT_FLOAT_EQ(actual_speed, expected_speed);
+        else if (expected_force < -24.78)
+        {
+            expected_force = -24.78;
+        }
+
+        //Since there are polynomial approximations involved, ensure that the
+        //difference between expected and actual is within range. Allow up to
+        //5% difference in values (2 Newtons).
+        EXPECT_NEAR(actual_force, expected_force, 2);
     }
 }
 
-double byte_check(uint8_t byte2, uint8_t byte3)
+double byte_to_force_ratio(uint8_t byte2, uint8_t byte3)
 {
-  double target;
-  uint16_t pulse_width;
+  const uint16_t pulse_width = (byte3 << 7) | byte2;
 
-  pulse_width = ((byte3 << 7) | byte2) >> 2;
-  target = static_cast<double>(pulse_width - 1500) / 400;
+  /*
+   * Polynomial curve fitting data was calculated by fitting a
+   * cubic polynomial to the x and y portions of the bluerobotics
+   * T200 thruster pwm vs Thrust curves.
+   */
+  double force_kgf = 0;
+  if (pulse_width < 1475)
+  {
+      force_kgf = pow(pulse_width, 3) * -4.85606515e-8 +
+                  pow(pulse_width, 2) * 1.78638023e-4 +
+                  pow(pulse_width, 2) * -0.20563003 +
+                  70.4911410;
+  }
+  else if (pulse_width > 1525)
+  {
+      force_kgf = pow(pulse_width, 3) * -5.21026922e-8 +
+                  pow(pulse_width, 2) * 2.80234148e-4 +
+                  pow(pulse_width, 2) * -0.486381952 +
+                  274.867233;
+  }
 
-  return target;
+  /*
+   * Convert KgF to N and then divide by the maximum force.
+   */
+  return force_kgf * 9.80665 / max_thrust;
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -104,11 +131,21 @@ int main(int argc, char *argv[])
     ros::NodeHandle n;
 
     XmlRpc::XmlRpcValue my_list;
-    ros::param::get("thrusters", my_list);
+    if (!ros::param::get("thrusters/mapping", my_list))
+    {
+        ROS_ERROR("Failed to load thruster mapping.");
+        return -1;
+    }
+
+    if (!ros::param::get("thrusters/max_thrust", max_thrust))
+    {
+        ROS_ERROR("Failed to load maximum thrust.");
+        return -1;
+    }
+
     for (int i = 0; i < my_list.size(); ++i)
     {
-        channels.push_back( static_cast<int>(my_list[i]["channel"]));
-        max_speeds.push_back(static_cast<double>(my_list[i]["max_speed"]));
+        channels.push_back(static_cast<int>(my_list[i]["channel"]));
     }
 
     //SerialTB (serial testbench) creates 2 virtual serial ports and links them

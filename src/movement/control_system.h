@@ -123,13 +123,6 @@ private:
     double max_thrust;
 
     /*
-     * Defines the maximum ratio of thruster when a thruster is operating in
-     * reverse direction. For example, the back thrust ratio could be 80% of
-     * nominal.
-     */
-    double back_thrust_ratio;
-
-    /*
      * Defines the current state of the submarine. This vector stores elements
      * in the following order:
      *      X, Y, Z, Psi (roll), Phi (pitch), Theta (yaw)

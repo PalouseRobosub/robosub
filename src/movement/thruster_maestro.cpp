@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 
     //Get the ports and names of the maestro thrusters (from coblat.yaml)
     XmlRpc::XmlRpcValue thruster_settings;
-    ros::param::get("thrusters", thruster_settings);
+    ros::param::get("thrusters/mapping", thruster_settings);
 
     for(int i = 0; i < thruster_settings.size(); ++i)
     {
@@ -74,19 +74,15 @@ int main(int argc, char **argv)
                          thruster_settings[i]["name"]);
         ROS_DEBUG_STREAM("thrusters["<< i << "][channel]: " <<
                          thruster_settings[i]["channel"]);
-        ROS_DEBUG_STREAM("thrusters["<< i << "][max_speed]:   " <<
-                         thruster_settings[i]["max_speed"]);
         Thruster_info one_thruster;
         one_thruster.name =
                         static_cast<std::string>(thruster_settings[i]["name"]);
         one_thruster.channel =
                              static_cast<int>(thruster_settings[i]["channel"]);
-        max_speeds[one_thruster.channel] =
-                        static_cast<double>(thruster_settings[i]["max_speed"]);
         mThruster_info.push_back(one_thruster);
     }
 
-    thrusterController.init(max_speeds, &serial);
+    thrusterController.init(&serial);
 
     ros::spin();
 

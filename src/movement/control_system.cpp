@@ -21,13 +21,11 @@ namespace robosub
                 sub_mass[4]), "Failed to load inertial mass phi");
         ROS_ERROR_COND(!ros::param::getCached("control/inertia/theta",
                 sub_mass[5]), "Failed to load inertial mass theta.");
-        ROS_ERROR_COND(!ros::param::getCached("control/back_thrust_ratio",
-                back_thrust_ratio), "Failed to load the back thrust ratio.");
         ROS_ERROR_COND(!ros::param::getCached("control/limits/translation",
                 t_lim), "Failed to load the translation control limit.");
         ROS_ERROR_COND(!ros::param::getCached("control/limits/rotation",
                 r_lim), "Failed to load the rotiation control limit.");
-        ROS_ERROR_COND(!ros::param::getCached("control/max_thrust",
+        ROS_ERROR_COND(!ros::param::getCached("thrusters/max_thrust",
                 max_thrust), "Failed to load the max thrust output.");
 
         /*
@@ -64,18 +62,11 @@ namespace robosub
         current_integral = Vector6d::Zero();
 
         /*
-         * Scale thruster limits to be in terms of the backwards thruster
-         * ratio.
-         */
-        t_lim *= back_thrust_ratio;
-        r_lim *= back_thrust_ratio;
-
-        /*
          * Load thruster node settings. A nodehandle reference is not
          * available, so make use of rosparam get.
          */
         XmlRpc::XmlRpcValue thruster_settings;
-        if(!ros::param::getCached("thrusters", thruster_settings))
+        if(!ros::param::getCached("thrusters/mapping", thruster_settings))
         {
             ROS_FATAL("Failed to load thruster parameters.");
             exit(1);
@@ -551,15 +542,9 @@ namespace robosub
 
         /*
          * Sum together the translation and rotation goals to attain a final
-         * control for each thruster. Scale any reverse directions by the
-         * backward thruster ratio to achieve our desired backward thrust goal.
+         * control for each thruster.
          */
         total_control = translation_control + rotation_control;
-        for (int i = 0; i < num_thrusters; ++i)
-        {
-            if(total_control[i] < 0)
-                total_control[i] /= back_thrust_ratio;
-        }
 
         /*
          * Create a new thruster control message based upon the newly

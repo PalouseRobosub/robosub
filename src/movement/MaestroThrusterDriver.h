@@ -61,8 +61,8 @@ public:
 
     ~MaestroThrusterDriver();
 
-    int init(std::map<uint8_t, double> max_speed, Serial *port,
-        const double post_reset_delay_ms = min_post_reset_delay_ms );
+    int init(Serial *port,
+            const double post_reset_delay_ms = min_post_reset_delay_ms);
 
     int set(double speed, const uint8_t &channel);
 
@@ -77,11 +77,6 @@ private:
      * Maestro.
      */
     Serial *_port;
-
-    /*
-     * The maximum speed setting that a thruster may be set to.
-     */
-    std::map<uint8_t, double> _max_speed;
 
     /*
      * The delay (in milliseconds) to sleep after every reset cycle.  This
