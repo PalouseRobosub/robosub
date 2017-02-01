@@ -104,21 +104,21 @@ double byte_to_force_ratio(uint8_t byte2, uint8_t byte3)
   {
       force_kgf = pow(pulse_width, 3) * -4.85606515e-8 +
                   pow(pulse_width, 2) * 1.78638023e-4 +
-                  pow(pulse_width, 2) * -0.20563003 +
+                  pow(pulse_width, 1) * -0.20563003 +
                   70.4911410;
   }
   else if (pulse_width > 1525)
   {
       force_kgf = pow(pulse_width, 3) * -5.21026922e-8 +
                   pow(pulse_width, 2) * 2.80234148e-4 +
-                  pow(pulse_width, 2) * -0.486381952 +
+                  pow(pulse_width, 1) * -0.486381952 +
                   274.867233;
   }
 
   /*
    * Convert KgF to N and then divide by the maximum force.
    */
-  return force_kgf * 9.80665 / max_thrust;
+  return force_kgf * 9.80665;
 }
 
 int main(int argc, char *argv[])
