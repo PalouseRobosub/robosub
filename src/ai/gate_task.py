@@ -42,7 +42,7 @@ class GateTask():
         self.errorGoal = 0.1
         # Used to determine if moving we were moving left or right last
         self.prev_yaw = 0
-        self.completeTime = None
+        self.throughTime = None
 
     # Called when there are no gate posts found by the vision
     def noneFound(self, msg, vision):
@@ -71,10 +71,8 @@ class GateTask():
             self.state = "LOST"
             msg.yaw_left = 0
         else:
-            # We were in the COMPLETE state so we have passed through the gate
+            # We were in the THROUGH state so we have passed through the gate
             pass
-
-        return msg
 
     # Called when there is only one gate post found
     def oneFound(self, msg, vision):
@@ -122,8 +120,6 @@ class GateTask():
                     self.state = "SEARCHING_LEFT"
                     msg.yaw_left = -10
 
-        return msg
-
     # Called when we see both posts
     def twoFound(self, msg, vision):
         # No matter what we were doing, we are now TRACKING the gate
@@ -155,9 +151,9 @@ class GateTask():
                 # The value of 0.012 was determined through testing and needs
                 # to be updated when stereo vision is implemented
 
-                # Set our state to COMPLETE. We will now move forward through
+                # Set our state to THROUGH. We will now move forward through
                 # the gate
-                self.state = "COMPLETE"
+                self.state = "THROUGH"
             else:
                 # We aren't close enough to the gate to guarantee being centered
                 msg.yaw_state = control.STATE_RELATIVE
@@ -167,7 +163,6 @@ class GateTask():
                 # Move forward
                 msg.forward_state = control.STATE_ERROR
                 msg.forward = 10
-        return msg
 
     # Called when a vision input is received.
     # Perhaps adding some safeguard timeouts so if a message isn't recieved
@@ -183,44 +178,44 @@ class GateTask():
         # Construct the control message
         msg = control()
 
+        rospy.loginfo("state: {}".format(self.state))
+
+        if self.state is not "THROUGH":
+            # If we haven't gotten to our distance goal from the gate, perform
+            # our other logic by finding the number of gate posts present in
+            # sight and calling the appropriate function using the dictionary
+            # of function pointers.
+            numFound = len(vision_result.data)
+            performTask[numFound](msg, vision_result)
+        elif not self.throughTime:
+            # We have moved within our distance goal, but have not completed
+            # our blind movement
+
+            # Initialize the completion time to the current time
+            self.throughTime = rospy.get_rostime()
+            rospy.loginfo("Through time: {}".format(self.throughTime))
+
         # We will never be changing roll or pitch, so set them to absolute 0
         msg.roll_state = control.STATE_ABSOLUTE
         msg.roll_right = 0
         msg.pitch_state = control.STATE_ABSOLUTE
         msg.pitch_down = 0
 
-        rospy.loginfo("state: {}".format(self.state))
-
-        if self.state is not "COMPLETE":
-            # If we haven't gotten to our distance goal from the gate, perform
-            # our other logic by finding the number of gate posts present in
-            # sight and calling the appropriate function using the dictionary
-            # of function pointers.
-            numFound = len(vision_result.data)
-            msg = performTask[numFound](msg, vision_result)
-        elif not self.completeTime:
-            # We have moved within our distance goal, but have not completed
-            # our blind movement
-
-            # Initialize the completion time to the current time
-            self.completeTime = rospy.get_rostime()
-            rospy.loginfo("Complete time: {}".format(self.completeTime))
-
         # always maintain depth at 1 meter by default (Perhaps this could be
         # made into a parameter)
         msg.dive_state = control.STATE_ABSOLUTE
         msg.dive = -1
 
-        if self.state is "COMPLETE" and self.completeTime is not None:
+        if self.state is "THROUGH" and self.throughTime is not None:
             # We have completed our distance goal and have a completion time,
             # this means that we may need to keep moving forward
             msg.forward_state = control.STATE_ERROR
-            if self.completeTime + rospy.Duration(self.duration) <\
+            if self.throughTime + rospy.Duration(self.duration) <\
                rospy.get_rostime():
                 # We have surpassed the blind movement duration and can kill
                 # this process
                 msg.forward = 0
-                rospy.loginfo("Complete")
+                rospy.loginfo("Through gate")
                 rospy.signal_shutdown(0)
             else:
                 # We have not reached the desired blind movement time

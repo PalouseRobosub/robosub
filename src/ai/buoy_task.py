@@ -12,7 +12,7 @@ class BuoyTask():
         self.sub = rospy.Subscriber('vision/buoys/red', vision_pos_array,
                                     self.callback)
         self.state = "SEARCHING"
-        self.completeTime = None
+        self.hitTime = None
         # How long the sub moves backward for
         self.duration = 2
         # How close to center the buoy needs to be (abs)
@@ -35,14 +35,14 @@ class BuoyTask():
         rospy.loginfo("state: {}".format(self.state))
 
         # When we've hit the buoy, prepare to reset for the next task
-        if self.state is "COMPLETE" and self.completeTime is not None:
+        if self.state is "HIT" and self.hitTime is not None:
             msg.forward_state = control.STATE_ERROR
             # TODO: Improve logic for after hitting buoy to be more useful
             # If we have moved for long enough, end task
-            if self.completeTime + rospy.Duration(self.duration) < \
+            if self.hitTime + rospy.Duration(self.duration) < \
                rospy.get_rostime():
                 msg.forward = 0
-                rospy.loginfo("Complete")
+                rospy.loginfo("Hit buoy")
                 rospy.signal_shutdown(0)
             # Otherwise continue to reverse
             else:
@@ -94,9 +94,9 @@ class BuoyTask():
             else:
                 # Since the buoy has been rammed, begin end procedure
                 msg.forward = 0
-                self.state = "COMPLETE"
-                self.completeTime = rospy.get_rostime()
-                rospy.loginfo("Complete time: {}".format(self.completeTime))
+                self.state = "HIT"
+                self.hitTime = rospy.get_rostime()
+                rospy.loginfo("Hit time: {}".format(self.hitTime))
 
         else:
             # We see a buoy, but it is not centered.
