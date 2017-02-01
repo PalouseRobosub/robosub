@@ -491,8 +491,10 @@ namespace robosub
         /*
          * Grab the current orientation of the submarine for rotating the
          * current translational goals. The order of this vector is roll,
-         * pitch, and yaw.  Note that by setting the yaw to zero, all control
-         * signals are relative.
+         * pitch, and yaw.
+         * 
+         * Yaw is set to 0 to use the relative reference frame when neither
+         * the forward nor strafe state is absolute.
          */
         Vector3d current_orientation;
         current_orientation[0] = state_vector[3];
@@ -501,10 +503,14 @@ namespace robosub
         if (goal_types[0] == robosub::control::STATE_ABSOLUTE ||
             goal_types[1] == robosub::control::STATE_ABSOLUTE)
         {
+            //Use the global reference frame when either x or y
+            // state is absolute
             current_orientation[2] = state_vector[5];
         }
         else
         {
+            //Use the relative reference frame when neither x nor y
+            // state is absolute.
             current_orientation[2] = 0;
         }
         /*
