@@ -431,6 +431,7 @@ namespace robosub
          */
         rotation_error(1, 0) *= cos(rotation_error(2, 0) * 3.1415 / 180);
 
+        rotation_error(0, 0) *= cos(rotation_error(2, 0) * 3.1415 / 180);
         /*
          * Update the current error vector with the calculated errors.
          */
