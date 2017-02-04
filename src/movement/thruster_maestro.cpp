@@ -1,11 +1,7 @@
-/*
- * Michelle Farr - 10/25/2016
- * I am working on this... Haven't tested it at all
- */
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include "utility/serial.hpp"
 #include "robosub/thruster.h"
-#include "MaestroThrusterDriver.h"
+#include "movement/maestro_thruster_driver.h"
 #include <string>
 #include <map>
 #include <vector>

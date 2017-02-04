@@ -10,8 +10,8 @@
  *       subsection 5.
  */
 
-#ifndef MAESTROTHRUSTERDRIVER_H
-#define MAESTROTHRUSTERDRIVER_H
+#ifndef MAESTRO_THRUSTER_DRIVER_H
+#define MAESTRO_THRUSTER_DRIVER_H
 
 #include <map>
 #include <ros/ros.h>
@@ -214,4 +214,4 @@ private:
 };
 }
 
-#endif // MAESTROTHRUSTERDRIVER_H
+#endif // MAESTRO_THRUSTER_DRIVER_H
