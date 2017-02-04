@@ -140,6 +140,13 @@ generate_messages(
   geometry_msgs
 )
 
+# Build platformio message headers
+add_custom_target(
+        firmware
+        COMMAND rm -rf ${CMAKE_CURRENT_LIST_DIR}/firmware/ros_lib
+        COMMAND rosrun rosserial_client make_libraries ${CMAKE_CURRENT_LIST_DIR}/firmware/
+)
+
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
 ################################################
