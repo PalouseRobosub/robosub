@@ -46,11 +46,12 @@ class StereoCalibrator
 
         vector<vector<Point2f>> imagePoints1;
         vector<vector<Point2f>> imagePoints2;
-        
-        Mat imgTemp;
+        vector<vector<Point3f>> objectPointsf;
+        vector<vector<Point3d>> objectPoints;
 
-        bool hasLeft;
-        bool hasRight;
+        //Specifically needed for fisheye
+        vector<vector<Point2d>> leftImgPoints;
+        vector<vector<Point2d>> rightImgPoints;
 
         FileStorage outputFile;
 

@@ -19,29 +19,8 @@ using message_filters::sync_policies::ApproximateTime;
 Settings settings;
 StereoCalibrator *stereoCalib;
 
-void leftCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
-{
-    Mat view = toCvShare(msg->image, msg,
-                         sensor_msgs::image_encodings::BGR8)->image;
-    
-    stereoCalib->submitLeftImg(view);
-    imshow("Left", view);
-
-    waitKey(1);
-}
-
-void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
-{
-    Mat view = toCvShare(msg->image, msg,
-                         sensor_msgs::image_encodings::BGR8)->image;
-
-    stereoCalib->submitRightImg(view);
-    imshow("Right", view);
-
-    waitKey(1);
-}
-
-void callback(const WFOVImage::ConstPtr &rightImg, const WFOVImage::ConstPtr &leftImg)
+void callback(const WFOVImage::ConstPtr &rightImg,
+              const WFOVImage::ConstPtr &leftImg)
 {
     Mat rview = toCvShare(rightImg->image, rightImg,
                          sensor_msgs::image_encodings::BGR8)->image;
@@ -92,9 +71,9 @@ int main (int argc, char* argv[])
     message_filters::Subscriber<WFOVImage> lsub(n, "/camera/left/image", 1);
 
     Synchronizer<ApproximateTime<WFOVImage, WFOVImage>> sync(
-                         ApproximateTime<WFOVImage, WFOVImage>(10), rsub, lsub);
+                         ApproximateTime<WFOVImage, WFOVImage>(5), rsub, lsub);
     sync.registerCallback(boost::bind(&callback, _1, _2));
-   
+
     ROS_INFO_STREAM("Output filename: " << settings.outputFileName);
 
     stereoCalib = new StereoCalibrator(settings.boardSize, settings.squareSize,

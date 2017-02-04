@@ -35,55 +35,41 @@ void StereoCalibrator::submitImgs(const Mat &rightImg, const Mat &leftImg)
                                  CALIB_CB_NORMALIZE_IMAGE |
                                  CALIB_CB_FAST_CHECK))
     {
-        drawChessboardCorners(rightImg, boardSize, Mat(rightCorners), true);
-        drawChessboardCorners(leftImg, boardSize, Mat(leftCorners), true);
-        validPairs.push_back(pair<Mat, Mat>(rightImg.clone(), leftImg.clone()));
-        
-        imagePoints1.push_back(rightCorners);
-        imagePoints2.push_back(leftCorners);
+        validPairs.push_back(pair<Mat, Mat>(leftImg.clone(), rightImg.clone()));
+
+        Mat leftGray, rightGray;
+        cvtColor(leftImg, leftGray, CV_BGR2GRAY);
+        cvtColor(rightImg, rightGray, CV_BGR2GRAY);
+
+        cornerSubPix(leftGray, leftCorners, cv::Size(5, 5), cv::Size(-1, -1),
+                     TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+        cornerSubPix(rightGray, rightCorners, cv::Size(5, 5), cv::Size(-1, -1),
+                     TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+
+        drawChessboardCorners(rightImg, boardSize, rightCorners, true);
+        drawChessboardCorners(leftImg, boardSize, leftCorners, true);
+
+        imagePoints1.push_back(leftCorners);
+        imagePoints2.push_back(rightCorners);
+    
+        vector<Point3d> points;
+        vector<Point3f> fPoints;
+        for (int j = 0; j < boardSize.width; j++)
+        {
+            for (int k = 0; k < boardSize.height; k++)
+            {
+                points.push_back(Point3d(k*squareSize, j*squareSize, 0));
+                fPoints.push_back(Point3f(k*squareSize, j*squareSize, 0));
+            }
+        }
+        objectPointsf.push_back(fPoints);
+        objectPoints.push_back(points);
+
     }
 
     imshow("right", rightImg);
     imshow("left", leftImg);
     waitKey(1);
-}
-
-void StereoCalibrator::submitLeftImg(const Mat &leftImg)
-{
-    vector<Point2f> corners;
-    if (findChessboardCorners(leftImg, boardSize, corners,
-                              CALIB_CB_ADAPTIVE_THRESH |
-                              CALIB_CB_NORMALIZE_IMAGE |
-                              CALIB_CB_FAST_CHECK))
-    {
-        hasLeft = true;
-    }
-
-    if (hasLeft && hasRight)
-    {
-        validPairs.push_back(pair<Mat, Mat>(leftImg.clone(), imgTemp.clone()));
-        hasLeft = hasRight = false;
-        imgTemp.release();
-    }
-}
-
-void StereoCalibrator::submitRightImg(const Mat &rightImg)
-{
-    vector<Point2f> corners;
-    if (findChessboardCorners(rightImg, boardSize, corners,
-                              CALIB_CB_ADAPTIVE_THRESH |
-                              CALIB_CB_NORMALIZE_IMAGE |
-                              CALIB_CB_FAST_CHECK))
-    {
-        hasRight = true;
-    }
-
-    if (hasLeft && hasRight)
-    {
-        validPairs.push_back(pair<Mat, Mat>(imgTemp.clone(), rightImg.clone()));
-        hasLeft = hasRight = false;
-        imgTemp.release();
-    }
 }
 
 void StereoCalibrator::calibrate()
@@ -97,43 +83,53 @@ void StereoCalibrator::calibrate()
 
     Size imageSize = validPairs[1].first.size();
 
-    vector<vector<Point3f>> objectPoints;
-
-    imagePoints1.resize(validPairs.size());
-    imagePoints2.resize(validPairs.size());
-    objectPoints.resize(validPairs.size());
-
-    for (unsigned int i = 0; i < validPairs.size(); i++)
+    for(unsigned int i = 0; i < imagePoints1.size(); i++)
     {
-        for (int j = 0; j < boardSize.height; j++)
+        vector<Point2d> v1, v2;
+        for (unsigned int j = 0; j < imagePoints1[i].size(); j++)
         {
-            for (int k = 0; k < boardSize.width; k++)
-            {
-                objectPoints[i].push_back(Point3f(k*squareSize,
-                                                 j*squareSize, 0));
-            }
+            v1.push_back(Point2d(static_cast<double>(imagePoints1[i][j].x),
+                                 static_cast<double>(imagePoints1[i][j].y))
+                        );
+            v2.push_back(Point2d(static_cast<double>(imagePoints2[i][j].x),
+                                 static_cast<double>(imagePoints2[i][j].y))
+                        );
         }
+        leftImgPoints.push_back(v1);
+        rightImgPoints.push_back(v2);
     }
 
     ROS_INFO_STREAM("Running stereo calibration");
 
     Mat cameraMatrix[2], distCoeffs[2];
-    
+
     ROS_INFO_STREAM("Image points 1 size: " << imagePoints1.size());
+    //ROS_INFO_STREAM("Image points 1 total: " << imagePoints1.total());
+    ROS_INFO_STREAM("Image points 2 size: " << imagePoints2.size());
+    //ROS_INFO_STREAM("Image points 2 total: " << imagePoints2.total());
+    ROS_INFO_STREAM("Left image points size: " << leftImgPoints.size());
+    ROS_INFO_STREAM("Right image points size: " << rightImgPoints.size());
+
     for (unsigned int i = 0; i < imagePoints1.size(); i++)
     {
-        ROS_INFO_STREAM("Image points 1 [" << i << "] size: " << imagePoints1[i].size());
+        ROS_INFO_STREAM("Image points 1 [" << i << "] size: " <<
+                        imagePoints1[i].size());
     }
     ROS_INFO_STREAM("Object points size: " << objectPoints.size());
+    ROS_INFO_STREAM("Object points type: " << Mat(objectPoints).type());
+    ROS_INFO_STREAM("CV_64FC3: " << CV_64FC3);
+    //ROS_INFO_STREAM("Object points total: " << objectPoints.total());
     for (unsigned int i = 0; i < objectPoints.size(); i++)
     {
-        ROS_INFO_STREAM("Object points [" << i << "] size: " << objectPoints[i].size());
+        ROS_INFO_STREAM("Object points [" << i << "] size: " <<
+                        objectPoints[i].size());
     }
-    //ROS_INFO_STREAM("Image points 2 check vector: " << imagePoints2.getMat(0).checkVector(2, CV_32F));
-    cameraMatrix[0] = initCameraMatrix2D(objectPoints, imagePoints1,
+    //ROS_INFO_STREAM("Image points 2 check vector: " <<
+    //                imagePoints2.getMat(0).checkVector(2, CV_32F));
+    cameraMatrix[0] = initCameraMatrix2D(objectPointsf, imagePoints1,
                                          imageSize, 0);
     ROS_INFO_STREAM("Created cameraMatrix 0? " << !cameraMatrix[0].empty());
-    cameraMatrix[1] = initCameraMatrix2D(objectPoints, imagePoints2,
+    cameraMatrix[1] = initCameraMatrix2D(objectPointsf, imagePoints2,
                                          imageSize, 0);
 
     ROS_INFO_STREAM("Distortion coeffs 1 empty? " << distCoeffs[0].empty());
@@ -142,9 +138,15 @@ void StereoCalibrator::calibrate()
 
     ROS_INFO_STREAM("Distortion coeffs 2 empty? " << distCoeffs[1].empty());
 
+    int flag = 0;
+    flag |= fisheye::CALIB_USE_INTRINSIC_GUESS;
+    flag |= fisheye::CALIB_RECOMPUTE_EXTRINSIC;
+    flag |= fisheye::CALIB_CHECK_COND;
+    flag |= fisheye::CALIB_FIX_SKEW;
+
     Mat R, T, E, F;
     ROS_INFO_STREAM("Using image size of: " << imageSize);
-    double rms = stereoCalibrate(objectPoints, imagePoints1, imagePoints2,
+    /*double rms = stereoCalibrate(objectPoints, imagePoints1, imagePoints2,
                                  cameraMatrix[0], distCoeffs[0],
                                  cameraMatrix[1], distCoeffs[1],
                                  imageSize, R, T, E, F,
@@ -155,15 +157,18 @@ void StereoCalibrator::calibrate()
                                  CALIB_RATIONAL_MODEL +
                                  CALIB_FIX_K3 + CALIB_FIX_K4,
                                  TermCriteria(TermCriteria::COUNT +
-                                             TermCriteria::EPS, 100, 1e-5));
+                                             TermCriteria::EPS, 100, 1e-5));*/
 
-    /*double rms = fisheye::stereoCalibrate(objectPoints, imagePoints1,
-                                          imagePoints2, cameraMatrix[0],
+    double rms = fisheye::stereoCalibrate(objectPoints, leftImgPoints,
+                                          rightImgPoints, cameraMatrix[0],
                                           distCoeffs[0], cameraMatrix[1],
-                                          distCoeffs[1], imageSize, R, T);
-    */
+                                          distCoeffs[1], imageSize, R, T,
+                                          flag, TermCriteria(3, 12, 0));
+
     ROS_INFO_STREAM("Calibrated with RMS error of: " << rms);
 
+    F = findFundamentalMat(imagePoints1[0], imagePoints1[1]);
+    E = findEssentialMat(imagePoints1[0], imagePoints1[1]);
 
     //Calibration Quality Check
     double err = 0;
@@ -177,10 +182,10 @@ void StereoCalibrator::calibrate()
 
         imgpt1 = Mat(imagePoints1[i]);
         imgpt2 = Mat(imagePoints2[i]);
-        undistortPoints(imgpt1, imgpt1, cameraMatrix[0], distCoeffs[0],
-                        Mat(), cameraMatrix[0]);
-        undistortPoints(imgpt2, imgpt2, cameraMatrix[1], distCoeffs[1],
-                        Mat(), cameraMatrix[1]);
+        fisheye::undistortPoints(imgpt1, imgpt1, cameraMatrix[0], distCoeffs[0],
+                                 Mat(), cameraMatrix[0]);
+        fisheye::undistortPoints(imgpt2, imgpt2, cameraMatrix[1], distCoeffs[1],
+                                 Mat(), cameraMatrix[1]);
         computeCorrespondEpilines(imgpt1, 1, F, lines[0]);
         computeCorrespondEpilines(imgpt2, 2, F, lines[1]);
 
@@ -207,11 +212,18 @@ void StereoCalibrator::calibrate()
     Mat R1, R2, P1, P2, Q;
     Rect validRoi[2];
 
-    stereoRectify(cameraMatrix[0], distCoeffs[0],
+    /*stereoRectify(cameraMatrix[0], distCoeffs[0],
                   cameraMatrix[1], distCoeffs[1],
                   imageSize, R, T, R1, R2, P1, P2, Q,
                   CALIB_ZERO_DISPARITY, 1, imageSize,
-                  &validRoi[0], &validRoi[1]);
+                  &validRoi[0], &validRoi[1]);*/
+    
+    fisheye::stereoRectify(cameraMatrix[0], distCoeffs[0],
+                  cameraMatrix[1], distCoeffs[1],
+                  imageSize, R, T, R1, R2, P1, P2, Q,
+                  CALIB_ZERO_DISPARITY, imageSize, 1);
+   
+    ROS_INFO_STREAM("Completed rectification.");
 
     saveExtrinsics(R, T, R1, R2, P1, P2, Q);
 
@@ -235,7 +247,7 @@ void StereoCalibrator::calibrate()
             std::copy(imagePoints2[i].begin(), imagePoints2[i].end(),
                       back_inserter(allimgpt[1]));
         }
-        
+
         Mat F = findFundamentalMat(Mat(allimgpt[0]), Mat(allimgpt[1]),
                                    FM_8POINT, 0, 0);
         Mat H1, H2;
@@ -248,10 +260,12 @@ void StereoCalibrator::calibrate()
         P2 = cameraMatrix[1];
     }
 
-    initUndistortRectifyMap(cameraMatrix[0], distCoeffs[0], R1, P1, imageSize,
-                            CV_16SC2, rmap[0][0], rmap[0][1]);
-    initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2, imageSize,
-                            CV_16SC2, rmap[1][0], rmap[1][1]);
+    fisheye::initUndistortRectifyMap(cameraMatrix[0], distCoeffs[0], R1, P1,
+                                     imageSize, CV_16SC2, rmap[0][0],
+                                     rmap[0][1]);
+    fisheye::initUndistortRectifyMap(cameraMatrix[1], distCoeffs[1], R2, P2,
+                                     imageSize, CV_16SC2, rmap[1][0],
+                                     rmap[1][1]);
 
     Mat canvas;
     double sf;
