@@ -22,6 +22,7 @@ ros::Publisher depth_data_pub("depth", &depth_msg);
 
 double cycle_delay = 0;
 float depth_offset = 0;
+float depths[4];
 
 void setup()
 {
@@ -56,9 +57,28 @@ void setup()
      * Initialize the depth sensors with the fluid density of
      * water (997 kg/m^3).
      */
-    mux.setChannel(Tca9545a::Channel::One);
-    depth_sensor[0].init();
+    if(mux.init(Tca9545a::Channel::One))
+    {
+        n.logwarn("Failed to initialize the I2C mux.");
+    }
+    else
+    {
+        n.loginfo("I2C mux initialized.");
+    }
+
+    const int ret = depth_sensor[0].init();
+    if (ret == 0)
+    {
+        n.loginfo("Depth sensor initialized.");
+    }
+    else
+    {
+        n.logwarn("Failed to initialize the depth sensor.");
+    }
+
     depth_sensor[0].setFluidDensity(997.0f);
+
+    /*
     mux.setChannel(Tca9545a::Channel::Two);
     depth_sensor[1].init();
     depth_sensor[1].setFluidDensity(997.0f);
@@ -68,6 +88,7 @@ void setup()
     mux.setChannel(Tca9545a::Channel::Four);
     depth_sensor[3].init();
     depth_sensor[3].setFluidDensity(997.0f);
+    */
 
     /*
      * Delay 500ms to ensure that the depth sensors have time to
@@ -75,7 +96,6 @@ void setup()
      * console that the depth sensors have initialized.
      */
     delay(500);
-    n.loginfo("Depth sensor initialized.");
 
     /*
      * Once the node is initialized, grab the depth rate if it is
@@ -113,16 +133,23 @@ void setup()
 
 void loop()
 {
-    float depths[4];
+    if (mux.setChannel(Tca9545a::Channel::One))
+    {
+        n.logwarn("Failed to set MUX channel.");
+    }
+    if (depth_sensor[0].read())
+    {
+        n.logwarn("Failed to read depth sensor.");
+    }
 
-    mux.setChannel(Tca9545a::Channel::One);
-    depth_sensor[0].read();
+    /*
     mux.setChannel(Tca9545a::Channel::Two);
     depth_sensor[1].read();
     mux.setChannel(Tca9545a::Channel::Three);
     depth_sensor[2].read();
     mux.setChannel(Tca9545a::Channel::Four);
     depth_sensor[3].read();
+    */
 
     depth_msg.header.stamp = n.now();
     depth_msg.data = depths;
@@ -134,10 +161,11 @@ void loop()
      * and remove the depth sensor offset.
      */
     depths[0] = -1 * (depth_sensor[0].depth() + depth_offset);
-    depths[1] = -1 * (depth_sensor[1].depth() + depth_offset);
-    depths[2] = -1 * (depth_sensor[2].depth() + depth_offset);
-    depths[3] = -1 * (depth_sensor[3].depth() + depth_offset);
+    //depths[1] = -1 * (depth_sensor[1].depth() + depth_offset);
+    //depths[2] = -1 * (depth_sensor[2].depth() + depth_offset);
+    //depths[3] = -1 * (depth_sensor[3].depth() + depth_offset);
 
+    depth_data_pub.publish(&depth_msg);
     n.spinOnce();
     delay(cycle_delay);
 }

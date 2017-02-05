@@ -23,6 +23,7 @@ public:
     };
 
     Tca9545a(const int reset_pin, bool a0_high, bool a1_high) :
+        _current_channel(Channel::None),
         _reset_pin(reset_pin),
         _i2c_address(0b1110000 | ((a0_high)? 1 : 0) | ((a1_high)? 0b10 : 0))
     {

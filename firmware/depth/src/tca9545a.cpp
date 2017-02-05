@@ -6,12 +6,7 @@ int Tca9545a::init(Channel channel)
 
     reset();
 
-    if (setChannel(channel))
-    {
-        return -1;
-    }
-
-    return 0;
+    return setChannel(channel);
 }
 
 /**
