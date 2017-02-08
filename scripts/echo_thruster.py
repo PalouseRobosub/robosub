@@ -33,7 +33,7 @@ if __name__ == "__main__":
     global names, pub
 
     # Get the thruster names from the parameter server
-    names = rospy.get_param('thrusters')
+    names = rospy.get_param('thrusters/mapping')
 
     # Declare and initialize the pub variable as a dictionary
     pub = {}
