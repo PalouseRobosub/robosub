@@ -100,7 +100,7 @@ namespace rs
             return -1;
         }
 
-        while(sent < num)
+        while(sent < num && ros::ok())
         {
             i = ::write(this->m_port_fd, buf, num);
             if (i < 0)
@@ -134,7 +134,7 @@ namespace rs
             return -1;
         }
 
-        while(i < num)
+        while(i < num && ros::ok())
         {
             /*
              * Wait for atleast one byte to be available before reading so that
