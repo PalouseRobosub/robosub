@@ -8,8 +8,11 @@ from robosub.msg import control
 class Node():
     def __init__(self):
         self.pub = rospy.Publisher('control', control, queue_size=1)
-        self.sub = rospy.Subscriber('vision_topic', visionPosArray, self.callback)
-        self.state = "SEARCHING"
+        self.sub = rospy.Subscriber('vision_topic', visionPosArray,
+                                    self.callback)
+        # state is just a string we print to the screen on every AI update so
+        # we can see what the AI is thinking
+        self.state = "BOOTUP"
 
     def callback(self, vision_result):
         msg = control()
@@ -37,12 +40,7 @@ class Node():
             error = -50 * (vision_result.data[0].magnitude - 0.012)
             msg.forward = error
 
-
         self.pub.publish(msg)
-
-
-
-
 
 if __name__ == "__main__":
     rospy.init_node('basic_buoy_follower')
