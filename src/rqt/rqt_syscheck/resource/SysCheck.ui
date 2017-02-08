@@ -1,31 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>SystemCheck</class>
+ <widget class="QWidget" name="SystemCheck">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>674</width>
+    <height>577</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>System Check</string>
   </property>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>150</y>
-     <width>56</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>It Works</string>
-   </property>
-  </widget>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="1">
+    <layout class="QVBoxLayout" name="thrusterButtons">
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+    </layout>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="thrusterLabel">
+     <property name="text">
+      <string>Thrusters</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
