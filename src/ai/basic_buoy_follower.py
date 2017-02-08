@@ -8,6 +8,8 @@ from robosub.msg import control
 class Node():
     def __init__(self):
         self.pub = rospy.Publisher('control', control, queue_size=1)
+        # we subscribe the the arbitrary "vision_topic" topic, when we use it
+        # it is designed to be remapped to an actual vision topic
         self.sub = rospy.Subscriber('vision_topic', visionPosArray,
                                     self.callback)
         # state is just a string we print to the screen on every AI update so
