@@ -31,16 +31,17 @@ class SysCheck(Plugin):
         self._widget.setObjectName('SysCheckUi')
 
         # Load in the thruster buttons and connect callbacks
-        self.thusterButtons = []
-        self.thruserCallbacks = {}
+        self.thrusterButtons = []
+        self.thrusterCallbacks = {}
         for i in range(0, len(self.names)):
-            self.thusterButtons.append(QPushButton(self.names[i]['name']))
-            self.thruserCallbacks[self.names[i]['name']] = \
-                getattr(self, '_handle_button' + str(i))
+            self.thrusterButtons.append(QPushButton(self.names[i]['name']))
+            self.thrusterButtons[i].setCheckable(True)
+            self.thrusterCallbacks[self.names[i]['name']] = \
+                getattr(self, '_handle_thruster' + str(i))
 
-            self.thusterButtons[i].clicked[bool].connect(
-                    self.thruserCallbacks[self.names[i]['name']])
-            self._widget.thrusterButtons.addWidget(self.thusterButtons[i])
+            self.thrusterButtons[i].toggled[bool].connect(
+                    self.thrusterCallbacks[self.names[i]['name']])
+            self._widget.thrusterButtons.addWidget(self.thrusterButtons[i])
 
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() +
@@ -68,19 +69,43 @@ class SysCheck(Plugin):
         # This will enable a setting button (gear icon) in each widget title bar
         # Usually used to open a modal configuration dialog
 
-    def _handle_button0(self):
-        print "Button0 pushed"
-    def _handle_button1(self):
-        print "Button1 pushed"
-    def _handle_button2(self):
-        print "Button2 pushed"
-    def _handle_button3(self):
-        print "Button3 pushed"
-    def _handle_button4(self):
-        print "Button4 pushed"
-    def _handle_button5(self):
-        print "Button5 pushed"
-    def _handle_button6(self):
-        print "Button6 pushed"
-    def _handle_button7(self):
-        print "Button7 pushed"
+    def _handle_thruster0(self, state):
+        if state:
+            print "thruster0(" + self.names[0]['name']  + ") pushed on"
+        else:
+            print "thruster0(" + self.names[0]['name'] + ") pushed off"
+    def _handle_thruster1(self, state):
+        if state:
+            print "thruster1(" + self.names[1]['name']  + ") pushed on"
+        else:
+            print "thruster1(" + self.names[1]['name'] + ") pushed off"
+    def _handle_thruster2(self, state):
+        if state:
+            print "thruster2(" + self.names[2]['name']  + ") pushed on"
+        else:
+            print "thruster2(" + self.names[2]['name'] + ") pushed off"
+    def _handle_thruster3(self, state):
+        if state:
+            print "thruster3(" + self.names[3]['name']  + ") pushed on"
+        else:
+            print "thruster3(" + self.names[3]['name'] + ") pushed off"
+    def _handle_thruster4(self, state):
+        if state:
+            print "thruster4(" + self.names[4]['name']  + ") pushed on"
+        else:
+            print "thruster4(" + self.names[4]['name'] + ") pushed off"
+    def _handle_thruster5(self, state):
+        if state:
+            print "thruster5(" + self.names[5]['name']  + ") pushed on"
+        else:
+            print "thruster5(" + self.names[5]['name'] + ") pushed off"
+    def _handle_thruster6(self, state):
+        if state:
+            print "thruster6(" + self.names[6]['name']  + ") pushed on"
+        else:
+            print "thruster6(" + self.names[6]['name'] + ") pushed off"
+    def _handle_thruster7(self, state):
+        if state:
+            print "thruster7(" + self.names[7]['name']  + ") pushed on"
+        else:
+            print "thruster7(" + self.names[7]['name'] + ") pushed off"
