@@ -19,8 +19,10 @@ class SysCheck(Plugin):
 
         self.names = rospy.get_param('thrusters/mapping')
         self.pub = rospy.Publisher('thruster', thruster, queue_size=1)
-        rospy.Subscriber('depth', Float32Stamped, self.depthSubCallback, queue_size=1)
-        rospy.Subscriber('orientation', QuaternionStampedAccuracy, self.imuSubCallback, queue_size=1)
+        rospy.Subscriber('depth', Float32Stamped, self.depthSubCallback,
+                         queue_size=1)
+        rospy.Subscriber('orientation', QuaternionStampedAccuracy,
+                         self.imuSubCallback, queue_size=1)
         self.thrusterMessage = thruster()
         rospy.Timer(rospy.Duration(1), self.sendMessage)
 
@@ -105,52 +107,61 @@ class SysCheck(Plugin):
         self._widget.depthData.insertPlainText("{}\n".format(m))
         self.depthTimer = rospy.Timer(rospy.Duration(1), self.depthMissed)
 
-    def sendMessage(self,e):
+    def sendMessage(self, e):
         self.pub.publish(self.thrusterMessage)
 
     def _handle_thruster0(self, state):
         if state:
-            self.thrusterMessage.data[0] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[0] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[0] = 0
     def _handle_thruster1(self, state):
         if state:
-            self.thrusterMessage.data[1] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[1] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[1] = 0
     def _handle_thruster2(self, state):
         if state:
-            self.thrusterMessage.data[2] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[2] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[2] = 0
     def _handle_thruster3(self, state):
         if state:
-            self.thrusterMessage.data[3] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[3] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[3] = 0
     def _handle_thruster4(self, state):
         if state:
-            self.thrusterMessage.data[4] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[4] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[4] = 0
     def _handle_thruster5(self, state):
         if state:
-            self.thrusterMessage.data[5] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[5] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[5] = 0
     def _handle_thruster6(self, state):
         if state:
-            self.thrusterMessage.data[6] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[6] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[6] = 0
     def _handle_thruster7(self, state):
         if state:
-            self.thrusterMessage.data[7] = 0.01 * self._widget.thrusterSpeed.value()
+            self.thrusterMessage.data[7] = 0.01 * \
+                                           self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[7] = 0
 
     def updateSpeed(self, value):
-        self._widget.speedLabel.setText("Speed ({:+.2f})".format(float(value)/100))
+        self._widget.speedLabel.setText("Speed ({:+.2f})".format(
+                                        float(value)/100))
         for i in range(0, len(self.thrusterMessage.data)):
             if self.thrusterButtons[i].isChecked():
                 self.thrusterMessage.data[i] = float(value)/100
