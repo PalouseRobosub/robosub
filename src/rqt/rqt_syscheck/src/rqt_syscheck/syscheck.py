@@ -16,6 +16,9 @@ class SysCheck(Plugin):
         self.setObjectName('SysCheck')
 
         self.names = rospy.get_param('thrusters/mapping')
+        self.pub = rospy.Publisher('thruster', thruster, queue_size=1)
+        self.thrusterMessage = thruster()
+        rospy.Timer(rospy.Duration(1), self.sendMessage)
 
         # Create QWidget
         self._widget = QWidget()
@@ -30,6 +33,8 @@ class SysCheck(Plugin):
         # Give QObjects reasonable names
         self._widget.setObjectName('SysCheckUi')
 
+        self._widget.thrusterSpeed.valueChanged[int].connect(self.updateSpeed)
+
         # Load in the thruster buttons and connect callbacks
         self.thrusterButtons = []
         self.thrusterCallbacks = {}
@@ -42,6 +47,7 @@ class SysCheck(Plugin):
             self.thrusterButtons[i].toggled[bool].connect(
                     self.thrusterCallbacks[self.names[i]['name']])
             self._widget.thrusterButtons.addWidget(self.thrusterButtons[i])
+            self.thrusterMessage.data.append(0)
 
         if context.serial_number() > 1:
             self._widget.setWindowTitle(self._widget.windowTitle() +
@@ -69,43 +75,84 @@ class SysCheck(Plugin):
         # This will enable a setting button (gear icon) in each widget title bar
         # Usually used to open a modal configuration dialog
 
+    def sendMessage(self,event):
+        self.pub.publish(self.thrusterMessage)
+
     def _handle_thruster0(self, state):
         if state:
             print "thruster0(" + self.names[0]['name']  + ") pushed on"
+            self.thrusterMessage.data[0] = self._widget.thrusterSpeed.value()
         else:
             print "thruster0(" + self.names[0]['name'] + ") pushed off"
+            self.thrusterMessage.data[0] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
     def _handle_thruster1(self, state):
         if state:
             print "thruster1(" + self.names[1]['name']  + ") pushed on"
+            self.thrusterMessage.data[1] = self._widget.thrusterSpeed.value()
         else:
             print "thruster1(" + self.names[1]['name'] + ") pushed off"
+            self.thrusterMessage.data[1] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
     def _handle_thruster2(self, state):
         if state:
             print "thruster2(" + self.names[2]['name']  + ") pushed on"
+            self.thrusterMessage.data[2] = self._widget.thrusterSpeed.value()
         else:
             print "thruster2(" + self.names[2]['name'] + ") pushed off"
+            self.thrusterMessage.data[2] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
     def _handle_thruster3(self, state):
         if state:
             print "thruster3(" + self.names[3]['name']  + ") pushed on"
+            self.thrusterMessage.data[3] = self._widget.thrusterSpeed.value()
         else:
             print "thruster3(" + self.names[3]['name'] + ") pushed off"
+            self.thrusterMessage.data[3] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
     def _handle_thruster4(self, state):
         if state:
             print "thruster4(" + self.names[4]['name']  + ") pushed on"
+            self.thrusterMessage.data[4] = self._widget.thrusterSpeed.value()
         else:
             print "thruster4(" + self.names[4]['name'] + ") pushed off"
+            self.thrusterMessage.data[4] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
     def _handle_thruster5(self, state):
         if state:
             print "thruster5(" + self.names[5]['name']  + ") pushed on"
+            self.thrusterMessage.data[5] = self._widget.thrusterSpeed.value()
         else:
             print "thruster5(" + self.names[5]['name'] + ") pushed off"
+            self.thrusterMessage.data[5] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
     def _handle_thruster6(self, state):
         if state:
             print "thruster6(" + self.names[6]['name']  + ") pushed on"
+            self.thrusterMessage.data[6] = self._widget.thrusterSpeed.value()
         else:
             print "thruster6(" + self.names[6]['name'] + ") pushed off"
+            self.thrusterMessage.data[6] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
     def _handle_thruster7(self, state):
         if state:
             print "thruster7(" + self.names[7]['name']  + ") pushed on"
+            self.thrusterMessage.data[7] = self._widget.thrusterSpeed.value()
         else:
             print "thruster7(" + self.names[7]['name'] + ") pushed off"
+            self.thrusterMessage.data[7] = 0
+        print "Thruster Message: "
+        print self.thrusterMessage.data
+
+    def updateSpeed(self, value):
+        self._widget.speedLabel.setText("Speed ({:+.2f})".format(float(value)/100))
+        for i in range(0, len(self.thrusterMessage.data)):
+            if self.thrusterButtons[i].isChecked():
+                self.thrusterMessage.data[i] = float(value)/100

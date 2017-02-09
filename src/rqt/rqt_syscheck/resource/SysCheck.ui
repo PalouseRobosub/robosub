@@ -28,6 +28,38 @@
      </property>
     </widget>
    </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="speedLabel">
+     <property name="text">
+      <string>Speed (+0.00)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QSlider" name="thrusterSpeed">
+     <property name="minimum">
+      <number>-100</number>
+     </property>
+     <property name="maximum">
+      <number>100</number>
+     </property>
+     <property name="pageStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="tickPosition">
+      <enum>QSlider::TicksBelow</enum>
+     </property>
+     <property name="tickInterval">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
