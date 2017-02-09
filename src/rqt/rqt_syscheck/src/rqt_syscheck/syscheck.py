@@ -7,6 +7,8 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtGui import QWidget, QPushButton
 
 from robosub.msg import thruster
+from robosub.msg import Float32Stamped
+from robosub.msg import QuaternionStampedAccuracy
 
 class SysCheck(Plugin):
 
@@ -17,8 +19,13 @@ class SysCheck(Plugin):
 
         self.names = rospy.get_param('thrusters/mapping')
         self.pub = rospy.Publisher('thruster', thruster, queue_size=1)
+        rospy.Subscriber('depth', Float32Stamped, self.depthSubCallback, queue_size=1)
+        rospy.Subscriber('orientation', QuaternionStampedAccuracy, self.imuSubCallback, queue_size=1)
         self.thrusterMessage = thruster()
         rospy.Timer(rospy.Duration(1), self.sendMessage)
+
+        self.depthTimer = rospy.Timer(rospy.Duration(1), self.depthMissed)
+        self.imuTimer = rospy.Timer(rospy.Duration(1), self.imuMissed)
 
         # Create QWidget
         self._widget = QWidget()
@@ -34,6 +41,9 @@ class SysCheck(Plugin):
         self._widget.setObjectName('SysCheckUi')
 
         self._widget.thrusterSpeed.valueChanged[int].connect(self.updateSpeed)
+
+        self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
+        self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
 
         # Load in the thruster buttons and connect callbacks
         self.thrusterButtons = []
@@ -74,6 +84,22 @@ class SysCheck(Plugin):
         # Comment in to signal that the plugin has a way to configure
         # This will enable a setting button (gear icon) in each widget title bar
         # Usually used to open a modal configuration dialog
+
+    def imuMissed(self, e):
+        self._widget.imuLabel.setStyleSheet("border:5px solid red;")
+
+    def imuSubCallback(self, m):
+        self.imuTimer.shutdown()
+        self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
+        self.imuTimer = rospy.Timer(rospy.Duration(1), self.imuMissed)
+
+    def depthMissed(self, e):
+        self._widget.depthLabel.setStyleSheet("border:5px solid red;")
+
+    def depthSubCallback(self, m):
+        self.depthTimer.shutdown()
+        self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
+        self.depthTimer = rospy.Timer(rospy.Duration(1), self.depthMissed)
 
     def sendMessage(self,event):
         self.pub.publish(self.thrusterMessage)
