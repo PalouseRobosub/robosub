@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>370</width>
-    <height>262</height>
+    <width>309</width>
+    <height>329</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,12 +64,24 @@
     </widget>
    </item>
    <item row="3" column="1">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QGridLayout" name="gridLayout" columnminimumwidth="150,150">
      <property name="bottomMargin">
       <number>0</number>
      </property>
-     <item>
+     <item row="0" column="0">
       <widget class="QLabel" name="depthLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>30</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true"/>
        </property>
@@ -81,13 +93,51 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QLabel" name="imuLabel">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>30</height>
+        </size>
+       </property>
        <property name="text">
         <string>IMU</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPlainTextEdit" name="depthData">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QPlainTextEdit" name="imuData">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

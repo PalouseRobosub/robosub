@@ -91,6 +91,8 @@ class SysCheck(Plugin):
     def imuSubCallback(self, m):
         self.imuTimer.shutdown()
         self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
+        self._widget.imuData.clear()
+        self._widget.imuData.insertPlainText("{}".format(m))
         self.imuTimer = rospy.Timer(rospy.Duration(1), self.imuMissed)
 
     def depthMissed(self, e):
@@ -99,9 +101,11 @@ class SysCheck(Plugin):
     def depthSubCallback(self, m):
         self.depthTimer.shutdown()
         self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
+        self._widget.depthData.clear()
+        self._widget.depthData.insertPlainText("{}\n".format(m))
         self.depthTimer = rospy.Timer(rospy.Duration(1), self.depthMissed)
 
-    def sendMessage(self,event):
+    def sendMessage(self,e):
         self.pub.publish(self.thrusterMessage)
 
     def _handle_thruster0(self, state):
