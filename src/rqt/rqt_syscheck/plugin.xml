@@ -1,16 +1,17 @@
 <library path="src">
   <class name="SysCheck" type="rqt_syscheck.syscheck.SysCheck" base_class_type="rqt_gui_py::Plugin">
     <description>
-      An example Python GUI plugin to create a great user interface.
+        A Python GUI plugin for sending values to the thrusters
     </description>
     <qtgui>
       <group>
-        <label>Logging</label>
+        <label>RoboSub</label>
         <icon type="theme">folder</icon>
+        <statustip>Palouse RoboSub Plugins</statustip>
       </group>
-      <label>SysCheck</label>
-      <icon type="theme">system-help</icon>
-      <statustip>Great user interface to provide real value.</statustip>
+      <label>System Check</label>
+      <icon type="theme">applications-engineering</icon>
+      <statustip>Useful tool for quickly checking the electro-mechanical systems for the sub</statustip>
     </qtgui>
   </class>
 </library>

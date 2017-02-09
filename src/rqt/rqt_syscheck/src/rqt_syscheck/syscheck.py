@@ -80,76 +80,44 @@ class SysCheck(Plugin):
 
     def _handle_thruster0(self, state):
         if state:
-            print "thruster0(" + self.names[0]['name']  + ") pushed on"
             self.thrusterMessage.data[0] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster0(" + self.names[0]['name'] + ") pushed off"
             self.thrusterMessage.data[0] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
     def _handle_thruster1(self, state):
         if state:
-            print "thruster1(" + self.names[1]['name']  + ") pushed on"
             self.thrusterMessage.data[1] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster1(" + self.names[1]['name'] + ") pushed off"
             self.thrusterMessage.data[1] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
     def _handle_thruster2(self, state):
         if state:
-            print "thruster2(" + self.names[2]['name']  + ") pushed on"
             self.thrusterMessage.data[2] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster2(" + self.names[2]['name'] + ") pushed off"
             self.thrusterMessage.data[2] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
     def _handle_thruster3(self, state):
         if state:
-            print "thruster3(" + self.names[3]['name']  + ") pushed on"
             self.thrusterMessage.data[3] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster3(" + self.names[3]['name'] + ") pushed off"
             self.thrusterMessage.data[3] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
     def _handle_thruster4(self, state):
         if state:
-            print "thruster4(" + self.names[4]['name']  + ") pushed on"
             self.thrusterMessage.data[4] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster4(" + self.names[4]['name'] + ") pushed off"
             self.thrusterMessage.data[4] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
     def _handle_thruster5(self, state):
         if state:
-            print "thruster5(" + self.names[5]['name']  + ") pushed on"
             self.thrusterMessage.data[5] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster5(" + self.names[5]['name'] + ") pushed off"
             self.thrusterMessage.data[5] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
     def _handle_thruster6(self, state):
         if state:
-            print "thruster6(" + self.names[6]['name']  + ") pushed on"
             self.thrusterMessage.data[6] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster6(" + self.names[6]['name'] + ") pushed off"
             self.thrusterMessage.data[6] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
     def _handle_thruster7(self, state):
         if state:
-            print "thruster7(" + self.names[7]['name']  + ") pushed on"
             self.thrusterMessage.data[7] = 0.01 * self._widget.thrusterSpeed.value()
         else:
-            print "thruster7(" + self.names[7]['name'] + ") pushed off"
             self.thrusterMessage.data[7] = 0
-        print "Thruster Message: "
-        print self.thrusterMessage.data
 
     def updateSpeed(self, value):
         self._widget.speedLabel.setText("Speed ({:+.2f})".format(float(value)/100))
