@@ -17,6 +17,9 @@ class SysCheck(Plugin):
         # Give QObjects reasonable names
         self.setObjectName('SysCheck')
 
+        self.d = 0
+        self.i = 0
+
         self.names = rospy.get_param('thrusters/mapping')
         self.pub = rospy.Publisher('thruster', thruster, queue_size=1)
         rospy.Subscriber('depth', Float32Stamped, self.depthSubCallback,
@@ -92,9 +95,12 @@ class SysCheck(Plugin):
 
     def imuSubCallback(self, m):
         self.imuTimer.shutdown()
-        self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
-        self._widget.imuData.clear()
-        self._widget.imuData.insertPlainText("{}".format(m))
+        if self.i > 5:
+            self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
+            self._widget.imuData.clear()
+            self._widget.imuData.insertPlainText("{}".format(m))
+            self.i = 0
+        self.i = self.i + 1
         self.imuTimer = rospy.Timer(rospy.Duration(1), self.imuMissed)
 
     def depthMissed(self, e):
@@ -102,9 +108,12 @@ class SysCheck(Plugin):
 
     def depthSubCallback(self, m):
         self.depthTimer.shutdown()
-        self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
-        self._widget.depthData.clear()
-        self._widget.depthData.insertPlainText("{}\n".format(m))
+        if self.d > 5:
+            self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
+            self._widget.depthData.clear()
+            self._widget.depthData.insertPlainText("{}\n".format(m))
+            self.d = 0
+        self.d = self.d + 1
         self.depthTimer = rospy.Timer(rospy.Duration(1), self.depthMissed)
 
     def sendMessage(self, e):
