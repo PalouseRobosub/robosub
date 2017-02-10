@@ -5,6 +5,7 @@ import rospkg
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtGui import QWidget, QPushButton
+from python_qt_binding.QtCore import QTimer
 
 from robosub.msg import thruster
 from robosub.msg import Float32Stamped
@@ -29,8 +30,14 @@ class SysCheck(Plugin):
         self.thrusterMessage = thruster()
         rospy.Timer(rospy.Duration(1), self.sendMessage)
 
-        self.depthTimer = rospy.Timer(rospy.Duration(1), self.depthMissed)
-        self.imuTimer = rospy.Timer(rospy.Duration(1), self.imuMissed)
+        self.depthTimer = QTimer(self)
+        self.imuTimer = QTimer(self)
+
+        self.depthTimer.timeout.connect(self.depthMissed)
+        self.imuTimer.timeout.connect(self.imuMissed)
+
+        self.depthTimer.start(1000)
+        self.imuTimer.start(1000)
 
         # Create QWidget
         self._widget = QWidget()
@@ -85,36 +92,31 @@ class SysCheck(Plugin):
         # v = instance_settings.value(k)
         pass
 
-    # def trigger_configuration(self):
-        # Comment in to signal that the plugin has a way to configure
-        # This will enable a setting button (gear icon) in each widget title bar
-        # Usually used to open a modal configuration dialog
-
-    def imuMissed(self, e):
+    def imuMissed(self):
         self._widget.imuLabel.setStyleSheet("border:5px solid red;")
 
     def imuSubCallback(self, m):
         if self.i > 5:
-            self.imuTimer.shutdown()
+            self.imuTimer.stop()
             self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
             self._widget.imuData.clear()
             self._widget.imuData.insertPlainText("{}".format(m))
             self.i = 0
-            self.imuTimer = rospy.Timer(rospy.Duration(1), self.imuMissed)
+            self.imuTimer.start(1000)
         self.i = self.i + 1
 
-    def depthMissed(self, e):
+    def depthMissed(self):
         self._widget.depthLabel.setStyleSheet("border:5px solid red;")
 
     def depthSubCallback(self, m):
-        if self.d > 5:
-            self.depthTimer.shutdown()
-            self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
-            self._widget.depthData.clear()
-            self._widget.depthData.insertPlainText("{}\n".format(m))
-            self.d = 0
-            self.depthTimer = rospy.Timer(rospy.Duration(1), self.depthMissed)
-        self.d = self.d + 1
+        # if self.d > 5:
+        self.depthTimer.stop()
+        self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
+        self._widget.depthData.clear()
+        self._widget.depthData.insertPlainText("{}\n".format(m))
+        # self.d = 0
+        self.depthTimer.start(1000)
+        # self.d = self.d + 1
 
     def sendMessage(self, e):
         self.pub.publish(self.thrusterMessage)
