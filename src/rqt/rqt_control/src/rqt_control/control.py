@@ -9,7 +9,7 @@ from python_qt_binding.QtCore import QTimer
 from python_qt_binding.QtGui import QWidget
 from rqt_topic.topic_info import TopicInfo
 
-from robosub.msg import control
+from robosub.msg import control, control_status
 
 state_types = {
     0: "NONE",
@@ -46,12 +46,32 @@ class Control(Plugin):
         context.add_widget(self._widget)
 
         rospy.Subscriber('control', control, self.control_callback, queue_size=1)
+        rospy.Subscriber('control_status', control_status, self.control_status_callback, queue_size=1)
 
         self.controlInfo = TopicInfo('control', 'robosub/control')
         self.controlInfo.start_monitoring()
         self._timer = QTimer(self)
-        self._timer.timeout.connect(self.update_control_topic_data)
+        self._timer.timeout.connect(self.control_missed)
         self._timer.start(1000)
+
+    def control_missed(self):
+        pass
+
+    def control_status_callback(self, m):
+        # Set the states
+        self._widget.forwardStatusState.setText(m.forward_state)
+        self._widget.strafeStatusState.setText(m.strafe_left_state)
+        self._widget.diveStatusState.setText(m.dive_state)
+        self._widget.rollStatusState.setText(m.roll_right_state)
+        self._widget.pitchStatusState.setText(m.pitch_down_state)
+        self._widget.yawStatusState.setText(m.yaw_left_state)
+
+        self._widget.forwardGoal.setText(str(m.forward_goal))
+        self._widget.strafeGoal.setText(str(m.strafe_left_goal))
+        self._widget.diveGoal.setText(str(m.dive_goal))
+        self._widget.rollGoal.setText(str(m.roll_right_goal))
+        self._widget.pitchGoal.setText(str(m.pitch_down_goal))
+        self._widget.yawGoal.setText(str(m.yaw_left_goal))
 
     def control_callback(self, m):
         # Set the states
@@ -82,12 +102,4 @@ class Control(Plugin):
         # TODO restore intrinsic configuration, usually using:
         # v = instance_settings.value(k)
         pass
-
-    def update_control_topic_data(self):
-        rate, _, _, _ = self.controlInfo.get_hz()
-        print rate
-        if rate is not None:
-            self._widget.freq.setValue(rate)
-        else:
-            self._widget.freq.setValue(0)
 
