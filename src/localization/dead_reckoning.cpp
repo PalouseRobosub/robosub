@@ -16,7 +16,7 @@ int main(int argc, char **argv)
         nh.advertiseService("localization/reset_kalman_filter",
                             &LinAccelKalmanFilter::reset, &kfilter);
 
-    ros::Subscriber accel_sub = nh.subscribe("rs_lin_accel_data", 1,
+    ros::Subscriber accel_sub = nh.subscribe("acceleration/linear", 1,
                                &LinAccelKalmanFilter::InputLinAccel, &kfilter);
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
                             &LinAccelKalmanFilter::InputOrientation, &kfilter);

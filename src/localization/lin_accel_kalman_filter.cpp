@@ -130,10 +130,10 @@ void LinAccelKalmanFilter::InputOrientation(const
     orientation_initialized = true;
 }
 
-void LinAccelKalmanFilter::InputDepth(const robosub::depth_stamped::ConstPtr
+void LinAccelKalmanFilter::InputDepth(const robosub::Float32Stamped::ConstPtr
                                       &msg)
 {
-    depth = msg->depth;
+    depth = msg->data;
 
     depth_initialized = true;
 }

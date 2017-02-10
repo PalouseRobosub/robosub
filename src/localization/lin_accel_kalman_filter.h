@@ -14,7 +14,7 @@
 
 #include "robosub/QuaternionStampedAccuracy.h"
 #include "robosub/Float32ArrayStamped.h"
-#include "robosub/depth_stamped.h"
+#include "robosub/Float32Stamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Empty.h"
 
@@ -82,7 +82,7 @@ public:
     void InputLinAccel(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputOrientation(
         const robosub::QuaternionStampedAccuracy::ConstPtr &msg);
-    void InputDepth(const robosub::depth_stamped::ConstPtr &msg);
+    void InputDepth(const robosub::Float32Stamped::ConstPtr &msg);
 
 private:
     void initialize();
