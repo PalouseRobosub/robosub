@@ -60,5 +60,6 @@
   <export>
     <!-- Other tools can request additional information be placed here -->
     <rqt_gui plugin="${prefix}/src/rqt/rqt_syscheck/plugin.xml"/>
+    <rqt_gui plugin="${prefix}/src/rqt/rqt_control/plugin.xml"/>
   </export>
 </package>

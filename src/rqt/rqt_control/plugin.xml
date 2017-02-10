@@ -1,0 +1,17 @@
+<library path="src">
+  <class name="Control" type="rqt_control.control.Control" base_class_type="rqt_gui_py::Plugin">
+    <description>
+        A Python GUI plugin for sending values to the thrusters
+    </description>
+    <qtgui>
+      <group>
+        <label>RoboSub</label>
+        <icon type="theme">folder</icon>
+        <statustip>Palouse RoboSub Plugins</statustip>
+      </group>
+      <label>Control</label>
+      <icon type="theme">applications-engineering</icon>
+      <statustip></statustip>
+    </qtgui>
+  </class>
+</library>
