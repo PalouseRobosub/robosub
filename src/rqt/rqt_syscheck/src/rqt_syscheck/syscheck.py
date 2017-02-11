@@ -129,6 +129,13 @@ class SysCheck(Plugin):
     def shutdown_plugin(self):
         # Unregister the thruster publisher
         self.pub.unregister()
+        self.sendTimer.stop()
+        try:
+            self.paramTimer.stop()
+        except AttributeError:
+            pass
+        self.imuTimer.stop()
+        self.depthTimer.stop()
 
     def save_settings(self, plugin_settings, instance_settings):
         # TODO save intrinsic configuration, usually using:

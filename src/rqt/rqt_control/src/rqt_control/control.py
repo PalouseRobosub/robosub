@@ -1,13 +1,11 @@
 import os
 import rospy
 import rospkg
-from rostopic import ROSTopicHz
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QTimer
 from python_qt_binding.QtGui import QWidget
-from rqt_topic.topic_info import TopicInfo
 
 from robosub.msg import control, control_status
 
@@ -48,16 +46,41 @@ class Control(Plugin):
         rospy.Subscriber('control', control, self.control_callback, queue_size=1)
         rospy.Subscriber('control_status', control_status, self.control_status_callback, queue_size=1)
 
-        self.controlInfo = TopicInfo('control', 'robosub/control')
-        self.controlInfo.start_monitoring()
-        self._timer = QTimer(self)
-        self._timer.timeout.connect(self.control_missed)
-        self._timer.start(1000)
+        self.control_timer = QTimer(self)
+        self.control_timer.timeout.connect(self.control_missed)
+        self.control_timer.start(1000)
+
+        self.control_status_timer = QTimer(self)
+        self.control_status_timer.timeout.connect(self.control_status_missed)
+        self.control_status_timer.start(1000)
 
     def control_missed(self):
-        pass
+        self._widget.controlBox.setStyleSheet(
+                "QGroupBox{padding: 10px;border: 1px solid gray;" +
+                "background-color: red;}" +
+                "QGroupBox::title{" +
+                "subcontrol-position: top left; padding: -6 2px;" +
+                " background-color: transparent;}"
+        )
+
+    def control_status_missed(self):
+        self._widget.statusBox.setStyleSheet(
+                "QGroupBox{padding: 10px;border: 1px solid gray;" +
+                "background-color: red;}" +
+                "QGroupBox::title{" +
+                "subcontrol-position: top left; padding: -6 2px;" +
+                " background-color: transparent;}"
+        )
 
     def control_status_callback(self, m):
+        self.control_status_timer.stop()
+        self._widget.statusBox.setStyleSheet(
+                "QGroupBox{padding: 10px;border: 1px solid gray;" +
+                "background-color: transparent;}" +
+                "QGroupBox::title{" +
+                "subcontrol-position: top left; padding: -6 2px;" +
+                " background-color: transparent;}"
+        )
         # Set the states
         self._widget.forwardStatusState.setText(m.forward_state)
         self._widget.strafeStatusState.setText(m.strafe_left_state)
@@ -72,8 +95,17 @@ class Control(Plugin):
         self._widget.rollGoal.setText(str(m.roll_right_goal))
         self._widget.pitchGoal.setText(str(m.pitch_down_goal))
         self._widget.yawGoal.setText(str(m.yaw_left_goal))
+        self.control_status_timer.start(1000)
 
     def control_callback(self, m):
+        self.control_timer.stop()
+        self._widget.controlBox.setStyleSheet(
+                "QGroupBox{padding: 10px;border: 1px solid gray;" +
+                "background-color: transparent;}" +
+                "QGroupBox::title{" +
+                "subcontrol-position: top left; padding: -6 2px;" +
+                "background-color: transparent;}"
+        )
         # Set the states
         self._widget.forwardState.setText(state_types[m.forward_state])
         self._widget.strafeState.setText(state_types[m.strafe_state])
@@ -88,10 +120,11 @@ class Control(Plugin):
         self._widget.rollValue.setText(str(m.roll_right))
         self._widget.pitchValue.setText(str(m.pitch_down))
         self._widget.yawValue.setText(str(m.yaw_left))
+        self.control_timer.start(1000)
 
     def shutdown_plugin(self):
-        # TODO unregister all publishers here
-        pass
+        self.control_timer.stop()
+        self.control_status_timer.stop()
 
     def save_settings(self, plugin_settings, instance_settings):
         # TODO save intrinsic configuration, usually using:

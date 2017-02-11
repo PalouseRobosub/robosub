@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>501</width>
-    <height>273</height>
+    <width>526</width>
+    <height>270</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,17 +15,17 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="controlBox">
      <property name="minimumSize">
       <size>
        <width>250</width>
-       <height>0</height>
+       <height>250</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>250</width>
-       <height>16777215</height>
+       <height>250</height>
       </size>
      </property>
      <property name="font">
@@ -420,7 +420,25 @@ background-color: transparent;
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="statusBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>250</width>
+       <height>250</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>250</width>
+       <height>250</height>
+      </size>
+     </property>
      <property name="font">
       <font>
        <weight>75</weight>
@@ -444,6 +462,31 @@ background-color: transparent;
       <string>Current Status</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <item row="8" column="2">
+       <widget class="QLineEdit" name="yawStatusState">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>75</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>NONE</string>
+        </property>
+       </widget>
+      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="strafeStatusLabel">
         <property name="minimumSize">
@@ -662,6 +705,12 @@ background-color: transparent;
       </item>
       <item row="0" column="4">
        <widget class="QLabel" name="label_4">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
          <string>Goal:</string>
         </property>
@@ -686,31 +735,6 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>Roll:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="2">
-       <widget class="QLineEdit" name="yawStatusState">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>75</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>75</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>NONE</string>
         </property>
        </widget>
       </item>
@@ -770,6 +794,12 @@ background-color: transparent;
       </item>
       <item row="0" column="2">
        <widget class="QLabel" name="label_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
          <string>State:</string>
         </property>
