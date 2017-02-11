@@ -43,12 +43,19 @@ class Control(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
-        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'), 'src/rqt/resource', 'robosub_logo.png')
+        self._widget.statusActive.hide()
+        self._widget.controlActive.hide()
+
+        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'),
+                                      'src/rqt/resource', 'robosub_logo.png')
         self.img = QImage(self.logo_file)
         self._widget.logoBox.setPixmap(QPixmap.fromImage(self.img))
 
-        self.con_sub = rospy.Subscriber('control', control, self.control_callback, queue_size=1)
-        self.cs_sub = rospy.Subscriber('control_status', control_status, self.control_status_callback, queue_size=1)
+        self.con_sub = rospy.Subscriber('control', control,
+                                        self.control_callback, queue_size=1)
+        self.cs_sub = rospy.Subscriber('control_status', control_status,
+                                       self.control_status_callback,
+                                       queue_size=1)
 
         self.control_timer = QTimer(self)
         self.control_timer.timeout.connect(self.control_missed)
@@ -59,37 +66,28 @@ class Control(Plugin):
         self.control_status_timer.start(1000)
 
     def control_missed(self):
-        self._widget.controlBox.setStyleSheet(
-                "QGroupBox{padding: 10px;border: 1px solid gray;" +
-                "background-color: red;}" +
-                "QGroupBox::title{" +
-                "subcontrol-position: top left; padding: -6 2px;" +
-                " background-color: transparent;}"
-        )
-        pass
+        if not self._widget.controlStale.isVisible():
+            self._widget.controlStale.show()
+        if self._widget.controlActive.isVisible():
+            self._widget.controlActive.hide()
 
     def control_status_missed(self):
-        self._widget.statusBox.setStyleSheet(
-                "QGroupBox{padding: 10px;border: 1px solid gray;" +
-                "background-color: red;}" +
-                "QGroupBox::title{" +
-                "subcontrol-position: top left; padding: -6 2px;" +
-                " background-color: transparent;}"
-        )
-        pass
+        if not self._widget.statusStale.isVisible():
+            self._widget.statusStale.show()
+        if self._widget.statusActive.isVisible():
+            self._widget.statusActive.hide()
 
     def control_status_callback(self, m):
         try:
             self.control_status_timer.stop()
         except RuntimeError:
             pass
-        self._widget.statusBox.setStyleSheet(
-                "QGroupBox{padding: 10px;border: 1px solid gray;" +
-                "background-color: transparent;}" +
-                "QGroupBox::title{" +
-                "subcontrol-position: top left; padding: -6 2px;" +
-                " background-color: transparent;}"
-        )
+
+        if self._widget.statusStale.isVisible():
+            self._widget.statusStale.hide()
+        if not self._widget.statusActive.isVisible():
+            self._widget.statusActive.show()
+
         # Set the states
         self._widget.forwardStatusState.setText(m.forward_state)
         self._widget.strafeStatusState.setText(m.strafe_left_state)
@@ -111,13 +109,12 @@ class Control(Plugin):
             self.control_timer.stop()
         except RuntimeError:
             pass
-        self._widget.controlBox.setStyleSheet(
-                "QGroupBox{padding: 10px;border: 1px solid gray;" +
-                "background-color: transparent;}" +
-                "QGroupBox::title{" +
-                "subcontrol-position: top left; padding: -6 2px;" +
-                "background-color: transparent;}"
-        )
+
+        if self._widget.controlStale.isVisible():
+            self._widget.controlStale.hide()
+        if not self._widget.controlActive.isVisible():
+            self._widget.controlActive.show()
+
         # Set the states
         self._widget.forwardState.setText(state_types[m.forward_state])
         self._widget.strafeState.setText(state_types[m.strafe_state])
@@ -149,4 +146,3 @@ class Control(Plugin):
         # TODO restore intrinsic configuration, usually using:
         # v = instance_settings.value(k)
         pass
-

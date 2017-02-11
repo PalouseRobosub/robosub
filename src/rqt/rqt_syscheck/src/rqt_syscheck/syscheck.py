@@ -6,7 +6,8 @@ import rospkg
 # Import Qt/rQt Modules
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QWidget, QPushButton, QGraphicsScene, QPixmap, QImage
+from python_qt_binding.QtGui import QWidget, QPushButton, QGraphicsScene, \
+                                    QPixmap, QImage
 from python_qt_binding.QtCore import QTimer
 
 # Import Messages
@@ -36,10 +37,11 @@ class SysCheck(Plugin):
         self.thrusterMessage = thruster()
 
         # Subscribe to the depth and orientation topics
-        rospy.Subscriber('depth', Float32Stamped, self.depthSubCallback,
-                         queue_size=1)
-        rospy.Subscriber('orientation', QuaternionStampedAccuracy,
-                         self.imuSubCallback, queue_size=1)
+        self.depth_sub = rospy.Subscriber('depth', Float32Stamped,
+                                          self.depthSubCallback, queue_size=1)
+        self.imu_sub = rospy.Subscriber('orientation',
+                                        QuaternionStampedAccuracy,
+                                        self.imuSubCallback, queue_size=1)
 
         # Initialize the timers
         self.depthTimer = QTimer(self)
@@ -74,19 +76,21 @@ class SysCheck(Plugin):
         self._widget.setObjectName('SysCheckUi')
 
         # Add RoboSub Logo to the GUI
-        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'), 'src/rqt/resource','robosub_logo.png')
+        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'),
+                                      'src/rqt/resource', 'robosub_logo.png')
         self.img = QImage(self.logo_file)
         self._widget.logoBox.setPixmap(QPixmap.fromImage(self.img))
+
+        # Hide the stale labels on init
+        self._widget.imuStale.hide()
+        self._widget.depthStale.hide()
 
         # Connect the valueChanged signal to our updateSpeed function
         self._widget.thrusterSpeed.valueChanged[int].connect(self.updateSpeed)
 
-        # Set default border
-        self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
-        self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
-
         # Load in the thruster buttons and connect callbacks
         self.thrusterButtons = []
+        self.thrusterScales = []
         self.thrusterCallbacks = {}
         self.loadThrusters()
 
@@ -118,8 +122,15 @@ class SysCheck(Plugin):
             # Add the button to the Ui
             self._widget.thrusterButtons.addWidget(self.thrusterButtons[i])
 
+
+            # Get the orientation
+            self.thrusterScales.append(0)
+            for v in self.names[i]['orientation'].values():
+                self.thrusterScales[i] = self.thrusterScales[i] + v
+
             # Append a value to the thruster message for this button
             self.thrusterMessage.data.append(0.0)
+        print self.thrusterScales
 
     def loadParam(self):
         try:
@@ -132,9 +143,14 @@ class SysCheck(Plugin):
             pass
 
     def shutdown_plugin(self):
-        # Unregister the thruster publisher
-        self.pub.unregister()
+        # Stop the send timer before unregistering the publisher
         self.sendTimer.stop()
+        # Unregister the thruster publisher and subscribers
+        self.pub.unregister()
+        self.depth_sub.unregister()
+        self.imu_sub.unregister()
+
+        # Stop the Other Timers
         try:
             self.paramTimer.stop()
         except AttributeError:
@@ -154,38 +170,42 @@ class SysCheck(Plugin):
 
     def imuMissed(self):
         # If an Imu message was not received by the time the timer fired
-        #   set the border to be red
-        self._widget.imuLabel.setStyleSheet("border:5px solid red;")
+        #   show the stale label and hide the active label
+        if not self._widget.imuStale.isVisible():
+            self._widget.imuStale.show()
+        if self._widget.imuActive.isVisible():
+            self._widget.imuActive.hide()
 
     def imuSubCallback(self, m):
         # Stop the imuTimer so it doesn't fire in this function
         self.imuTimer.stop()
 
-        # Reset the border to be green
-        self._widget.imuLabel.setStyleSheet("border: 5px solid green;")
-
-        # Update the message printing
-        self._widget.imuData.clear()
-        self._widget.imuData.insertPlainText("{}".format(m))
+        # Reset the active label hiding the stale label
+        if self._widget.imuStale.isVisible():
+            self._widget.imuStale.hide()
+        if not self._widget.imuActive.isVisible():
+            self._widget.imuActive.show()
 
         # Restart the timer
         self.imuTimer.start(1000)
 
     def depthMissed(self):
         # If an Depth message was not received by the time the timer fired
-        #   set the border to be red
-        self._widget.depthLabel.setStyleSheet("border:5px solid red;")
+        #   show the stale label and hide the active label
+        if not self._widget.depthStale.isVisible():
+            self._widget.depthStale.show()
+        if self._widget.depthActive.isVisible():
+            self._widget.depthActive.hide()
 
     def depthSubCallback(self, m):
         # Stop the imuTimer so it doesn't fire in this function
         self.depthTimer.stop()
 
-        # Reset the border to be green
-        self._widget.depthLabel.setStyleSheet("border: 5px solid green;")
-
-        # Update the message printing
-        self._widget.depthData.clear()
-        self._widget.depthData.insertPlainText("{}\n".format(m))
+        # Reset the active label hiding the stale label
+        if self._widget.depthStale.isVisible():
+            self._widget.depthStale.hide()
+        if not self._widget.depthActive.isVisible():
+            self._widget.depthActive.show()
 
         # Restart the timer
         self.depthTimer.start(1000)
@@ -204,7 +224,8 @@ class SysCheck(Plugin):
         for i in range(0, len(self.thrusterMessage.data)):
             # Check if the thruster is enabled
             if self.thrusterButtons[i].isChecked():
-                self.thrusterMessage.data[i] = float(value)/100
+                self.thrusterMessage.data[i] = self.thrusterScales[i] * \
+                                               float(value)/100
 
     '''
         The following functions handle updating the thruster message based on
@@ -212,56 +233,56 @@ class SysCheck(Plugin):
     '''
     def _handle_thruster0(self, state):
         if state:
-            self.thrusterMessage.data[0] = 0.01 * \
+            self.thrusterMessage.data[0] = 0.01 * self.thrusterScales[0] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[0] = 0
 
     def _handle_thruster1(self, state):
         if state:
-            self.thrusterMessage.data[1] = 0.01 * \
+            self.thrusterMessage.data[1] = 0.01 * self.thrusterScales[1] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[1] = 0
 
     def _handle_thruster2(self, state):
         if state:
-            self.thrusterMessage.data[2] = 0.01 * \
+            self.thrusterMessage.data[2] = 0.01 * self.thrusterScales[2] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[2] = 0
 
     def _handle_thruster3(self, state):
         if state:
-            self.thrusterMessage.data[3] = 0.01 * \
+            self.thrusterMessage.data[3] = 0.01 * self.thrusterScales[3] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[3] = 0
 
     def _handle_thruster4(self, state):
         if state:
-            self.thrusterMessage.data[4] = 0.01 * \
+            self.thrusterMessage.data[4] = 0.01 * self.thrusterScales[4] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[4] = 0
 
     def _handle_thruster5(self, state):
         if state:
-            self.thrusterMessage.data[5] = 0.01 * \
+            self.thrusterMessage.data[5] = 0.01 * self.thrusterScales[5] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[5] = 0
 
     def _handle_thruster6(self, state):
         if state:
-            self.thrusterMessage.data[6] = 0.01 * \
+            self.thrusterMessage.data[6] = 0.01 * self.thrusterScales[6] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[6] = 0
 
     def _handle_thruster7(self, state):
         if state:
-            self.thrusterMessage.data[7] = 0.01 * \
+            self.thrusterMessage.data[7] = 0.01 * self.thrusterScales[7] * \
                                            self._widget.thrusterSpeed.value()
         else:
             self.thrusterMessage.data[7] = 0
