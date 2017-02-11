@@ -6,7 +6,7 @@ import rospkg
 # Import Qt/rQt Modules
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QWidget, QPushButton
+from python_qt_binding.QtGui import QWidget, QPushButton, QGraphicsScene, QPixmap, QImage
 from python_qt_binding.QtCore import QTimer
 
 # Import Messages
@@ -22,6 +22,7 @@ class SysCheck(Plugin):
         # Set the name of the object
         #   (Usually should be the same as the class name)
         self.setObjectName('SysCheck')
+
 
         # Get the thruster parameters
         self.names = []
@@ -39,7 +40,6 @@ class SysCheck(Plugin):
                          queue_size=1)
         rospy.Subscriber('orientation', QuaternionStampedAccuracy,
                          self.imuSubCallback, queue_size=1)
-
 
         # Initialize the timers
         self.depthTimer = QTimer(self)
@@ -72,6 +72,11 @@ class SysCheck(Plugin):
 
         # Give QObjects a name (Usually the class name + 'Ui')
         self._widget.setObjectName('SysCheckUi')
+
+        # Add RoboSub Logo to the GUI
+        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'), 'src/rqt/resource','robosub_logo.png')
+        self.img = QImage(self.logo_file)
+        self._widget.logoBox.setPixmap(QPixmap.fromImage(self.img))
 
         # Connect the valueChanged signal to our updateSpeed function
         self._widget.thrusterSpeed.valueChanged[int].connect(self.updateSpeed)

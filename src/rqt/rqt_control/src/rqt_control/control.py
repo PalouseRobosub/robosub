@@ -5,7 +5,7 @@ import rospkg
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QTimer
-from python_qt_binding.QtGui import QWidget
+from python_qt_binding.QtGui import QWidget, QImage, QPixmap
 
 from robosub.msg import control, control_status
 
@@ -43,8 +43,12 @@ class Control(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
-        rospy.Subscriber('control', control, self.control_callback, queue_size=1)
-        rospy.Subscriber('control_status', control_status, self.control_status_callback, queue_size=1)
+        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'), 'src/rqt/resource', 'robosub_logo.png')
+        self.img = QImage(self.logo_file)
+        self._widget.logoBox.setPixmap(QPixmap.fromImage(self.img))
+
+        self.con_sub = rospy.Subscriber('control', control, self.control_callback, queue_size=1)
+        self.cs_sub = rospy.Subscriber('control_status', control_status, self.control_status_callback, queue_size=1)
 
         self.control_timer = QTimer(self)
         self.control_timer.timeout.connect(self.control_missed)
@@ -62,6 +66,7 @@ class Control(Plugin):
                 "subcontrol-position: top left; padding: -6 2px;" +
                 " background-color: transparent;}"
         )
+        pass
 
     def control_status_missed(self):
         self._widget.statusBox.setStyleSheet(
@@ -71,9 +76,13 @@ class Control(Plugin):
                 "subcontrol-position: top left; padding: -6 2px;" +
                 " background-color: transparent;}"
         )
+        pass
 
     def control_status_callback(self, m):
-        self.control_status_timer.stop()
+        try:
+            self.control_status_timer.stop()
+        except RuntimeError:
+            pass
         self._widget.statusBox.setStyleSheet(
                 "QGroupBox{padding: 10px;border: 1px solid gray;" +
                 "background-color: transparent;}" +
@@ -98,7 +107,10 @@ class Control(Plugin):
         self.control_status_timer.start(1000)
 
     def control_callback(self, m):
-        self.control_timer.stop()
+        try:
+            self.control_timer.stop()
+        except RuntimeError:
+            pass
         self._widget.controlBox.setStyleSheet(
                 "QGroupBox{padding: 10px;border: 1px solid gray;" +
                 "background-color: transparent;}" +
@@ -123,6 +135,8 @@ class Control(Plugin):
         self.control_timer.start(1000)
 
     def shutdown_plugin(self):
+        self.cs_sub.unregister()
+        self.con_sub.unregister()
         self.control_timer.stop()
         self.control_status_timer.stop()
 
