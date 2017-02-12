@@ -93,7 +93,7 @@ TEST(Maestro, basicTest)
 
 double byte_to_force_ratio(uint8_t byte2, uint8_t byte3)
 {
-  const uint16_t pulse_width = (byte3 << 7) | byte2;
+  const uint16_t pulse_width = ((byte3 << 7) | byte2)/4;
 
   /*
    * Polynomial curve fitting data was calculated by fitting a

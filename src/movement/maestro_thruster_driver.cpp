@@ -276,6 +276,13 @@ namespace rs
         }
 
         /*
+         * Until now, the signal has been represented in microseconds.
+         * Convert this value to quarter microseconds as specified in the
+         * Maestro datasheet.
+         */
+        signal *= 4;
+
+        /*
          * Store results into supplied locations.
          */
         msb = signal >> 7;
