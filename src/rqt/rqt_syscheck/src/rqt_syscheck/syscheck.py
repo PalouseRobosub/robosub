@@ -76,10 +76,12 @@ class SysCheck(Plugin):
         self._widget.setObjectName('SysCheckUi')
 
         # Add RoboSub Logo to the GUI
-        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'),
-                                      'src/rqt/resource', 'robosub_logo.png')
-        self.img = QImage(self.logo_file)
-        self._widget.logoBox.setPixmap(QPixmap.fromImage(self.img))
+        logo_file = os.path.join(rospkg.RosPack().get_path('robosub'),
+                                 'src/rqt/resource', 'robosub_logo.png')
+        self._widget.setStyleSheet(".QWidget {background-image: url(" +
+                                   logo_file +
+                                   "); background-repeat: no-repeat;" +
+                                   "background-position:bottom right}")
 
         # Hide the stale labels on init
         self._widget.imuStale.hide()

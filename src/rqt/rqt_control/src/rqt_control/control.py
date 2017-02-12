@@ -51,9 +51,13 @@ class Control(Plugin):
         self.cs_sub = rospy.Subscriber('control_status', control_status,
                                        self.control_status_callback,
                                        queue_size=1)
-        img_file = os.path.join(rospkg.RosPack().get_path('robosub'), 'src/rqt/resource/robosub_logo.png')
+        img_file = os.path.join(rospkg.RosPack().get_path('robosub'),
+                                'src/rqt/resource/robosub_logo.png')
 
-        self._widget.setStyleSheet(".QWidget {background-image: url("+img_file+"); background-repeat: no-repeat;}")
+        self._widget.setStyleSheet(".QWidget {background-image: url(" +
+                                   img_file +
+                                   "); background-repeat: no-repeat;" +
+                                   "background-position:bottom right}")
 
         self.control_timer = QTimer(self)
         self.control_timer.timeout.connect(self.control_missed)
