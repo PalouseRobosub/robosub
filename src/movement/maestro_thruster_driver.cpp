@@ -184,7 +184,7 @@ namespace rs
          * if the signal is in the dead-band to inform the
          * operator that the thruster should not spin.
          */
-        if (signal != 1500 && abs(signal - 1500) < 25)
+        if (signal != 6000 && abs(signal/4 - 1500) < 25)
         {
             ROS_WARN("Parsed signal is in thruster dead-band.");
         }
