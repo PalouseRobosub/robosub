@@ -5,7 +5,7 @@ import rospkg
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QTimer
-from python_qt_binding.QtGui import QWidget, QImage, QPixmap
+from python_qt_binding.QtGui import QWidget
 
 from robosub.msg import control, control_status
 
@@ -46,16 +46,14 @@ class Control(Plugin):
         self._widget.statusActive.hide()
         self._widget.controlActive.hide()
 
-        self.logo_file = os.path.join(rospkg.RosPack().get_path('robosub'),
-                                      'src/rqt/resource', 'robosub_logo.png')
-        self.img = QImage(self.logo_file)
-        self._widget.logoBox.setPixmap(QPixmap.fromImage(self.img))
-
         self.con_sub = rospy.Subscriber('control', control,
                                         self.control_callback, queue_size=1)
         self.cs_sub = rospy.Subscriber('control_status', control_status,
                                        self.control_status_callback,
                                        queue_size=1)
+        img_file = os.path.join(rospkg.RosPack().get_path('robosub'), 'src/rqt/resource/robosub_logo.png')
+
+        self._widget.setStyleSheet(".QWidget {background-image: url("+img_file+"); background-repeat: no-repeat;}")
 
         self.control_timer = QTimer(self)
         self.control_timer.timeout.connect(self.control_missed)
