@@ -33,6 +33,14 @@ class Control(Plugin):
         # Extend the widget with all attributes and children from UI file
         loadUi(ui_file, self._widget)
 
+        self.control_timer = QTimer(self)
+        self.control_timer.timeout.connect(self.control_missed)
+        self.control_timer.start(1000)
+
+        self.control_status_timer = QTimer(self)
+        self.control_status_timer.timeout.connect(self.control_status_missed)
+        self.control_status_timer.start(1000)
+
         # Give QObjects reasonable names
         self._widget.setObjectName('Control')
 
@@ -59,24 +67,15 @@ class Control(Plugin):
                                    "); background-repeat: no-repeat;" +
                                    "background-position:bottom right}")
 
-        self.control_timer = QTimer(self)
-        self.control_timer.timeout.connect(self.control_missed)
-        self.control_timer.start(1000)
-
-        self.control_status_timer = QTimer(self)
-        self.control_status_timer.timeout.connect(self.control_status_missed)
-        self.control_status_timer.start(1000)
 
     def control_missed(self):
         if not self._widget.controlStale.isVisible():
             self._widget.controlStale.show()
-        if self._widget.controlActive.isVisible():
             self._widget.controlActive.hide()
 
     def control_status_missed(self):
         if not self._widget.statusStale.isVisible():
             self._widget.statusStale.show()
-        if self._widget.statusActive.isVisible():
             self._widget.statusActive.hide()
 
     def control_status_callback(self, m):
@@ -86,9 +85,8 @@ class Control(Plugin):
             pass
 
         if self._widget.statusStale.isVisible():
-            self._widget.statusStale.hide()
-        if not self._widget.statusActive.isVisible():
-            self._widget.statusActive.show()
+            self._widget.statusStale.setVisible(False)
+            self._widget.statusActive.setVisible(True)
 
         # Set the states
         self._widget.forwardStatusState.setText(m.forward_state)
@@ -98,12 +96,12 @@ class Control(Plugin):
         self._widget.pitchStatusState.setText(m.pitch_down_state)
         self._widget.yawStatusState.setText(m.yaw_left_state)
 
-        self._widget.forwardGoal.setText(str(m.forward_goal))
-        self._widget.strafeGoal.setText(str(m.strafe_left_goal))
-        self._widget.diveGoal.setText(str(m.dive_goal))
-        self._widget.rollGoal.setText(str(m.roll_right_goal))
-        self._widget.pitchGoal.setText(str(m.pitch_down_goal))
-        self._widget.yawGoal.setText(str(m.yaw_left_goal))
+        self._widget.forwardGoal.setText("{:.4f}".format(m.forward_goal))
+        self._widget.strafeGoal.setText("{:.4f}".format(m.strafe_left_goal))
+        self._widget.diveGoal.setText("{:.4f}".format(m.dive_goal))
+        self._widget.rollGoal.setText("{:.4f}".format(m.roll_right_goal))
+        self._widget.pitchGoal.setText("{:.4f}".format(m.pitch_down_goal))
+        self._widget.yawGoal.setText("{:.4f}".format(m.yaw_left_goal))
         self.control_status_timer.start(1000)
 
     def control_callback(self, m):
@@ -114,7 +112,6 @@ class Control(Plugin):
 
         if self._widget.controlStale.isVisible():
             self._widget.controlStale.hide()
-        if not self._widget.controlActive.isVisible():
             self._widget.controlActive.show()
 
         # Set the states
@@ -125,12 +122,12 @@ class Control(Plugin):
         self._widget.pitchState.setText(state_types[m.pitch_state])
         self._widget.yawState.setText(state_types[m.yaw_state])
 
-        self._widget.forwardValue.setText(str(m.forward))
-        self._widget.strafeValue.setText(str(m.strafe_left))
-        self._widget.diveValue.setText(str(m.dive))
-        self._widget.rollValue.setText(str(m.roll_right))
-        self._widget.pitchValue.setText(str(m.pitch_down))
-        self._widget.yawValue.setText(str(m.yaw_left))
+        self._widget.forwardValue.setText("{:.4f}".format(m.forward))
+        self._widget.strafeValue.setText("{:.4f}".format(m.strafe_left))
+        self._widget.diveValue.setText("{:.4f}".format(m.dive))
+        self._widget.rollValue.setText("{:.4f}".format(m.roll_right))
+        self._widget.pitchValue.setText("{:.4f}".format(m.pitch_down))
+        self._widget.yawValue.setText("{:.4f}".format(m.yaw_left))
         self.control_timer.start(1000)
 
     def shutdown_plugin(self):

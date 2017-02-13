@@ -60,6 +60,9 @@ background-color: transparent;
      <layout class="QGridLayout" name="gridLayout">
       <item row="3" column="1">
        <widget class="QLineEdit" name="diveState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -74,6 +77,12 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -82,6 +91,9 @@ background-color: transparent;
       </item>
       <item row="5" column="1">
        <widget class="QLineEdit" name="pitchState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -97,6 +109,12 @@ background-color: transparent;
         <property name="text">
          <string>NONE</string>
         </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
@@ -104,6 +122,9 @@ background-color: transparent;
       </item>
       <item row="1" column="1">
        <widget class="QLineEdit" name="forwardState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -125,6 +146,12 @@ background-color: transparent;
         <property name="text">
          <string>NONE</string>
         </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
@@ -132,6 +159,9 @@ background-color: transparent;
       </item>
       <item row="2" column="1">
        <widget class="QLineEdit" name="strafeState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -147,6 +177,12 @@ background-color: transparent;
         <property name="text">
          <string>NONE</string>
         </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
@@ -154,11 +190,23 @@ background-color: transparent;
       </item>
       <item row="5" column="2">
        <widget class="QLineEdit" name="pitchValue">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="maximumSize">
          <size>
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -177,6 +225,9 @@ background-color: transparent;
       </item>
       <item row="6" column="1">
        <widget class="QLineEdit" name="yawState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -191,6 +242,12 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -228,11 +285,23 @@ background-color: transparent;
       </item>
       <item row="3" column="2">
        <widget class="QLineEdit" name="diveValue">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="maximumSize">
          <size>
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -260,6 +329,9 @@ background-color: transparent;
       </item>
       <item row="4" column="1">
        <widget class="QLineEdit" name="rollState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -274,6 +346,12 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -320,11 +398,23 @@ background-color: transparent;
       </item>
       <item row="4" column="2">
        <widget class="QLineEdit" name="rollValue">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="maximumSize">
          <size>
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -352,6 +442,9 @@ background-color: transparent;
       </item>
       <item row="1" column="2">
        <widget class="QLineEdit" name="forwardValue">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -370,6 +463,15 @@ background-color: transparent;
           <height>16777215</height>
          </size>
         </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
         <property name="readOnly">
          <bool>true</bool>
         </property>
@@ -377,11 +479,23 @@ background-color: transparent;
       </item>
       <item row="2" column="2">
        <widget class="QLineEdit" name="strafeValue">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="maximumSize">
          <size>
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -390,11 +504,23 @@ background-color: transparent;
       </item>
       <item row="6" column="2">
        <widget class="QLineEdit" name="yawValue">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="maximumSize">
          <size>
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
         </property>
         <property name="readOnly">
          <bool>true</bool>
@@ -550,6 +676,9 @@ background-color: transparent;
       </item>
       <item row="2" column="4">
        <widget class="QLineEdit" name="strafeGoal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -561,11 +690,26 @@ background-color: transparent;
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="3" column="4">
        <widget class="QLineEdit" name="diveGoal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -578,10 +722,25 @@ background-color: transparent;
           <height>16777215</height>
          </size>
         </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="8" column="2">
        <widget class="QLineEdit" name="yawStatusState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -602,6 +761,15 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -645,6 +813,9 @@ background-color: transparent;
       </item>
       <item row="1" column="4">
        <widget class="QLineEdit" name="forwardGoal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -657,10 +828,25 @@ background-color: transparent;
           <height>16777215</height>
          </size>
         </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="7" column="2">
        <widget class="QLineEdit" name="pitchStatusState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -675,6 +861,15 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -696,6 +891,9 @@ background-color: transparent;
       </item>
       <item row="8" column="4">
        <widget class="QLineEdit" name="yawGoal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -707,11 +905,26 @@ background-color: transparent;
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="7" column="4">
        <widget class="QLineEdit" name="pitchGoal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -723,11 +936,26 @@ background-color: transparent;
           <width>50</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="5" column="4">
        <widget class="QLineEdit" name="rollGoal">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -740,10 +968,25 @@ background-color: transparent;
           <height>16777215</height>
          </size>
         </property>
+        <property name="maxLength">
+         <number>6</number>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="1" column="2">
        <widget class="QLineEdit" name="forwardStatusState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -758,6 +1001,15 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -801,6 +1053,9 @@ background-color: transparent;
       </item>
       <item row="2" column="2">
        <widget class="QLineEdit" name="strafeStatusState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -815,11 +1070,23 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="3" column="2">
        <widget class="QLineEdit" name="diveStatusState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -834,11 +1101,23 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item row="5" column="2">
        <widget class="QLineEdit" name="rollStatusState">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>75</width>
@@ -853,6 +1132,15 @@ background-color: transparent;
         </property>
         <property name="text">
          <string>NONE</string>
+        </property>
+        <property name="frame">
+         <bool>true</bool>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Normal</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
