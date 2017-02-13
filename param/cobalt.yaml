@@ -132,6 +132,7 @@ control:
     buoyancy_offset: 0.0
 depth:
     rate: 10
+    offset: 0.75
 sensor:
     rate: 20
     axis:
