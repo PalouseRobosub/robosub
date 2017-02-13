@@ -129,7 +129,7 @@ control:
     limits:
         rotation: 0.5
         translation: 0.5
-    buoyancy_offset: 0.0
+    buoyancy_offset: -32.0
 depth:
     rate: 10
     offset: 0.75
