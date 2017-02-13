@@ -6,8 +6,7 @@ import rospkg
 # Import Qt/rQt Modules
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QWidget, QPushButton, QGraphicsScene, \
-                                    QPixmap, QImage
+from python_qt_binding.QtGui import QWidget, QPushButton
 from python_qt_binding.QtCore import QTimer
 
 # Import Messages
@@ -54,7 +53,6 @@ class SysCheck(Plugin):
 
         self.depthTimer.start(1000)
         self.imuTimer.start(1000)
-        self.sendTimer.start(1000)
 
         # Only start the param timer if the params aren't loaded
         if len(self.names) == 0:
@@ -90,6 +88,10 @@ class SysCheck(Plugin):
         # Connect the valueChanged signal to our updateSpeed function
         self._widget.thrusterSpeed.valueChanged[int].connect(self.updateSpeed)
 
+        self._widget.thrusterEnable.setCheckable(True)
+        self._widget.thrusterEnable.toggled[bool].connect(self.enable)
+        self._widget.thrusterKill.clicked[bool].connect(self.kill)
+
         # Load in the thruster buttons and connect callbacks
         self.thrusterButtons = []
         self.thrusterScales = []
@@ -104,6 +106,18 @@ class SysCheck(Plugin):
 
         # Add widget to the user interface
         context.add_widget(self._widget)
+
+    def kill(self):
+        for i in self.thrusterButtons:
+            i.setChecked(False)
+        self._widget.thrusterSpeed.setValue(0)
+
+
+    def enable(self, s):
+        if s:
+            self.sendTimer.start(1000)
+        else:
+            self.sendTimer.stop()
 
     def loadThrusters(self):
         # Loop over all of the thruster values found in the params
