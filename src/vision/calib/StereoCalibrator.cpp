@@ -54,12 +54,12 @@ void StereoCalibrator::submitImgs(const Mat &rightImg, const Mat &leftImg)
     
         vector<Point3d> points;
         vector<Point3f> fPoints;
-        for (int j = 0; j < boardSize.width; j++)
+        for (int j = 0; j < boardSize.height; j++)
         {
-            for (int k = 0; k < boardSize.height; k++)
+            for (int k = 0; k < boardSize.width; k++)
             {
-                points.push_back(Point3d(k*squareSize, j*squareSize, 0));
-                fPoints.push_back(Point3f(k*squareSize, j*squareSize, 0));
+                points.push_back(Point3d(j*squareSize, k*squareSize, 0));
+                fPoints.push_back(Point3f(j*squareSize, k*squareSize, 0));
             }
         }
         objectPointsf.push_back(fPoints);
@@ -126,11 +126,11 @@ void StereoCalibrator::calibrate()
     }
     //ROS_INFO_STREAM("Image points 2 check vector: " <<
     //                imagePoints2.getMat(0).checkVector(2, CV_32F));
-    cameraMatrix[0] = initCameraMatrix2D(objectPointsf, imagePoints1,
-                                         imageSize, 0);
+    //cameraMatrix[0] = initCameraMatrix2D(objectPointsf, imagePoints1,
+    //                                     imageSize, 0);
     ROS_INFO_STREAM("Created cameraMatrix 0? " << !cameraMatrix[0].empty());
-    cameraMatrix[1] = initCameraMatrix2D(objectPointsf, imagePoints2,
-                                         imageSize, 0);
+    //cameraMatrix[1] = initCameraMatrix2D(objectPointsf, imagePoints2,
+    //                                     imageSize, 0);
 
     ROS_INFO_STREAM("Distortion coeffs 1 empty? " << distCoeffs[0].empty());
 
@@ -139,10 +139,15 @@ void StereoCalibrator::calibrate()
     ROS_INFO_STREAM("Distortion coeffs 2 empty? " << distCoeffs[1].empty());
 
     int flag = 0;
-    flag |= fisheye::CALIB_USE_INTRINSIC_GUESS;
+    //flag |= fisheye::CALIB_USE_INTRINSIC_GUESS;
     flag |= fisheye::CALIB_RECOMPUTE_EXTRINSIC;
     flag |= fisheye::CALIB_CHECK_COND;
     flag |= fisheye::CALIB_FIX_SKEW;
+    //flag |= fisheye::CALIB_FIX_K1;
+    flag |= fisheye::CALIB_FIX_K2;
+    flag |= fisheye::CALIB_FIX_K3;
+    flag |= fisheye::CALIB_FIX_K4;
+
 
     Mat R, T, E, F;
     ROS_INFO_STREAM("Using image size of: " << imageSize);
@@ -163,7 +168,10 @@ void StereoCalibrator::calibrate()
                                           rightImgPoints, cameraMatrix[0],
                                           distCoeffs[0], cameraMatrix[1],
                                           distCoeffs[1], imageSize, R, T,
-                                          flag, TermCriteria(3, 12, 0));
+                                          flag, 
+                                          TermCriteria(TermCriteria::COUNT +
+                                                       TermCriteria::EPS, 12,
+                                                       0));
 
     ROS_INFO_STREAM("Calibrated with RMS error of: " << rms);
 

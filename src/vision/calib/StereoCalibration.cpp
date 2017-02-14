@@ -28,7 +28,25 @@ void callback(const WFOVImage::ConstPtr &rightImg,
     Mat lview = toCvShare(leftImg->image, leftImg,
                          sensor_msgs::image_encodings::BGR8)->image;
 
-    stereoCalib->submitImgs(rview, lview);
+    ros::Duration timeDelta;
+    
+    if (rightImg->header.stamp > leftImg->header.stamp)
+    {
+        timeDelta = rightImg->header.stamp - leftImg->header.stamp;
+    }
+    else
+    {
+        timeDelta = leftImg->header.stamp - rightImg->header.stamp;
+    }
+
+    if (timeDelta > ros::Duration(.1))
+    {
+        ROS_INFO_STREAM("Images time difference too great, skipping pair");
+    }
+    else
+    {
+        stereoCalib->submitImgs(rview, lview);
+    }
 }
 
 int main (int argc, char* argv[])
