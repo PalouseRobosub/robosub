@@ -1,7 +1,7 @@
 <library path="src">
   <class name="Control" type="rqt_control.control.Control" base_class_type="rqt_gui_py::Plugin">
     <description>
-        A Python GUI plugin for sending values to the thrusters
+        A Python GUI plugin for viewing the status of the control system
     </description>
     <qtgui>
       <group>
@@ -11,7 +11,7 @@
       </group>
       <label>Control</label>
       <icon type="theme">applications-engineering</icon>
-      <statustip></statustip>
+      <statustip>View the status of the Sub's control system</statustip>
     </qtgui>
   </class>
 </library>
