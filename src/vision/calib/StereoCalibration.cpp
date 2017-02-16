@@ -29,7 +29,7 @@ void callback(const WFOVImage::ConstPtr &rightImg,
                          sensor_msgs::image_encodings::BGR8)->image;
 
     ros::Duration timeDelta;
-    
+
     if (rightImg->header.stamp > leftImg->header.stamp)
     {
         timeDelta = rightImg->header.stamp - leftImg->header.stamp;

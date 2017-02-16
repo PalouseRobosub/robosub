@@ -51,7 +51,7 @@ void StereoCalibrator::submitImgs(const Mat &rightImg, const Mat &leftImg)
 
         imagePoints1.push_back(leftCorners);
         imagePoints2.push_back(rightCorners);
-    
+
         vector<Point3d> points;
         vector<Point3f> fPoints;
         for (int j = 0; j < boardSize.height; j++)
@@ -64,7 +64,6 @@ void StereoCalibrator::submitImgs(const Mat &rightImg, const Mat &leftImg)
         }
         objectPointsf.push_back(fPoints);
         objectPoints.push_back(points);
-
     }
 
     imshow("right", rightImg);
@@ -168,7 +167,7 @@ void StereoCalibrator::calibrate()
     double rightRms = fisheye::calibrate(objectPoints, rightImgPoints,
                                         imageSize, cameraMatrix[1],
                                         distCoeffs[1], rR, rT, monoFlag);
-   
+
     ROS_INFO_STREAM("Calibrated right cam with rms: " << rightRms);
 
 
@@ -189,7 +188,7 @@ void StereoCalibrator::calibrate()
                                           rightImgPoints, cameraMatrix[0],
                                           distCoeffs[0], cameraMatrix[1],
                                           distCoeffs[1], imageSize, R, T,
-                                          flag, 
+                                          flag,
                                           TermCriteria(TermCriteria::COUNT +
                                                        TermCriteria::EPS, 12,
                                                        0));
@@ -246,12 +245,12 @@ void StereoCalibrator::calibrate()
                   imageSize, R, T, R1, R2, P1, P2, Q,
                   CALIB_ZERO_DISPARITY, 1, imageSize,
                   &validRoi[0], &validRoi[1]);*/
-    
+
     fisheye::stereoRectify(cameraMatrix[0], distCoeffs[0],
                   cameraMatrix[1], distCoeffs[1],
                   imageSize, R, T, R1, R2, P1, P2, Q,
                   CALIB_ZERO_DISPARITY, imageSize, 1);
-   
+
     ROS_INFO_STREAM("Completed rectification.");
 
     saveExtrinsics(R, T, R1, R2, P1, P2, Q);
