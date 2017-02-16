@@ -39,23 +39,15 @@ public:
 
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
 
-    void Update();
-
 private:
-    void calculate_absolute_lin_accel();
+    tf::Vector3 calculate_absolute_lin_accel(tf::Vector3 rel_lin_accel);
 
     ParticleFilter pf;
-
-    bool new_hydrophone;
-    bool new_depth;
-    bool new_lin_velocity;
 
     ros::Time last_lin_accel_timestamp;
     ros::Duration dt;
 
     tf::Quaternion orientation;
-    tf::Vector3 abs_lin_accel;
-    tf::Vector3 rel_lin_accel;
 
 public:
 };

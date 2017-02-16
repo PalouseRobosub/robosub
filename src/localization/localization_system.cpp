@@ -2,8 +2,6 @@
 
 LocalizationSystem::LocalizationSystem(int _num_particles) : pf(_num_particles)
 {
-    new_hydrophone = new_depth = new_lin_velocity = false;
-
     orientation[0] = 0.0;
     orientation[1] = 0.0;
     orientation[2] = 0.0;
@@ -26,7 +24,7 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
     return s;
 }
 
-void LocalizationSystem::calculate_absolute_lin_accel()
+tf::Vector3 LocalizationSystem::calculate_absolute_lin_accel(tf::Vector3 rel_lin_accel)
 {
     tf::Quaternion orientation_conjugate;
     orientation_conjugate[0] = orientation[0] * -1.0;
@@ -36,14 +34,13 @@ void LocalizationSystem::calculate_absolute_lin_accel()
 
     tf::Matrix3x3 rot_m = tf::Matrix3x3(orientation_conjugate);
 
-    abs_lin_accel = rot_m * rel_lin_accel;
+    return rot_m * rel_lin_accel;
 }
 
 void LocalizationSystem::depthCallback(const robosub::Float32Stamped::ConstPtr
                                        &msg)
 {
     pf.InputDepth(msg->data, msg->header.stamp);
-    new_depth = true;
 }
 
 void LocalizationSystem::hydrophoneCallback(const
@@ -56,7 +53,6 @@ void LocalizationSystem::hydrophoneCallback(const
                         msg->positions[0].position.z);
 
         pf.InputHydrophone(pos, msg->header.stamp);
-        new_hydrophone = true;
     }
 }
 
@@ -64,14 +60,15 @@ void LocalizationSystem::linAccelCallback(const
         geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     dt = msg->header.stamp - last_lin_accel_timestamp;
+
+    tf::Vector3 rel_lin_accel;
     rel_lin_accel[0] = msg->vector.x;
     rel_lin_accel[1] = msg->vector.y;
     rel_lin_accel[2] = msg->vector.z;
 
-    calculate_absolute_lin_accel();
+    tf::Vector3 abs_lin_accel = calculate_absolute_lin_accel(rel_lin_accel);
 
-    pf.InputLinAccel(abs_lin_accel, dt.toSec(), msg->header.stamp);
-    new_lin_velocity = true;
+    pf.InputLinAccel(abs_lin_accel, dt.toSec());
     last_lin_accel_timestamp = msg->header.stamp;
 }
 
@@ -82,8 +79,6 @@ void LocalizationSystem::orientationCallback(const
     orientation[1] = msg->quaternion.y;
     orientation[2] = msg->quaternion.z;
     orientation[3] = msg->quaternion.w;
-
-    //pf.InputOrientation(orientation, msg->header.stamp);
 }
 
 bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req,
@@ -91,18 +86,4 @@ bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req,
 {
     pf.Reset();
     return true;
-}
-
-void LocalizationSystem::Update()
-{
-    // Getto ros message filter
-    // TODO: Figure out when to run update loop
-    // TODO: This probably doesn't work anymore. Possibly run iteration on any
-    // new sensor reading, keeping old readings same.
-    if(new_hydrophone || (new_depth && new_lin_velocity))
-    {
-        pf.Update();
-
-        new_hydrophone = new_depth = new_lin_velocity = false;
-    }
 }

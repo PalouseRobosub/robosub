@@ -77,10 +77,7 @@ double gaussian_prob(double mean, double sigma, double x)
 {
     double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) / 2.0) /
                std::sqrt(2.0 * 3.1415 * std::pow(sigma, 2));
-    //PRINT_THROTTLE(ROS_INFO_STREAM("gaussian_prob(" << mean << "), " <<
-    //               sigma << "), "
-    //PRINT_THROTTLE(ROS_INFO("gaussian_prob(%f, %f, %f) = %f", mean, sigma, x,
-    //               p););
+
     return p;
 }
 
@@ -89,14 +86,14 @@ class ParticleFilter
 public:
     ParticleFilter(int _num_particles);
     ~ParticleFilter();
+    void Predict();
     void Update();
     tf::Vector3 GetPosition();
     void Reset();
 
     void InputDepth(const double depth, const ros::Time msg_time);
     void InputHydrophone(const tf::Vector3 position, const ros::Time msg_time);
-    void InputLinAccel(const tf::Vector3 linaccel, const double dt,
-                       const ros::Time msg_time);
+    void InputLinAccel(const tf::Vector3 linaccel, const double dt);
 
 private:
     void initialize();
@@ -106,45 +103,41 @@ private:
     void update_particle_weights();
     void resample_particles();
     void estimate_state();
-    void zero_system_update_dt();
 
-    Matrix<double, 7, 1> state_to_observation(Matrix<double, 6, 1> state,
-            Matrix<double, 6, 1> last_state, double dt);
-    Matrix<double, 7, 1> add_observation_noise(
-                                            Matrix<double, 7, 1> particle_obs);
+    Matrix<double, 4, 1> state_to_observation(Matrix<double, 3, 1> state);
+    Matrix<double, 4, 1> add_observation_noise(
+                                            Matrix<double, 4, 1> particle_obs);
 
     int num_particles;
     int num_iterations;
-    double pinger_depth;
-    ros::Time last_update_time;
-    ros::Duration update_dt;
-    ros::Time last_hydrophone_time;
-    bool new_hydrophone;
 
     tf::Vector3 estimated_position;
+    double pinger_depth;
 
     // Multiply system_update_model x state(k-1) to get state(k)
-    Matrix<double, 6, 6> system_update_model;
+    Matrix<double, 3, 3> system_update_model;
     // I'm not 100% sure on this. Covariance matrices are magic
-    Matrix<double, 6, 6> system_update_covar;
+    Matrix<double, 3, 3> system_update_covar;
+    Matrix<double, 3, 3> control_update_model;
 
-    Matrix<double, 6, 1> initial_distribution;
-    Matrix<double, 7, 7> measurement_covar;
+    Matrix<double, 3, 1> initial_distribution;
+    Matrix<double, 4, 4> measurement_covar;
 
-    Matrix<double, 7, 1> observation;
+    Matrix<double, 4, 1> observation;
+    Matrix<double, 3, 1> control_input;
 
-    Matrix<double, 6, 1> est_state;
-    Matrix<double, 6, 1> initial_state;
+    Matrix<double, 3, 1> est_state;
+    Matrix<double, 3, 1> initial_state;
 
     // Could convert to 3-d matrices
-    std::vector<Matrix<double, 6, 1> > last_particle_states;
-    std::vector<Matrix<double, 6, 1> > particle_states;
+    std::vector<Matrix<double, 3, 1> > last_particle_states;
+    std::vector<Matrix<double, 3, 1> > particle_states;
     std::vector<double> last_particle_weights;
     std::vector<double> particle_weights;
 
     // Particle observations
-    std::vector<Matrix<double, 7, 1> > last_particle_obs;
-    std::vector<Matrix<double, 7, 1> > particle_obs;
+    std::vector<Matrix<double, 4, 1> > last_particle_obs;
+    std::vector<Matrix<double, 4, 1> > particle_obs;
 
     std::default_random_engine rand_generator;
     std::normal_distribution<double> *norm_distribution;

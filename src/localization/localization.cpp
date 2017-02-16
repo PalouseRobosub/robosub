@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "localization");
 
-    ros::NodeHandle n;
+    ros::NodeHandle nh;
 
     double num_particles;
     ros::param::getCached("localization/num_particles", num_particles);
@@ -20,21 +20,21 @@ int main(int argc, char **argv)
 
     // TODO: Change to use localization messages
     ros::Publisher loc_pub =
-        n.advertise<geometry_msgs::Vector3Stamped>("position", 1);
+        nh.advertise<geometry_msgs::Vector3Stamped>("position", 1);
 
     // Service for resetting position and velocity
     ros::ServiceServer reset_filter_service =
-        n.advertiseService("reset_particle_filter",
+        nh.advertiseService("reset_particle_filter",
                         &LocalizationSystem::resetFilterCallback, &loc_system);
 
-    ros::Subscriber depth_sub = n.subscribe("depth", 1,
+    ros::Subscriber depth_sub = nh.subscribe("depth", 1,
                               &LocalizationSystem::depthCallback, &loc_system);
     ros::Subscriber hydrophones_position_sub =
-                         n.subscribe("hydrophones/position", 1,
+                         nh.subscribe("hydrophones/position", 1,
                          &LocalizationSystem::hydrophoneCallback, &loc_system);
-    ros::Subscriber accel_sub = n.subscribe("acceleration/linear", 1,
+    ros::Subscriber accel_sub = nh.subscribe("acceleration/linear", 1,
                            &LocalizationSystem::linAccelCallback, &loc_system);
-    ros::Subscriber orientation_sub = n.subscribe("orientation", 1,
+    ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
                         &LocalizationSystem::orientationCallback, &loc_system);
 
     ros::Rate r(rate);
@@ -42,8 +42,6 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         ros::spinOnce();
-
-        loc_system.Update();
 
         geometry_msgs::Vector3Stamped pos =
                                           loc_system.GetLocalizationMessage();
