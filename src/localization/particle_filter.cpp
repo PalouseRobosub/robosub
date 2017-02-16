@@ -174,9 +174,9 @@ void ParticleFilter::InputDepth(const double depth, const ros::Time msg_time)
 void ParticleFilter::InputHydrophone(const tf::Vector3 position,
                                      const ros::Time msg_time)
 {
-    observation(0, 0) = position.getX();
-    observation(1, 0) = position.getY();
-    observation(2, 0) = position.getZ();
+    observation(0, 0) = position[0];
+    observation(1, 0) = position[1];
+    observation(2, 0) = position[2];
 
     new_hydrophone = true;
 
@@ -191,9 +191,9 @@ void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt,
                                    const ros::Time msg_time)
 {
     // Integrate lin accel to get lin velocity
-    observation(3, 0) += linaccel.getX() * dt;
-    observation(4, 0) += linaccel.getY() * dt;
-    observation(5, 0) += linaccel.getZ() * dt;
+    observation(3, 0) += linaccel[0] * dt;
+    observation(4, 0) += linaccel[1] * dt;
+    observation(5, 0) += linaccel[2] * dt;
 
     system_update_model(0, 3) = dt;
     system_update_model(1, 4) = dt;
@@ -213,11 +213,11 @@ Matrix<double, 7, 1> ParticleFilter::state_to_observation(
     // Lin Velocity
     // Pull this from last state?
     // TODO: Get dt between last_state and state
-    obs(3, 0) = (state(3, 0) - last_state(3, 0)) * dt;
-    obs(4, 0) = (state(4, 0) - last_state(4, 0)) * dt;
-    obs(5, 0) = (state(5, 0) - last_state(5, 0)) * dt;
+    obs(3, 0) = (state(0, 0) - last_state(0, 0)) * dt;
+    obs(4, 0) = (state(1, 0) - last_state(1, 0)) * dt;
+    obs(5, 0) = (state(2, 0) - last_state(2, 0)) * dt;
 
-    obs(6, 0) = pinger_depth + state(2, 0);
+    obs(6, 0) = state(2, 0);
 
     return obs;
 }
@@ -328,9 +328,9 @@ void ParticleFilter::estimate_state()
         }
     }
 
-    estimated_position.setX(est_state(0, 0));
-    estimated_position.setY(est_state(1, 0));
-    estimated_position.setZ(est_state(2, 0));
+    estimated_position[0] = est_state(0, 0);
+    estimated_position[1] = est_state(1, 0);
+    estimated_position[2] = est_state(2, 0);
 }
 
 void ParticleFilter::zero_system_update_dt()

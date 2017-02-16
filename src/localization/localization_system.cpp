@@ -4,12 +4,12 @@ LocalizationSystem::LocalizationSystem(int _num_particles) : pf(_num_particles)
 {
     new_hydrophone = new_depth = new_lin_velocity = false;
 
-    orientation.setW(1.0);
-    orientation.setX(0.0);
-    orientation.setY(0.0);
-    orientation.setZ(0.0);
+    orientation[0] = 0.0;
+    orientation[1] = 0.0;
+    orientation[2] = 0.0;
+    orientation[3] = 1.0;
 
-    last_lin_accel_time = ros::Time::now();
+    last_lin_accel_timestamp = ros::Time::now();
 }
 
 geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
@@ -18,9 +18,9 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
 
     tf::Vector3 pos = pf.GetPosition();
 
-    s.vector.x = pos.getX();
-    s.vector.y = pos.getY();
-    s.vector.z = pos.getZ();
+    s.vector.x = pos[0];
+    s.vector.y = pos[1];
+    s.vector.z = pos[2];
     s.header.stamp = ros::Time::now();
 
     return s;
@@ -29,25 +29,20 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
 void LocalizationSystem::calculate_absolute_lin_accel()
 {
     tf::Quaternion orientation_conjugate;
-    orientation_conjugate.setX(orientation.getX() * -1.0);
-    orientation_conjugate.setY(orientation.getY() * -1.0);
-    orientation_conjugate.setZ(orientation.getZ() * -1.0);
-    orientation_conjugate.setW(orientation.getW());
+    orientation_conjugate[0] = orientation[0] * -1.0;
+    orientation_conjugate[1] = orientation[1] * -1.0;
+    orientation_conjugate[2] = orientation[2] * -1.0;
+    orientation_conjugate[3] = orientation[3];
 
     tf::Matrix3x3 rot_m = tf::Matrix3x3(orientation_conjugate);
 
     abs_lin_accel = rot_m * rel_lin_accel;
-
-    //ROS_INFO("rel_lin_accel:\n[%f, %f, %f]", rel_lin_accel.getX(),
-    //         rel_lin_accel.getY(), rel_lin_accel.getZ());
-    //ROS_INFO("abs_lin_accel:\n[%f, %f, %f]", abs_lin_accel.getX(),
-    //         abs_lin_accel.getY(), abs_lin_accel.getZ());
 }
 
-void LocalizationSystem::depthCallback(const robosub::depth_stamped::ConstPtr
+void LocalizationSystem::depthCallback(const robosub::Float32Stamped::ConstPtr
                                        &msg)
 {
-    pf.InputDepth(msg->depth, msg->header.stamp);
+    pf.InputDepth(msg->data, msg->header.stamp);
     new_depth = true;
 }
 
@@ -68,7 +63,7 @@ void LocalizationSystem::hydrophoneCallback(const
 void LocalizationSystem::linAccelCallback(const
         geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
-    dt = msg->header.stamp - last_lin_accel_time;
+    dt = msg->header.stamp - last_lin_accel_timestamp;
     rel_lin_accel[0] = msg->vector.x;
     rel_lin_accel[1] = msg->vector.y;
     rel_lin_accel[2] = msg->vector.z;
@@ -77,16 +72,16 @@ void LocalizationSystem::linAccelCallback(const
 
     pf.InputLinAccel(abs_lin_accel, dt.toSec(), msg->header.stamp);
     new_lin_velocity = true;
-    last_lin_accel_time = msg->header.stamp;
+    last_lin_accel_timestamp = msg->header.stamp;
 }
 
 void LocalizationSystem::orientationCallback(const
         robosub::QuaternionStampedAccuracy::ConstPtr &msg)
 {
-    orientation.setX(msg->quaternion.x);
-    orientation.setY(msg->quaternion.y);
-    orientation.setZ(msg->quaternion.z);
-    orientation.setW(msg->quaternion.w);
+    orientation[0] = msg->quaternion.x;
+    orientation[1] = msg->quaternion.y;
+    orientation[2] = msg->quaternion.z;
+    orientation[3] = msg->quaternion.w;
 
     //pf.InputOrientation(orientation, msg->header.stamp);
 }

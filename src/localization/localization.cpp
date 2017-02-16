@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 
     // TODO: Change to use localization messages
     ros::Publisher loc_pub =
-        n.advertise<geometry_msgs::Vector3Stamped>("pf_position", 1);
+        n.advertise<geometry_msgs::Vector3Stamped>("position", 1);
 
     // Service for resetting position and velocity
     ros::ServiceServer reset_filter_service =
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     ros::Subscriber hydrophones_position_sub =
                          n.subscribe("hydrophones/position", 1,
                          &LocalizationSystem::hydrophoneCallback, &loc_system);
-    ros::Subscriber accel_sub = n.subscribe("rs_lin_accel_data", 1,
+    ros::Subscriber accel_sub = n.subscribe("acceleration/linear", 1,
                            &LocalizationSystem::linAccelCallback, &loc_system);
     ros::Subscriber orientation_sub = n.subscribe("orientation", 1,
                         &LocalizationSystem::orientationCallback, &loc_system);
