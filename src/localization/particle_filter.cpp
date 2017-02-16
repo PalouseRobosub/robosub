@@ -31,6 +31,8 @@ void ParticleFilter::initialize()
     particle_obs.clear();
 
     system_update_model.setZero();
+    control_input.setZero();
+    control_update_model.setZero();
     system_update_covar.setZero();
     measurement_covar.setZero();
     initial_state.setZero();
@@ -65,10 +67,12 @@ void ParticleFilter::initialize()
         // Zeroed at this point
         particle_obs.push_back(observation);
         last_particle_obs.push_back(observation);
-        particle_weights.push_back(0);
+
+        // Initially uniform probabilities
+        particle_weights.push_back(1.0/num_particles);
     }
 
-    ROS_INFO_STREAM("Finished PF init");
+    ROS_DEBUG_STREAM("Finished PF init");
 }
 
 void ParticleFilter::Reset()
@@ -151,6 +155,9 @@ void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt)
     control_update_model(1, 1) = 0.5 * dt * dt;
     control_update_model(2, 2) = 0.5 * dt * dt;
 
+    PRINT_THROTTLE(ROS_DEBUG_STREAM("control_input:\n" << control_input););
+    PRINT_THROTTLE(ROS_DEBUG_STREAM("control_update_model:\n" << control_update_model););
+
     Predict();
 }
 
@@ -183,6 +190,8 @@ void ParticleFilter::update_particle_states()
         particle_states[n] = system_update_model * last_particle_states[n] +
             control_update_model * control_input +
             sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
+
+        //PRINT_THROTTLE(ROS_DEBUG_STREAM(particle_states[n]););
     }
 }
 
@@ -258,7 +267,6 @@ void ParticleFilter::estimate_state()
     // Estimate state from all particle_states
     // Just weighted averaging for now
     est_state.setZero();
-    Matrix<double, 3, 1> state_sum;
     for(int i = 0; i < num_particles; i++)
     {
         est_state += particle_states[i] * particle_weights[i];
@@ -279,13 +287,13 @@ void ParticleFilter::estimate_state()
 
 void ParticleFilter::Predict()
 {
-    PRINT_THROTTLE(ROS_INFO_STREAM("PREDICT"););
+    PRINT_THROTTLE(ROS_DEBUG_STREAM("PREDICT"););
 
     update_particle_states();
 
     estimate_state();
 
-    PRINT_THROTTLE(ROS_INFO_STREAM("est_state: " << std::endl << est_state););
+    PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
     num_iterations++;
 }
 
@@ -294,7 +302,7 @@ void ParticleFilter::Predict()
 // pool)
 void ParticleFilter::Update()
 {
-    PRINT_THROTTLE(ROS_INFO_STREAM("UPDATE"););
+    PRINT_THROTTLE(ROS_DEBUG_STREAM("UPDATE"););
 
     reload_params();
 
@@ -306,6 +314,6 @@ void ParticleFilter::Update()
 
     estimate_state();
 
-    PRINT_THROTTLE(ROS_INFO_STREAM("est_state: " << std::endl << est_state););
+    PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
     num_iterations++;
 }
