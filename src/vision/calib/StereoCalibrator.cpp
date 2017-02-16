@@ -138,18 +138,6 @@ void StereoCalibrator::calibrate()
 
     ROS_INFO_STREAM("Distortion coeffs 2 empty? " << distCoeffs[1].empty());
 
-    int flag = 0;
-    //flag |= fisheye::CALIB_USE_INTRINSIC_GUESS;
-    flag |= fisheye::CALIB_RECOMPUTE_EXTRINSIC;
-    flag |= fisheye::CALIB_CHECK_COND;
-    flag |= fisheye::CALIB_FIX_SKEW;
-    //flag |= fisheye::CALIB_FIX_K1;
-    flag |= fisheye::CALIB_FIX_K2;
-    flag |= fisheye::CALIB_FIX_K3;
-    flag |= fisheye::CALIB_FIX_K4;
-
-
-    Mat R, T, E, F;
     ROS_INFO_STREAM("Using image size of: " << imageSize);
     /*double rms = stereoCalibrate(objectPoints, imagePoints1, imagePoints2,
                                  cameraMatrix[0], distCoeffs[0],
@@ -164,6 +152,39 @@ void StereoCalibrator::calibrate()
                                  TermCriteria(TermCriteria::COUNT +
                                              TermCriteria::EPS, 100, 1e-5));*/
 
+    Mat lR, rR, lT, rT;
+
+    int monoFlag = 0;
+    monoFlag |= fisheye::CALIB_FIX_SKEW;
+    monoFlag |= fisheye::CALIB_CHECK_COND;
+    monoFlag |= fisheye::CALIB_RECOMPUTE_EXTRINSIC;
+
+    double leftRms = fisheye::calibrate(objectPoints, leftImgPoints, imageSize,
+                                        cameraMatrix[0], distCoeffs[0], lR,
+                                        lT, monoFlag);
+
+    ROS_INFO_STREAM("Calibrated left cam with rms: " << leftRms);
+
+    double rightRms = fisheye::calibrate(objectPoints, rightImgPoints,
+                                        imageSize, cameraMatrix[1],
+                                        distCoeffs[1], rR, rT, monoFlag);
+   
+    ROS_INFO_STREAM("Calibrated right cam with rms: " << rightRms);
+
+
+    int flag = 0;
+    flag |= fisheye::CALIB_FIX_INTRINSIC;
+    flag |= fisheye::CALIB_USE_INTRINSIC_GUESS;
+    flag |= fisheye::CALIB_RECOMPUTE_EXTRINSIC;
+    flag |= fisheye::CALIB_CHECK_COND;
+    flag |= fisheye::CALIB_FIX_SKEW;
+    //flag |= fisheye::CALIB_FIX_K1;
+    //flag |= fisheye::CALIB_FIX_K2;
+    //flag |= fisheye::CALIB_FIX_K3;
+    //flag |= fisheye::CALIB_FIX_K4;
+
+
+    Mat R, T, E, F;
     double rms = fisheye::stereoCalibrate(objectPoints, leftImgPoints,
                                           rightImgPoints, cameraMatrix[0],
                                           distCoeffs[0], cameraMatrix[1],
