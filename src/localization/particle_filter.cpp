@@ -291,6 +291,8 @@ void ParticleFilter::Predict()
 
     update_particle_states();
 
+    last_particle_states = particle_states;
+
     estimate_state();
 
     PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
