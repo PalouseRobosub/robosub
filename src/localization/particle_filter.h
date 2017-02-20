@@ -75,7 +75,7 @@ MatrixXd sqrt_elementwise(MatrixXd in)
 
 double gaussian_prob(double mean, double sigma, double x)
 {
-    double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) / 2.0) /
+    double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) * 2.0) /
                std::sqrt(2.0 * 3.1415 * std::pow(sigma, 2));
 
     return p;
