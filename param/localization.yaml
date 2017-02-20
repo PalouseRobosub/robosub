@@ -1,29 +1,24 @@
 localization:
-    rate: 50.0
-    num_particles: 500
-    initial_state:
-        x_pos: -30.0
-        y_pos: -20.0
-        z_pos: 4.9
-        x_lin_vel: 0.0
-        y_lin_vel: 0.0
-        z_lin_vel: 0.0
-    variance:
+    rate: 20.0
+    num_particles: 1000
+    initial:
+        azimuth: -140.0
+        inclination: 3.5
+        range: 38.0
+        azimuth_initial_stddev: 5.0
+        inclination_initial_stddev: 5.0
+        range_initial_stddev: 5.0
+    variances:
         # measurement covariance matrix
-        hydrophone_x_variance: 0.5
-        hydrophone_y_variance: 0.5
-        hydrophone_z_variance: 0.5
-        depth_variance: 0.1
+        azimuth_measurement: 0.02
+        inclination_measurement: 0.02
+        range_measurement: 0.02
+        depth_measurement: 0.05
 
         # state update covariance matrix
-        state_update_x_pos_variance: 0.2
-        state_update_y_pos_variance: 0.2
-        state_update_z_pos_variance: 0.2
-
-        # initial distribution stddevs
-        x_pos_initial_stddev: 5.0
-        y_pos_initial_stddev: 5.0
-        z_pos_initial_stddev: -2.0
+        azimuth_state_update: 0.03
+        inclination_state_update: 0.03
+        range_state_update: 0.03
 
 kalman_filter:
     Q: 

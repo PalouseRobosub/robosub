@@ -17,6 +17,10 @@ using namespace Eigen;
 #define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
 //#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
 
+constexpr double RAD_TO_DEG = (180.0 / 3.1415);
+constexpr double DEG_TO_RAD = (3.1415 / 180.0);
+constexpr double PI = (3.1415);
+
 template <typename T>
 std::ostream& operator<< (std::ostream& out, const std::vector<T>& v)
 {
@@ -149,6 +153,11 @@ private:
     double randn()
     {
         return (*norm_distribution)(rand_generator);
+    }
+
+    double pos_randn()
+    {
+        return std::abs((*norm_distribution)(rand_generator));
     }
 
     // Uniform 0-1 random real
