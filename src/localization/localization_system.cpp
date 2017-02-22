@@ -1,6 +1,7 @@
 #include "localization_system.hpp"
 
-LocalizationSystem::LocalizationSystem(int _num_particles) : pf(_num_particles)
+//LocalizationSystem::LocalizationSystem(ros::NodeHandle _nh, int _num_particles) : kf(_nh), pf(_num_particles)
+LocalizationSystem::LocalizationSystem(ros::NodeHandle _nh, int _num_particles) : kf(_nh), pf(_num_particles)
 {
     orientation[0] = 0.0;
     orientation[1] = 0.0;
@@ -41,6 +42,7 @@ void LocalizationSystem::depthCallback(const robosub::Float32Stamped::ConstPtr
                                        &msg)
 {
     pf.InputDepth(msg->data, msg->header.stamp);
+    kf.InputDepth(msg);
 }
 
 void LocalizationSystem::hydrophoneCallback(const
@@ -69,6 +71,7 @@ void LocalizationSystem::linAccelCallback(const
     tf::Vector3 abs_lin_accel = calculate_absolute_lin_accel(rel_lin_accel);
 
     pf.InputLinAccel(abs_lin_accel, dt.toSec());
+    kf.InputLinAccel(msg);
     last_lin_accel_timestamp = msg->header.stamp;
 }
 
@@ -79,11 +82,15 @@ void LocalizationSystem::orientationCallback(const
     orientation[1] = msg->quaternion.y;
     orientation[2] = msg->quaternion.z;
     orientation[3] = msg->quaternion.w;
+
+    kf.InputOrientation(msg);
 }
 
 bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req,
         std_srvs::Empty::Response &rep)
 {
     pf.Reset();
+    kf.Reset();
+
     return true;
 }

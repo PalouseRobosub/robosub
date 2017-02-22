@@ -13,9 +13,9 @@
 
 using namespace Eigen;
 
-#define PT_RATE 10
-#define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
-//#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
+#define PF_PT_RATE 10
+#define PF_PRINT_THROTTLE(x) if(num_iterations % PF_PT_RATE == 0) { x }
+//#define PF_PRINT_THROTTLE(x) if(0 && num_iterations % PF_PT_RATE == 0) { x }
 
 constexpr double RAD_TO_DEG = (180.0 / 3.1415);
 constexpr double DEG_TO_RAD = (3.1415 / 180.0);

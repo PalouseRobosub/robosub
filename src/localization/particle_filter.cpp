@@ -53,7 +53,6 @@ void ParticleFilter::initialize()
 
     reload_params();
 
-
     ROS_INFO_STREAM("initial_state:\n" << initial_state);
     ROS_INFO_STREAM("initial_distribution:\n" << initial_distribution);
     ROS_INFO_STREAM("system_update_covar:\n" << system_update_covar);
@@ -62,9 +61,9 @@ void ParticleFilter::initialize()
     for(int n = 0; n < num_particles; n++)
     {
         Matrix<double, 3, 1> s;
-        s(0, 0) = std::fmod(initial_state(0, 0) + randn() * initial_distribution(0, 0), PI);
-        s(1, 0) = std::fmod(initial_state(1, 0) + randn() * initial_distribution(1, 0), PI);
-        s(2, 0) = (initial_state(2, 0) + pos_randn() * initial_distribution(2, 0));
+        s(0, 0) = initial_state(0, 0) + (randn() * initial_distribution(0, 0));
+        s(1, 0) = initial_state(1, 0) + (randn() * initial_distribution(1, 0));
+        s(2, 0) = initial_state(2, 0) + (randn() * initial_distribution(2, 0));
 
         particle_states.push_back(s);
 
@@ -101,25 +100,25 @@ void ParticleFilter::reload_params()
         ros::shutdown();
     }
 
-    ros::param::getCached("localization/initial/azimuth",
+    ros::param::getCached("localization/initial/x",
                           initial_state(0, 0));
-    ros::param::getCached("localization/initial/inclination",
+    ros::param::getCached("localization/initial/y",
                           initial_state(1, 0));
-    ros::param::getCached("localization/initial/range",
+    ros::param::getCached("localization/initial/z",
                           initial_state(2, 0));
 
-    ros::param::getCached("localization/initial/azimuth_initial_stddev",
+    ros::param::getCached("localization/initial/x_initial_stddev",
                           initial_distribution(0, 0));
-    ros::param::getCached("localization/initial/inclination_initial_stddev",
+    ros::param::getCached("localization/initial/y_initial_stddev",
                           initial_distribution(1, 0));
-    ros::param::getCached("localization/initial/range_initial_stddev",
+    ros::param::getCached("localization/initial/z_initial_stddev",
                           initial_distribution(2, 0));
 
-    ros::param::getCached("localization/variances/azimuth_state_update",
+    ros::param::getCached("localization/variances/x_state_update",
                           system_update_covar(0, 0));
-    ros::param::getCached("localization/variances/inclination_state_update",
+    ros::param::getCached("localization/variances/y_state_update",
                           system_update_covar(1, 1));
-    ros::param::getCached("localization/variances/range_state_update",
+    ros::param::getCached("localization/variances/z_state_update",
                           system_update_covar(2, 2));
 
     ros::param::getCached("localization/variances/azimuth_measurement",
@@ -131,12 +130,6 @@ void ParticleFilter::reload_params()
     ros::param::getCached("localization/variances/depth_measurement",
                           measurement_covar(3, 3));
 
-    initial_state(0, 0) *= DEG_TO_RAD;
-    initial_state(1, 0) *= DEG_TO_RAD;
-    initial_distribution(0, 0) *= DEG_TO_RAD;
-    initial_distribution(1, 0) *= DEG_TO_RAD;
-    system_update_covar(0, 0) *= DEG_TO_RAD;
-    system_update_covar(1, 1) *= DEG_TO_RAD;
     measurement_covar(0, 0) *= DEG_TO_RAD;
     measurement_covar(1, 1) *= DEG_TO_RAD;
 }
@@ -191,8 +184,8 @@ void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt)
     control_update_model(1, 1) = 0.5 * dt * dt;
     control_update_model(2, 2) = 0.5 * dt * dt;
 
-    //PRINT_THROTTLE(ROS_DEBUG_STREAM("control_input:\n" << control_input););
-    //PRINT_THROTTLE(ROS_DEBUG_STREAM("control_update_model:\n" << control_update_model););
+    //PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("control_input:\n" << control_input););
+    //PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("control_update_model:\n" << control_update_model););
 
     //Predict();
 }
@@ -201,12 +194,21 @@ Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1> s
 {
     Matrix<double, 4, 1> obs;
 
-    // Position in (azimuth, inclination, range)
-    obs(0, 0) = state(0, 0);
-    obs(1, 0) = state(1, 0);
-    obs(2, 0) = state(2, 0);
+    double hz = -pinger_depth + state(2, 0);
 
-    obs(3, 0) = pinger_depth + std::sin(state(1, 0)) * state(2, 0);
+    double azimuth = std::atan2(state(1, 0), state(0, 0));
+    double inclination = std::atan2(hz,
+            std::sqrt(std::pow(state(0, 0), 2) + std::pow(state(1, 0), 2)));
+    double range = std::sqrt(std::pow(state(0, 0), 2) + std::pow(state(1, 0),
+                2) + std::pow(hz, 2));
+
+    // Observation in (azimuth, inclination, range)
+    obs(0, 0) = azimuth;
+    obs(1, 0) = inclination;
+    obs(2, 0) = range;
+
+    // Depth observation
+    obs(3, 0) = state(2, 0);
 
     return obs;
 }
@@ -227,8 +229,8 @@ void ParticleFilter::update_particle_states()
             //control_update_model * control_input +
             sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
 
-        particle_states[n](0, 0) = fmod(particle_states[n](0, 0), PI);
-        particle_states[n](1, 0) = fmod(particle_states[n](1, 0), PI);
+        //particle_states[n](0, 0) = fmod(particle_states[n](0, 0), PI);
+        //particle_states[n](1, 0) = fmod(particle_states[n](1, 0), PI);
     }
 }
 
@@ -253,7 +255,6 @@ void ParticleFilter::update_particle_weights()
                                      std::sqrt(measurement_covar(i, i)),
                                      particle_obs[n](i, 0));
 
-            // TODO: if(p corresponds to old enough sensor data, ignore)
             particle_weights[n] *= p;
         }
 
@@ -306,7 +307,7 @@ void ParticleFilter::estimate_state()
     est_state.setZero();
     for(int i = 0; i < num_particles; i++)
     {
-        est_state += particle_states[i] * particle_weights[i];
+        est_state += particle_states[i];
     }
 
     for(int i = 0; i < est_state.rows(); i++)
@@ -317,18 +318,22 @@ void ParticleFilter::estimate_state()
         }
     }
 
+    est_state(0, 0) /= num_particles;
+    est_state(1, 0) /= num_particles;
+    est_state(2, 0) /= num_particles;
+
     // Get Position from (azimuth, inclination, range)
-    double x = std::cos(est_state(0, 0)) * est_state(2, 0);
-    double y = std::sin(est_state(0, 0)) * est_state(2, 0);
-    double z = pinger_depth + (std::sin(est_state(1, 0)) * est_state(2, 0));
-    estimated_position[0] = x;
-    estimated_position[1] = y;
-    estimated_position[2] = z;
+    //double x = std::cos(est_state(0, 0)) * est_state(2, 0);
+    //double y = std::sin(est_state(0, 0)) * est_state(2, 0);
+    //double z = pinger_depth + (std::sin(est_state(1, 0)) * est_state(2, 0));
+    estimated_position[0] = est_state(0, 0);
+    estimated_position[1] = est_state(1, 0);
+    estimated_position[2] = est_state(2, 0);
 }
 
 void ParticleFilter::Predict()
 {
-    PRINT_THROTTLE(ROS_DEBUG_STREAM("PREDICT"););
+    PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("PREDICT"););
 
     update_particle_states();
 
@@ -336,7 +341,7 @@ void ParticleFilter::Predict()
 
     estimate_state();
 
-    PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
+    PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
     num_iterations++;
 }
 
@@ -345,7 +350,7 @@ void ParticleFilter::Predict()
 // pool)
 void ParticleFilter::Update()
 {
-    PRINT_THROTTLE(ROS_DEBUG_STREAM("UPDATE"););
+    PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("UPDATE"););
 
     reload_params();
 
@@ -357,7 +362,7 @@ void ParticleFilter::Update()
 
     estimate_state();
 
-    PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
+    PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
     num_iterations++;
 
 }

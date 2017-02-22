@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     double rate;
     ros::param::getCached("localization/rate", rate);
 
-    LocalizationSystem loc_system(num_particles);
+    LocalizationSystem loc_system(nh, num_particles);
 
     // TODO: Change to use localization messages
     ros::Publisher loc_pub =

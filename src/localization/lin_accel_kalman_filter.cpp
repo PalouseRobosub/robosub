@@ -59,10 +59,15 @@ void LinAccelKalmanFilter::reload_params()
     getParamCachedMatrix("kalman_filter/P", P);
     getParamCachedMatrix("kalman_filter/X0", x0);
 
-    PRINT_THROTTLE(ROS_INFO_STREAM("Q: " << Q););
-    PRINT_THROTTLE(ROS_INFO_STREAM("R: " << R););
-    PRINT_THROTTLE(ROS_INFO_STREAM("P: " << P););
-    PRINT_THROTTLE(ROS_INFO_STREAM("x0: " << x0););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("Q: " << Q););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("R: " << R););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("P: " << P););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("x0: " << x0););
+}
+
+void LinAccelKalmanFilter::Reset()
+{
+    initialize();
 }
 
 bool LinAccelKalmanFilter::reset(std_srvs::Empty::Request &req,
@@ -92,7 +97,7 @@ tf::Vector3 LinAccelKalmanFilter::calculate_absolute_lin_accel(
 void LinAccelKalmanFilter::InputLinAccel(const
         geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
-    PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
 
     dt = msg->header.stamp - last_lin_accel_time;
     last_lin_accel_time = msg->header.stamp;
@@ -143,36 +148,36 @@ void LinAccelKalmanFilter::update_A(double dt)
     A(0, 3) = A(1, 4) = A(2, 5) = A(3, 6) = A(4, 7) = A(5, 8) = dt;
     A(0, 6) = A(1, 7) = A(2, 8) = 0.5 * (dt * dt);
 
-    PRINT_THROTTLE(ROS_INFO_STREAM("A:\n" << A););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("A:\n" << A););
 }
 
 Matrix<double, 9, 1> LinAccelKalmanFilter::run_filter(Matrix<double, 4, 1> obs)
 {
-    PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
 
     // predict state forward
     x = A * x_prev;
-    PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
     // estimate prediction covariance
     P = A * P * A.transpose() + Q;
-    PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
     // get error between reality and prediction
     y = obs - H * x;
-    PRINT_THROTTLE(ROS_INFO_STREAM("y:\n" << y););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("y:\n" << y););
     // add real error to predicted probability
     s = H * P * H.transpose() + R;
-    PRINT_THROTTLE(ROS_INFO_STREAM("s:\n" << s););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("s:\n" << s););
     // find kalman gain
     k = P * H.transpose() * s.inverse();
-    PRINT_THROTTLE(ROS_INFO_STREAM("k:\n" << k););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("k:\n" << k););
     // update predicted state with kalman gain
     x = x + k * y;
-    PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
     // update predicted covariances with kalmain gain
     P = (Matrix<double, 9, 9>::Identity() - k * H) * P;
-    PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
 
-    PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
 
     x_prev = x;
 
@@ -181,7 +186,7 @@ Matrix<double, 9, 1> LinAccelKalmanFilter::run_filter(Matrix<double, 4, 1> obs)
 
 void LinAccelKalmanFilter::update(Matrix<double, 4, 1> obs, double dt)
 {
-    PRINT_THROTTLE(ROS_INFO_STREAM("obs: " << obs););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("obs: " << obs););
 
     reload_params();
 
@@ -189,7 +194,7 @@ void LinAccelKalmanFilter::update(Matrix<double, 4, 1> obs, double dt)
 
     Matrix<double, 9, 1> predicted_state = run_filter(obs);
 
-    PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" << predicted_state););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" << predicted_state););
 
     publish(predicted_state);
 

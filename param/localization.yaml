@@ -2,12 +2,12 @@ localization:
     rate: 20.0
     num_particles: 1000
     initial:
-        azimuth: -140.0
-        inclination: 3.5
-        range: 38.0
-        azimuth_initial_stddev: 5.0
-        inclination_initial_stddev: 5.0
-        range_initial_stddev: 5.0
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        x_initial_stddev: 20.0
+        y_initial_stddev: 20.0
+        z_initial_stddev: 20.0
     variances:
         # measurement covariance matrix
         azimuth_measurement: 0.02
@@ -16,9 +16,9 @@ localization:
         depth_measurement: 0.05
 
         # state update covariance matrix
-        azimuth_state_update: 0.03
-        inclination_state_update: 0.03
-        range_state_update: 0.03
+        x_state_update: 0.5
+        y_state_update: 0.5
+        z_state_update: 0.5
 
 kalman_filter:
     Q: 

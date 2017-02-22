@@ -20,6 +20,7 @@
 #include "std_msgs/Float32.h"
 #include "std_srvs/Empty.h"
 
+#include "localization/lin_accel_kalman_filter.h"
 #include "localization/particle_filter.h"
 
 using namespace Eigen;
@@ -27,7 +28,7 @@ using namespace Eigen;
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(int _num_particles);
+    LocalizationSystem(ros::NodeHandle _nh, int _num_particles);
 
     bool resetFilterCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &rep);
@@ -42,6 +43,7 @@ public:
 private:
     tf::Vector3 calculate_absolute_lin_accel(tf::Vector3 rel_lin_accel);
 
+    LinAccelKalmanFilter kf;
     ParticleFilter pf;
 
     ros::Time last_lin_accel_timestamp;

@@ -20,9 +20,9 @@
 
 using namespace Eigen;
 
-#define PT_RATE 20
-#define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
-//#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
+#define KF_PT_RATE 20
+//#define KF_PRINT_THROTTLE(x) if(num_iterations % KF_PT_RATE == 0) { x }
+#define KF_PRINT_THROTTLE(x) if(0 && num_iterations % KF_PT_RATE == 0) { x }
 
 bool getParamCachedMatrix(std::string param_name,
                           Eigen::Ref<Eigen::MatrixXd> mat)
@@ -77,6 +77,7 @@ class LinAccelKalmanFilter
 public:
     LinAccelKalmanFilter(ros::NodeHandle _nh);
     ~LinAccelKalmanFilter();
+    void Reset();
     bool reset(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
 
     void InputLinAccel(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
