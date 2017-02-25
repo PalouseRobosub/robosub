@@ -80,16 +80,14 @@ public:
     void Reset();
     bool reset(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
 
-    void InputLinAccel(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
-    void InputOrientation(
-        const robosub::QuaternionStampedAccuracy::ConstPtr &msg);
-    void InputDepth(const robosub::Float32Stamped::ConstPtr &msg);
+    void InputAbsLinAcl(tf::Vector3 lin_acl, double dt);
+    void InputDepth(double depth, double dt);
+
+    tf::Vector3 GetLinVelocity();
 
 private:
     void initialize();
     void reload_params();
-    tf::Vector3 calculate_absolute_lin_accel(tf::Vector3 rel_lin_accel,
-            tf::Quaternion orientation);
     void update_A(double dt);
     Matrix<double, 9, 1> run_filter(Matrix<double, 4, 1> obs);
     void update(Matrix<double, 4, 1> obs, double dt);
@@ -99,12 +97,8 @@ private:
     ros::Publisher pub;
 
     int num_iterations;
-    ros::Time last_lin_accel_time;
-    ros::Duration dt;
-    tf::Quaternion orientation;
-    double depth;
-    bool orientation_initialized;
-    bool depth_initialized;
+
+    Matrix<double, 4, 1> obs;
 
     Matrix<double, 9, 1> x0;
     Matrix<double, 9, 1> x;

@@ -20,6 +20,7 @@
 #include "std_msgs/Float32.h"
 #include "std_srvs/Empty.h"
 
+#include "localization/filter_sensors.h"
 #include "localization/lin_accel_kalman_filter.h"
 #include "localization/particle_filter.h"
 
@@ -28,28 +29,19 @@ using namespace Eigen;
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(ros::NodeHandle _nh, int _num_particles);
+    LocalizationSystem(FilterSensors *_sensors, ros::NodeHandle _nh, int _num_particles);
 
     bool resetFilterCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &rep);
-    void depthCallback(const robosub::Float32Stamped::ConstPtr &msg);
-    void hydrophoneCallback(const robosub::PositionArrayStamped::ConstPtr &msg);
-    void linAccelCallback(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
-    void orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr
-                             &msg);
 
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
 
-private:
-    tf::Vector3 calculate_absolute_lin_accel(tf::Vector3 rel_lin_accel);
+    void Update();
 
+private:
     LinAccelKalmanFilter kf;
     ParticleFilter pf;
-
-    ros::Time last_lin_accel_timestamp;
-    ros::Duration dt;
-
-    tf::Quaternion orientation;
+    FilterSensors *sensors;
 
 public:
 };

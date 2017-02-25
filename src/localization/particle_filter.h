@@ -95,9 +95,9 @@ public:
     tf::Vector3 GetPosition();
     void Reset();
 
-    void InputDepth(const double depth, const ros::Time msg_time);
-    void InputHydrophone(const tf::Vector3 position, const ros::Time msg_time);
-    void InputLinAccel(const tf::Vector3 linaccel, const double dt);
+    void InputDepth(const double depth, const double dt);
+    void InputHydrophones(const tf::Vector3 position, const double dt);
+    void InputAbsLinVel(const tf::Vector3 lin_vel, const double dt);
 
 private:
     void initialize();

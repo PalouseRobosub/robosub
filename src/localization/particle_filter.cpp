@@ -139,12 +139,12 @@ tf::Vector3 ParticleFilter::GetPosition()
     return estimated_position;
 }
 
-void ParticleFilter::InputDepth(const double depth, const ros::Time msg_time)
+void ParticleFilter::InputDepth(const double depth, const double dt)
 {
     observation(3, 0) = depth;
 }
 
-void ParticleFilter::InputHydrophone(const tf::Vector3 position, const ros::Time msg_time)
+void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double dt)
 {
     double azimuth = std::atan2(position[1], position[0]);
     double inclination = std::atan2(position[2],
@@ -174,20 +174,20 @@ void ParticleFilter::InputHydrophone(const tf::Vector3 position, const ros::Time
     Update();
 }
 
-void ParticleFilter::InputLinAccel(const tf::Vector3 linaccel, const double dt)
+void ParticleFilter::InputAbsLinVel(const tf::Vector3 lin_vel, const double dt)
 {
-    control_input(0, 0) = linaccel[0];
-    control_input(1, 0) = linaccel[1];
-    control_input(2, 0) = linaccel[2];
+    control_input(0, 0) = lin_vel[0];
+    control_input(1, 0) = lin_vel[1];
+    control_input(2, 0) = lin_vel[2];
 
-    control_update_model(0, 0) = 0.5 * dt * dt;
-    control_update_model(1, 1) = 0.5 * dt * dt;
-    control_update_model(2, 2) = 0.5 * dt * dt;
+    control_update_model(0, 0) = dt;
+    control_update_model(1, 1) = dt;
+    control_update_model(2, 2) = dt;
 
     //PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("control_input:\n" << control_input););
     //PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("control_update_model:\n" << control_update_model););
 
-    //Predict();
+    Predict();
 }
 
 Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1> state)
@@ -226,7 +226,7 @@ void ParticleFilter::update_particle_states()
     for(int n = 0; n < num_particles; n++)
     {
         particle_states[n] = system_update_model * last_particle_states[n] +
-            //control_update_model * control_input +
+            control_update_model * control_input +
             sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
 
         //particle_states[n](0, 0) = fmod(particle_states[n](0, 0), PI);
