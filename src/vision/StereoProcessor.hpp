@@ -35,20 +35,11 @@ class StereoProcessor
         StereoProcessor();
         ~StereoProcessor();
 
-        void locateCentroids(robosub::visionPosArray &vpa);
-        void updateLeft(const Image& image);
-        void updateRight(const Image& image);
+        void process(const Image& leftImage, const Image& rightImage,
+                     const Mat &Q, Mat &disparityMat, Mat &_3dImageMat);
 
     private:
         NodeHandle n;
-
-        Mat leftImg;
-        Mat rightImg;
-
-        void process(Mat &contourMat, Mat &disparityMat);
-        void getScalarParamSet(string mapName, vector<Scalar> &scalars);
-        void getLowerBoundParams(vector<Scalar> &lower_bounds);
-        void getUpperBoundParams(vector<Scalar> &upper_bounds);
 
         Mat toOpenCV(const Image& image);
 };

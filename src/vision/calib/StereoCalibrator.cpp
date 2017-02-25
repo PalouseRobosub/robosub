@@ -19,7 +19,10 @@ StereoCalibrator::StereoCalibrator(Size boardSize, float squareSize,
 
 StereoCalibrator::~StereoCalibrator()
 {
-    outputFile.release();
+    if (outputFile.isOpened())
+    {
+        outputFile.release();
+    }
 }
 
 void StereoCalibrator::submitImgs(const Mat &rightImg, const Mat &leftImg)
@@ -234,7 +237,7 @@ void StereoCalibrator::calibrate()
     ROS_INFO_STREAM("Average Epipolar Error: " << err/nPoints);
 
     saveIntrinsics(cameraMatrix[0], distCoeffs[0], cameraMatrix[1],
-                   distCoeffs[1]);
+                   distCoeffs[1], imageSize);
 
 
     Mat R1, R2, P1, P2, Q;
@@ -253,7 +256,9 @@ void StereoCalibrator::calibrate()
 
     ROS_INFO_STREAM("Completed rectification.");
 
-    saveExtrinsics(R, T, R1, R2, P1, P2, Q);
+    saveExtrinsics(R, T, R1, R2, P1, P2, F, E, Q);
+
+    outputFile.release();
 
     bool isVerticalStereo = fabs(P2.at<double>(1, 3)) >
                             fabs(P2.at<double>(0, 3));
@@ -364,24 +369,39 @@ void StereoCalibrator::calibrate()
 }
 
 void StereoCalibrator::saveIntrinsics(Mat camMat1, Mat distCoeffs1,
-                                      Mat camMat2, Mat distCoeffs2)
+                                      Mat camMat2, Mat distCoeffs2,
+                                      Size imageSize)
 {
-    outputFile << "M1" << camMat1;
+    ROS_INFO_STREAM("Saving Intrinsics");
+    time_t tm;
+    time (&tm);
+    struct tm *t2 = localtime(&tm);
+    char buf[1024];
+    strftime(buf, sizeof(buf), "%c", t2);
+
+    outputFile << "calibration_time" << buf;
+    outputFile << "K1" << camMat1;
     outputFile << "D1" << distCoeffs1;
-    outputFile << "M2" << camMat2;
+    outputFile << "K2" << camMat2;
     outputFile << "D2" << distCoeffs2;
+    outputFile << "image_size" << imageSize;
+    ROS_INFO_STREAM("Intrinsics saved");
 }
 
 void StereoCalibrator::saveExtrinsics(Mat R, Mat T, Mat R1, Mat R2, Mat P1,
-                                      Mat P2, Mat Q)
+                                      Mat P2, Mat F, Mat E, Mat Q)
 {
+    ROS_INFO_STREAM("Saving Extrinsics");
     outputFile << "R" << R;
     outputFile << "T" << T;
     outputFile << "R1" << R1;
     outputFile << "R2" << R2;
     outputFile << "P1" << P1;
     outputFile << "P2" << P2;
+    outputFile << "F" << F;
+    outputFile << "E" << E;
     outputFile << "Q" << Q;
+    ROS_INFO_STREAM("Extrinsics saved");
 }
 
 

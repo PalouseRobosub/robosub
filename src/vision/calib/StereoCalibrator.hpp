@@ -13,6 +13,8 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <ctime>
+
 
 using namespace cv;
 using std::string;
@@ -56,8 +58,9 @@ class StereoCalibrator
         FileStorage outputFile;
 
         void saveIntrinsics(Mat camMat1, Mat distCoeffs1,
-                            Mat camMat2, Mat distCoeffs2);
+                            Mat camMat2, Mat distCoeffs2,
+                            Size imageSize);
         void saveExtrinsics(Mat R, Mat T, Mat R1, Mat R2,
-                            Mat P1, Mat P2, Mat Q);
+                            Mat P1, Mat P2, Mat F, Mat E, Mat Q);
 };
 #endif //STEREOCALIBRATOR_HPP

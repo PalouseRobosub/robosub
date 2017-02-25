@@ -117,4 +117,6 @@ int main (int argc, char* argv[])
     stereoCalib->calibrate();
 
     ROS_INFO_STREAM("Calibration complete!");
+
+    destroyAllWindows();
 }

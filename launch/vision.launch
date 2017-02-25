@@ -7,12 +7,13 @@
     <arg name="rightImage" default="camera/right/undistorted"/>
     
     <arg name="simulated" default="false"/>
+    <arg name="calibFile" default="src/vision/calib/stereo_out_camera_data.xml"/>
 
     <!--Set /visualize_thrusters to false if being simulated.
         This prevents visualization from messing with color detection-->
     <rosparam param="/visualize_thrusters" subst_value="True" if="$(arg simulated)">false</rosparam>
 
-    <node pkg="robosub" type="stereo_vision" name="red_vision" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="red_vision" args="$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/red"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -22,7 +23,7 @@
         <param name="nLargest" value="1"/>
     </node>
 
-    <node pkg="robosub" type="vision" name="green_vision" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="green_vision" args="$(arg calibFile)"  output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/green"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -32,7 +33,7 @@
         <param name="nLargest" value="1"/>
     </node>
 
-    <node pkg="robosub" type="vision" name="yellow_vision" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="yellow_vision" args="$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/yellow"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -42,7 +43,7 @@
         <param name="nLargest" value="1"/>
     </node>
 
-    <node pkg="robosub" type="vision" name="gate_vision" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="gate_vision" args="$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/start_gate"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
