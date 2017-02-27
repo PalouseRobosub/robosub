@@ -92,7 +92,11 @@ public:
     ~ParticleFilter();
     void Predict();
     void Update();
+
+    bool NewPosition();
     tf::Vector3 GetPosition();
+    double GetPositionDT();
+
     void Reset();
 
     void InputDepth(const double depth, const double dt);
@@ -108,6 +112,8 @@ private:
     void resample_particles();
     void estimate_state();
 
+    bool new_position;
+
     Matrix<double, 4, 1> state_to_observation(Matrix<double, 3, 1> state);
     Matrix<double, 4, 1> add_observation_noise(
                                             Matrix<double, 4, 1> particle_obs);
@@ -115,6 +121,8 @@ private:
     int num_particles;
     int num_iterations;
 
+    double estimated_position_dt;
+    ros::Time last_estimated_position_time;
     tf::Vector3 estimated_position;
     double pinger_depth;
 

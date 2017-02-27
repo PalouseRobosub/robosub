@@ -1,23 +1,22 @@
 #include "localization_system.hpp"
 
-//LocalizationSystem::LocalizationSystem(ros::NodeHandle _nh, int _num_particles) : kf(_nh), pf(_num_particles)
-LocalizationSystem::LocalizationSystem(FilterSensors *_sensors, ros::NodeHandle _nh, int _num_particles) : kf(_nh), pf(_num_particles)
+LocalizationSystem::LocalizationSystem(FilterSensors *_sensors, ros::NodeHandle _nh, int _num_particles) : kf(), pf(_num_particles)
 {
     sensors = _sensors;
 }
 
 geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
 {
-    geometry_msgs::Vector3Stamped s;
+    geometry_msgs::Vector3Stamped msg;
 
     tf::Vector3 pos = pf.GetPosition();
 
-    s.vector.x = pos[0];
-    s.vector.y = pos[1];
-    s.vector.z = pos[2];
-    s.header.stamp = ros::Time::now();
+    msg.vector.x = pos[0];
+    msg.vector.y = pos[1];
+    msg.vector.z = pos[2];
+    msg.header.stamp = ros::Time::now();
 
-    return s;
+    return msg;
 }
 
 bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req,
@@ -31,30 +30,42 @@ bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req,
 
 void LocalizationSystem::Update()
 {
+    // Handle input to filters
     if(sensors->NewDepth())
     {
-        ROS_INFO_STREAM("NewDepth");
         pf.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
         kf.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
     }
     if(sensors->NewHydrophones())
     {
-        ROS_INFO_STREAM("NewHydrophones");
         pf.InputHydrophones(sensors->GetHydrophones(), sensors->GetHydrophonesDT());
     }
     if(sensors->NewAbsLinAcl())
     {
-        ROS_INFO_STREAM("NewAbsLinAcl");
         kf.InputAbsLinAcl(sensors->GetAbsLinAcl(), sensors->GetAbsLinAclDT());
     }
     if(sensors->NewAbsLinVel())
     {
-        ROS_INFO_STREAM("NewAbsLinVel");
         pf.InputAbsLinVel(sensors->GetAbsLinVel(), sensors->GetAbsLinVelDT());
     }
+    if(sensors->NewPosition())
+    {
+        //kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
+    }
 
-    sensors->InputAbsLinVel(kf.GetLinVelocity());
-    sensors->InputPosition(pf.GetPosition());
+    // Handle output from filters. On the next update the new data from the kf
+    // will be fed to the pf and vice versa.
+    if(kf.NewAbsLinVel())
+    {
+        //sensors->InputAbsLinVel(kf.GetAbsLinVel(), kf.GetLinVelDT);
+        sensors->InputAbsLinVel(kf.GetAbsLinVel());
+    }
+    if(pf.NewPosition())
+    {
+        //sensors->InputPosition(pf.GetPosition(), pf.GetPositionDT());
+        sensors->InputPosition(pf.GetPosition());
+    }
 
-    ROS_INFO_STREAM("");
+    // TODO: Don't input every update step
+    //sensors->InputPosition(pf.GetPosition());
 }

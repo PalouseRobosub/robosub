@@ -75,15 +75,16 @@ bool getParamCachedMatrix(std::string param_name,
 class LinAccelKalmanFilter
 {
 public:
-    LinAccelKalmanFilter(ros::NodeHandle _nh);
+    LinAccelKalmanFilter();
     ~LinAccelKalmanFilter();
     void Reset();
-    bool reset(std_srvs::Empty::Request &req, std_srvs::Empty::Response &rep);
 
     void InputAbsLinAcl(tf::Vector3 lin_acl, double dt);
     void InputDepth(double depth, double dt);
 
-    tf::Vector3 GetLinVelocity();
+    bool NewAbsLinVel();
+    tf::Vector3 GetAbsLinVel();
+    double  GetAbsLinVelDT();
 
 private:
     void initialize();
@@ -91,12 +92,12 @@ private:
     void update_A(double dt);
     Matrix<double, 9, 1> run_filter(Matrix<double, 4, 1> obs);
     void update(Matrix<double, 4, 1> obs, double dt);
-    void publish(Matrix<double, 9, 1> predicted_state);
-
-    ros::NodeHandle nh;
-    ros::Publisher pub;
 
     int num_iterations;
+
+    bool new_abs_lin_velocity;
+    double abs_lin_velocity_dt;
+    ros::Time last_abs_lin_velocity_time;
 
     Matrix<double, 4, 1> obs;
 

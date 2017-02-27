@@ -1,10 +1,7 @@
 #include "localization/lin_accel_kalman_filter.h"
 
-LinAccelKalmanFilter::LinAccelKalmanFilter(ros::NodeHandle _nh)
+LinAccelKalmanFilter::LinAccelKalmanFilter()
 {
-    nh = _nh;
-    pub = nh.advertise<robosub::Float32ArrayStamped>("dead_reckoning", 1);
-
     initialize();
 }
 
@@ -41,6 +38,10 @@ void LinAccelKalmanFilter::initialize()
     x(1, 0) = x_prev(1, 0) = x0(1, 0);
     x(2, 0) = x_prev(2, 0) = x0(2, 0);
 
+    new_abs_lin_velocity = false;
+    abs_lin_velocity_dt = 0.0;
+    last_abs_lin_velocity_time = ros::Time::now();
+
     ROS_INFO_STREAM("Finished KF init");
 }
 
@@ -66,14 +67,6 @@ void LinAccelKalmanFilter::reload_params()
 void LinAccelKalmanFilter::Reset()
 {
     initialize();
-}
-
-bool LinAccelKalmanFilter::reset(std_srvs::Empty::Request &req,
-                                 std_srvs::Empty::Response &rep)
-{
-    initialize();
-
-    return true;
 }
 
 void LinAccelKalmanFilter::InputAbsLinAcl(tf::Vector3 lin_acl, double dt)
@@ -132,6 +125,10 @@ Matrix<double, 9, 1> LinAccelKalmanFilter::run_filter(Matrix<double, 4, 1> obs)
 
     x_prev = x;
 
+    new_abs_lin_velocity = true;
+    abs_lin_velocity_dt = (ros::Time::now() - last_abs_lin_velocity_time).toSec();
+    last_abs_lin_velocity_time = ros::Time::now();
+
     return x;
 }
 
@@ -147,28 +144,22 @@ void LinAccelKalmanFilter::update(Matrix<double, 4, 1> obs, double dt)
 
     KF_PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" << predicted_state););
 
-    publish(predicted_state);
-
     num_iterations++;
 }
 
-tf::Vector3 LinAccelKalmanFilter::GetLinVelocity()
+bool LinAccelKalmanFilter::NewAbsLinVel()
 {
+    return new_abs_lin_velocity;
+}
+
+tf::Vector3 LinAccelKalmanFilter::GetAbsLinVel()
+{
+    new_abs_lin_velocity = false;
     return tf::Vector3(x(3, 0), x(4, 0),
             x(5, 0));
 }
 
-// TODO: Publish whole state
-void LinAccelKalmanFilter::publish(Matrix<double, 9, 1> predicted_state)
+double LinAccelKalmanFilter::GetAbsLinVelDT()
 {
-    robosub::Float32ArrayStamped msg;
-
-    for(int i = 0; i < 9; i++)
-    {
-        msg.data.push_back(predicted_state(i, 0));
-    }
-
-    msg.header.stamp = ros::Time::now();
-
-    pub.publish(msg);
+    return abs_lin_velocity_dt;
 }

@@ -76,6 +76,10 @@ void ParticleFilter::initialize()
     }
     last_particle_states = particle_states;
 
+    new_position = false;
+    estimated_position_dt = 0.0;
+    last_estimated_position_time = ros::Time::now();
+
     ROS_INFO_STREAM("particle_states.size(): " << particle_states.size());
     ROS_DEBUG_STREAM("Finished PF init");
 }
@@ -134,9 +138,20 @@ void ParticleFilter::reload_params()
     measurement_covar(1, 1) *= DEG_TO_RAD;
 }
 
+bool ParticleFilter::NewPosition()
+{
+    return new_position;
+}
+
 tf::Vector3 ParticleFilter::GetPosition()
 {
+    new_position = false;
     return estimated_position;
+}
+
+double ParticleFilter::GetPositionDT()
+{
+    return estimated_position_dt;
 }
 
 void ParticleFilter::InputDepth(const double depth, const double dt)
@@ -152,20 +167,20 @@ void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double d
     double range = std::sqrt(std::pow(position[0], 2) + std::pow(position[1],
                 2) + std::pow(position[2], 2));
 
-    double x = std::cos(azimuth) * range;
-    double y = std::sin(azimuth) * range;
-    double z = std::sin(inclination) * range;
+    //double x = std::cos(azimuth) * range;
+    //double y = std::sin(azimuth) * range;
+    //double z = std::sin(inclination) * range;
 
-    ROS_INFO_STREAM("azimuth: " << azimuth);
-    ROS_INFO_STREAM("inclination: " << inclination);
-    ROS_INFO_STREAM("range: " << range);
-    ROS_INFO_STREAM("azimuth(deg): " << azimuth * RAD_TO_DEG);
-    ROS_INFO_STREAM("inclination(deg): " << inclination * RAD_TO_DEG);
-    ROS_INFO_STREAM("range: " << range);
-    ROS_INFO_STREAM("x: " << x);
-    ROS_INFO_STREAM("y: " << y);
-    ROS_INFO_STREAM("z: " << z);
-    ROS_INFO_STREAM("");
+    //ROS_INFO_STREAM("azimuth: " << azimuth);
+    //ROS_INFO_STREAM("inclination: " << inclination);
+    //ROS_INFO_STREAM("range: " << range);
+    //ROS_INFO_STREAM("azimuth(deg): " << azimuth * RAD_TO_DEG);
+    //ROS_INFO_STREAM("inclination(deg): " << inclination * RAD_TO_DEG);
+    //ROS_INFO_STREAM("range: " << range);
+    //ROS_INFO_STREAM("x: " << x);
+    //ROS_INFO_STREAM("y: " << y);
+    //ROS_INFO_STREAM("z: " << z);
+    //ROS_INFO_STREAM("");
 
     observation(0, 0) = azimuth;
     observation(1, 0) = inclination;
@@ -184,8 +199,9 @@ void ParticleFilter::InputAbsLinVel(const tf::Vector3 lin_vel, const double dt)
     control_update_model(1, 1) = dt;
     control_update_model(2, 2) = dt;
 
-    //PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("control_input:\n" << control_input););
-    //PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("control_update_model:\n" << control_update_model););
+    ROS_INFO_STREAM("dt:\n" << dt);
+    ROS_INFO_STREAM("control_input:\n" << control_input);
+    ROS_INFO_STREAM("control_update_model:\n" << control_update_model);
 
     Predict();
 }
@@ -329,6 +345,10 @@ void ParticleFilter::estimate_state()
     estimated_position[0] = est_state(0, 0);
     estimated_position[1] = est_state(1, 0);
     estimated_position[2] = est_state(2, 0);
+
+    new_position = true;
+    estimated_position_dt = (ros::Time::now() - last_estimated_position_time).toSec();
+    last_estimated_position_time = ros::Time::now();
 }
 
 void ParticleFilter::Predict()

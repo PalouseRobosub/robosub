@@ -22,6 +22,15 @@ FilterSensors::FilterSensors()
     orientation_dt = 0.0;
     abs_lin_vel_dt = 0.0;
     position_dt = 0.0;
+
+    rel_lin_acl[0] = rel_lin_acl[1] = rel_lin_acl[2] = 0.0;
+    depth = 0.0;
+    hydrophones[0] = hydrophones[1] = hydrophones[2] = 0.0;
+    orientation[0] = orientation[1] = orientation[2] = 0.0;
+    orientation[3] = 1.0;
+    abs_lin_acl[0] = abs_lin_acl[1] = abs_lin_acl[2] = 0.0;
+    abs_lin_vel[0] = abs_lin_vel[1] = abs_lin_vel[2] = 0.0;
+    position[0] = position[1] = position[2] = 0.0;
 }
 
 void FilterSensors::InputRelLinAcl(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
@@ -60,10 +69,10 @@ void FilterSensors::InputOrientation(const robosub::QuaternionStampedAccuracy::C
     last_orientation_time = msg->header.stamp;
 }
 
-void FilterSensors::InputAbsLinAcl(const tf::Vector3 lin_vel)
+void FilterSensors::InputAbsLinAcl(const tf::Vector3 lin_acl)
 {
     ros::Time stamp = ros::Time::now();
-    abs_lin_acl = lin_vel;
+    abs_lin_acl = lin_acl;
     abs_lin_acl_dt = (stamp - last_abs_lin_acl_time).toSec();
     new_abs_lin_acl = true;
     last_abs_lin_acl_time = stamp;
@@ -74,6 +83,7 @@ void FilterSensors::InputAbsLinVel(const tf::Vector3 lin_vel)
     ros::Time stamp = ros::Time::now();
     abs_lin_vel = lin_vel;
     abs_lin_vel_dt = (stamp - last_abs_lin_vel_time).toSec();
+    ROS_INFO_STREAM("abs_lin_vel_dt: " << abs_lin_vel_dt);
     new_abs_lin_vel = true;
     last_abs_lin_vel_time = stamp;
 }
@@ -164,38 +174,45 @@ bool FilterSensors::NewPosition()
     return new_position;
 }
 
-bool FilterSensors::GetRelLinAclDT()
+double FilterSensors::GetRelLinAclDT()
 {
+    //ROS_INFO_STREAM("rel_lin_acl_dt: " << rel_lin_acl_dt);
     return rel_lin_acl_dt;
 }
 
-bool FilterSensors::GetDepthDT()
+double FilterSensors::GetDepthDT()
 {
+    //ROS_INFO_STREAM("depth_dt: " << depth_dt);
     return depth_dt;
 }
 
-bool FilterSensors::GetHydrophonesDT()
+double FilterSensors::GetHydrophonesDT()
 {
+    //ROS_INFO_STREAM("hydrophones_dt: " << hydrophones_dt);
     return hydrophones_dt;
 }
 
-bool FilterSensors::GetOrientationDT()
+double FilterSensors::GetOrientationDT()
 {
+    //ROS_INFO_STREAM("orientation_dt: " << orientation_dt);
     return orientation_dt;
 }
 
-bool FilterSensors::GetAbsLinAclDT()
+double FilterSensors::GetAbsLinAclDT()
 {
+    //ROS_INFO_STREAM("abs_lin_acl_dt: " << abs_lin_acl_dt);
     return abs_lin_acl_dt;
 }
 
-bool FilterSensors::GetAbsLinVelDT()
+double FilterSensors::GetAbsLinVelDT()
 {
+    //ROS_INFO_STREAM("abs_lin_vel_dt: " << abs_lin_vel_dt);
     return abs_lin_vel_dt;
 }
 
-bool FilterSensors::GetPositionDT()
+double FilterSensors::GetPositionDT()
 {
+    //ROS_INFO_STREAM("position_dt: " << position_dt);
     return position_dt;
 }
 

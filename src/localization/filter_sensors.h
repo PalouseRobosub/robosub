@@ -50,13 +50,13 @@ public:
     bool NewAbsLinVel();
     bool NewPosition();
 
-    bool GetRelLinAclDT();
-    bool GetDepthDT();
-    bool GetHydrophonesDT();
-    bool GetOrientationDT();
-    bool GetAbsLinAclDT();
-    bool GetAbsLinVelDT();
-    bool GetPositionDT();
+    double GetRelLinAclDT();
+    double GetDepthDT();
+    double GetHydrophonesDT();
+    double GetOrientationDT();
+    double GetAbsLinAclDT();
+    double GetAbsLinVelDT();
+    double GetPositionDT();
 
 private:
     bool new_rel_lin_acl;
