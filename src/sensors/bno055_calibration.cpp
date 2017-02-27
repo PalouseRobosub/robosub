@@ -1,12 +1,14 @@
 #include "sensors/Bno055.h"
 #include "utility/serial.hpp"
-#include <iostream>
-#include <cstdint>
+
 #include "ros/ros.h"
 
-using namespace std;
+#include <cstdint>
+#include <iostream>
+#include <string>
 
 using namespace rs;
+using namespace std;
 
 /**
  * Handles errors returned by the Bno driver.
@@ -56,7 +58,7 @@ int main(int argc, char **argv)
      * Perform a calibration of all sensors.
      */
     uint8_t acc_calib = 0, gyr_calib = 0, mag_calib = 0, sys_calib = 0;
-    do
+    while (sys_calib < 3 || acc_calib < 3 || mag_calib < 3 || gyr_calib < 3)
     {
         HandleError(bno.getSensorCalibration(Bno055::Sensor::Accelerometer,
                     acc_calib), "Bno055::getSensorCalibration()");
@@ -73,7 +75,6 @@ int main(int argc, char **argv)
         cout << "S: " << static_cast<int>(sys_calib) << "/3" << endl;
         usleep(500000);
     }
-    while (sys_calib < 3 || acc_calib < 3 || mag_calib < 3 || gyr_calib < 3);
 
     HandleError(bno.setOperationMode(Bno055::OperationMode::Config),
                 "Bno055::setOperationMode()", true);
@@ -88,9 +89,12 @@ int main(int argc, char **argv)
     HandleError(bno.readOffsets(Bno055::Sensor::Magnetometer, mag_offset[0],
                 mag_offset[1], mag_offset[2]), "Bno055::readOffsets()");
 
-    cout << "A Offsets: X: " << acc_offset[0] << " Y: " << acc_offset[1] << " Z: " << acc_offset[2] << endl;
-    cout << "G Offsets: X: " << gyr_offset[0] << " Y: " << gyr_offset[1] << " Z: " << gyr_offset[2] << endl;
-    cout << "M Offsets: X: " << mag_offset[0] << " Y: " << mag_offset[1] << " Z: " << mag_offset[2] << endl;
+    cout << "A Offsets: X: " << acc_offset[0] << " Y: " << acc_offset[1]
+            << " Z: " << acc_offset[2] << endl;
+    cout << "G Offsets: X: " << gyr_offset[0] << " Y: " << gyr_offset[1]
+            << " Z: " << gyr_offset[2] << endl;
+    cout << "M Offsets: X: " << mag_offset[0] << " Y: " << mag_offset[1]
+            << " Z: " << mag_offset[2] << endl;
     cout << "A Radius: " << acc_radius << endl;
     cout << "M Radius: " << mag_radius << endl;
 
