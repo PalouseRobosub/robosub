@@ -85,7 +85,6 @@ int main(int argc, char **argv)
         nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
     euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
 
-
     /*
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
      * class.
