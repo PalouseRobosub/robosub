@@ -89,14 +89,24 @@ int main(int argc, char **argv)
     HandleError(bno.readOffsets(Bno055::Sensor::Magnetometer, mag_offset[0],
                 mag_offset[1], mag_offset[2]), "Bno055::readOffsets()");
 
-    cout << "A Offsets: X: " << acc_offset[0] << " Y: " << acc_offset[1]
-            << " Z: " << acc_offset[2] << endl;
-    cout << "G Offsets: X: " << gyr_offset[0] << " Y: " << gyr_offset[1]
-            << " Z: " << gyr_offset[2] << endl;
-    cout << "M Offsets: X: " << mag_offset[0] << " Y: " << mag_offset[1]
-            << " Z: " << mag_offset[2] << endl;
-    cout << "A Radius: " << acc_radius << endl;
-    cout << "M Radius: " << mag_radius << endl;
+    cout << "sensor:" << endl;
+    cout << "    accelerometer:" << endl;
+    cout << "        offset:" << endl;
+    cout << "            x: " << acc_offset[0] << endl;
+    cout << "            y: " << acc_offset[1] << endl;
+    cout << "            z: " << acc_offset[2] << endl;
+    cout << "        radius:" << acc_radius << endl;
+    cout << "    magnetometer:" << endl;
+    cout << "        offset:" << endl;
+    cout << "            x: " << mag_offset[0] << endl;
+    cout << "            y: " << mag_offset[1] << endl;
+    cout << "            z: " << mag_offset[2] << endl;
+    cout << "        radius:" << mag_radius << endl;
+    cout << "    gyroscope:" << endl;
+    cout << "        offset:" << endl;
+    cout << "            x: " << gyr_offset[0] << endl;
+    cout << "            y: " << gyr_offset[1] << endl;
+    cout << "            z: " << gyr_offset[2] << endl;
 
     cout << "=== Calibration Successful! ===" << endl;
 }
