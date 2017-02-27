@@ -1,0 +1,7 @@
+#note: to make this settings file active, you need to run
+#git config --local include.path ../.gitconfig
+
+
+#only allow fast-forward merging
+[merge]
+	ff = only
