@@ -246,8 +246,12 @@ int main(int argc, char **argv)
         tf::Matrix3x3 m(tf::Quaternion(x, y, z, w));
         m.getRPY(roll, pitch, yaw);
 
-        euler_message.roll = -roll * _180_OVER_PI;
-        euler_message.pitch = -pitch * _180_OVER_PI;
+        /*
+         * Note that we flip the roll and pitch, we do this so that the output
+         * is in right-handed rotation notation
+         */
+        euler_message.roll = (-1) * roll * _180_OVER_PI;
+        euler_message.pitch = (-1) * pitch * _180_OVER_PI;
         euler_message.yaw = yaw * _180_OVER_PI;
         euler_publisher.publish(euler_message);
 
