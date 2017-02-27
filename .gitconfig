@@ -5,3 +5,7 @@
 #only allow fast-forward merging
 [merge]
 	ff = only
+
+#normalize line endings automatically when files are commited
+[core]
+	autocrlf = input
