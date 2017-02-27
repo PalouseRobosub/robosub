@@ -21,6 +21,9 @@ using message_filters::Synchronizer;
 using message_filters::sync_policies::ApproximateTime;
 using sensor_msgs::Image;
 
+using robosub::visionPos;
+using robosub::visionPosArray;
+
 ros::Publisher pub;
 
 int nLargest = 1;
@@ -183,7 +186,7 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
 
     //Create a stereo processor
     StereoProcessor stereoProc;
-    
+
     Mat disparity;
     Mat _3dImage;
 

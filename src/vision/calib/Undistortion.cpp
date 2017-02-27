@@ -69,8 +69,8 @@ void bottomCallback(const wfov_camera_msgs::WFOVImage::ConstPtr &msg)
 
     Mat temp = image_ptr->image.clone();
 
-    fisheye::undistortImage(temp, image_ptr->image, bottomCamMat, bottomDistCoeffs,
-                            Matx33d::eye());
+    fisheye::undistortImage(temp, image_ptr->image, bottomCamMat,
+                            bottomDistCoeffs, Matx33d::eye());
 
     sensor_msgs::Image outMsg;
 
@@ -177,6 +177,6 @@ int main (int argc, char** argv)
                                      rectifyMap[1][1]);
 
     ROS_INFO_STREAM("Completed initialization");
-    
+
     ros::spin();
 }

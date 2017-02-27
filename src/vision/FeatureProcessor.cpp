@@ -1,4 +1,6 @@
 #include "FeatureProcessor.hpp"
+#include <algorithm>
+#include <vector>
 
 FeatureProcessor::FeatureProcessor(int nLargest)
 {
@@ -8,7 +10,6 @@ FeatureProcessor::FeatureProcessor(int nLargest)
 
 FeatureProcessor::~FeatureProcessor()
 {
-    
 }
 
 vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
@@ -32,15 +33,16 @@ vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
 
     Mat toShow;
     leftImg.copyTo(toShow);
-    
+
     // For now use the left image, in future, use both
-    std::sort(lContours.begin(), lContours.end(), FeatureProcessor::compareContourAreas);
+    std::sort(lContours.begin(), lContours.end(),
+              FeatureProcessor::compareContourAreas);
 
     for (int i = 0; i < nLargest &&
-                    static_cast<unsigned int>(i) < contours.size(); ++i)
+                    static_cast<unsigned int>(i) < lContours.size(); ++i)
     {
         Moments moment;
-        moment = moments(contours[i], false);
+        moment = moments(lContours[i], false);
 
         int cx = -1;
         int cy = -1;
@@ -57,7 +59,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
                 ROS_INFO_STREAM("Center at: " << "[" << cx - (imWidth / 2)
                                 << ", " << -1 * (cy - (imHeight / 2)) <<
                                 "]");
-                
+
                 circle(toShow, center, 5, Scalar(255, 255, 255), -1);
 
                 circle(toShow, center, 4, Scalar(0, 0, 255), -1);
@@ -71,9 +73,9 @@ vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
         msg.yPos = (cy - (imHeight / 2)) /
                    static_cast<double>(imHeight / 2);
 
-        msg.magnitude = static_cast<double>(contourArea(contours[i], false)) /
+        msg.magnitude = static_cast<double>(contourArea(lContours[i], false)) /
                         static_cast<double>(imWidth * imHeight);
-    
+
         messages.push_back(msg);
     }
 
@@ -81,6 +83,8 @@ vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
     {
         imshow(ros::this_node::getName() + " Original", toShow);
     }
+
+    return messages;
 }
 
 bool FeatureProcessor::compareContourAreas(vector<Point> contour1,

@@ -34,7 +34,7 @@ class FeatureProcessor
 
         int nLargest;
 
-        bool compareContourAreas(vector<Point> contour1,
+        static bool compareContourAreas(vector<Point> contour1,
                                  vector<Point> contour2);
 };
 
