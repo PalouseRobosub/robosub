@@ -1,5 +1,6 @@
 #include "VisionProcessor.hpp"
 #include "StereoProcessor.hpp"
+#include "FeatureProcessor.hpp"
 #include "robosub/visionPos.h"
 #include "robosub/visionPosArray.h"
 
@@ -172,6 +173,7 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
         ROS_DEBUG_STREAM("Loaded " + ros::this_node::getName() +
                          " nLargest: " << nLargest);
     }
+
     //Create a vision processor
     VisionProcessor processor;
 
@@ -188,6 +190,18 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     //Compute stereo depth map
     stereoProc.process(*left, *right, Q, disparity, _3dImage);
 
+    //Send information to feature processing
+    FeatureProcessor fp(nLargest);
+
+    vector<visionPos> messages;
+    messages = fp.process(leftProcessed, rightProcessed, disparity, _3dImage);
+
+    visionPosArray output;
+    for (auto it = messages.begin(); it != messages.end(); it++)
+    {
+        output.data.push_back(*it);
+    }
+
     if (doImShow)
     {
         waitKey(1);
@@ -197,6 +211,7 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
         destroyAllWindows();
     }
 
+    pub.publish(output);
 }
 
 int main(int argc, char **argv)
