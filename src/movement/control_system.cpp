@@ -664,16 +664,16 @@ namespace robosub
         switch (state)
         {
             case robosub::control::STATE_NONE:
-                ret = "No State";
+                ret = "NONE";
                 break;
             case robosub::control::STATE_ERROR:
-                ret = "Error State";
+                ret = "ERROR";
                 break;
             case robosub::control::STATE_ABSOLUTE:
-                ret = "Absolute State";
+                ret = "ABSOLUTE";
                 break;
             case robosub::control::STATE_RELATIVE:
-                ret = "Relative State";
+                ret = "RELATIVE";
                 break;
             default:
                 break;
