@@ -41,8 +41,8 @@ int main(int argc, char **argv)
     ros::Time::init();
     string port_name;
 
-    HandleError(ros::param::getCached("/ports/sensor", port_name) == false,
-            "ros::param::getCached(\"/ports/sensor\")", true);
+    HandleError(ros::param::get("/ports/sensor", port_name) == false,
+            "ros::param::get(\"/ports/sensor\")", true);
 
     Serial port;
     port.Open(port_name.c_str(), 115200);
