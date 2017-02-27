@@ -240,29 +240,29 @@ int main(int argc, char **argv)
 
         FatalAbortIf(sensor.getSystemCalibration(confidence_level) != 0,
                 "Bno055 failed to read system calibration status.");
-
-        /*
-         * Confidence ranges from [0,3], so normalize the value for
-         * transmission.
-         */
-        quaternion_message.accuracy =
-                static_cast<double>(confidence_level)/3.0;
-        quaternion_message.quaternion.x = x;
-        quaternion_message.quaternion.y = y;
-        quaternion_message.quaternion.z = z;
-        quaternion_message.quaternion.w = w;
-        quaternion_publisher.publish(quaternion_message);
-
         /*
          * Convert the quaternion to human-readable roll, pitch, and yaw.
          */
         tf::Matrix3x3 m(tf::Quaternion(x, y, z, w));
         m.getRPY(roll, pitch, yaw);
 
-        euler_message.roll = roll * _180_OVER_PI;
-        euler_message.pitch = pitch * _180_OVER_PI;
+        euler_message.roll = -roll * _180_OVER_PI;
+        euler_message.pitch = -pitch * _180_OVER_PI;
         euler_message.yaw = yaw * _180_OVER_PI;
         euler_publisher.publish(euler_message);
+
+         /*
+         * Confidence ranges from [0,3], so normalize the value for
+         * transmission.
+         */
+        quaternion_message.accuracy =
+                static_cast<double>(confidence_level)/3.0;
+        quaternion_message.quaternion =
+                  tf::createQuaternionMsgFromRollPitchYaw(euler_message.roll,
+                                                          euler_message.pitch,
+                                                          euler_message.yaw);
+
+        quaternion_publisher.publish(quaternion_message);
 
         /*
          * Read and publish the linear acceleration from the Bno055.
