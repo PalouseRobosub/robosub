@@ -139,12 +139,19 @@ void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
     leftDisp.convertTo(leftDisp, CV_8UC1, 255/(dispMax - dispMin));
     rightDisp.convertTo(rightDisp, CV_8UC1, 255/(dispMax - dispMin));
     
+    Mat elas3dLeft, elas3dRight;
+
+    reprojectImageTo3D(leftDisp, elas3dLeft, Q);
+    reprojectImageTo3D(rightDisp, elas3dRight, Q);
+
     if (doImShow)
     {
         imshow("Disparity 8U", imgDisparity8U);
         imshow("3D Image", _3dImage);
         imshow("ELAS left", leftDisp);
         imshow("ELAS right", rightDisp);
+        imshow("ELAS left 3D", elas3dLeft);
+        imshow("ELAS right 3D", elas3dRight);
     }
 
     ROS_DEBUG_STREAM("Returning masks");
