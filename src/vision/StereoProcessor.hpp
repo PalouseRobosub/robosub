@@ -1,5 +1,6 @@
 #ifndef STEREOPROCESSOR_HPP
 #define STEREOPROCESSOR_HPP
+
 #include <ros/ros.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
@@ -22,6 +23,12 @@
 
 #include "robosub/visionPos.h"
 #include "robosub/visionPosArray.h"
+
+#include "elas/elas.h"
+
+//#ifndef IMAGE_H
+//#include "elas/image.h"
+//#endif
 
 using std::string;
 using std::vector;

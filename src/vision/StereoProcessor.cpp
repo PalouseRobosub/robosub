@@ -110,10 +110,38 @@ void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
     Mat _3dImage;
     reprojectImageTo3D(imgDisparity16S, _3dImage, Q);
 
+    ////////ELAS USE//////////
+
+    //Using elas
+    Elas::parameters params(Elas::setting::ROBOTICS);
+    Elas elas(params);
+
+    int width = leftGray.size().width;
+    int height = leftGray.size().height;
+
+    Mat leftDpf = Mat::zeros(Size(width, height), CV_32F);
+    Mat rightDpf = Mat::zeros(Size(width, height), CV_32F);
+
+    const int32_t dims[3] = {width, height, width};
+
+    elas.process(static_cast<uint8_t *>(leftGray.data),
+                 static_cast<uint8_t *>(rightGray.data),
+                 leftDpf.ptr<float>(0), rightDpf.ptr<float>(0), dims);
+
+    Mat leftDisp, rightDisp;
+
+    leftDpf.copyTo(leftDisp);
+    rightDpf.copyTo(rightDisp);
+
+    leftDisp.convertTo(leftDisp, CV_16S, 16);
+    rightDisp.convertTo(rightDisp, CV_16S, 16);
+    
     if (doImShow)
     {
         imshow("Disparity 8U", imgDisparity8U);
         imshow("3D Image", _3dImage);
+        imshow("ELAS left", leftDisp);
+        imshow("ELAS right", rightDisp);
     }
 
     ROS_DEBUG_STREAM("Returning masks");
