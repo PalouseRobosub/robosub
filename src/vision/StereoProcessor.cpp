@@ -133,8 +133,11 @@ void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
     leftDpf.copyTo(leftDisp);
     rightDpf.copyTo(rightDisp);
 
-    leftDisp.convertTo(leftDisp, CV_16S, 16);
-    rightDisp.convertTo(rightDisp, CV_16S, 16);
+    double dispMax, dispMin;
+    minMaxLoc(leftDisp, &dispMin, &dispMax);
+
+    leftDisp.convertTo(leftDisp, CV_8UC1, 255/(dispMax - dispMin));
+    rightDisp.convertTo(rightDisp, CV_8UC1, 255/(dispMax - dispMin));
     
     if (doImShow)
     {
