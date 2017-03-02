@@ -5,8 +5,10 @@
 #include <map>
 #include <algorithm>
 
-StereoProcessor::StereoProcessor() :
-    initialized(false)
+#include <elas/elas.h>
+
+StereoProcessor::StereoProcessor()
+    : initialized(false)
 {
 }
 

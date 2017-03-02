@@ -24,11 +24,7 @@
 #include "robosub/visionPos.h"
 #include "robosub/visionPosArray.h"
 
-#include "elas/elas.h"
-
-//#ifndef IMAGE_H
-//#include "elas/image.h"
-//#endif
+#include <elas/elas.h>
 
 using std::string;
 using std::vector;
