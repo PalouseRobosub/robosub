@@ -426,6 +426,7 @@ namespace rs
     {
         uint8_t chip_id = 0;
         AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<5));
+        usleep(700000);
         while (chip_id != Bno055::chip_id)
         {
             read_register(Bno055::Register::CHIP_ID, chip_id);

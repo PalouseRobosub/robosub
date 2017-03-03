@@ -93,9 +93,10 @@ int main(int argc, char **argv)
     std::string port_name;
     FatalAbortIf(ros::param::getCached("/ports/sensor", port_name) == false,
             "Failed to get port name parameter.");
-    port.Open(port_name.c_str(), 115200);
+    port.Open(port_name.c_str(), B115200);
     Bno055 sensor(port);
     FatalAbortIf(sensor.init() != 0, "Bno055 failed to initialize");
+    ROS_INFO("Sensor successfully initialized.");
 
     /*
      * Load calibration parameters from the param server.
@@ -219,6 +220,7 @@ int main(int argc, char **argv)
         rate = 20;
     }
     ros::Rate r(rate);
+    ROS_INFO("Sensor is now running.");
 
     while (ros::ok())
     {
