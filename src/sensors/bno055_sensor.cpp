@@ -220,7 +220,7 @@ int main(int argc, char **argv)
         rate = 20;
     }
     ros::Rate r(rate);
-    ROS_INFO("Sensor is now running.");
+    ROS_INFO("BNO055 is now running.");
 
     while (ros::ok())
     {
