@@ -10,6 +10,58 @@ LinAccelKalmanFilter::~LinAccelKalmanFilter()
 {
 }
 
+bool LinAccelKalmanFilter::NewAbsLinVel()
+{
+    return new_abs_lin_velocity;
+}
+
+tf::Vector3 LinAccelKalmanFilter::GetAbsLinVel()
+{
+    new_abs_lin_velocity = false;
+    return tf::Vector3(x(3, 0), x(4, 0),
+                       x(5, 0));
+}
+
+double LinAccelKalmanFilter::GetAbsLinVelDT()
+{
+    return abs_lin_velocity_dt;
+}
+
+void LinAccelKalmanFilter::InputPosition(tf::Vector3 position, double dt)
+{
+    obs(4, 0) = position[0];
+    obs(5, 0) = position[1];
+    obs(6, 0) = position[2];
+
+    position_dt = dt;
+
+    new_position = true;
+}
+
+void LinAccelKalmanFilter::InputAbsLinAcl(tf::Vector3 lin_acl, double dt)
+{
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
+
+    obs(0, 0) = lin_acl[0];
+    obs(1, 0) = lin_acl[1];
+    obs(2, 0) = lin_acl[2];
+
+    update(obs, dt);
+}
+
+void LinAccelKalmanFilter::InputDepth(double depth, double dt)
+{
+    // TODO: Load param
+    //double pinger_depth = -4.1;
+    //obs(3, 0) = -1.0 * (pinger_depth - depth);
+    obs(3, 0) = depth;
+}
+
+void LinAccelKalmanFilter::Reset()
+{
+    initialize();
+}
+
 void LinAccelKalmanFilter::initialize()
 {
     num_iterations = 0;
@@ -68,41 +120,6 @@ void LinAccelKalmanFilter::reload_params()
     getParamCachedMatrix("kalman_filter/Q", Q);
     getParamCachedMatrix("kalman_filter/R", R);
     getParamCachedMatrix("kalman_filter/X0", x0);
-}
-
-void LinAccelKalmanFilter::Reset()
-{
-    initialize();
-}
-
-void LinAccelKalmanFilter::InputPosition(tf::Vector3 position, double dt)
-{
-    obs(4, 0) = position[0];
-    obs(5, 0) = position[1];
-    obs(6, 0) = position[2];
-
-    position_dt = dt;
-
-    new_position = true;
-}
-
-void LinAccelKalmanFilter::InputAbsLinAcl(tf::Vector3 lin_acl, double dt)
-{
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
-
-    obs(0, 0) = lin_acl[0];
-    obs(1, 0) = lin_acl[1];
-    obs(2, 0) = lin_acl[2];
-
-    update(obs, dt);
-}
-
-void LinAccelKalmanFilter::InputDepth(double depth, double dt)
-{
-    // TODO: Load param
-    //double pinger_depth = -4.1;
-    //obs(3, 0) = -1.0 * (pinger_depth - depth);
-    obs(3, 0) = depth;
 }
 
 void LinAccelKalmanFilter::update_A(double dt)
@@ -179,19 +196,3 @@ void LinAccelKalmanFilter::update(Matrix<double, 7, 1> obs, double dt)
     num_iterations++;
 }
 
-bool LinAccelKalmanFilter::NewAbsLinVel()
-{
-    return new_abs_lin_velocity;
-}
-
-tf::Vector3 LinAccelKalmanFilter::GetAbsLinVel()
-{
-    new_abs_lin_velocity = false;
-    return tf::Vector3(x(3, 0), x(4, 0),
-                       x(5, 0));
-}
-
-double LinAccelKalmanFilter::GetAbsLinVelDT()
-{
-    return abs_lin_velocity_dt;
-}

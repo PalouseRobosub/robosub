@@ -10,6 +10,15 @@ LocalizationSystem::LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors
     tf_pub = nh->advertise<tf2_msgs::TFMessage>("tf", 1);
 }
 
+bool LocalizationSystem::ResetFilterCallback(std_srvs::Empty::Request &req,
+        std_srvs::Empty::Response &rep)
+{
+    pf.Reset();
+    kf.Reset();
+
+    return true;
+}
+
 geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
 {
     geometry_msgs::Vector3Stamped msg;
@@ -24,15 +33,6 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
     publish_tf_message(pos);
 
     return msg;
-}
-
-bool LocalizationSystem::resetFilterCallback(std_srvs::Empty::Request &req,
-        std_srvs::Empty::Response &rep)
-{
-    pf.Reset();
-    kf.Reset();
-
-    return true;
 }
 
 void LocalizationSystem::Update()

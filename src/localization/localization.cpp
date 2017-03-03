@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     // Service for resetting position and velocity
     ros::ServiceServer reset_filter_service =
         nh.advertiseService("reset_particle_filter",
-                            &LocalizationSystem::resetFilterCallback, &loc_system);
+                            &LocalizationSystem::ResetFilterCallback, &loc_system);
 
     ros::Subscriber depth_sub = nh.subscribe("depth", 1,
                                 &RobosubSensors::InputDepth, &sensors);

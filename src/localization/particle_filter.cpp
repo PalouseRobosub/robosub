@@ -22,6 +22,80 @@ ParticleFilter::~ParticleFilter()
     delete uniform_distribution;
 }
 
+bool ParticleFilter::NewPosition()
+{
+    return new_position;
+}
+
+tf::Vector3 ParticleFilter::GetPosition()
+{
+    new_position = false;
+    return estimated_position;
+}
+
+double ParticleFilter::GetPositionDT()
+{
+    return estimated_position_dt;
+}
+
+void ParticleFilter::InputDepth(const double depth, const double dt)
+{
+    observation(3, 0) = depth;
+}
+
+void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double dt)
+{
+    double azimuth = std::atan2(position[1], position[0]);
+    double inclination = std::atan2(position[2],
+                                    std::sqrt(std::pow(position[0], 2) + std::pow(position[1], 2)));
+    double range = std::sqrt(std::pow(position[0], 2) + std::pow(position[1],
+                             2) + std::pow(position[2], 2));
+
+    //double x = std::cos(azimuth) * range;
+    //double y = std::sin(azimuth) * range;
+    //double z = std::sin(inclination) * range;
+
+    //ROS_INFO_STREAM("azimuth: " << azimuth);
+    //ROS_INFO_STREAM("inclination: " << inclination);
+    //ROS_INFO_STREAM("range: " << range);
+    //ROS_INFO_STREAM("azimuth(deg): " << azimuth * RAD_TO_DEG);
+    //ROS_INFO_STREAM("inclination(deg): " << inclination * RAD_TO_DEG);
+    //ROS_INFO_STREAM("range: " << range);
+    //ROS_INFO_STREAM("x: " << x);
+    //ROS_INFO_STREAM("y: " << y);
+    //ROS_INFO_STREAM("z: " << z);
+    //ROS_INFO_STREAM("");
+
+    observation(0, 0) = azimuth;
+    observation(1, 0) = inclination;
+    observation(2, 0) = range;
+
+    update();
+}
+
+void ParticleFilter::InputAbsLinVel(const tf::Vector3 lin_vel, const double dt)
+{
+    control_input(0, 0) = lin_vel[0];
+    control_input(1, 0) = lin_vel[1];
+    control_input(2, 0) = lin_vel[2];
+
+    control_update_model(0, 0) = dt;
+    control_update_model(1, 1) = dt;
+    control_update_model(2, 2) = dt;
+
+    //ROS_INFO_STREAM("dt:\n" << dt);
+    //ROS_INFO_STREAM("control_input:\n" << control_input);
+    //ROS_INFO_STREAM("control_update_model:\n" << control_update_model);
+
+    predict();
+}
+
+void ParticleFilter::Reset()
+{
+    initialize();
+    reload_params();
+}
+
 void ParticleFilter::initialize()
 {
     num_iterations = 0;
@@ -87,12 +161,6 @@ void ParticleFilter::initialize()
     ROS_DEBUG_STREAM("Finished PF init");
 }
 
-void ParticleFilter::Reset()
-{
-    initialize();
-    reload_params();
-}
-
 void ParticleFilter::reload_params()
 {
     if(!ros::param::getCached("hydrophones/pinger/depth", pinger_depth))
@@ -141,72 +209,29 @@ void ParticleFilter::reload_params()
     measurement_covar(1, 1) *= DEG_TO_RAD;
 }
 
-bool ParticleFilter::NewPosition()
+void ParticleFilter::publish_point_cloud()
 {
-    return new_position;
-}
+    sensor_msgs::PointCloud pc;
+    sensor_msgs::ChannelFloat32 chan;
+    chan.name = "weight";
 
-tf::Vector3 ParticleFilter::GetPosition()
-{
-    new_position = false;
-    return estimated_position;
-}
+    for(int i = 0; i < num_particles; i++)
+    {
+        geometry_msgs::Point32 p;
+        p.x = particle_states[i](0, 0);
+        p.y = particle_states[i](1, 0);
+        p.z = particle_states[i](2, 0);
 
-double ParticleFilter::GetPositionDT()
-{
-    return estimated_position_dt;
-}
+        pc.points.push_back(p);
 
-void ParticleFilter::InputDepth(const double depth, const double dt)
-{
-    observation(3, 0) = depth;
-}
+        chan.values.push_back(particle_weights[i]);
+    }
 
-void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double dt)
-{
-    double azimuth = std::atan2(position[1], position[0]);
-    double inclination = std::atan2(position[2],
-                                    std::sqrt(std::pow(position[0], 2) + std::pow(position[1], 2)));
-    double range = std::sqrt(std::pow(position[0], 2) + std::pow(position[1],
-                             2) + std::pow(position[2], 2));
+    pc.header.frame_id = "world";
+    pc.channels.push_back(chan);
+    pc.header.stamp = ros::Time::now();
 
-    //double x = std::cos(azimuth) * range;
-    //double y = std::sin(azimuth) * range;
-    //double z = std::sin(inclination) * range;
-
-    //ROS_INFO_STREAM("azimuth: " << azimuth);
-    //ROS_INFO_STREAM("inclination: " << inclination);
-    //ROS_INFO_STREAM("range: " << range);
-    //ROS_INFO_STREAM("azimuth(deg): " << azimuth * RAD_TO_DEG);
-    //ROS_INFO_STREAM("inclination(deg): " << inclination * RAD_TO_DEG);
-    //ROS_INFO_STREAM("range: " << range);
-    //ROS_INFO_STREAM("x: " << x);
-    //ROS_INFO_STREAM("y: " << y);
-    //ROS_INFO_STREAM("z: " << z);
-    //ROS_INFO_STREAM("");
-
-    observation(0, 0) = azimuth;
-    observation(1, 0) = inclination;
-    observation(2, 0) = range;
-
-    Update();
-}
-
-void ParticleFilter::InputAbsLinVel(const tf::Vector3 lin_vel, const double dt)
-{
-    control_input(0, 0) = lin_vel[0];
-    control_input(1, 0) = lin_vel[1];
-    control_input(2, 0) = lin_vel[2];
-
-    control_update_model(0, 0) = dt;
-    control_update_model(1, 1) = dt;
-    control_update_model(2, 2) = dt;
-
-    //ROS_INFO_STREAM("dt:\n" << dt);
-    //ROS_INFO_STREAM("control_input:\n" << control_input);
-    //ROS_INFO_STREAM("control_update_model:\n" << control_update_model);
-
-    Predict();
+    particle_cloud_pub.publish(pc);
 }
 
 Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1> state)
@@ -367,32 +392,7 @@ void ParticleFilter::estimate_state()
     last_estimated_position_time = ros::Time::now();
 }
 
-void ParticleFilter::publish_point_cloud()
-{
-    sensor_msgs::PointCloud pc;
-    sensor_msgs::ChannelFloat32 chan;
-    chan.name = "weight";
-
-    for(int i = 0; i < num_particles; i++)
-    {
-        geometry_msgs::Point32 p;
-        p.x = particle_states[i](0, 0);
-        p.y = particle_states[i](1, 0);
-        p.z = particle_states[i](2, 0);
-
-        pc.points.push_back(p);
-
-        chan.values.push_back(particle_weights[i]);
-    }
-
-    pc.header.frame_id = "world";
-    pc.channels.push_back(chan);
-    pc.header.stamp = ros::Time::now();
-
-    particle_cloud_pub.publish(pc);
-}
-
-void ParticleFilter::Predict()
+void ParticleFilter::predict()
 {
     PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("PREDICT"););
 
@@ -411,7 +411,7 @@ void ParticleFilter::Predict()
 // TODO: Add sanity check to estimated state and reinitialize filter if
 // needed (Possibly just check if est_state is roughly within bounds of
 // pool)
-void ParticleFilter::Update()
+void ParticleFilter::update()
 {
     PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("UPDATE"););
 

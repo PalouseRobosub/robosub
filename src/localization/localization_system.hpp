@@ -25,7 +25,7 @@ class LocalizationSystem
 public:
     LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors *_sensors, int _num_particles);
 
-    bool resetFilterCallback(std_srvs::Empty::Request &req,
+    bool ResetFilterCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &rep);
 
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
@@ -38,6 +38,7 @@ private:
     LinAccelKalmanFilter kf;
     ParticleFilter pf;
     RobosubSensors *sensors;
+
     ros::NodeHandle *nh;
     ros::Publisher tf_pub;
 

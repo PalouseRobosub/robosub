@@ -71,15 +71,14 @@ class LinAccelKalmanFilter
 public:
     LinAccelKalmanFilter(ros::NodeHandle *_nh);
     ~LinAccelKalmanFilter();
-    void Reset();
-
-    void InputPosition(tf::Vector3 position, double dt);
-    void InputAbsLinAcl(tf::Vector3 lin_acl, double dt);
-    void InputDepth(double depth, double dt);
 
     bool NewAbsLinVel();
     tf::Vector3 GetAbsLinVel();
-    double  GetAbsLinVelDT();
+    double GetAbsLinVelDT();
+    void InputPosition(tf::Vector3 position, double dt);
+    void InputAbsLinAcl(tf::Vector3 lin_acl, double dt);
+    void InputDepth(double depth, double dt);
+    void Reset();
 
 private:
     void initialize();
@@ -97,7 +96,6 @@ private:
     ros::Time last_abs_lin_velocity_time;
 
     bool new_position;
-
     double position_dt;
 
     Matrix<double, 7, 1> obs;

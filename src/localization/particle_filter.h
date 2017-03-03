@@ -24,30 +24,6 @@ constexpr double RAD_TO_DEG = (180.0 / 3.1415);
 constexpr double DEG_TO_RAD = (3.1415 / 180.0);
 constexpr double PI = (3.1415);
 
-template <typename T>
-std::ostream& operator<< (std::ostream& out, const std::vector<T>& v)
-{
-    if ( !v.empty() )
-    {
-        out << '[';
-        std::copy (v.begin(), v.end(), std::ostream_iterator<T>(out, ", "));
-        out << "\b\b]";
-    }
-    return out;
-}
-
-std::vector<double> CumSum(std::vector<double> v)
-{
-    std::vector<double> cumsum;
-    cumsum.push_back(v[0]);
-    for(unsigned int i = 1; i < v.size(); i++)
-    {
-        cumsum.push_back(cumsum[i - 1] + v[i]);
-    }
-
-    return cumsum;
-}
-
 double vector_max(std::vector<double> v)
 {
     if(v.size() == 0)
@@ -93,37 +69,33 @@ class ParticleFilter
 public:
     ParticleFilter(ros::NodeHandle *_nh, int _num_particles);
     ~ParticleFilter();
-    void Predict();
-    void Update();
 
     bool NewPosition();
     tf::Vector3 GetPosition();
     double GetPositionDT();
-
-    void Reset();
-
     void InputDepth(const double depth, const double dt);
     void InputHydrophones(const tf::Vector3 position, const double dt);
     void InputAbsLinVel(const tf::Vector3 lin_vel, const double dt);
+    void Reset();
 
 private:
     void initialize();
     void reload_params();
-
+    void publish_point_cloud();
+    Matrix<double, 4, 1> state_to_observation(Matrix<double, 3, 1> state);
+    Matrix<double, 4, 1> add_observation_noise(
+        Matrix<double, 4, 1> particle_obs);
     void update_particle_states();
     void update_particle_weights();
     void resample_particles();
     void estimate_state();
-    void publish_point_cloud();
+    void predict();
+    void update();
 
     ros::Publisher particle_cloud_pub;
     ros::NodeHandle *nh;
 
     bool new_position;
-
-    Matrix<double, 4, 1> state_to_observation(Matrix<double, 3, 1> state);
-    Matrix<double, 4, 1> add_observation_noise(
-        Matrix<double, 4, 1> particle_obs);
 
     int num_particles;
     int num_iterations;
