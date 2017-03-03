@@ -19,8 +19,8 @@ TEST(ControlSystem, roll)
 {
     double test_roll = 25;
     double overshoot_allowed = 1;
-    double average_threshold = 0.5;
-    double std_dev_allowed = 0.9;
+    double average_threshold = 1.0;
+    double std_dev_allowed = 0.7;
 
     rs::SubscriberAnalyzer<robosub::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_roll_data);
@@ -35,7 +35,7 @@ TEST(ControlSystem, roll)
     msg.yaw_state = robosub::control::STATE_RELATIVE;
     msg.yaw_left = 0;
     msg.dive_state = robosub::control::STATE_ABSOLUTE;
-    msg.dive = -1;
+    msg.dive = -2;
     msg.pitch_state = robosub::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
 
@@ -73,6 +73,8 @@ TEST(ControlSystem, roll)
     analyzer.Stop();
 
     //confirm roll is stable
+    ROS_INFO_STREAM("Roll Average: " << analyzer.GetAverage());
+    ROS_INFO_STREAM("Roll STD Dev: " << analyzer.GetStandardDeviation());
     EXPECT_NEAR(test_roll, analyzer.GetAverage(), average_threshold);
     EXPECT_LT(analyzer.GetStandardDeviation(), std_dev_allowed);
 }
@@ -83,10 +85,10 @@ double get_pitch_data(const robosub::Euler::ConstPtr& msg)
 }
 TEST(ControlSystem, pitch)
 {
-    double test_pitch = 10;
-    double overshoot_allowed = 2;
-    double average_threshold = 0.5;
-    double std_dev_allowed = 0.9;
+    double test_pitch = 15;
+    double overshoot_allowed = 1.1;
+    double average_threshold = 0.1;
+    double std_dev_allowed = 0.01;
 
     rs::SubscriberAnalyzer<robosub::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_pitch_data);
@@ -101,7 +103,7 @@ TEST(ControlSystem, pitch)
     msg.yaw_state = robosub::control::STATE_RELATIVE;
     msg.yaw_left = 0;
     msg.dive_state = robosub::control::STATE_ABSOLUTE;
-    msg.dive = -1;
+    msg.dive = -2;
     msg.roll_state = robosub::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
@@ -139,17 +141,19 @@ TEST(ControlSystem, pitch)
     analyzer.Stop();
 
     //confirm pitch is stable
+    ROS_INFO_STREAM("Pitch Average: " << analyzer.GetAverage());
+    ROS_INFO_STREAM("Pitch STD Dev: " << analyzer.GetStandardDeviation());
     EXPECT_NEAR(test_pitch, analyzer.GetAverage(), average_threshold);
     EXPECT_LT(analyzer.GetStandardDeviation(), std_dev_allowed);
 }
 
 double get_yaw_data(const robosub::Euler::ConstPtr& msg)
 {
-    return msg->yaw;
+    return fabs(msg->yaw);
 }
 TEST(ControlSystem, yaw)
 {
-    double test_yaw = 50;
+    double test_yaw = 180;
     double overshoot_allowed = 2;
     double average_threshold = 1.0;
     double std_dev_allowed = 1.25;
@@ -167,7 +171,7 @@ TEST(ControlSystem, yaw)
     msg.pitch_state = robosub::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
     msg.dive_state = robosub::control::STATE_ABSOLUTE;
-    msg.dive = -1;
+    msg.dive = -2;
     msg.roll_state = robosub::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
@@ -181,7 +185,7 @@ TEST(ControlSystem, yaw)
 
     ROS_INFO("yawing to test angle");
     //wait for 5 secosds for the sub to reach its yaw
-    ros::Time exit_time = ros::Time::now() + ros::Duration(10);
+    ros::Time exit_time = ros::Time::now() + ros::Duration(20);
     while (ros::Time::now() < exit_time)
     {
         ros::spinOnce();
@@ -205,6 +209,8 @@ TEST(ControlSystem, yaw)
     analyzer.Stop();
 
     //confirm yaw is stable
+    ROS_INFO_STREAM("Yaw Average: " << analyzer.GetAverage());
+    ROS_INFO_STREAM("Yaw STD Dev: " << analyzer.GetStandardDeviation());
     EXPECT_NEAR(test_yaw, analyzer.GetAverage(), average_threshold);
     EXPECT_LT(analyzer.GetStandardDeviation(), std_dev_allowed);
 }
@@ -217,7 +223,7 @@ double get_depth_data(const robosub::Float32Stamped::ConstPtr& msg)
 
 TEST(ControlSystem, depth)
 {
-    double test_depth = -2;
+    double test_depth = -3;
     double overshoot_allowed  = 0.1;
     double average_threshold = 0.05;
     double std_dev_allowed = 0.01;
