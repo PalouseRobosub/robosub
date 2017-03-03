@@ -67,7 +67,7 @@ void setup()
      * delay in milliseconds between loops.
      */
     int rate;
-    if (n.getParam("depth/rate", &rate, 1) == false)
+    if (n.getParam("rate/depth", &rate, 1) == false)
     {
         rate = 10;
         n.logwarn("Failed to load depth rate. Defaulting to 10Hz.");

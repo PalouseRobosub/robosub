@@ -47,7 +47,7 @@ int main(int argc, char **argv)
             control_state_pub(std::string("control_status"), 1, 5);
 
     int rate;
-    nh.getParam("control/rate", rate);
+    nh.getParam("rate/control", rate);
     ros::Rate r(rate);
 
     while(ros::ok())

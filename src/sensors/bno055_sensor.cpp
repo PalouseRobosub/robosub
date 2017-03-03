@@ -91,7 +91,7 @@ int main(int argc, char **argv)
      */
     Serial port;
     std::string port_name;
-    FatalAbortIf(ros::param::getCached("/ports/sensor", port_name) == false,
+    FatalAbortIf(ros::param::get("ports/sensor", port_name) == false,
             "Failed to get port name parameter.");
     port.Open(port_name.c_str(), B115200);
     Bno055 sensor(port);
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
      * Enter the main ROS loop.
      */
     int rate;
-    if (!nh.getParamCached("sensor/rate", rate))
+    if (!nh.getParam("rate/sensor", rate))
     {
         ROS_WARN("Failed to load sensor node rate. Falling back to 20Hz.");
         rate = 20;

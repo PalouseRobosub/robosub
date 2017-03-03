@@ -1,6 +1,10 @@
 ports:
     thruster: "/dev/maestro_control"
     sensor: "/dev/bno055"
+rate:
+    control: 10
+    depth: 10
+    sensor: 20
 thrusters:
     max_thrust: 24
     mapping:
@@ -85,7 +89,6 @@ thrusters:
                 y: -0.2075
                 z: -0.01
 control:
-    rate: 10
     mass: 27.0
     inertia:
         psi: 1.0
@@ -131,10 +134,8 @@ control:
         translation: 0.5
     buoyancy_offset: -32.0
 depth:
-    rate: 10
     offset: 0.75
 sensor:
-    rate: 20
     axis:
         x: 1
         y: 2
