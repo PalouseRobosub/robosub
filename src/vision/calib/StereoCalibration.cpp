@@ -1,6 +1,12 @@
 #include "StereoCalibrator.hpp"
 #include "wfov_camera_msgs/WFOVImage.h"
-#include <cv3_bridge/cv_bridge.h>
+// The following #if is to use the correct version of the cv_bridge
+// Kinetic by default uses OpenCV3 so we don't need the custom build
+#if ROS_VERSION_MINIMUM(1, 12, 0)  // Running Kinetic
+    #include <cv_bridge/cv_bridge.h>
+#elif // Running indigo
+    #include <cv3_bridge/cv_bridge.h>
+#endif
 #include <opencv2/highgui.hpp>
 #include <sensor_msgs/image_encodings.h>
 #include <string>
