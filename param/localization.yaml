@@ -5,9 +5,9 @@ localization:
         x: -31.0
         y: -21.0
         z: -2.0
-        x_initial_stddev: 20.0
-        y_initial_stddev: 20.0
-        z_initial_stddev: 20.0
+        x_initial_stddev: 5.0
+        y_initial_stddev: 5.0
+        z_initial_stddev: 5.0
     variances:
         # measurement covariance matrix
         azimuth_measurement: 0.05
@@ -16,9 +16,9 @@ localization:
         depth_measurement: 0.05
 
         # state update covariance matrix
-        x_state_update: 0.3
-        y_state_update: 0.3
-        z_state_update: 0.3
+        x_state_update: 0.1
+        y_state_update: 0.1
+        z_state_update: 0.1
 
 kalman_filter:
     Q: 

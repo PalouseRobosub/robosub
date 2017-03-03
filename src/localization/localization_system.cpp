@@ -52,7 +52,7 @@ void LocalizationSystem::Update()
     if(sensors->NewPosition())
     {
         num_positions++;
-        if(num_positions % 100 == 1)
+        if(num_positions % 50 == 1)
         {
             kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
         }

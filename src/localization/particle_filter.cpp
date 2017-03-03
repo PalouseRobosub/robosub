@@ -316,7 +316,7 @@ void ParticleFilter::resample_particles()
 void ParticleFilter::estimate_state()
 {
     // Estimate state from all particle_states
-    // Just weighted averaging for now
+    // Just averaging for now
     est_state.setZero();
     for(int i = 0; i < num_particles; i++)
     {
@@ -335,10 +335,26 @@ void ParticleFilter::estimate_state()
     est_state(1, 0) /= num_particles;
     est_state(2, 0) /= num_particles;
 
-    // Get Position from (azimuth, inclination, range)
-    //double x = std::cos(est_state(0, 0)) * est_state(2, 0);
-    //double y = std::sin(est_state(0, 0)) * est_state(2, 0);
-    //double z = pinger_depth + (std::sin(est_state(1, 0)) * est_state(2, 0));
+    /*
+    Matrix<double, 3, 1> squared_errors;
+    squared_errors.setZero();
+    for(int i = 0; i < num_particles; i++)
+    {
+        squared_errors(0, 0) += pow(est_state(0, 0) - particle_states[i](0, 0), 2);
+        squared_errors(1, 0) += pow(est_state(1, 0) - particle_states[i](1, 0), 2);
+        squared_errors(2, 0) += pow(est_state(2, 0) - particle_states[i](2, 0), 2);
+    }
+
+    Matrix<double, 3, 1> avg_squared_errors = squared_errors / num_particles;
+    Matrix<double, 3, 1> std_devs;
+    std_devs(0, 0) = std::sqrt(avg_squared_errors(0, 0));
+    std_devs(1, 0) = std::sqrt(avg_squared_errors(1, 0));
+    std_devs(2, 0) = std::sqrt(avg_squared_errors(2, 0));
+    PF_PRINT_THROTTLE(ROS_INFO_STREAM("avg_squared_errors:\n" << avg_squared_errors););
+    PF_PRINT_THROTTLE(ROS_INFO_STREAM("std_devs:\n" << std_devs););
+    */
+
+    // Set estimated position return value
     estimated_position[0] = est_state(0, 0);
     estimated_position[1] = est_state(1, 0);
     estimated_position[2] = est_state(2, 0);
