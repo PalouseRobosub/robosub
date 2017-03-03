@@ -16,6 +16,9 @@ int main(int argc, char **argv)
     ros::Publisher loc_pub =
         nh.advertise<geometry_msgs::Vector3Stamped>("position", 1);
 
+    ros::Publisher pose_pub =
+        nh.advertise<geometry_msgs::PoseStamped>("cobalt/pose", 1);
+
     double num_particles;
     ros::param::getCached("localization/num_particles", num_particles);
 
@@ -58,9 +61,8 @@ int main(int argc, char **argv)
         {
             loc_system.Update();
 
-            geometry_msgs::Vector3Stamped pos =
-                loc_system.GetLocalizationMessage();
-            loc_pub.publish(pos);
+            loc_pub.publish(loc_system.GetLocalizationMessage());
+            pose_pub.publish(loc_system.GetPoseMessage());
 
         }
 

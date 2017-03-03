@@ -9,6 +9,7 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
+#include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TransformStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Empty.h"
@@ -29,6 +30,7 @@ public:
                              std_srvs::Empty::Response &rep);
 
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
+    geometry_msgs::PoseStamped GetPoseMessage();
 
     void Update();
 

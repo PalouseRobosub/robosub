@@ -35,6 +35,28 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
     return msg;
 }
 
+geometry_msgs::PoseStamped LocalizationSystem::GetPoseMessage()
+{
+    geometry_msgs::PoseStamped msg;
+
+    tf::Vector3 pos = pf.GetPosition();
+    tf::Quaternion quat = sensors->GetOrientation();
+
+    msg.pose.position.x = pos[0];
+    msg.pose.position.y = pos[1];
+    msg.pose.position.z = pos[2];
+
+    msg.pose.orientation.x = quat[0];
+    msg.pose.orientation.y = quat[1];
+    msg.pose.orientation.z = quat[2];
+    msg.pose.orientation.w = quat[3];
+
+    msg.header.stamp = ros::Time::now();
+    msg.header.frame_id = "world";
+
+    return msg;
+}
+
 void LocalizationSystem::Update()
 {
     // Handle input to filters
