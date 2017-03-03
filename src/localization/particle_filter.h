@@ -116,7 +116,7 @@ private:
 
     Matrix<double, 4, 1> state_to_observation(Matrix<double, 3, 1> state);
     Matrix<double, 4, 1> add_observation_noise(
-                                            Matrix<double, 4, 1> particle_obs);
+        Matrix<double, 4, 1> particle_obs);
 
     int num_particles;
     int num_iterations;

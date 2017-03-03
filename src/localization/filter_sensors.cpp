@@ -33,7 +33,8 @@ FilterSensors::FilterSensors()
     position[0] = position[1] = position[2] = 0.0;
 }
 
-void FilterSensors::InputRelLinAcl(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
+void FilterSensors::InputRelLinAcl(const
+                                   geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     rel_lin_acl = tf::Vector3(msg->vector.x, msg->vector.y, msg->vector.z);
     rel_lin_acl_dt = (msg->header.stamp - last_rel_lin_acl_time).toSec();
@@ -51,19 +52,21 @@ void FilterSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
     last_depth_time = msg->header.stamp;
 }
 
-void FilterSensors::InputHydrophones(const robosub::PositionArrayStamped::ConstPtr &msg)
+void FilterSensors::InputHydrophones(const
+                                     robosub::PositionArrayStamped::ConstPtr &msg)
 {
     hydrophones = tf::Vector3(msg->positions[0].position.x,
-            msg->positions[0].position.y, msg->positions[0].position.z);
+                              msg->positions[0].position.y, msg->positions[0].position.z);
     hydrophones_dt = (msg->header.stamp - last_hydrophones_time).toSec();
     new_hydrophones = true;
     last_hydrophones_time = msg->header.stamp;
 }
 
-void FilterSensors::InputOrientation(const robosub::QuaternionStampedAccuracy::ConstPtr &msg)
+void FilterSensors::InputOrientation(const
+                                     robosub::QuaternionStampedAccuracy::ConstPtr &msg)
 {
     orientation = tf::Quaternion(msg->quaternion.x, msg->quaternion.y,
-            msg->quaternion.z, msg->quaternion.w);
+                                 msg->quaternion.z, msg->quaternion.w);
     orientation_dt = (msg->header.stamp - last_orientation_time).toSec();
     new_orientation = true;
     last_orientation_time = msg->header.stamp;
@@ -175,43 +178,36 @@ bool FilterSensors::NewPosition()
 
 double FilterSensors::GetRelLinAclDT()
 {
-    //ROS_INFO_STREAM("rel_lin_acl_dt: " << rel_lin_acl_dt);
     return rel_lin_acl_dt;
 }
 
 double FilterSensors::GetDepthDT()
 {
-    //ROS_INFO_STREAM("depth_dt: " << depth_dt);
     return depth_dt;
 }
 
 double FilterSensors::GetHydrophonesDT()
 {
-    //ROS_INFO_STREAM("hydrophones_dt: " << hydrophones_dt);
     return hydrophones_dt;
 }
 
 double FilterSensors::GetOrientationDT()
 {
-    //ROS_INFO_STREAM("orientation_dt: " << orientation_dt);
     return orientation_dt;
 }
 
 double FilterSensors::GetAbsLinAclDT()
 {
-    //ROS_INFO_STREAM("abs_lin_acl_dt: " << abs_lin_acl_dt);
     return abs_lin_acl_dt;
 }
 
 double FilterSensors::GetAbsLinVelDT()
 {
-    //ROS_INFO_STREAM("abs_lin_vel_dt: " << abs_lin_vel_dt);
     return abs_lin_vel_dt;
 }
 
 double FilterSensors::GetPositionDT()
 {
-    //ROS_INFO_STREAM("position_dt: " << position_dt);
     return position_dt;
 }
 

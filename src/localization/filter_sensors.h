@@ -28,7 +28,8 @@ public:
     void InputRelLinAcl(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputDepth(const robosub::Float32Stamped::ConstPtr &msg);
     void InputHydrophones(const robosub::PositionArrayStamped::ConstPtr &msg);
-    void InputOrientation(const robosub::QuaternionStampedAccuracy::ConstPtr &msg);
+    void InputOrientation(const robosub::QuaternionStampedAccuracy::ConstPtr
+                          &msg);
 
     void InputAbsLinAcl(const tf::Vector3 lin_acl);
     void InputAbsLinVel(const tf::Vector3 lin_vel);

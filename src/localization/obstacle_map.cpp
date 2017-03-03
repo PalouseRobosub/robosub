@@ -2,56 +2,57 @@
 
 namespace robosub
 {
-ObstacleMap::ObstacleMap(ros::NodeHandle *nh)
-{
-    obstacle_sub = nh->subscribe("obstacles/positions", 1, &ObstacleMap::obstacle_position_callback, this);
-}
-
-void ObstacleMap::obstacle_position_callback(const robosub::ObstaclePosArray::ConstPtr &msg)
-{
-    for(unsigned int i = 0; i < msg->data.size(); i++)
+    ObstacleMap::ObstacleMap(ros::NodeHandle *nh)
     {
-        //ROS_INFO("%s: <%f, %f, %f>", msg->data[i].name.c_str(), msg->data[i].x, msg->data[i].y, msg->data[i].z);
-
-        obstacle_map[msg->data[i].name] = tf::Vector3(
-                msg->data[i].x,
-                msg->data[i].y,
-                msg->data[i].z);
+        obstacle_sub = nh->subscribe("obstacles/positions", 1,
+                                     &ObstacleMap::obstacle_position_callback, this);
     }
-}
 
-tf::Vector3 ObstacleMap::GetObstacle(std::string name)
-{
-    return obstacle_map[name];
-}
-
-tf::Vector3 ObstacleMap::GetDistanceFromSub(tf::Vector3 sub_position, std::string name)
-{
-    return obstacle_map[name] - sub_position;
-}
-
-std::string ObstacleMap::GetClosestToSub(tf::Vector3 sub_position)
-{
-    double min = 100000000000.0;
-    std::string name;
-
-    for(std::map<std::string, tf::Vector3>::iterator it = obstacle_map.begin();
-            it != obstacle_map.end(); it++)
+    void ObstacleMap::obstacle_position_callback(const
+            robosub::ObstaclePosArray::ConstPtr &msg)
     {
-        double x = it->second[0] - sub_position[0];
-        double y = it->second[1] - sub_position[1];
-        double z = it->second[2] - sub_position[2];
-
-        double distance = std::sqrt(
-                std::pow(x, 2) + std::pow(y, 2) + std::pow(z, 2));
-
-        if(distance < min)
+        for(unsigned int i = 0; i < msg->data.size(); i++)
         {
-            min = distance;
-            name = it->first;
+            obstacle_map[msg->data[i].name] = tf::Vector3(
+                                                  msg->data[i].x,
+                                                  msg->data[i].y,
+                                                  msg->data[i].z);
         }
     }
 
-    return name;
-}
+    tf::Vector3 ObstacleMap::GetObstacle(std::string name)
+    {
+        return obstacle_map[name];
+    }
+
+    tf::Vector3 ObstacleMap::GetDistanceFromSub(tf::Vector3 sub_position,
+            std::string name)
+    {
+        return obstacle_map[name] - sub_position;
+    }
+
+    std::string ObstacleMap::GetClosestToSub(tf::Vector3 sub_position)
+    {
+        double min = 100000000000.0;
+        std::string name;
+
+        for(std::map<std::string, tf::Vector3>::iterator it = obstacle_map.begin();
+                it != obstacle_map.end(); it++)
+        {
+            double x = it->second[0] - sub_position[0];
+            double y = it->second[1] - sub_position[1];
+            double z = it->second[2] - sub_position[2];
+
+            double distance = std::sqrt(
+                                  std::pow(x, 2) + std::pow(y, 2) + std::pow(z, 2));
+
+            if(distance < min)
+            {
+                min = distance;
+                name = it->first;
+            }
+        }
+
+        return name;
+    }
 }

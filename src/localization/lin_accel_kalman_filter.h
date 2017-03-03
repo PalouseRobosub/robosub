@@ -54,7 +54,7 @@ bool getParamCachedMatrix(std::string param_name,
             if(row.size() != ncols)
             {
                 ROS_WARN_STREAM("number of columns of param " << param_name <<
-                        " does not match number of columns of inputted matix");
+                                " does not match number of columns of inputted matix");
                 return false;
             }
 

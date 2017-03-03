@@ -12,6 +12,3 @@ add_dependencies(filter_sensors  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 
 add_ros_node(localization localization.cpp)
 target_link_libraries(localization localization_system particle_filter lin_accel_kalman_filter filter_sensors)
-
-#add_ros_node(dead_reckoning dead_reckoning.cpp)
-#target_link_libraries(dead_reckoning lin_accel_kalman_filter)

@@ -7,7 +7,7 @@ ParticleFilter::ParticleFilter(int _num_particles)
 
     norm_distribution = new std::normal_distribution<double>(0.0, 1.0);
     uniform_distribution =
-                          new std::uniform_real_distribution<double>(0.0, 1.0);
+        new std::uniform_real_distribution<double>(0.0, 1.0);
 
     initialize();
     reload_params();
@@ -163,9 +163,9 @@ void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double d
 {
     double azimuth = std::atan2(position[1], position[0]);
     double inclination = std::atan2(position[2],
-            std::sqrt(std::pow(position[0], 2) + std::pow(position[1], 2)));
+                                    std::sqrt(std::pow(position[0], 2) + std::pow(position[1], 2)));
     double range = std::sqrt(std::pow(position[0], 2) + std::pow(position[1],
-                2) + std::pow(position[2], 2));
+                             2) + std::pow(position[2], 2));
 
     //double x = std::cos(azimuth) * range;
     //double y = std::sin(azimuth) * range;
@@ -214,9 +214,9 @@ Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1> s
 
     double azimuth = std::atan2(state(1, 0), state(0, 0));
     double inclination = std::atan2(hz,
-            std::sqrt(std::pow(state(0, 0), 2) + std::pow(state(1, 0), 2)));
+                                    std::sqrt(std::pow(state(0, 0), 2) + std::pow(state(1, 0), 2)));
     double range = std::sqrt(std::pow(state(0, 0), 2) + std::pow(state(1, 0),
-                2) + std::pow(hz, 2));
+                             2) + std::pow(hz, 2));
 
     // Observation in (azimuth, inclination, range)
     obs(0, 0) = azimuth;
@@ -242,8 +242,8 @@ void ParticleFilter::update_particle_states()
     for(int n = 0; n < num_particles; n++)
     {
         particle_states[n] = system_update_model * last_particle_states[n] +
-            control_update_model * control_input +
-            sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
+                             control_update_model * control_input +
+                             sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
 
         //particle_states[n](0, 0) = fmod(particle_states[n](0, 0), PI);
         //particle_states[n](1, 0) = fmod(particle_states[n](1, 0), PI);

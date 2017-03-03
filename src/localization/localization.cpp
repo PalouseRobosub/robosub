@@ -29,17 +29,17 @@ int main(int argc, char **argv)
     // Service for resetting position and velocity
     ros::ServiceServer reset_filter_service =
         nh.advertiseService("reset_particle_filter",
-                        &LocalizationSystem::resetFilterCallback, &loc_system);
+                            &LocalizationSystem::resetFilterCallback, &loc_system);
 
     ros::Subscriber depth_sub = nh.subscribe("depth", 1,
-                              &FilterSensors::InputDepth, &sensors);
+                                &FilterSensors::InputDepth, &sensors);
     ros::Subscriber hydrophones_position_sub =
-                         nh.subscribe("hydrophones/position", 1,
-                         &FilterSensors::InputHydrophones, &sensors);
+        nh.subscribe("hydrophones/position", 1,
+                     &FilterSensors::InputHydrophones, &sensors);
     ros::Subscriber accel_sub = nh.subscribe("acceleration/linear", 1,
-                           &FilterSensors::InputRelLinAcl, &sensors);
+                                &FilterSensors::InputRelLinAcl, &sensors);
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
-                        &FilterSensors::InputOrientation, &sensors);
+                                      &FilterSensors::InputOrientation, &sensors);
 
     double rate;
     ros::param::getCached("localization/rate", rate);

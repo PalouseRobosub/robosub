@@ -18,20 +18,21 @@
 
 namespace robosub
 {
-class ObstacleMap
-{
-public:
-    ObstacleMap(ros::NodeHandle *nh);
-    tf::Vector3 GetObstacle(std::string name);
-    tf::Vector3 GetDistanceFromSub(tf::Vector3 sub_position, std::string name);
-    std::string GetClosestToSub(tf::Vector3 sub_position);
+    class ObstacleMap
+    {
+    public:
+        ObstacleMap(ros::NodeHandle *nh);
+        tf::Vector3 GetObstacle(std::string name);
+        tf::Vector3 GetDistanceFromSub(tf::Vector3 sub_position, std::string name);
+        std::string GetClosestToSub(tf::Vector3 sub_position);
 
-private:
-    ros::Subscriber obstacle_sub;
-    std::map<std::string, tf::Vector3> obstacle_map;
+    private:
+        ros::Subscriber obstacle_sub;
+        std::map<std::string, tf::Vector3> obstacle_map;
 
-    void obstacle_position_callback(const robosub::ObstaclePosArray::ConstPtr &msg);
-};
+        void obstacle_position_callback(const robosub::ObstaclePosArray::ConstPtr
+                                        &msg);
+    };
 }
 
 #endif

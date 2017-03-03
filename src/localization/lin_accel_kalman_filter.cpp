@@ -157,7 +157,8 @@ Matrix<double, 9, 1> LinAccelKalmanFilter::run_filter(Matrix<double, 7, 1> obs)
     x_prev = x;
 
     new_abs_lin_velocity = true;
-    abs_lin_velocity_dt = (ros::Time::now() - last_abs_lin_velocity_time).toSec();
+    abs_lin_velocity_dt = (ros::Time::now() -
+                           last_abs_lin_velocity_time).toSec();
     last_abs_lin_velocity_time = ros::Time::now();
 
     return x;
@@ -171,7 +172,8 @@ void LinAccelKalmanFilter::update(Matrix<double, 7, 1> obs, double dt)
 
     Matrix<double, 9, 1> predicted_state = run_filter(obs);
 
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" << predicted_state););
+    KF_PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" <<
+                                      predicted_state););
 
     num_iterations++;
 }
@@ -185,7 +187,7 @@ tf::Vector3 LinAccelKalmanFilter::GetAbsLinVel()
 {
     new_abs_lin_velocity = false;
     return tf::Vector3(x(3, 0), x(4, 0),
-            x(5, 0));
+                       x(5, 0));
 }
 
 double LinAccelKalmanFilter::GetAbsLinVelDT()
