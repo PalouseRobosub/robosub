@@ -23,7 +23,7 @@ TEST(ControlSystem, roll)
     double std_dev_allowed = 0.9;
 
     rs::SubscriberAnalyzer<robosub::Euler> analyzer;
-    analyzer.Init("euler", &get_roll_data);
+    analyzer.Init("pretty/orientation", &get_roll_data);
 
     robosub::control msg;
 
@@ -89,7 +89,7 @@ TEST(ControlSystem, pitch)
     double std_dev_allowed = 0.9;
 
     rs::SubscriberAnalyzer<robosub::Euler> analyzer;
-    analyzer.Init("euler", &get_pitch_data);
+    analyzer.Init("pretty/orientation", &get_pitch_data);
 
     robosub::control msg;
 
@@ -155,7 +155,7 @@ TEST(ControlSystem, yaw)
     double std_dev_allowed = 1.25;
 
     rs::SubscriberAnalyzer<robosub::Euler> analyzer;
-    analyzer.Init("euler", &get_yaw_data);
+    analyzer.Init("pretty/orientation", &get_yaw_data);
 
     robosub::control msg;
 

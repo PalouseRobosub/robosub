@@ -1,7 +1,6 @@
 <launch>
     <test test-name="test_control_system" pkg="robosub" type="test_control_system" time-limit="120.0" />
 
-    <node name="print_orientation" pkg="robosub" type="print_orientation" />
     <rosparam command="load" file="$(find robosub)/param/cobalt.yaml" />
 
     <include file="$(find robosub_simulator)/launch/gazebo.launch">
