@@ -29,7 +29,7 @@ using namespace Eigen;
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(FilterSensors *_sensors, ros::NodeHandle _nh, int _num_particles);
+    LocalizationSystem(FilterSensors *_sensors, int _num_particles);
 
     bool resetFilterCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &rep);
@@ -42,6 +42,8 @@ private:
     LinAccelKalmanFilter kf;
     ParticleFilter pf;
     FilterSensors *sensors;
+
+    int num_positions;
 
 public:
 };

@@ -1,8 +1,9 @@
 #include "localization_system.hpp"
 
-LocalizationSystem::LocalizationSystem(FilterSensors *_sensors, ros::NodeHandle _nh, int _num_particles) : kf(), pf(_num_particles)
+LocalizationSystem::LocalizationSystem(FilterSensors *_sensors, int _num_particles) : kf(), pf(_num_particles)
 {
     sensors = _sensors;
+    num_positions = 0;
 }
 
 geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
@@ -50,22 +51,21 @@ void LocalizationSystem::Update()
     }
     if(sensors->NewPosition())
     {
-        //kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
+        num_positions++;
+        if(num_positions % 100 == 1)
+        {
+            kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
+        }
     }
 
     // Handle output from filters. On the next update the new data from the kf
     // will be fed to the pf and vice versa.
     if(kf.NewAbsLinVel())
     {
-        //sensors->InputAbsLinVel(kf.GetAbsLinVel(), kf.GetLinVelDT);
         sensors->InputAbsLinVel(kf.GetAbsLinVel());
     }
     if(pf.NewPosition())
     {
-        //sensors->InputPosition(pf.GetPosition(), pf.GetPositionDT());
         sensors->InputPosition(pf.GetPosition());
     }
-
-    // TODO: Don't input every update step
-    //sensors->InputPosition(pf.GetPosition());
 }

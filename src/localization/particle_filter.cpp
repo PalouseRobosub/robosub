@@ -199,9 +199,9 @@ void ParticleFilter::InputAbsLinVel(const tf::Vector3 lin_vel, const double dt)
     control_update_model(1, 1) = dt;
     control_update_model(2, 2) = dt;
 
-    ROS_INFO_STREAM("dt:\n" << dt);
-    ROS_INFO_STREAM("control_input:\n" << control_input);
-    ROS_INFO_STREAM("control_update_model:\n" << control_update_model);
+    //ROS_INFO_STREAM("dt:\n" << dt);
+    //ROS_INFO_STREAM("control_input:\n" << control_input);
+    //ROS_INFO_STREAM("control_update_model:\n" << control_update_model);
 
     Predict();
 }
@@ -264,9 +264,6 @@ void ParticleFilter::update_particle_weights()
         particle_weights[n] = 1.0;
         for(unsigned int i = 0; i < observation.rows(); i++)
         {
-            // TODO: Update selectively based on whether sensor readings are
-            // current or not?
-
             double p = gaussian_prob(observation(i, 0),
                                      std::sqrt(measurement_covar(i, i)),
                                      particle_obs[n](i, 0));

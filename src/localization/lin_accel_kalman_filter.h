@@ -20,9 +20,9 @@
 
 using namespace Eigen;
 
-#define KF_PT_RATE 20
-//#define KF_PRINT_THROTTLE(x) if(num_iterations % KF_PT_RATE == 0) { x }
-#define KF_PRINT_THROTTLE(x) if(0 && num_iterations % KF_PT_RATE == 0) { x }
+#define KF_PT_RATE 10
+#define KF_PRINT_THROTTLE(x) if(num_iterations % KF_PT_RATE == 0) { x }
+//#define KF_PRINT_THROTTLE(x) if(0 && num_iterations % KF_PT_RATE == 0) { x }
 
 bool getParamCachedMatrix(std::string param_name,
                           Eigen::Ref<Eigen::MatrixXd> mat)
@@ -79,6 +79,7 @@ public:
     ~LinAccelKalmanFilter();
     void Reset();
 
+    void InputPosition(tf::Vector3 position, double dt);
     void InputAbsLinAcl(tf::Vector3 lin_acl, double dt);
     void InputDepth(double depth, double dt);
 
@@ -90,8 +91,8 @@ private:
     void initialize();
     void reload_params();
     void update_A(double dt);
-    Matrix<double, 9, 1> run_filter(Matrix<double, 4, 1> obs);
-    void update(Matrix<double, 4, 1> obs, double dt);
+    Matrix<double, 9, 1> run_filter(Matrix<double, 7, 1> obs);
+    void update(Matrix<double, 7, 1> obs, double dt);
 
     int num_iterations;
 
@@ -99,7 +100,11 @@ private:
     double abs_lin_velocity_dt;
     ros::Time last_abs_lin_velocity_time;
 
-    Matrix<double, 4, 1> obs;
+    bool new_position;
+
+    double position_dt;
+
+    Matrix<double, 7, 1> obs;
 
     Matrix<double, 9, 1> x0;
     Matrix<double, 9, 1> x;
@@ -110,11 +115,11 @@ private:
     Matrix<double, 9, 9> A;
     Matrix<double, 9, 8> B;
     Matrix<double, 9, 9> Q;
-    Matrix<double, 4, 9> H;
-    Matrix<double, 4, 4> R;
+    Matrix<double, 7, 9> H;
+    Matrix<double, 7, 7> R;
 
-    Matrix<double, 9, 4> k;
-    Matrix<double, 4, 1> y;
-    Matrix<double, 4, 4> s;
+    Matrix<double, 9, 7> k;
+    Matrix<double, 7, 1> y;
+    Matrix<double, 7, 7> s;
 };
 #endif //LIN_ACCEL_KALMAN_FILTER_H

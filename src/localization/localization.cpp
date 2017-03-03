@@ -19,7 +19,12 @@ int main(int argc, char **argv)
     double num_particles;
     ros::param::getCached("localization/num_particles", num_particles);
 
-    LocalizationSystem loc_system(&sensors, nh, num_particles);
+    while(!ros::Time::isValid())
+    {
+        usleep(10000);
+    }
+
+    LocalizationSystem loc_system(&sensors, num_particles);
 
     // Service for resetting position and velocity
     ros::ServiceServer reset_filter_service =
@@ -40,15 +45,24 @@ int main(int argc, char **argv)
     ros::param::getCached("localization/rate", rate);
     ros::Rate r(rate);
 
+    ros::Time start_time;
+    start_time = ros::Time::now();
+
     while(ros::ok())
     {
         ros::spinOnce();
 
-        loc_system.Update();
+        // Delay start by a few seconds so that sensor data can be all inputted
+        ros::Duration delay_start = (ros::Time::now() - start_time);
+        if(delay_start.toSec() > 1.0)
+        {
+            loc_system.Update();
 
-        geometry_msgs::Vector3Stamped pos =
-                                          loc_system.GetLocalizationMessage();
-        loc_pub.publish(pos);
+            geometry_msgs::Vector3Stamped pos =
+                loc_system.GetLocalizationMessage();
+            loc_pub.publish(pos);
+
+        }
 
         r.sleep();
     }

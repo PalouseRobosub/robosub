@@ -83,7 +83,6 @@ void FilterSensors::InputAbsLinVel(const tf::Vector3 lin_vel)
     ros::Time stamp = ros::Time::now();
     abs_lin_vel = lin_vel;
     abs_lin_vel_dt = (stamp - last_abs_lin_vel_time).toSec();
-    ROS_INFO_STREAM("abs_lin_vel_dt: " << abs_lin_vel_dt);
     new_abs_lin_vel = true;
     last_abs_lin_vel_time = stamp;
 }
