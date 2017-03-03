@@ -425,7 +425,7 @@ namespace robosub
             }
         }
 
-        /* 
+        /*
          * Multiply the pitch error by the cosine (in degrees) of the yaw error
          * to use positive feedback for pitch to assist yaw when yawing more
          * than 90 degrees.
@@ -517,7 +517,7 @@ namespace robosub
          * Grab the current orientation of the submarine for rotating the
          * current translational goals. The order of this vector is roll,
          * pitch, and yaw.
-         * 
+         *
          * Yaw is set to 0 to use the relative reference frame when neither
          * the forward nor strafe state is absolute.
          */

@@ -5,6 +5,7 @@
 #include "robosub/control.h"
 
 ros::Publisher pub;
+ros::NodeHandle nh;
 
 // Settings
 double min_depth = 0.0;
@@ -16,25 +17,15 @@ double x_scaling_power = 0.0;
 double y_scaling_power = 0.0;
 double z_scaling_power = 0.0;
 
-/*
-void dead_scale(double *value, double deadzone, double scaling_power)
+void reloadDepthParams()
 {
-    double num;
-    num = (fabs(*value) - deadzone);
-    if( num < 0)
-        num = 0;
-
-    double sgn = (*value > 0) ? 1.0 : -1.0;
-    *value = pow( num/(1-deadzone), scaling_power ) * sgn;
+    ros::param::getCached("joystick_control/min_depth", min_depth);
+    ros::param::getCached("joystick_control/max_depth", max_depth);
 }
-*/
 
 void joystickToControlCallback(const robosub::joystick msg)
 {
-    //scale and apply deadzones
-    //dead_scale(msg.axisX, axisXdeadzone, x_scaling_power);
-    //dead_scale(msg.axisY, axisYdeadzone, y_scaling_power);
-    //dead_scale(msg.axisZ, axisZdeadzone, z_scaling_power);
+    reloadDepthParams();
 
     //Generate a control packet out of the type to send to control module
     robosub::control outmsg;
@@ -100,8 +91,6 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "joystick_control");
 
-    ros::NodeHandle nh;
-
     ros::Subscriber sub = nh.subscribe("joystick_driver", 1,
                                        joystickToControlCallback);
     pub = nh.advertise<robosub::control>("control", 1);
@@ -125,7 +114,6 @@ int main(int argc, char **argv)
     ROS_INFO("x_scaling_power %f", x_scaling_power);
     ROS_INFO("y_scaling_power %f", y_scaling_power);
     ROS_INFO("z_scaling_power %f", z_scaling_power);
-
 
     ros::spin();
 
