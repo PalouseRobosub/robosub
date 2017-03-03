@@ -1,6 +1,6 @@
 #include "localization_system.hpp"
-#include <eigen3/Eigen/Dense>
-#include "filter_sensors.h"
+
+#include "robosub_sensors.h"
 
 using namespace Eigen;
 
@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    FilterSensors sensors;
+    RobosubSensors sensors;
 
     // TODO: Change to use localization messages
     ros::Publisher loc_pub =
@@ -32,14 +32,14 @@ int main(int argc, char **argv)
                             &LocalizationSystem::resetFilterCallback, &loc_system);
 
     ros::Subscriber depth_sub = nh.subscribe("depth", 1,
-                                &FilterSensors::InputDepth, &sensors);
+                                &RobosubSensors::InputDepth, &sensors);
     ros::Subscriber hydrophones_position_sub =
         nh.subscribe("hydrophones/position", 1,
-                     &FilterSensors::InputHydrophones, &sensors);
+                     &RobosubSensors::InputHydrophones, &sensors);
     ros::Subscriber accel_sub = nh.subscribe("acceleration/linear", 1,
-                                &FilterSensors::InputRelLinAcl, &sensors);
+                                &RobosubSensors::InputRelLinAcl, &sensors);
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
-                                      &FilterSensors::InputOrientation, &sensors);
+                                      &RobosubSensors::InputOrientation, &sensors);
 
     double rate;
     ros::param::getCached("localization/rate", rate);

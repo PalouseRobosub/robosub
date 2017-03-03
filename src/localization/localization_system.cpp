@@ -1,6 +1,6 @@
 #include "localization_system.hpp"
 
-LocalizationSystem::LocalizationSystem(FilterSensors *_sensors, int _num_particles) : kf(), pf(_num_particles)
+LocalizationSystem::LocalizationSystem(RobosubSensors *_sensors, int _num_particles) : kf(), pf(_num_particles)
 {
     sensors = _sensors;
     num_positions = 0;

@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include <eigen3/Eigen/Dense>
-#include <iostream>
 #include <random>
 #include <vector>
 

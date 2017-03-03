@@ -1,6 +1,6 @@
-#include "filter_sensors.h"
+#include "robosub_sensors.h"
 
-FilterSensors::FilterSensors()
+RobosubSensors::RobosubSensors()
 {
     new_rel_lin_acl = false;
     new_depth = false;
@@ -33,7 +33,7 @@ FilterSensors::FilterSensors()
     position[0] = position[1] = position[2] = 0.0;
 }
 
-void FilterSensors::InputRelLinAcl(const
+void RobosubSensors::InputRelLinAcl(const
                                    geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     rel_lin_acl = tf::Vector3(msg->vector.x, msg->vector.y, msg->vector.z);
@@ -44,7 +44,7 @@ void FilterSensors::InputRelLinAcl(const
     calculate_absolute_lin_accel();
 }
 
-void FilterSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
+void RobosubSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
 {
     depth = msg->data;
     depth_dt = (msg->header.stamp - last_depth_time).toSec();
@@ -52,7 +52,7 @@ void FilterSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
     last_depth_time = msg->header.stamp;
 }
 
-void FilterSensors::InputHydrophones(const
+void RobosubSensors::InputHydrophones(const
                                      robosub::PositionArrayStamped::ConstPtr &msg)
 {
     hydrophones = tf::Vector3(msg->positions[0].position.x,
@@ -62,7 +62,7 @@ void FilterSensors::InputHydrophones(const
     last_hydrophones_time = msg->header.stamp;
 }
 
-void FilterSensors::InputOrientation(const
+void RobosubSensors::InputOrientation(const
                                      robosub::QuaternionStampedAccuracy::ConstPtr &msg)
 {
     orientation = tf::Quaternion(msg->quaternion.x, msg->quaternion.y,
@@ -72,7 +72,7 @@ void FilterSensors::InputOrientation(const
     last_orientation_time = msg->header.stamp;
 }
 
-void FilterSensors::InputAbsLinAcl(const tf::Vector3 lin_acl)
+void RobosubSensors::InputAbsLinAcl(const tf::Vector3 lin_acl)
 {
     ros::Time stamp = ros::Time::now();
     abs_lin_acl = lin_acl;
@@ -81,7 +81,7 @@ void FilterSensors::InputAbsLinAcl(const tf::Vector3 lin_acl)
     last_abs_lin_acl_time = stamp;
 }
 
-void FilterSensors::InputAbsLinVel(const tf::Vector3 lin_vel)
+void RobosubSensors::InputAbsLinVel(const tf::Vector3 lin_vel)
 {
     ros::Time stamp = ros::Time::now();
     abs_lin_vel = lin_vel;
@@ -90,7 +90,7 @@ void FilterSensors::InputAbsLinVel(const tf::Vector3 lin_vel)
     last_abs_lin_vel_time = stamp;
 }
 
-void FilterSensors::InputPosition(const tf::Vector3 pos)
+void RobosubSensors::InputPosition(const tf::Vector3 pos)
 {
     ros::Time stamp = ros::Time::now();
     position = pos;
@@ -99,119 +99,119 @@ void FilterSensors::InputPosition(const tf::Vector3 pos)
     last_position_time = stamp;
 }
 
-tf::Vector3 FilterSensors::GetRelLinAcl()
+tf::Vector3 RobosubSensors::GetRelLinAcl()
 {
     new_rel_lin_acl = false;
     return rel_lin_acl;
 }
 
-double FilterSensors::GetDepth()
+double RobosubSensors::GetDepth()
 {
     new_depth = false;
     return depth;
 }
 
-tf::Vector3 FilterSensors::GetHydrophones()
+tf::Vector3 RobosubSensors::GetHydrophones()
 {
     new_hydrophones = false;
     return hydrophones;
 }
 
-tf::Quaternion FilterSensors::GetOrientation()
+tf::Quaternion RobosubSensors::GetOrientation()
 {
     new_orientation = false;
     return orientation;
 }
 
-tf::Vector3 FilterSensors::GetAbsLinAcl()
+tf::Vector3 RobosubSensors::GetAbsLinAcl()
 {
     new_abs_lin_acl = false;
     return abs_lin_acl;
 }
 
-tf::Vector3 FilterSensors::GetAbsLinVel()
+tf::Vector3 RobosubSensors::GetAbsLinVel()
 {
     new_abs_lin_vel = false;
     return abs_lin_vel;
 }
 
-tf::Vector3 FilterSensors::GetPosition()
+tf::Vector3 RobosubSensors::GetPosition()
 {
     new_position = false;
     return position;
 }
 
-bool FilterSensors::NewRelLinAcl()
+bool RobosubSensors::NewRelLinAcl()
 {
     return new_rel_lin_acl;
 }
 
-bool FilterSensors::NewDepth()
+bool RobosubSensors::NewDepth()
 {
     return new_depth;
 }
 
-bool FilterSensors::NewHydrophones()
+bool RobosubSensors::NewHydrophones()
 {
     return new_hydrophones;
 }
 
-bool FilterSensors::NewOrientation()
+bool RobosubSensors::NewOrientation()
 {
     return new_orientation;
 }
 
-bool FilterSensors::NewAbsLinAcl()
+bool RobosubSensors::NewAbsLinAcl()
 {
     return new_abs_lin_acl;
 }
 
-bool FilterSensors::NewAbsLinVel()
+bool RobosubSensors::NewAbsLinVel()
 {
     return new_abs_lin_vel;
 }
 
-bool FilterSensors::NewPosition()
+bool RobosubSensors::NewPosition()
 {
     return new_position;
 }
 
-double FilterSensors::GetRelLinAclDT()
+double RobosubSensors::GetRelLinAclDT()
 {
     return rel_lin_acl_dt;
 }
 
-double FilterSensors::GetDepthDT()
+double RobosubSensors::GetDepthDT()
 {
     return depth_dt;
 }
 
-double FilterSensors::GetHydrophonesDT()
+double RobosubSensors::GetHydrophonesDT()
 {
     return hydrophones_dt;
 }
 
-double FilterSensors::GetOrientationDT()
+double RobosubSensors::GetOrientationDT()
 {
     return orientation_dt;
 }
 
-double FilterSensors::GetAbsLinAclDT()
+double RobosubSensors::GetAbsLinAclDT()
 {
     return abs_lin_acl_dt;
 }
 
-double FilterSensors::GetAbsLinVelDT()
+double RobosubSensors::GetAbsLinVelDT()
 {
     return abs_lin_vel_dt;
 }
 
-double FilterSensors::GetPositionDT()
+double RobosubSensors::GetPositionDT()
 {
     return position_dt;
 }
 
-void FilterSensors::calculate_absolute_lin_accel()
+void RobosubSensors::calculate_absolute_lin_accel()
 {
     tf::Quaternion orientation_conjugate;
     orientation_conjugate[0] = orientation[0] * -1.0;
