@@ -1,8 +1,11 @@
 #include "localization/particle_filter.h"
 #include <vector>
 
-ParticleFilter::ParticleFilter(int _num_particles)
+ParticleFilter::ParticleFilter(ros::NodeHandle *_nh, int _num_particles)
 {
+    nh = _nh;
+    particle_cloud_pub =
+        nh->advertise<sensor_msgs::PointCloud>("/localization/particles", 1);
     num_particles = _num_particles;
 
     norm_distribution = new std::normal_distribution<double>(0.0, 1.0);
@@ -364,6 +367,31 @@ void ParticleFilter::estimate_state()
     last_estimated_position_time = ros::Time::now();
 }
 
+void ParticleFilter::publish_point_cloud()
+{
+    sensor_msgs::PointCloud pc;
+    sensor_msgs::ChannelFloat32 chan;
+    chan.name = "weight";
+
+    for(int i = 0; i < num_particles; i++)
+    {
+        geometry_msgs::Point32 p;
+        p.x = particle_states[i](0, 0);
+        p.y = particle_states[i](1, 0);
+        p.z = particle_states[i](2, 0);
+
+        pc.points.push_back(p);
+
+        chan.values.push_back(particle_weights[i]);
+    }
+
+    pc.header.frame_id = "world";
+    pc.channels.push_back(chan);
+    pc.header.stamp = ros::Time::now();
+
+    particle_cloud_pub.publish(pc);
+}
+
 void ParticleFilter::Predict()
 {
     PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("PREDICT"););
@@ -373,6 +401,8 @@ void ParticleFilter::Predict()
     last_particle_states = particle_states;
 
     estimate_state();
+
+    publish_point_cloud();
 
     PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
     num_iterations++;
@@ -394,6 +424,8 @@ void ParticleFilter::Update()
     resample_particles();
 
     estimate_state();
+
+    publish_point_cloud();
 
     PF_PRINT_THROTTLE(ROS_DEBUG_STREAM("est_state: " << std::endl << est_state););
     num_iterations++;

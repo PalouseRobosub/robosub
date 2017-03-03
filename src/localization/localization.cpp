@@ -24,7 +24,7 @@ int main(int argc, char **argv)
         usleep(10000);
     }
 
-    LocalizationSystem loc_system(&sensors, num_particles);
+    LocalizationSystem loc_system(&nh, &sensors, num_particles);
 
     // Service for resetting position and velocity
     ros::ServiceServer reset_filter_service =

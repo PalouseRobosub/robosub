@@ -9,8 +9,10 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
+#include "geometry_msgs/TransformStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Empty.h"
+#include "tf2_msgs/TFMessage.h"
 
 #include "localization/robosub_sensors.h"
 #include "localization/lin_accel_kalman_filter.h"
@@ -21,7 +23,7 @@ using namespace Eigen;
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(RobosubSensors *_sensors, int _num_particles);
+    LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors *_sensors, int _num_particles);
 
     bool resetFilterCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &rep);
@@ -31,9 +33,13 @@ public:
     void Update();
 
 private:
+    void publish_tf_message(tf::Vector3 pos);
+
     LinAccelKalmanFilter kf;
     ParticleFilter pf;
     RobosubSensors *sensors;
+    ros::NodeHandle *nh;
+    ros::Publisher tf_pub;
 
     int num_positions;
 

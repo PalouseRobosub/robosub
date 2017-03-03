@@ -1,7 +1,8 @@
 #include "localization/lin_accel_kalman_filter.h"
 
-LinAccelKalmanFilter::LinAccelKalmanFilter()
+LinAccelKalmanFilter::LinAccelKalmanFilter(ros::NodeHandle *_nh)
 {
+    nh = _nh;
     initialize();
 }
 

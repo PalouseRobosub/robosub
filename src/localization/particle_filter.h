@@ -10,6 +10,10 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
+#include "geometry_msgs/Point32.h"
+#include "sensor_msgs/PointCloud.h"
+#include "sensor_msgs/ChannelFloat32.h"
+
 using namespace Eigen;
 
 #define PF_PT_RATE 10
@@ -87,7 +91,7 @@ double gaussian_prob(double mean, double sigma, double x)
 class ParticleFilter
 {
 public:
-    ParticleFilter(int _num_particles);
+    ParticleFilter(ros::NodeHandle *_nh, int _num_particles);
     ~ParticleFilter();
     void Predict();
     void Update();
@@ -110,6 +114,10 @@ private:
     void update_particle_weights();
     void resample_particles();
     void estimate_state();
+    void publish_point_cloud();
+
+    ros::Publisher particle_cloud_pub;
+    ros::NodeHandle *nh;
 
     bool new_position;
 

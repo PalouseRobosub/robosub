@@ -1,9 +1,13 @@
 #include "localization_system.hpp"
 
-LocalizationSystem::LocalizationSystem(RobosubSensors *_sensors, int _num_particles) : kf(), pf(_num_particles)
+LocalizationSystem::LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors
+        *_sensors, int _num_particles) : kf(_nh), pf(_nh, _num_particles)
 {
+    nh = _nh;
     sensors = _sensors;
     num_positions = 0;
+
+    tf_pub = nh->advertise<tf2_msgs::TFMessage>("tf", 1);
 }
 
 geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
@@ -16,6 +20,8 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
     msg.vector.y = pos[1];
     msg.vector.z = pos[2];
     msg.header.stamp = ros::Time::now();
+
+    publish_tf_message(pos);
 
     return msg;
 }
@@ -68,4 +74,26 @@ void LocalizationSystem::Update()
     {
         sensors->InputPosition(pf.GetPosition());
     }
+}
+
+void LocalizationSystem::publish_tf_message(tf::Vector3 pos)
+{
+    tf2_msgs::TFMessage tm;
+
+    geometry_msgs::TransformStamped robosub_transform;
+
+    robosub_transform.header.frame_id = "world";
+    robosub_transform.header.stamp = ros::Time::now();
+    robosub_transform.child_frame_id = "cobalt";
+
+    robosub_transform.transform.translation.x = pos[0];
+    robosub_transform.transform.translation.y = pos[1];
+    robosub_transform.transform.translation.z = pos[2];
+    robosub_transform.transform.rotation.x = 0.0;
+    robosub_transform.transform.rotation.y = 0.0;
+    robosub_transform.transform.rotation.z = 0.0;
+    robosub_transform.transform.rotation.w = 1.0;
+
+    tm.transforms.push_back(robosub_transform);
+    tf_pub.publish(tm);
 }

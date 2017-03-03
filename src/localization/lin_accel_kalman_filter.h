@@ -69,7 +69,7 @@ bool getParamCachedMatrix(std::string param_name,
 class LinAccelKalmanFilter
 {
 public:
-    LinAccelKalmanFilter();
+    LinAccelKalmanFilter(ros::NodeHandle *_nh);
     ~LinAccelKalmanFilter();
     void Reset();
 
@@ -87,6 +87,8 @@ private:
     void update_A(double dt);
     Matrix<double, 9, 1> run_filter(Matrix<double, 7, 1> obs);
     void update(Matrix<double, 7, 1> obs, double dt);
+
+    ros::NodeHandle *nh;
 
     int num_iterations;
 
