@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "robosub/Euler.h"
+#include "robosub/QuaternionStampedAccuracy.h"
 #include "geometry_msgs/Quaternion.h"
 #include "tf/transform_datatypes.h"
 
@@ -7,11 +8,12 @@
 
 ros::Publisher pub;
 
-void orientationCallback(const geometry_msgs::Quaternion::ConstPtr& quat_msg)
+void orientationCallback(const robosub::QuaternionStampedAccuracy::ConstPtr& quat_msg)
 {
+    geometry_msgs::Quaternion quat (quat_msg->quaternion);
     // Quaternion to roll pitch yaw
     // This is apparently the best way to do it with built in ros stuff
-    tf::Quaternion q(quat_msg->x, quat_msg->y, quat_msg->z, quat_msg->w);
+    tf::Quaternion q(quat.x, quat.y, quat.z, quat.w);
     tf::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
