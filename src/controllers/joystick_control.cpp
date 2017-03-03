@@ -5,7 +5,6 @@
 #include "robosub/control.h"
 
 ros::Publisher pub;
-ros::NodeHandle nh;
 
 // Settings
 double min_depth = 0.0;
@@ -90,6 +89,8 @@ void joystickToControlCallback(const robosub::joystick msg)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "joystick_control");
+
+    ros::NodeHandle nh;
 
     ros::Subscriber sub = nh.subscribe("joystick_driver", 1,
                                        joystickToControlCallback);
