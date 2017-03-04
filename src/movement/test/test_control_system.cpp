@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
     //fill out a control message to dive
     pub.publish(msg);
 
-    //wait until at depth (~3 seconds)
+    //wait until at depth
     ros::Time exit_time = ros::Time::now() + ros::Duration(10);
     while (ros::Time::now() < exit_time)
     {
