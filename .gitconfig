@@ -1,4 +1,5 @@
-#note: to make this settings file active, you need to run
+#note: to make this settings file active, you need to run the following command
+#when your shell's CWD is in the repo:
 #git config --local include.path ../.gitconfig
 
 
