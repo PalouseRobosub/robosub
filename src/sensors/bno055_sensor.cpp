@@ -264,8 +264,8 @@ int main(int argc, char **argv)
         quaternion_message.accuracy =
                 static_cast<double>(confidence_level)/3.0;
         quaternion_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
-                          euler_message.roll * _PI_OVER_180,
-                          euler_message.pitch * _PI_OVER_180,
+                          -1 * euler_message.roll * _PI_OVER_180,
+                          -1 * euler_message.pitch * _PI_OVER_180,
                           euler_message.yaw * _PI_OVER_180);
 
         quaternion_publisher.publish(quaternion_message);
