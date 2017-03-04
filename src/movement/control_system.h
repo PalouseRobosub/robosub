@@ -49,8 +49,10 @@ public:
     void ReloadPIDParams();
     robosub::thruster CalculateThrusterMessage();
     robosub::control_status GetControlStatus();
+    bool isEnabled();
 
 private:
+    bool enabled;
     void calculate_motor_control();
     double wraparound(double x, double min, double max);
     std::string state_to_string(uint8_t state);

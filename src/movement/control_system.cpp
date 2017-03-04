@@ -10,6 +10,7 @@ namespace robosub
      */
     ControlSystem::ControlSystem()
     {
+        enabled = false;
         ReloadPIDParams();
 
         /*
@@ -133,6 +134,16 @@ namespace robosub
         ROS_INFO_STREAM("Motor Matrix Inverted:\n" << motors_inverted);
     }
 
+
+    /*
+      getter function that returns variable telling us if we should
+      allow thruster message to publish
+    */
+    bool ControlSystem::isEnabled(void)
+    {
+      return enabled;
+    }
+
     /**
      * Reload PID parameters from the ROS parameter server.
      *
@@ -190,6 +201,7 @@ namespace robosub
     void ControlSystem::InputControlMessage(const
             robosub::control::ConstPtr& msg)
     {
+        enabled = true;
         std::vector<double> control_values(6);
         std::vector<uint8_t> control_states(6);
 
