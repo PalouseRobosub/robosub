@@ -35,7 +35,7 @@ TEST(ControlSystem, roll)
     msg.yaw_state = robosub::control::STATE_RELATIVE;
     msg.yaw_left = 0;
     msg.dive_state = robosub::control::STATE_ABSOLUTE;
-    msg.dive = -2;
+    msg.dive = -1;
     msg.pitch_state = robosub::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
 
@@ -103,7 +103,7 @@ TEST(ControlSystem, pitch)
     msg.yaw_state = robosub::control::STATE_RELATIVE;
     msg.yaw_left = 0;
     msg.dive_state = robosub::control::STATE_ABSOLUTE;
-    msg.dive = -2;
+    msg.dive = -1;
     msg.roll_state = robosub::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
@@ -171,7 +171,7 @@ TEST(ControlSystem, yaw)
     msg.pitch_state = robosub::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
     msg.dive_state = robosub::control::STATE_ABSOLUTE;
-    msg.dive = -2;
+    msg.dive = -1;
     msg.roll_state = robosub::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
@@ -293,6 +293,33 @@ int main(int argc, char *argv[])
     pub = n.advertise<robosub::control>("control", 1);
 
     rs::wait_for_subscriber(pub, 5);
+
+    robosub::control msg;
+
+    //Dive to initial depth
+    msg.forward_state = robosub::control::STATE_ERROR;
+    msg.forward = 0;
+    msg.strafe_state = robosub::control::STATE_ERROR;
+    msg.strafe_left = 0;
+    msg.yaw_state = robosub::control::STATE_RELATIVE;
+    msg.yaw_left = 0;
+    msg.dive_state = robosub::control::STATE_ABSOLUTE;
+    msg.dive = -1;
+    msg.pitch_state = robosub::control::STATE_ABSOLUTE;
+    msg.pitch_down = 0;
+    msg.roll_state = robosub::control::STATE_ABSOLUTE;
+    msg.roll_right = 0;
+
+    //fill out a control message to dive
+    pub.publish(msg);
+
+    //wait until at depth (~3 seconds)
+    ros::Time exit_time = ros::Time::now() + ros::Duration(10);
+    while (ros::Time::now() < exit_time)
+    {
+        ros::spinOnce();
+        ros::Duration(0.01).sleep();
+    }
 
     return RUN_ALL_TESTS();
 }
