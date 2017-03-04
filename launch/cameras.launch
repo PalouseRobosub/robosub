@@ -6,7 +6,7 @@
     <arg name="right_serial" default="14406637" />
 
     <group ns="camera">
-        
+
         <group ns="left">
         <!-- Left Camera -->
         <node pkg="nodelet" type="nodelet" name="left_camera_manager" args="manager" />
@@ -30,7 +30,7 @@
         <group ns="right">
         <node pkg="nodelet" type="nodelet" name="right_camera_manager" args="manager" />
 
-        
+
         <!-- Right Camera -->
         <node pkg="nodelet" type="nodelet" name="right_camera_nodelet"
               args="load pointgrey_camera_driver/PointGreyCameraNodelet right_camera_manager" >

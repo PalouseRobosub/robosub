@@ -1,5 +1,5 @@
 #Description
-# 
+#
 # This message type is used for for updating the control system goals and
 # displaying the current goals of the control system.  The control system has 6
 # possible goals. Forward, strafe, and dive are position goals, while roll,
@@ -42,7 +42,7 @@
 # To make the sub move forward:
 #   dive_state, strafe_state, roll_state, pitch_state, yaw_state = STATE_NONE
 #   forward_state = STATE_ERROR
-#   forward = 1 (larger/smaller numbers will make sub move faster/slower) 
+#   forward = 1 (larger/smaller numbers will make sub move faster/slower)
 
 
 #control states

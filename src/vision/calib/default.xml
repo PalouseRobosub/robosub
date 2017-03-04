@@ -15,11 +15,11 @@
      <Input_FlipAroundHorizontalAxis>false</Input_FlipAroundHorizontalAxis>
 
      <!-- Time delay between frames in case of camera. -->
-     <Input_Delay>1</Input_Delay>  
+     <Input_Delay>1</Input_Delay>
 
      <!-- How many frames to use, for calibration. -->
      <Calibrate_NrOfFrameToUse>25</Calibrate_NrOfFrameToUse>
-     <!-- Consider only fy as a free parameter, the ratio fx/fy stays the same as in the input cameraMatrix. 
+     <!-- Consider only fy as a free parameter, the ratio fx/fy stays the same as in the input cameraMatrix.
               Use or not setting. 0 - False Non-Zero - True-->
      <Calibrate_FixAspectRatio> true </Calibrate_FixAspectRatio>
      <!-- If true (non-zero) tangential distortion coefficients  are set to zeros and stay zero.-->

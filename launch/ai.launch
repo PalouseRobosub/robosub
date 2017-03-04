@@ -2,5 +2,5 @@
 <launch>
     <node pkg="robosub" type="ai_manager.py" name="ai_manager" required="false" output="screen">
         <rosparam command="load" file="$(find robosub)/param/ai_manager.yaml"/>
-    </node> 
+    </node>
 </launch>
