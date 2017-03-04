@@ -35,7 +35,7 @@ namespace rs
         //arbitrary small delay to allow ports to be created during tests
         //this is a hack, better solution would be to poll/check for a
         //certain amount of time then fail out
-        ros::Duration(.1).sleep();
+        ros::WallDuration(.1).sleep();
 
         this->m_port_fd = ::open(port_name, O_RDWR | O_NOCTTY | O_ASYNC |
                                  O_NDELAY);
@@ -140,13 +140,15 @@ namespace rs
              * Wait for atleast one byte to be available before reading so that
              * timeout is also valid if no bytes are received on the port.
              */
-            ros::Time exit_time = ros::Time::now() + ros::Duration(0.5);
-            while (QueryBuffer() == 0 && ros::Time::now() < exit_time)
+            ros::WallTime now = ros::WallTime::now();
+            ros::WallTime exit_time = now + ros::WallDuration(0.5);
+            while (QueryBuffer() == 0 && now < exit_time)
             {
-                ros::Duration(0.02).sleep();
+                ros::WallDuration(0.02).sleep();
+                now = ros::WallTime::now();
             }
 
-            if (ros::Time::now() > exit_time)
+            if (now > exit_time)
             {
                 ROS_INFO("No serial bytes were available");
                 return 0;
@@ -155,7 +157,7 @@ namespace rs
             temp = ::read(this->m_port_fd, buf+i, num-i);
             if(temp == -1)
             {
-                //ROS_ERROR("serial read error");
+                ROS_ERROR("Serial read error.");
             }
             else
                 i+=temp;
