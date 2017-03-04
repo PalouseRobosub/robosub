@@ -60,6 +60,7 @@ namespace robosub
          */
         state_vector = Vector6d::Zero();
         current_integral = Vector6d::Zero();
+        goals = Vector6d::Zero();
 
         /*
          * Load thruster node settings. A nodehandle reference is not
