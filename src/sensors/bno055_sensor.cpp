@@ -252,8 +252,8 @@ int main(int argc, char **argv)
          * Note that we flip the roll and pitch, we do this so that the output
          * is in right-handed rotation notation
          */
-        euler_message.roll = (-1) * roll * _180_OVER_PI;
-        euler_message.pitch = (-1) * pitch * _180_OVER_PI;
+        euler_message.roll = roll * _180_OVER_PI;
+        euler_message.pitch = pitch * _180_OVER_PI;
         euler_message.yaw = yaw * _180_OVER_PI;
         euler_publisher.publish(euler_message);
 
@@ -263,10 +263,10 @@ int main(int argc, char **argv)
          */
         quaternion_message.accuracy =
                 static_cast<double>(confidence_level)/3.0;
-        quaternion_message.quaternion =
-                  tf::createQuaternionMsgFromRollPitchYaw(euler_message.roll,
-                                                          euler_message.pitch,
-                                                          euler_message.yaw);
+        quaternion_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
+                          euler_message.roll * _PI_OVER_180,
+                          euler_message.pitch * _PI_OVER_180,
+                          euler_message.yaw * _PI_OVER_180);
 
         quaternion_publisher.publish(quaternion_message);
 
