@@ -58,7 +58,7 @@ TEST(ControlSystem, roll)
     analyzer.Stop();
 
     //confirm we didn't roll too far
-    EXPECT_GT(test_roll + overshoot_allowed, analyzer.GetMax());
+    EXPECT_LT(analyzer.GetMax(), test_roll + overshoot_allowed);
 
     ROS_INFO("maintaining roll to check steady-state oscillation...");
     analyzer.ClearData();
@@ -107,11 +107,11 @@ TEST(ControlSystem, pitch)
     msg.roll_state = robosub::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
-    //just go to roll goal
+    //just go to pitch goal
     msg.pitch_state = robosub::control::STATE_ABSOLUTE;
     msg.pitch_down = test_pitch;
 
-    //fill out a control message to roll
+    //fill out a control message to pitch
     pub.publish(msg);
     analyzer.Start();
 
@@ -125,8 +125,8 @@ TEST(ControlSystem, pitch)
     }
     analyzer.Stop();
 
-    //confirm we didn't roll too far
-    EXPECT_GT(test_pitch + overshoot_allowed, analyzer.GetMax());
+    //confirm we didn't pitch too far
+    EXPECT_LT(analyzer.GetMax(), test_pitch + overshoot_allowed);
 
     ROS_INFO("maintaining pitch to check steady-state oscillation...");
     analyzer.ClearData();
@@ -175,11 +175,11 @@ TEST(ControlSystem, yaw)
     msg.roll_state = robosub::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
-    //just go to roll goal
+    //just go to yaw goal
     msg.yaw_state = robosub::control::STATE_ABSOLUTE;
     msg.yaw_left = test_yaw;
 
-    //fill out a control message to roll
+    //fill out a control message to yaw
     pub.publish(msg);
     analyzer.Start();
 
@@ -194,7 +194,7 @@ TEST(ControlSystem, yaw)
     analyzer.Stop();
 
     //confirm we didn't yaw too far
-    EXPECT_GT(test_yaw + overshoot_allowed, analyzer.GetMax());
+    EXPECT_LT(analyzer.GetMax(), test_yaw + overshoot_allowed);
 
     ROS_INFO("maintaining yaw to check steady-state oscillation...");
     analyzer.ClearData();
