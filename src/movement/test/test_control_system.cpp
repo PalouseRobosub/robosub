@@ -48,7 +48,7 @@ TEST(ControlSystem, roll)
     analyzer.Start();
 
     ROS_INFO("rolling to test angle");
-    //wait for 5 secosds for the sub to reach its roll
+    //wait for the sub to reach its roll
     ros::Time exit_time = ros::Time::now() + ros::Duration(10);
     while (ros::Time::now() < exit_time)
     {
@@ -116,7 +116,7 @@ TEST(ControlSystem, pitch)
     analyzer.Start();
 
     ROS_INFO("pitching to test angle");
-    //wait for 5 secosds for the sub to reach its pitch
+    //wait for the sub to reach its pitch
     ros::Time exit_time = ros::Time::now() + ros::Duration(10);
     while (ros::Time::now() < exit_time)
     {
@@ -184,7 +184,7 @@ TEST(ControlSystem, yaw)
     analyzer.Start();
 
     ROS_INFO("yawing to test angle");
-    //wait for 5 secosds for the sub to reach its yaw
+    //wait for the sub to reach its yaw
     ros::Time exit_time = ros::Time::now() + ros::Duration(20);
     while (ros::Time::now() < exit_time)
     {
@@ -254,7 +254,7 @@ TEST(ControlSystem, depth)
     analyzer.Start();
 
     ROS_INFO("diving to depth");
-    //wait for 5 secosds for the sub to reach its depth
+    //wait for the sub to reach its depth
     ros::Time exit_time = ros::Time::now() + ros::Duration(10);
     while (ros::Time::now() < exit_time)
     {
