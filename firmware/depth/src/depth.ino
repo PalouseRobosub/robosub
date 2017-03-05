@@ -30,7 +30,7 @@ float depth_offset = 0;
 void setup()
 {
     /*
-     * Turn on the depth sensors by writing high to the transistor gate.
+     * Turn on the depth sensor by writing high to the transistor gate.
      */
     pinMode(depth_power_control_pin, OUTPUT);
     digitalWrite(depth_power_control_pin, HIGH);
@@ -62,7 +62,7 @@ void setup()
     Wire.setClock(100000);
 
     /*
-     * Initialize the depth sensors with the fluid density of
+     * Initialize the depth sensor with the fluid density of
      * water (997 kg/m^3) and initialize the I2C mux.
      */
     if(mux.init(Tca9545a::Channel::One))
