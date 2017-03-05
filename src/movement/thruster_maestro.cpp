@@ -49,10 +49,11 @@ void zeroThrusterSpeeds()
 
 void check_timeout(const ros::TimerEvent& event)
 {
-    ROS_DEBUG("checking when last thruster message received");
+    ROS_DEBUG("checking when last thruster message was received");
     if (ros::Time::now() > last_msg_time + timeout_duration)
     {
-        ROS_INFO_THROTTLE(timeout_duration.toSec(), "thruster timeout!");
+        ROS_INFO_THROTTLE(timeout_duration.toSec(),
+                          "the thruster has timed out!");
         zeroThrusterSpeeds();
     }
 }
