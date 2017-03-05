@@ -13,12 +13,7 @@ do
         found=1
         echo -e "[\033[0;32mFound\033[0m]"
         cd $i/..
-        
-        # Make the ROS messages for python and store them in the firmware directory.
-        rm -rf src/robosub/firmware/ros_lib
-        rosrun rosserial_client make_libraries src/robosub/firmware
 
-       
         if [ -n "$CATKIN_NINJA" ]
         then
             # user wants to use ninja instead of make
