@@ -197,7 +197,9 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     FeatureProcessor fp(nLargest);
 
     vector<visionPos> messages;
-    messages = fp.process(leftProcessed, rightProcessed, disparity, _3dImage);
+    Mat copy_left = leftProcessed.clone();
+    Mat copy_right = rightProcessed.clone();
+    messages = fp.process(copy_left, copy_right, disparity, _3dImage);
 
     visionPosArray output;
     for (auto it = messages.begin(); it != messages.end(); it++)
@@ -207,6 +209,7 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
 
     if (doImShow)
     {
+        imshow(ros::this_node::getName() + " Masked", leftProcessed);
         waitKey(1);
     }
     else

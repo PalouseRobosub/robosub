@@ -53,9 +53,20 @@ Mat VisionProcessor::process(const Image& image)
     int numOpenIters = 1;
 
     //Get open params
-    n.getParamCached("open/width", openSize[0]);
-    n.getParamCached("open/height", openSize[1]);
-    n.getParamCached("open/iters", numOpenIters);
+    if (n.getParamCached("open/width", openSize[0]) == 0)
+    {
+        ROS_WARN("Failed to load open/width.");
+    }
+
+    if (n.getParamCached("open/height", openSize[1]) == 0)
+    {
+        ROS_WARN("Failed to load open/height");
+    }
+
+    if (n.getParamCached("open/iters", numOpenIters) == 0)
+    {
+        ROS_WARN("Failed to load open/iters.");
+    }
 
     //Initialize open filter size with default of 3x3
     int closeSize[] = {3, 3};

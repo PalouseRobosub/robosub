@@ -6,7 +6,6 @@ import rospy
 from robosub.msg import visionPosArray as vision_pos_array
 from robosub.msg import control
 
-
 class GateTask():
     def __init__(self, commandArgs):
         rospy.loginfo("Init done")
@@ -216,6 +215,7 @@ class GateTask():
                 # this process
                 msg.forward = 0
                 rospy.loginfo("Through gate")
+                self.pub.publish(msg)
                 rospy.signal_shutdown(0)
             else:
                 # We have not reached the desired blind movement time

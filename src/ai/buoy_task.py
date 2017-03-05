@@ -43,6 +43,7 @@ class BuoyTask():
                rospy.get_rostime():
                 msg.forward = 0
                 rospy.loginfo("Hit buoy")
+                self.pub.publish(msg)
                 rospy.signal_shutdown(0)
             # Otherwise continue to reverse
             else:
@@ -74,7 +75,7 @@ class BuoyTask():
         elif (abs(vision_result.data[0].xPos) < self.errorGoal and
               abs(vision_result.data[0].yPos) < self.errorGoal):
             # Maintain yaw and dive
-            msg.forward_state = control.STATE_RELATIVE
+            msg.forward_state = control.STATE_ERROR
             msg.yaw_state = control.STATE_RELATIVE
             msg.yaw_left = 0
             msg.dive_state = control.STATE_RELATIVE
@@ -124,10 +125,7 @@ class BuoyTask():
                             ((1 - (vision_result.data[0].magnitude * 10)) * -5))
                 rospy.loginfo("Dive error: {}".format(msg.dive))
 
-
         self.pub.publish(msg)
-
-
 
 if __name__ == "__main__":
     rospy.init_node('jirwin_buoy_follower')
