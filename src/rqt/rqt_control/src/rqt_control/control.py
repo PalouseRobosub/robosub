@@ -2,10 +2,17 @@ import os
 import rospy
 import rospkg
 
-from qt_gui.plugin import Plugin
+from python_qt_binding import QT_BINDING
+from rqt_gui_py.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import QTimer
-from python_qt_binding.QtGui import QWidget
+
+# Attempt to load QWidget from pyqt4
+try:
+    from python_qt_binding.QtGui import QWidget
+# if not load from pyqt5
+except ImportError:
+    from python_qt_binding.QtWidgets import QWidget
 
 from robosub.msg import control, control_status
 

@@ -6,7 +6,14 @@ import rospkg
 # Import Qt/rQt Modules
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtGui import QWidget, QPushButton
+
+# Attempt to load QWidget and QPushButton from pyqt4
+try:
+    from python_qt_binding.QtGui import QWidget, QPushButton
+# Else load from pyqt5
+except ImportError:
+    from python_qt_binding.QtWidgets import QWidget, QPushButton
+
 from python_qt_binding.QtCore import QTimer
 
 # Import Messages
