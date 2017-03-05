@@ -16,6 +16,8 @@ using namespace rs;
 Serial serial;
 MaestroThrusterDriver thrusterController;
 std::vector<Thruster_info> mThruster_info;
+ros::Time last_msg_time;
+ros::Duration timeout_duration;
 
 void Callback (const robosub::thruster::ConstPtr& msg)
 {
@@ -29,6 +31,7 @@ void Callback (const robosub::thruster::ConstPtr& msg)
             ROS_ERROR_STREAM("Setting speed of thrusters failed.");
         }
     }
+    last_msg_time = ros::Time::now();
 }
 
 void zeroThrusterSpeeds()
@@ -41,6 +44,14 @@ void zeroThrusterSpeeds()
         {
             ROS_ERROR_STREAM("Setting speed of thrusters failed.");
         }
+    }
+}
+
+void check_timeout(const ros::TimerEvent& event)
+{
+    if (ros::Time::now() > last_msg_time + timeout_duration)
+    {
+        zeroThrusterSpeeds();
     }
 }
 
@@ -57,6 +68,15 @@ int main(int argc, char **argv)
         ROS_FATAL("no serial port specified, exiting!");
         exit(1);
     }
+
+    double timeout;
+    if(!n.getParam("thrusters/timeout", timeout))
+    {
+        ROS_WARN("no timeout specified, defaulting to 2 seconds");
+        timeout = 2.0;
+    }
+    timeout_duration = ros::Duration(timeout);
+    n.createTimer(ros::Duration(0.1), check_timeout);
 
     serial.Open(thruster_port.c_str(), B9600);
 
