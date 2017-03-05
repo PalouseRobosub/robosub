@@ -13,9 +13,14 @@ namespace rs
      *
      * @return Zero upon success and non-zero upon failure.
      */
-    int Bno055::init()
+    int Bno055::init(string port_name)
     {
         uint8_t self_test_result, chip_id, clock_status;
+
+        /*
+         * Open the serial port.
+         */
+        _port.Open(port_name.c_str(), B115200);
 
         /*
          * Begin by getting in sync by attempting to read the chip ID a few

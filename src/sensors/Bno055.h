@@ -13,9 +13,12 @@
 #define BNO055_H
 
 #include "utility/serial.hpp"
+
+#include <string>
 #include <vector>
 
 using std::vector;
+using std::string;
 
 /**
  * Handle expressions for automatic return on failure.
@@ -249,14 +252,14 @@ public:
      * @param port An initialized port running at 115200 baud to
      *             communicate with the Bno055.
      */
-    Bno055(Serial &port) :
-        _port(port),
+    Bno055() :
+        _port(),
         _current_mode(OperationMode::Config),
         _page(0)
     {
     }
 
-    int init();
+    int init(string port_name);
 
     int reset();
 
@@ -304,7 +307,7 @@ private:
     /*
      * Serial port to be utilized for communicating with the sensor.
      */
-    Serial &_port;
+    Serial _port;
 
     /*
      * Definition of the current operating mode of the sensor.
