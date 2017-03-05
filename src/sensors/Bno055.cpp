@@ -11,6 +11,8 @@ namespace rs
      *       the Bno055 requires 650ms to wake up from a reset and the built in
      *       self test is given 500ms.
      *
+     * @param port_name The name of the port.
+     *
      * @return Zero upon success and non-zero upon failure.
      */
     int Bno055::init(string port_name)

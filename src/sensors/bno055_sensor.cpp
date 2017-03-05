@@ -1,14 +1,14 @@
+#include <cstdint>
+#include "geometry_msgs/Vector3Stamped.h"
+#include "robosub/bno_mode.h"
 #include "robosub/Euler.h"
 #include "robosub/QuaternionStampedAccuracy.h"
 #include "ros/ros.h"
 #include "sensors/Bno055.h"
-#include <string>
-#include "utility/serial.hpp"
-#include <cstdint>
-#include "tf/transform_datatypes.h"
-#include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Empty.h"
-#include "robosub/bno_mode.h"
+#include <string>
+#include "tf/transform_datatypes.h"
+#include "utility/serial.hpp"
 
 static constexpr double _PI_OVER_180 = 3.14159 / 180.0;
 static constexpr double _180_OVER_PI = 180.0 / 3.14159;
@@ -93,18 +93,22 @@ bool set_mode(robosub::bno_mode::Request &req,
             mode = Bno055::OperationMode::Imu;
             ROS_INFO("Setting the mode to IMU.");
             break;
+
         case robosub::bno_mode::Request::COMPASS:
             mode = Bno055::OperationMode::Compass;
             ROS_INFO("Setting the mode to compass.");
             break;
+
         case robosub::bno_mode::Request::M4G:
             mode = Bno055::OperationMode::M4G;
             ROS_INFO("Setting the mode to M4G.");
             break;
+
         case robosub::bno_mode::Request::NDOFFMCOFF:
             mode = Bno055::OperationMode::NdofFmcOff;
             ROS_INFO("Setting the mode to NdofFmcOff.");
             break;
+
         case robosub::bno_mode::Request::NDOF:
             mode = Bno055::OperationMode::Ndof;
             ROS_INFO("Setting the mode to Ndof.");
@@ -144,7 +148,7 @@ int main(int argc, char **argv)
 
     /*
      * Advertise the stamped quaternion and acceleration sensor
-     * data to the software, and the trim service call.
+     * data to the software and the trim service call.
      */
     quaternion_publisher =
             nh.advertise<robosub::QuaternionStampedAccuracy>("orientation", 1);
