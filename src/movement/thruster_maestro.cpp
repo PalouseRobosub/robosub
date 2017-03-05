@@ -49,8 +49,10 @@ void zeroThrusterSpeeds()
 
 void check_timeout(const ros::TimerEvent& event)
 {
+    ROS_DEBUG("checking when last thruster message received");
     if (ros::Time::now() > last_msg_time + timeout_duration)
     {
+        ROS_INFO_THROTTLE(timeout_duration.toSec(), "thruster timeout!");
         zeroThrusterSpeeds();
     }
 }
@@ -76,7 +78,7 @@ int main(int argc, char **argv)
         timeout = 2.0;
     }
     timeout_duration = ros::Duration(timeout);
-    n.createTimer(ros::Duration(0.1), check_timeout);
+    ros::Timer timeout_timer = n.createTimer(ros::Duration(0.1), check_timeout);
 
     serial.Open(thruster_port.c_str(), B9600);
 
