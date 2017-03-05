@@ -10,3 +10,7 @@
 #normalize line endings automatically when files are commited
 [core]
 	autocrlf = input
+
+#convert tabs to spaces when files are added to the repo
+[filter "tab2space"]
+    clean = expand --tabs=4 --initial
