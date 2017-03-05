@@ -18,7 +18,7 @@ double get_roll_data(const robosub::Euler::ConstPtr& msg)
 TEST(ControlSystem, roll)
 {
     double test_roll = 25;
-    double overshoot_allowed = 1;
+    double overshoot_allowed = 2;
     double average_threshold = 1.0;
     double std_dev_allowed = 0.7;
 
@@ -86,9 +86,9 @@ double get_pitch_data(const robosub::Euler::ConstPtr& msg)
 TEST(ControlSystem, pitch)
 {
     double test_pitch = 15;
-    double overshoot_allowed = 1.1;
-    double average_threshold = 0.1;
-    double std_dev_allowed = 0.1;
+    double overshoot_allowed = 2;
+    double average_threshold = 1.0;
+    double std_dev_allowed = 0.7;
 
     rs::SubscriberAnalyzer<robosub::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_pitch_data);
