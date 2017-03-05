@@ -1,5 +1,4 @@
-#include "../../ros_lib/robosub/Float32ArrayStamped.h"
-#include "tca9545a.h"
+#include "robosub/Float32Stamped.h"
 
 #include <MS5837.h>
 #include <ros.h>
@@ -7,26 +6,11 @@
 #include <stdint.h>
 #include <Wire.h>
 
-/*
- * The MUX reset pin is on A1, which maps to 25 in the standard Arduino pinout.
- */
-Tca9545a mux(25, false, false);
-
-static constexpr int depth_power_control_pin = 26;
-static constexpr int num_depth_sensors = 4;
-MS5837 depth_sensor[num_depth_sensors];
-float depths[num_depth_sensors];
-
-Tca9545a::Channel channels[4] = {
-    Tca9545a::Channel::One,
-    Tca9545a::Channel::Two,
-    Tca9545a::Channel::Three,
-    Tca9545a::Channel::Four
-};
+MS5837 depth_sensor;
 
 ros::NodeHandle n;
 
-robosub::Float32ArrayStamped depth_msg;
+robosub::Float32Stamped depth_msg;
 
 ros::Publisher depth_data_pub("depth", &depth_msg);
 
@@ -35,17 +19,12 @@ float depth_offset = 0;
 
 void setup()
 {
-    /*
-     * Turn on the depth sensors by writing high to the transistor gate.
-     */
-    pinMode(depth_power_control_pin, OUTPUT);
-    digitalWrite(depth_power_control_pin, HIGH);
+    n.initNode();
+    n.advertise(depth_data_pub);
 
     /*
      * Delay to allow sensor to power up and ROS node to initialize.
      */
-    n.initNode();
-    n.advertise(depth_data_pub);
     while(n.connected() == false)
     {
         n.spinOnce();
@@ -68,35 +47,19 @@ void setup()
     Wire.setClock(100000);
 
     /*
-     * Initialize the depth sensors with the fluid density of
-     * water (997 kg/m^3) and initialize the I2C mux.
+     * Initialize the depth sensor with the fluid density of
+     * water (997 kg/m^3).
      */
-    if(mux.init(Tca9545a::Channel::One))
-    {
-        n.logwarn("Failed to initialize the I2C mux.");
-    }
-
-    for (int i = 0; i < num_depth_sensors; ++i)
-    {
-        if (mux.setChannel(channels[i]))
-        {
-            n.logwarn("Failed to set mux channel.");
-        }
-
-        if (depth_sensor[i].init())
-        {
-            n.logwarn("Failed to initialize the depth sensor.");
-        }
-        depth_sensor[i].setFluidDensity(997.0f);
-        n.loginfo("Initialized depth sensor.");
-    }
+    depth_sensor.init();
+    depth_sensor.setFluidDensity(997.0f);
 
     /*
-     * Delay 500ms to ensure that the depth sensors have time to
-     * properly initialize.
+     * Delay 500ms to ensure that the depth sensor has time to
+     * properly initialize and then display a message to the
+     * console that the depth sensor has initialize.
      */
-    n.loginfo("Depth sensors initialized.");
     delay(500);
+    n.loginfo("Depth sensor initialized.");
 
     /*
      * Once the node is initialized, grab the depth rate if it is
@@ -134,29 +97,15 @@ void setup()
 
 void loop()
 {
-    for (int i = 0; i < num_depth_sensors; ++i)
-    {
-        if (mux.setChannel(channels[i]))
-        {
-            n.logwarn("Failed to set MUX channel.");
-        }
-        if (depth_sensor[i].read())
-        {
-            n.logwarn("Failed to read depth sensor.");
-        }
-
-        /*
-         * The depth sensor output specifies positive value as depth, however
-         * the submarine prints depth as negative. Invert it and remove the
-         * depth sensor offset.
-         */
-        depths[i] = -1 * (depth_sensor[i].depth() + depth_offset);
-    }
-
+    depth_sensor.read();
     depth_msg.header.stamp = n.now();
-    depth_msg.data = depths;
-    depth_msg.data_length = num_depth_sensors;
 
+    /*
+     * The depth sensor output specifies positive value as depth,
+     * however the submarine prints depth as negative. Invert it
+     * and remove the depth sensor offset.
+     */
+    depth_msg.data = -1 * (depth_sensor.depth() + depth_offset);
     depth_data_pub.publish(&depth_msg);
 
     n.spinOnce();

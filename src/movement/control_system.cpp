@@ -345,9 +345,9 @@ namespace robosub
      * @return None.
      */
     void ControlSystem::InputDepthMessage(const
-            robosub::Float32ArrayStamped::ConstPtr& depth_msg)
+            robosub::Float32Stamped::ConstPtr& depth_msg)
     {
-        state_vector[2] = depth_msg->data[0];
+        state_vector[2] = depth_msg->data;
     }
 
     /**
