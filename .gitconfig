@@ -13,4 +13,4 @@
 
 #convert tabs to spaces when files are added to the repo
 [filter "tab2space"]
-    clean = expand --tabs=4 --initial
+	clean = expand --tabs=4 --initial
