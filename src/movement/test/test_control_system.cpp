@@ -88,7 +88,7 @@ TEST(ControlSystem, pitch)
     double test_pitch = 15;
     double overshoot_allowed = 1.1;
     double average_threshold = 0.1;
-    double std_dev_allowed = 0.01;
+    double std_dev_allowed = 0.1;
 
     rs::SubscriberAnalyzer<robosub::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_pitch_data);
