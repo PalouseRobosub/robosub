@@ -7,6 +7,7 @@
 #include <cstdint>
 #include "tf/transform_datatypes.h"
 #include "geometry_msgs/Vector3Stamped.h"
+#include "std_srvs/Empty.h"
 
 static constexpr double _PI_OVER_180 = 3.14159 / 180.0;
 static constexpr double _180_OVER_PI = 180.0 / 3.14159;
@@ -16,6 +17,12 @@ using namespace rs;
 ros::Publisher euler_publisher;
 ros::Publisher quaternion_publisher;
 ros::Publisher linear_acceleration_publisher;
+
+
+/*
+ *  trim variables
+ */
+double last_roll, last_pitch, trim_roll, trim_pitch;
 
 /**
  * Fatally exits if expression x evalutes true.
@@ -63,6 +70,16 @@ Bno055::Axis encodeAxis(int axis)
     exit(-1);
 }
 
+bool trim(std_srvs::Empty::Request &req,
+          std_srvs::Empty::Response &res)
+{
+    trim_roll = last_roll;
+    trim_pitch = last_pitch;
+    ROS_INFO("Trimming the sensors");
+
+    return true;
+}
+
 int main(int argc, char **argv)
 {
     /*
@@ -77,13 +94,14 @@ int main(int argc, char **argv)
 
     /*
      * Advertise the stamped quaternion and acceleration sensor
-     * data to the software.
+     * data to the software, and the trim service call.
      */
     quaternion_publisher =
             nh.advertise<robosub::QuaternionStampedAccuracy>("orientation", 1);
     linear_acceleration_publisher =
         nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
     euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
+    ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
 
     /*
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
@@ -105,6 +123,11 @@ int main(int argc, char **argv)
     int accelerometer_offset[3] = {-1, -1, -1},
             magnetometer_offset[3] = {-1, -1, -1},
             gyroscope_offset[3] = {-1, -1, -1};
+
+    /*
+     * Initialize trim variables
+     */
+    last_roll = trim_roll = last_pitch = trim_pitch = 0.0;
 
     /*
      * Use explicit short-circuiting to guarentee that flags are only set when
@@ -247,6 +270,15 @@ int main(int argc, char **argv)
          */
         tf::Matrix3x3 m(tf::Quaternion(x, y, z, w));
         m.getRPY(roll, pitch, yaw);
+
+        /*
+         * Backup the last roll and pitch, apply trim offsets
+         */
+        last_roll = roll;
+        last_pitch = pitch;
+
+        roll -= trim_roll;
+        pitch -= trim_pitch;
 
         /*
          * Note that we flip the roll and pitch, we do this so that the output
