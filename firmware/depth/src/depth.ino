@@ -11,16 +11,13 @@
  * The MUX reset pin is on A1, which maps to 25 in the standard Arduino pinout.
  */
 Tca9545a mux(25, false, false);
-
-static constexpr int depth_power_control_pin = 26;
 MS5837 depth_sensor;
 
-Tca9545a::Channel channels[4] = {
-    Tca9545a::Channel::One,
-    Tca9545a::Channel::Two,
-    Tca9545a::Channel::Three,
-    Tca9545a::Channel::Four
-};
+/*
+ * The depth sensor power control pin is A2, which maps to 26 in the standard
+ * Arduino pinout.
+ */
+static constexpr int depth_power_control_pin = 26;
 
 ros::NodeHandle n;
 
