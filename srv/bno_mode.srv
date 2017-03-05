@@ -1,0 +1,13 @@
+#various possible modes
+uint8 IMU=0
+uint8 COMPASS=1
+uint8 M4G=2
+uint8 NDOFFMCOFF=3
+uint8 NDOF=4
+
+#request
+uint8 mode
+----
+#response
+uint8 mode
+bool success

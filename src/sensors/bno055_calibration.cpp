@@ -44,12 +44,9 @@ int main(int argc, char **argv)
     HandleError(ros::param::get("/ports/sensor", port_name) == false,
             "ros::param::get(\"/ports/sensor\")", true);
 
-    Serial port;
-    port.Open(port_name.c_str(), 115200);
+    Bno055 bno;
 
-    Bno055 bno(port);
-
-    HandleError(bno.init(), "Bno055::init()", true);
+    HandleError(bno.init(port_name), "Bno055::init()", true);
 
     HandleError(bno.setOperationMode(Bno055::OperationMode::Ndof),
                 "Bno055::setOperationMode()", true);

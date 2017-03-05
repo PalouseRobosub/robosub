@@ -8,6 +8,7 @@
 #include "tf/transform_datatypes.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "std_srvs/Empty.h"
+#include "robosub/bno_mode.h"
 
 static constexpr double _PI_OVER_180 = 3.14159 / 180.0;
 static constexpr double _180_OVER_PI = 180.0 / 3.14159;
@@ -18,6 +19,7 @@ ros::Publisher euler_publisher;
 ros::Publisher quaternion_publisher;
 ros::Publisher linear_acceleration_publisher;
 
+Bno055 sensor;
 
 /*
  *  trim variables
@@ -73,11 +75,56 @@ Bno055::Axis encodeAxis(int axis)
 bool trim(std_srvs::Empty::Request &req,
           std_srvs::Empty::Response &res)
 {
+    ROS_INFO("Trimming the sensors");
     trim_roll = last_roll;
     trim_pitch = last_pitch;
-    ROS_INFO("Trimming the sensors");
 
     return true;
+}
+
+bool set_mode(robosub::bno_mode::Request &req,
+              robosub::bno_mode::Response &res)
+{
+    Bno055::OperationMode mode;
+    res.mode = req.mode;
+    switch (req.mode)
+    {
+        case robosub::bno_mode::Request::IMU:
+            mode = Bno055::OperationMode::Imu;
+            ROS_INFO("Setting the mode to IMU.");
+            break;
+        case robosub::bno_mode::Request::COMPASS:
+            mode = Bno055::OperationMode::Compass;
+            ROS_INFO("Setting the mode to compass.");
+            break;
+        case robosub::bno_mode::Request::M4G:
+            mode = Bno055::OperationMode::M4G;
+            ROS_INFO("Setting the mode to M4G.");
+            break;
+        case robosub::bno_mode::Request::NDOFFMCOFF:
+            mode = Bno055::OperationMode::NdofFmcOff;
+            ROS_INFO("Setting the mode to NdofFmcOff.");
+            break;
+        case robosub::bno_mode::Request::NDOF:
+            mode = Bno055::OperationMode::Ndof;
+            ROS_INFO("Setting the mode to Ndof.");
+            break;
+
+        default:
+            ROS_ERROR("Invalid mode: %d", req.mode);
+            res.success = false;
+            return false;
+            break;
+    }
+
+    if (sensor.setOperationMode(Bno055::OperationMode::Config) != 0)
+    {
+        ROS_ERROR("failed to enter config mode");
+        res.success = false;
+        return false;
+    }
+    res.success = (sensor.setOperationMode(mode) == 0);
+    return res.success;
 }
 
 int main(int argc, char **argv)
@@ -102,18 +149,17 @@ int main(int argc, char **argv)
         nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
     euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
     ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
+    ros::ServiceServer mode_service = nh.advertiseService("set_bno_mode",
+            set_mode);
 
     /*
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
      * class.
      */
-    Serial port;
     std::string port_name;
     FatalAbortIf(ros::param::get("ports/sensor", port_name) == false,
             "Failed to get port name parameter.");
-    port.Open(port_name.c_str(), B115200);
-    Bno055 sensor(port);
-    FatalAbortIf(sensor.init() != 0, "Bno055 failed to initialize");
+    FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
     ROS_INFO("Sensor successfully initialized.");
 
     /*
@@ -243,7 +289,7 @@ int main(int argc, char **argv)
         rate = 20;
     }
     ros::Rate r(rate);
-    ROS_INFO("BNO055 is now running.");
+    ROS_INFO("BNO055 is now running in Ndof mode.");
 
     while (ros::ok())
     {
