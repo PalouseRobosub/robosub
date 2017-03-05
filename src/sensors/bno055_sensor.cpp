@@ -117,6 +117,9 @@ bool set_mode(robosub::bno_mode::Request &req,
             break;
     }
 
+    /*
+     * It appears we need to enter config mode before changing to another mode
+     */
     if (sensor.setOperationMode(Bno055::OperationMode::Config) != 0)
     {
         ROS_ERROR("failed to enter config mode");
