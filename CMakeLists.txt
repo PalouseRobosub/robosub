@@ -175,8 +175,8 @@ generate_dynamic_reconfigure_options(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES robosub
+ INCLUDE_DIRS src
+ LIBRARIES test_tools serial ftdi_serial bno055
   CATKIN_DEPENDS roscpp rospy dynamic_reconfigure std_msgs message_runtime
   DEPENDS OpenCV
 )
@@ -202,8 +202,8 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  ${catkin_INCLUDE_DIRS}
   src
+  ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
