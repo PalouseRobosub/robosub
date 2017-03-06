@@ -20,7 +20,8 @@ template <class msg> class ThrottledPublisher
     public:
         ThrottledPublisher() {}
 
-        ThrottledPublisher(std::string topicName, int queueSize, float hz, std::string _paramName = "")
+        ThrottledPublisher(std::string topicName, int queueSize, float hz,
+                std::string _paramName = "")
         {
             ros::NodeHandle nh;
             pub = nh.advertise<msg>(topicName, queueSize);
