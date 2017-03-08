@@ -50,9 +50,6 @@ script:
 
 matrix:
   fast_finish: true
-  allow_failures:
-    - env:
-      - TEST=true
   include:
     - env: #does just the build work?
       - BUILD=true
