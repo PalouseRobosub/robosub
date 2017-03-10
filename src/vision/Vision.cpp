@@ -199,7 +199,9 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     vector<visionPos> messages;
     Mat copy_left = leftProcessed.clone();
     Mat copy_right = rightProcessed.clone();
-    messages = fp.process(copy_left, copy_right, disparity, _3dImage);
+    Mat original = toCvCopy(left, sensor_msgs::image_encodings::BGR8)->image;
+    messages = fp.process(original, copy_left, copy_right,
+                          disparity, _3dImage);
 
     visionPosArray output;
     for (auto it = messages.begin(); it != messages.end(); it++)

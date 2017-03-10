@@ -12,7 +12,8 @@ FeatureProcessor::~FeatureProcessor()
 {
 }
 
-vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
+vector<visionPos> FeatureProcessor::process(const Mat &original,
+                                            const Mat &leftImg,
                                             const Mat &rightImg,
                                             const Mat &disp,
                                             const Mat &_3dImg)
@@ -32,7 +33,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
     n.getParamCached("processing/doImShow", doImShow);
 
     Mat toShow;
-    leftImg.copyTo(toShow);
+    original.copyTo(toShow);
 
     // For now use the left image, in future, use both
     std::sort(lContours.begin(), lContours.end(),

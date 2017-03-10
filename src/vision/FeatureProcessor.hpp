@@ -26,7 +26,8 @@ class FeatureProcessor
         FeatureProcessor(int nLargest);
         ~FeatureProcessor();
 
-        vector<visionPos> process(const Mat &leftMask, const Mat &rightMask,
+        vector<visionPos> process(const Mat &original,
+                                  const Mat &leftMask, const Mat &rightMask,
                                   const Mat &disp, const Mat &_3dImg);
 
     private:
