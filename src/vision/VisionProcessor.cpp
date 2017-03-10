@@ -108,63 +108,6 @@ Mat VisionProcessor::process(const Image& image)
     bool doImShow = true;
     n.getParamCached("doImShow", doImShow);
 
-    Mat edges;
-    //Convert to grayscale
-    cvtColor(toProcess, edges, COLOR_BGR2GRAY);
-
-    //Blur image
-    blur(edges, edges, Size(3, 3));
-
-    int lowThresh = 10;
-    int highThresh = 30;
-    int kernelSize = 3;
-
-    //Fetch canny params
-    n.getParamCached("canny/low", lowThresh);
-    n.getParamCached("canny/high", highThresh);
-    n.getParamCached("canny/kernel_size", kernelSize);
-
-    //verify canny params
-    if (lowThresh > highThresh)
-    {
-        //High should not be less than low
-        ROS_WARN_STREAM("Canny high threshold is less than the low threshold" <<
-                        ". Setting high to three times low.");
-        highThresh = lowThresh * 3;
-        n.setParam("canny/high", highThresh);
-    }
-
-    if (kernelSize % 2 != 1)
-    {
-        //Kernel size should be odd
-        kernelSize++;
-    }
-
-    //Apply Canny filter
-    Canny(edges, edges, lowThresh, highThresh, kernelSize);
-
-    if (doImShow)
-    {
-        imshow(ros::this_node::getName() + " edges", edges);
-    }
-
-    vector<vector<Point>> cannyContours;
-    vector<Vec4i> hierarchy;
-
-    findContours(edges, cannyContours, hierarchy, CV_RETR_TREE,
-                 CV_CHAIN_APPROX_SIMPLE);
-
-    if (doImShow && cannyContours.size() > 0)
-    {
-        Mat edgeContours(toProcess.size(), CV_8U);
-        drawContours(edgeContours, cannyContours, -1, Scalar(255, 255, 255), -1,
-                     8, hierarchy);
-
-        Mat edgeOut = Mat::zeros(toProcess.size(), toProcess.type());
-        toProcess.copyTo(edgeOut, edgeContours);
-        imshow(ros::this_node::getName() + " edge Contours", edgeOut);
-    }
-
     Mat mask;
     //Mask the image within the threshold ranges
     for (unsigned int i = 0;
