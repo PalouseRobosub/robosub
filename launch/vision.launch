@@ -19,7 +19,7 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/startGateVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/startGateVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/startGateVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="2"/>
     </node>
@@ -30,7 +30,7 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/redVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/redVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/redVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
     </node>
@@ -41,7 +41,7 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/greenVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/greenVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/greenVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
     </node>
@@ -52,7 +52,7 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/yellowVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/yellowVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/yellowVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
     </node>
@@ -63,7 +63,7 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/yellowVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/yellowVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/yellowVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
     </node>
@@ -74,9 +74,9 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/binVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/binVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/binVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
-        <param name="nLargest" value="1"/>
+        <param name="nLargest" value="2"/>
     </node>
 
     <!-- Torpedo target vision detection -->
@@ -85,7 +85,7 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/torpedoVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/torpedoVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/torpedoVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
     </node>
@@ -96,7 +96,7 @@
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/octagonVis.yaml" unless="$(arg simulated)"/>
-        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/octagonVisSim.yaml" if="$(arg simulated)"/>
+        <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/octagonVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
     </node>

@@ -1,0 +1,7 @@
+blur_iters: 1
+close: {height: 7, iters: 0, width: 7}
+max:
+- {hue: 5, sat: 5, val: 255}
+min:
+- {hue: 0, sat: 0, val: 240}
+open: {height: 7, iters: 0, width: 7}

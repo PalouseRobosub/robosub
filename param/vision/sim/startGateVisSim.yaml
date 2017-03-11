@@ -6,4 +6,3 @@ max:
 min:
 - {hue: 10, sat: 100, val: 100}
 open: {height: 3, iters: 0, width: 3}
-canny: {low: 30, high: 90, size: 3}
