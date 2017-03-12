@@ -5,6 +5,7 @@
     <arg name="doImShow" default="false"/>
     <arg name="leftImage" default="camera/left/undistorted"/>
     <arg name="rightImage" default="camera/right/undistorted"/>
+    <arg name="bottomImage" default="camera/bottom/undistorted"/>
 
     <arg name="simulated" default="false"/>
     <arg name="calibFile" default="$(find robosub)/src/vision/calib/stereo_out_camera_data.xml"/>
@@ -18,6 +19,7 @@
         <remap from="vision/output_default" to="vision/start_gate"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/startGateVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/startGateVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
@@ -29,6 +31,7 @@
         <remap from="vision/output_default" to="vision/buoys/red"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/redVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/redVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
@@ -40,6 +43,7 @@
         <remap from="vision/output_default" to="vision/buoys/green"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/greenVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/greenVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
@@ -51,6 +55,7 @@
         <remap from="vision/output_default" to="vision/buoys/yellow"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/yellowVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/yellowVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
@@ -62,6 +67,7 @@
         <remap from="vision/output_default" to="vision/navigate_pass"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/yellowVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/yellowVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
@@ -69,10 +75,11 @@
     </node>
     
     <!-- Marker Bin vision detection -->
-    <node pkg="robosub" type="vision" name="bin_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="bin_vision" args="$(find robosub)/$(arg calibFile) 1" output="screen" required="false">
         <remap from="vision/output_default" to="vision/bins"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/binVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/binVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
@@ -84,6 +91,7 @@
         <remap from="vision/output_default" to="vision/torpedo_target"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/torpedoVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/torpedoVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
@@ -91,10 +99,11 @@
     </node>
 
     <!-- Octagon vision detection -->
-    <node pkg="robosub" type="vision" name="octagon_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="octagon_vision" args="$(find robosub)/$(arg calibFile) 1" output="screen" required="false">
         <remap from="vision/output_default" to="vision/octagon"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
+        <remap from="camera/bottom/undistorted" to="$(arg bottomImage)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/octagonVis.yaml" unless="$(arg simulated)"/>
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/octagonVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
