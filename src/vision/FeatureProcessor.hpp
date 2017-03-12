@@ -31,6 +31,7 @@ class FeatureProcessor
                                   const Mat &disp, const Mat &_3dImg);
 
         vector<visionPos> process(const Mat &original,
+                                  const Mat &bottomOriginal,
                                   const Mat &leftMask, const Mat &rightMask,
                                   const Mat &bottomMask, const Mat &disp,
                                   const Mat &_3dImg);

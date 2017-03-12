@@ -137,8 +137,15 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     vector<visionPos> messages;
     Mat copy_left = leftProcessed.clone();
     Mat copy_right = rightProcessed.clone();
+    Mat copy_bottom = bottomProcessed.clone();
+
+    
     Mat original = toCvCopy(left, sensor_msgs::image_encodings::BGR8)->image;
-    messages = fp.process(original, copy_left, copy_right,
+    Mat bottomOrig =
+                   toCvCopy(bottom, sensor_msgs::image_encodings::BGR8)->image;
+    
+    messages = fp.process(original, bottomOrig, copy_left, copy_right,
+                          copy_bottom,
                           disparity, _3dImage);
 
     visionPosArray output;

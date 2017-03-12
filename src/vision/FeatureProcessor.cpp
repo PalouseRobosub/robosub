@@ -89,6 +89,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
 }
 
 vector<visionPos> FeatureProcessor::process(const Mat &original,
+                                            const Mat &bottomOriginal,
                                             const Mat &leftImg,
                                             const Mat &rightImg,
                                             const Mat &bottomImg,
@@ -108,7 +109,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
     n.getParamCached("processing/doImShow", doImShow);
 
     Mat toShow;
-    original.copyTo(toShow);
+    bottomOriginal.copyTo(toShow);
 
     // Process bottom image 
     std::sort(bContours.begin(), bContours.end(),
