@@ -22,6 +22,23 @@ public:
         Four = 0b1000
     };
 
+    static Channel toChannel(int channel)
+    {
+        switch (channel)
+        {
+            case 1:
+                return Channel::One;
+            case 2:
+                return Channel::Two;
+            case 3:
+                return Channel::Three;
+            case 4:
+                return Channel::Four;
+            default:
+                return Channel::None;
+        }
+    }
+
     Tca9545a(const int reset_pin, bool a0_high, bool a1_high) :
         _current_channel(Channel::None),
         _reset_pin(reset_pin),

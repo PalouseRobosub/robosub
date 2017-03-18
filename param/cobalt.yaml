@@ -135,7 +135,12 @@ control:
         translation: 0.5
     buoyancy_offset: -32.0
 depth:
-    offset: 0.75
+    offset:
+        1: 0.75
+        2: 0.75
+        3: 0.75
+        4: 0.75
+    temperature_update_period: 10
 sensor:
     axis:
         x: 1

@@ -1,23 +1,18 @@
 #include "MS5837.h"
 #include <Wire.h>
-
-#define MS5837_ADDR               0x76
-#define MS5837_RESET              0x1E
-#define MS5837_ADC_READ           0x00
-#define MS5837_PROM_READ          0xA0
-#define MS5837_CONVERT_D1_8192    0x4A
-#define MS5837_CONVERT_D2_8192    0x5A
+#include <ros.h>
 
 MS5837::MS5837()
 {
     fluidDensity = 1029;
+    converting = false;
 }
 
 int MS5837::init()
 {
     // Reset the MS5837, per datasheet
-    Wire.beginTransmission(MS5837_ADDR);
-    if (Wire.write(MS5837_RESET) != 1)
+    Wire.beginTransmission(ms5837_address);
+    if (Wire.write(static_cast<uint8_t>(Command::Reset)) != 1)
     {
         return -1;
     }
@@ -33,8 +28,8 @@ int MS5837::init()
     // Read calibration values and CRC
     for (uint8_t i = 0 ; i < 7 ; i++)
     {
-        Wire.beginTransmission(MS5837_ADDR);
-        if (Wire.write(MS5837_PROM_READ+i*2) != 1)
+        Wire.beginTransmission(ms5837_address);
+        if (Wire.write(static_cast<uint8_t>(Command::PromRead) + i * 2) != 1)
         {
             return -1;
         }
@@ -44,7 +39,7 @@ int MS5837::init()
             return -1;
         }
 
-        if (Wire.requestFrom(MS5837_ADDR, 2) != 2)
+        if (Wire.requestFrom(ms5837_address, 2) != 2)
         {
             return -1;
         }
@@ -63,11 +58,17 @@ void MS5837::setFluidDensity(float density)
     fluidDensity = density;
 }
 
-int MS5837::read()
+int MS5837::trigger_read(Measurement sensor, ros::Time now)
 {
-    // Request D1 conversion
-    Wire.beginTransmission(MS5837_ADDR);
-    if (Wire.write(MS5837_CONVERT_D1_8192) != 1)
+    const uint8_t data = ((sensor == Measurement::Pressure)?
+        static_cast<uint8_t>(Command::ConvertD1_8192) :
+        static_cast<uint8_t>(Command::ConvertD2_8192));
+
+    /*
+     * Trigger the specified conversion to begin.
+     */
+    Wire.beginTransmission(ms5837_address);
+    if (Wire.write(data) != 1)
     {
         return -1;
     }
@@ -77,69 +78,80 @@ int MS5837::read()
         return -1;
     }
 
-    // Max conversion time per datasheet is 20ms
-    delay(20);
-
-    Wire.beginTransmission(MS5837_ADDR);
-    if (Wire.write(MS5837_ADC_READ) != 1)
-    {
-        return -1;
-    }
-
-    if (Wire.endTransmission())
-    {
-        return -1;
-    }
-
-     if (Wire.requestFrom(MS5837_ADDR, 3) != 3)
-    {
-        return -1;
-    }
-
-    D1 = 0;
-    D1 = Wire.read();
-    D1 = (D1 << 8) | Wire.read();
-    D1 = (D1 << 8) | Wire.read();
-
-    // Request D2 conversion
-    Wire.beginTransmission(MS5837_ADDR);
-
-    if (Wire.write(MS5837_CONVERT_D2_8192) != 1)
-    {
-        return -1;
-    }
-
-    if (Wire.endTransmission())
-    {
-        return -1;
-    }
-    // Max conversion time per datasheet is 20ms
-    delay(20);
-
-    Wire.beginTransmission(MS5837_ADDR);
-    if (Wire.write(MS5837_ADC_READ) != 1)
-    {
-        return -1;
-    }
-
-    if (Wire.endTransmission())
-    {
-        return -1;
-    }
-
-    if (Wire.requestFrom(MS5837_ADDR, 3) != 3)
-    {
-        return -1;
-    }
-
-    D2 = 0;
-    D2 = Wire.read();
-    D2 = (D2 << 8) | Wire.read();
-    D2 = (D2 << 8) | Wire.read();
-
-    calculate();
+    /*
+     * The conversion will be ready after 20ms.
+     */
+    conversion = sensor;
+    converting = true;
+    conversion_ready = now;
+    conversion_ready += ros::Duration(0, 20000000);
 
     return 0;
+}
+
+int MS5837::read(ros::Time now)
+{
+    /*
+     * If the conversion hasn't completed yet, return immediately.
+     */
+    if (now.toSec() < conversion_ready.toSec())
+    {
+        return 0;
+    }
+
+    /*
+     * If the user requests a read without queuing a conversion, return an
+     * error.
+     */
+    if (converting == false)
+    {
+        return -1;
+    }
+
+    /*
+     * Request the ADC result and read the conversion.
+     */
+    Wire.beginTransmission(ms5837_address);
+    if (Wire.write(static_cast<uint8_t>(Command::AdcRead)) != 1)
+    {
+        return -1;
+    }
+
+    if (Wire.endTransmission())
+    {
+        return -1;
+    }
+
+    if (Wire.requestFrom(ms5837_address, 3) != 3)
+    {
+        return -1;
+    }
+
+    /*
+     * Store the conversion in either the pressure or temperature measurement.
+     */
+    if (conversion == Measurement::Pressure)
+    {
+        D1 = 0;
+        D1 = Wire.read();
+        D1 = (D1 << 8) | Wire.read();
+        D1 = (D1 << 8) | Wire.read();
+    }
+    else
+    {
+        D2 = 0;
+        D2 = Wire.read();
+        D2 = (D2 << 8) | Wire.read();
+        D2 = (D2 << 8) | Wire.read();
+    }
+
+    calculate();
+    converting = false;
+
+    /*
+     * Return a one to indicate the read completed successfully.
+     */
+    return 1;
 }
 
 void MS5837::readTestCase()

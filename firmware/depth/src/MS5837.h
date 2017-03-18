@@ -40,13 +40,30 @@ THE SOFTWARE.
 #define MS5837_H
 
 #include "Arduino.h"
+#include <ros.h>
 
 class MS5837
 {
-public:
     static constexpr float Pa = 100.0f;
     static constexpr float bar = 0.001f;
     static constexpr float mbar = 1.0f;
+    static constexpr int ms5837_address = 0x76;
+
+    enum class Command : int
+    {
+        Reset = 0x1E,
+        AdcRead = 0x00,
+        PromRead = 0xA0,
+        ConvertD1_8192 = 0x4A,
+        ConvertD2_8192 = 0x5A
+    };
+
+public:
+    enum class Measurement
+    {
+        Pressure,
+        Temperature
+    };
 
     MS5837();
 
@@ -57,9 +74,15 @@ public:
      */
     void setFluidDensity(float density);
 
-    /* The read from I2C takes up for 40 ms, so use sparingly is possible.
+    /* Triggers a read to occur on the sensor. The read may either be for
+     * temperature or pressure. Once the read is triggered, 20ms are required
+     * before a final result is available.
      */
-    int read();
+    int trigger_read(Measurement sensor, ros::Time now);
+
+    /* Reads the result of an ADC conversion if it is available.
+     */
+    int read(ros::Time now);
 
     /* This function loads the datasheet test case values to verify that
      * calculations are working correctly. No example checksum is provided
@@ -89,6 +112,9 @@ private:
     uint32_t D1, D2;
     int32_t TEMP;
     int32_t P;
+    ros::Time conversion_ready;
+    Measurement conversion;
+    bool converting;
 
     float fluidDensity;
 
