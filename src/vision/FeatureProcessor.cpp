@@ -79,7 +79,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
 {
     vector<visionPos> messages = process(leftImg, rightImg,
                                          disp, _3dImg);
-  
+
     vector<vector<Point>> bContours;
     vector<Vec4i> bHierarchy;
 
@@ -92,7 +92,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
     Mat toShow;
     bottomOriginal.copyTo(toShow);
 
-    // Process bottom image 
+    // Process bottom image
     std::sort(bContours.begin(), bContours.end(),
               FeatureProcessor::compareContourAreas);
 
@@ -137,7 +137,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
 
         messages.push_back(msg);
     }
-    
+
     if (doImShow)
     {
         imshow(ros::this_node::getName() + " Bottom Original", toShow);

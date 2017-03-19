@@ -151,7 +151,7 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
                       const Image::ConstPtr &bottom)
 {
     fetchParams();
-    
+
     /////  Color Processing  /////
 
     //Process the image using the VisionProcessor
@@ -175,12 +175,13 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     Mat copy_right = rightProcessed.clone();
     Mat copy_bottom = bottomProcessed.clone();
 
-    
+
     Mat original = toCvCopy(left, sensor_msgs::image_encodings::BGR8)->image;
     Mat bottomOrig =
                    toCvCopy(bottom, sensor_msgs::image_encodings::BGR8)->image;
-    
-    messages = featureProcessor->process(original, bottomOrig, copy_left, copy_right,
+
+    messages = featureProcessor->process(original, bottomOrig,
+                                         copy_left, copy_right,
                           copy_bottom,
                           disparity, _3dImage);
 
@@ -236,7 +237,7 @@ int main(int argc, char **argv)
     {
         ROS_INFO_STREAM(ros::this_node::getName() <<
                         " creating sync with bottom cam");
-    
+
         sync3 = new Synchronizer<ApproximateTime<Image, Image, Image>>(
                         ApproximateTime<Image, Image, Image>(5), leftCamSub,
                         rightCamSub, bottomCamSub);
