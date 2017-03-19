@@ -16,8 +16,7 @@ void FeatureProcessor::setNLargest(int nLargest)
     this->nLargest = nLargest;
 }
 
-vector<visionPos> FeatureProcessor::process(const Mat &original,
-                                            const Mat &leftImg,
+vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
                                             const Mat &rightImg,
                                             const Mat &disp,
                                             const Mat &_3dImg)
@@ -32,12 +31,6 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
                  CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
     vector<visionPos> messages;
-
-    bool doImShow = false;
-    n.getParamCached("processing/doImShow", doImShow);
-
-    Mat toShow;
-    original.copyTo(toShow);
 
     // For now use the left image, in future, use both
     std::sort(lContours.begin(), lContours.end(),
@@ -58,17 +51,6 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
         {
             cx = static_cast<int>(moment.m10 / moment.m00);
             cy = static_cast<int>(moment.m01 / moment.m00);
-            if (doImShow)
-            {
-                Point2f center = cv::Point2f(cx, cy);
-                ROS_INFO_STREAM("Center at: " << "[" << cx - (imWidth / 2)
-                                << ", " << -1 * (cy - (imHeight / 2)) <<
-                                "]");
-
-                circle(toShow, center, 5, Scalar(255, 255, 255), -1);
-
-                circle(toShow, center, 4, Scalar(0, 0, 255), -1);
-            }
         }
 
         robosub::visionPos msg;
@@ -84,11 +66,6 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
         messages.push_back(msg);
     }
 
-    if (doImShow)
-    {
-        imshow(ros::this_node::getName() + " Original", toShow);
-    }
-
     return messages;
 }
 
@@ -100,7 +77,7 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
                                             const Mat &disp,
                                             const Mat &_3dImg)
 {
-    vector<visionPos> messages = process(original, leftImg, rightImg,
+    vector<visionPos> messages = process(leftImg, rightImg,
                                          disp, _3dImg);
   
     vector<vector<Point>> bContours;
