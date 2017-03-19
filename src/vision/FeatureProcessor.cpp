@@ -2,14 +2,18 @@
 #include <algorithm>
 #include <vector>
 
-FeatureProcessor::FeatureProcessor(int nLargest)
+FeatureProcessor::FeatureProcessor()
 {
     n = NodeHandle("~");
-    this->nLargest = nLargest;
 }
 
 FeatureProcessor::~FeatureProcessor()
 {
+}
+
+void FeatureProcessor::setNLargest(int nLargest)
+{
+    this->nLargest = nLargest;
 }
 
 vector<visionPos> FeatureProcessor::process(const Mat &original,

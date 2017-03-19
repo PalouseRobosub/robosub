@@ -23,9 +23,11 @@ using robosub::visionPos;
 class FeatureProcessor
 {
     public:
-        FeatureProcessor(int nLargest);
+        FeatureProcessor();
         ~FeatureProcessor();
 
+
+        void setNLargest(int nLargest);
         vector<visionPos> process(const Mat &original,
                                   const Mat &leftMask, const Mat &rightMask,
                                   const Mat &disp, const Mat &_3dImg);

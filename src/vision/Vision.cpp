@@ -26,6 +26,10 @@ using robosub::visionPosArray;
 
 ros::Publisher pub;
 
+VisionProcessor colorProcessor;
+StereoProcessor stereoProcessor;
+FeatureProcessor featureProcessor;
+
 int nLargest = 1;
 
 Mat Q(Size(4, 4), CV_64FC1);
@@ -49,30 +53,29 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
                          " nLargest: " << nLargest);
     }
 
-    //Create a vision processor
-    VisionProcessor processor;
-
+    /////  Color Processing  /////
     //Process the image using the VisionProcessor
-    Mat leftProcessed = processor.process(*left);
-    Mat rightProcessed = processor.process(*right);
+    Mat leftProcessed = colorProcessor.process(*left);
+    Mat rightProcessed = colorProcessor.process(*right);
 
-    //Create a stereo processor
-    StereoProcessor stereoProc;
-
+    /////  Stereo Processing  /////
     Mat disparity;
     Mat _3dImage;
 
     //Compute stereo depth map
-    stereoProc.process(*left, *right, Q, disparity, _3dImage);
+    stereoProcessor.process(*left, *right, Q, disparity, _3dImage);
+
+
+    /////  Feature Processing  /////
 
     //Send information to feature processing
-    FeatureProcessor fp(nLargest);
+    featureProcessor.setNLargest(nLargest);
 
     vector<visionPos> messages;
     Mat copy_left = leftProcessed.clone();
     Mat copy_right = rightProcessed.clone();
     Mat original = toCvCopy(left, sensor_msgs::image_encodings::BGR8)->image;
-    messages = fp.process(original, copy_left, copy_right,
+    messages = featureProcessor.process(original, copy_left, copy_right,
                           disparity, _3dImage);
 
     visionPosArray output;
@@ -114,25 +117,22 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
                          " nLargest: " << nLargest);
     }
 
-    //Create a vision processor
-    VisionProcessor processor;
+    /////  Color Processing  /////
 
     //Process the image using the VisionProcessor
-    Mat leftProcessed = processor.process(*left);
-    Mat rightProcessed = processor.process(*right);
-    Mat bottomProcessed = processor.process(*bottom);
+    Mat leftProcessed = colorProcessor.process(*left);
+    Mat rightProcessed = colorProcessor.process(*right);
+    Mat bottomProcessed = colorProcessor.process(*bottom);
 
-    //Create a stereo processor
-    StereoProcessor stereoProc;
-
+    /////  Stereo Processing  /////
     Mat disparity;
     Mat _3dImage;
 
     //Compute stereo depth map
-    stereoProc.process(*left, *right, Q, disparity, _3dImage);
+    stereoProcessor.process(*left, *right, Q, disparity, _3dImage);
 
     //Send information to feature processing
-    FeatureProcessor fp(nLargest);
+    featureProcessor.setNLargest(nLargest);
 
     vector<visionPos> messages;
     Mat copy_left = leftProcessed.clone();
@@ -144,7 +144,7 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     Mat bottomOrig =
                    toCvCopy(bottom, sensor_msgs::image_encodings::BGR8)->image;
     
-    messages = fp.process(original, bottomOrig, copy_left, copy_right,
+    messages = featureProcessor.process(original, bottomOrig, copy_left, copy_right,
                           copy_bottom,
                           disparity, _3dImage);
 
@@ -215,6 +215,7 @@ int main(int argc, char **argv)
                         rightCamSub);
         syncStereo->registerCallback(boost::bind(&callback, _1, _2));
     }
+
     /*
      * This output topic should be remapped when launched to avoid conflicts.
      * See vision.launch for examples
