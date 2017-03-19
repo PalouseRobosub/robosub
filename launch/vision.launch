@@ -30,6 +30,7 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/startGateVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="2"/>
+        <param name="use_bottom_cam" value="false"/>
     </node>
 
     <!-- Red buoy vision detection -->
@@ -42,6 +43,7 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/redVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
+        <param name="use_bottom_cam" value="false"/>
     </node>
     
     <!-- Green buoy vision detection -->
@@ -54,6 +56,7 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/greenVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
+        <param name="use_bottom_cam" value="false"/>
     </node>
 
     <!-- Yellow buoy vision detection -->
@@ -66,6 +69,7 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/yellowVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
+        <param name="use_bottom_cam" value="false"/>
     </node>
 
     <!-- Navigate Pass vision detection -->
@@ -78,10 +82,11 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/yellowVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
+        <param name="use_bottom_cam" value="false"/>
     </node>
     
     <!-- Marker Bin vision detection -->
-    <node pkg="robosub" type="vision" name="bin_vision" args="$(find robosub)/$(arg calibFile) 1" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="bin_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/bins"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -90,6 +95,7 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/binVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="2"/>
+        <param name="use_bottom_cam" value="true"/>
     </node>
 
     <!-- Torpedo target vision detection -->
@@ -102,10 +108,11 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/torpedoVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
+        <param name="use_bottom_cam" value="false"/>
     </node>
 
     <!-- Octagon vision detection -->
-    <node pkg="robosub" type="vision" name="octagon_vision" args="$(find robosub)/$(arg calibFile) 1" output="screen" required="false">
+    <node pkg="robosub" type="vision" name="octagon_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/octagon"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
         <remap from="camera/right/undistorted" to="$(arg rightImage)"/>
@@ -114,6 +121,7 @@
         <rosparam command="load" ns="processing" file="$(find robosub)/param/vision/sim/octagonVisSim.yaml" if="$(arg simulated)"/>
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
+        <param name="use_bottom_cam" value="true"/>
     </node>
 
 </launch>

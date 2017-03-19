@@ -16,10 +16,11 @@ void FeatureProcessor::setNLargest(int nLargest)
     this->nLargest = nLargest;
 }
 
-vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
-                                            const Mat &rightImg,
-                                            const Mat &disp,
-                                            const Mat &_3dImg)
+void FeatureProcessor::process(const Mat &leftImg,
+                               const Mat &rightImg,
+                               const Mat &disp,
+                               const Mat &_3dImg,
+                               vector<visionPos> &messages)
 {
     vector<vector<Point>> lContours, rContours;
     vector<Vec4i> lHierarchy, rHierarchy;
@@ -29,8 +30,6 @@ vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
 
     findContours(rightImg, rContours, rHierarchy, CV_RETR_TREE,
                  CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-
-    vector<visionPos> messages;
 
     // For now use the left image, in future, use both
     std::sort(lContours.begin(), lContours.end(),
@@ -65,20 +64,17 @@ vector<visionPos> FeatureProcessor::process(const Mat &leftImg,
 
         messages.push_back(msg);
     }
-
-    return messages;
 }
 
-vector<visionPos> FeatureProcessor::process(const Mat &original,
-                                            const Mat &bottomOriginal,
-                                            const Mat &leftImg,
-                                            const Mat &rightImg,
-                                            const Mat &bottomImg,
-                                            const Mat &disp,
-                                            const Mat &_3dImg)
+void FeatureProcessor::process(const Mat &leftImg,
+                               const Mat &rightImg,
+                               const Mat &bottomImg,
+                               const Mat &disp,
+                               const Mat &_3dImg,
+                               vector<visionPos> &stereoMessages,
+                               vector<visionPos> &bottomMessages)
 {
-    vector<visionPos> messages = process(leftImg, rightImg,
-                                         disp, _3dImg);
+    process(leftImg, rightImg, disp, _3dImg, stereoMessages);
 
     vector<vector<Point>> bContours;
     vector<Vec4i> bHierarchy;
@@ -88,9 +84,6 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
 
     bool doImShow = false;
     n.getParamCached("processing/doImShow", doImShow);
-
-    Mat toShow;
-    bottomOriginal.copyTo(toShow);
 
     // Process bottom image
     std::sort(bContours.begin(), bContours.end(),
@@ -111,18 +104,6 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
         {
             cx = static_cast<int>(moment.m10 / moment.m00);
             cy = static_cast<int>(moment.m01 / moment.m00);
-            if (doImShow)
-            {
-                Point2f center = cv::Point2f(cx, cy);
-                ROS_INFO_STREAM("Center in bottom cam at: "
-                                << "[" << cx - (imWidth / 2)
-                                << ", " << -1 * (cy - (imHeight / 2)) <<
-                                "]");
-
-                circle(toShow, center, 5, Scalar(255, 255, 255), -1);
-
-                circle(toShow, center, 4, Scalar(0, 0, 255), -1);
-            }
         }
 
         robosub::visionPos msg;
@@ -135,15 +116,8 @@ vector<visionPos> FeatureProcessor::process(const Mat &original,
         msg.magnitude = static_cast<double>(contourArea(bContours[i], false)) /
                         static_cast<double>(imWidth * imHeight);
 
-        messages.push_back(msg);
+        bottomMessages.push_back(msg);
     }
-
-    if (doImShow)
-    {
-        imshow(ros::this_node::getName() + " Bottom Original", toShow);
-    }
-
-    return messages;
 }
 
 bool FeatureProcessor::compareContourAreas(vector<Point> contour1,

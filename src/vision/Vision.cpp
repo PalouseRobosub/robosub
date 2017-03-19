@@ -15,7 +15,6 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-
 using std::vector;
 using message_filters::Synchronizer;
 using message_filters::sync_policies::ApproximateTime;
@@ -56,6 +55,7 @@ void fetchParams()
     if (!nh.getParamCached("processing/doImShow", doImShow))
     {
         ROS_WARN_STREAM("Could not get doImShow param, defaulting to false.");
+        doImShow = false;
     }
 
     //Get num of contours to find
@@ -67,7 +67,9 @@ void fetchParams()
 }
 
 // Places centroids onto the image and displays it
-void displayFinalImage(const Image::ConstPtr &image, vector<visionPos> messages)
+void displayFinalImage(const Image::ConstPtr &image,
+                       const vector<visionPos> messages,
+                       const string &outputTitle)
 {
     Mat finalImg;
 
@@ -84,7 +86,7 @@ void displayFinalImage(const Image::ConstPtr &image, vector<visionPos> messages)
                         (imHeight / 2);
         Point2f center = cv::Point2f(xPosition, yPosition);
 
-        ROS_INFO_STREAM("Adding circle to image at [" << xPosition << ", " <<
+        ROS_DEBUG_STREAM("Adding circle to image at [" << xPosition << ", " <<
                         yPosition << "] with normalized: [" << point.xPos <<
                         ", " << point.yPos << "]");
 
@@ -94,7 +96,7 @@ void displayFinalImage(const Image::ConstPtr &image, vector<visionPos> messages)
 
     if (doImShow)
     {
-        imshow(ros::this_node::getName() + " Original", finalImg);
+        imshow(ros::this_node::getName() + " " + outputTitle, finalImg);
         waitKey(1);
     }
     else
@@ -128,10 +130,10 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     vector<visionPos> messages;
     Mat copy_left = leftProcessed.clone();
     Mat copy_right = rightProcessed.clone();
-    messages = featureProcessor->process(copy_left, copy_right,
-                                        disparity, _3dImage);
+    featureProcessor->process(copy_left, copy_right, disparity, _3dImage,
+                              messages);
 
-    displayFinalImage(left, messages);
+    displayFinalImage(left, messages, "Original");
 
     if (doImShow)
     {
@@ -170,7 +172,8 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     //Send information to feature processing
     featureProcessor->setNLargest(nLargest);
 
-    vector<visionPos> messages;
+    vector<visionPos> stereoMessages;
+    vector<visionPos> bottomMessages;
     Mat copy_left = leftProcessed.clone();
     Mat copy_right = rightProcessed.clone();
     Mat copy_bottom = bottomProcessed.clone();
@@ -180,10 +183,11 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     Mat bottomOrig =
                    toCvCopy(bottom, sensor_msgs::image_encodings::BGR8)->image;
 
-    messages = featureProcessor->process(original, bottomOrig,
-                                         copy_left, copy_right,
-                          copy_bottom,
-                          disparity, _3dImage);
+    featureProcessor->process(copy_left, copy_right, copy_bottom, disparity,
+                              _3dImage, stereoMessages, bottomMessages);
+
+    displayFinalImage(left, stereoMessages, "Original");
+    displayFinalImage(bottom, bottomMessages, "Bottom Original");
 
     if (doImShow)
     {
@@ -194,6 +198,10 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     {
         destroyAllWindows();
     }
+
+    vector<visionPos> messages = stereoMessages;
+    messages.insert(messages.end(), bottomMessages.begin(),
+                    bottomMessages.end());
 
     outputMessages(messages);
 }
@@ -233,7 +241,14 @@ int main(int argc, char **argv)
 
     //Currently, use command line argument to determine whether or not to use
     // the bottom camera. Another method should probably be devised.
-    if (argc >= 3)
+    ros::NodeHandle privateNH("~");
+    bool useBottomCam = false;
+    if (!privateNH.getParam("use_bottom_cam", useBottomCam))
+    {
+        ROS_WARN("use_bottom_cam param not set, defaulting to false");
+    }
+
+    if (useBottomCam)
     {
         ROS_INFO_STREAM(ros::this_node::getName() <<
                         " creating sync with bottom cam");

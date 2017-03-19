@@ -28,14 +28,13 @@ class FeatureProcessor
 
 
         void setNLargest(int nLargest);
-        vector<visionPos> process(const Mat &leftMask, const Mat &rightMask,
-                                  const Mat &disp, const Mat &_3dImg);
+        void process(const Mat &leftMask, const Mat &rightMask, const Mat &disp,
+                     const Mat &_3dImg, vector<visionPos> &messages);
 
-        vector<visionPos> process(const Mat &original,
-                                  const Mat &bottomOriginal,
-                                  const Mat &leftMask, const Mat &rightMask,
-                                  const Mat &bottomMask, const Mat &disp,
-                                  const Mat &_3dImg);
+        void process(const Mat &leftMask, const Mat &rightMask,
+                     const Mat &bottomMask, const Mat &disp, const Mat &_3dImg,
+                     vector<visionPos> &stereoMessages,
+                     vector<visionPos> &bottomMessages);
 
     private:
         NodeHandle n;
