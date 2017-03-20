@@ -38,11 +38,11 @@ void OpenFilter::setParams(XmlRpcValue &params)
 void OpenFilter::apply(Mat &image)
 {
     morphologyEx(image, image, MORPH_OPEN, getStructuringElement(MORPH_RECT,
-                 size, Point(-1, -1), iterations);
+                 size), Point(-1, -1), iterations);
 }
 
 void OpenFilter::apply(const Mat &src, Mat &dst)
 {
     morphologyEx(src, dst, MORPH_OPEN, getStructuringElement(MORPH_RECT,
-                 size, Point(-1, -1), iterations);  
+                 size), Point(-1, -1), iterations);  
 }

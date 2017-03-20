@@ -38,11 +38,11 @@ void CloseFilter::setParams(XmlRpcValue &params)
 void CloseFilter::apply(Mat &image)
 {
     morphologyEx(image, image, MORPH_CLOSE, getStructuringElement(MORPH_RECT,
-                 size, Point(-1, -1), iterations);
+                 size), Point(-1, -1), iterations);
 }
 
 void CloseFilter::apply(const Mat &src, Mat &dst)
 {
     morphologyEx(src, dst, MORPH_CLOSE, getStructuringElement(MORPH_RECT,
-                 size, Point(-1, -1), iterations);  
+                 size), Point(-1, -1), iterations);  
 }

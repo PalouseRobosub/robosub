@@ -2,7 +2,7 @@
 
 InRangeFilter::InRangeFilter(string &inRangeName)
 {
-    this->setName("In Range " + inRangeName);
+    this->name = "In Range " + inRangeName;
 }
 
 void InRangeFilter::setParams(XmlRpcValue &params)
@@ -12,7 +12,7 @@ void InRangeFilter::setParams(XmlRpcValue &params)
         for (auto i = params.begin(); i != params.end(); i++)
         {
             std::map<std::string, double> parameters;           
-            for (auto it = map[i].begin(); it != map[i].end(); it++)
+            for (auto it = i->second.begin(); it != i->second.end(); it++)
             {
                 double value = 0.0;
                 switch(it->second.getType())
@@ -84,12 +84,12 @@ void InRangeFilter::setParams(XmlRpcValue &params)
     }
 }
 
-void apply(Mat &image)
+void InRangeFilter::apply(Mat &image)
 {
     inRange(image, lowerBounds, upperBounds, image);
 }
 
-void apply(const Mat &src, Mat &dst)
+void InRangeFilter::apply(const Mat &src, Mat &dst)
 {
    inRange(src, lowerBounds, upperBounds, dst); 
 }
