@@ -10,13 +10,13 @@ class OpenFilter : public Filter
         ~OpenFilter() {};
 
         void setParams(XmlRpcValue &params);
+        
+        void apply(Mat &image);
+        void apply(const Mat &src, Mat &dst);
     
     private:
         int iterations;
         Size size;
-
-        void apply(Mat &image);
-        void apply(const Mat &src, Mat &dst);
 };
 
 #endif //OPEN_FILTER_HPP

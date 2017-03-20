@@ -10,13 +10,12 @@ class CloseFilter : public Filter
         ~CloseFilter() {};
 
         void setParams(XmlRpcValue &params);
+        void apply(Mat &image);
+        void apply(const Mat &src, Mat &dst);
     
     private:
         int iterations;
         Size size;
-
-        void apply(Mat &image);
-        void apply(const Mat &src, Mat &dst);
 };
 
 #endif //CLOSE_FILTER_HPP

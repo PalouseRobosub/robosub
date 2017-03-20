@@ -12,7 +12,7 @@ class Filter
 {
     public:
         virtual Filter() = 0;
-        virtual ~Filter();
+        virtual ~Filter() {};
 
         string getName()
         {
@@ -21,15 +21,15 @@ class Filter
 
         virtual void setParams(XmlRpcValue &params) = 0;
 
-    protected:
-        string name;
-
         // Should apply the filter to the specified image
         virtual void apply(Mat &image) = 0;
 
         // Should apply the filter to the src image and place the result in
         //  the dst image
         virtual void apply(const Mat &src, Mat &dst) = 0;
+
+    protected:
+        string name;
 };
 
 #endif //FILTER_HPP

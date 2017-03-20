@@ -11,12 +11,12 @@ class InRangeFilter : public Filter
 
         void setParams(XmlRpcValue &params);
     
+        void apply(Mat &image);
+        void apply(const Mat &src, Mat &dst);
+    
     private:
         Scalar upperBounds;
         Scalar lowerBounds;
-
-        void apply(Mat &image);
-        void apply(const Mat &src, Mat &dst);
 };
 
 #endif //IN_RANGE_FILTER_HPP
