@@ -29,6 +29,17 @@ void InRangeFilter::setParams(XmlRpcValue &params)
                         return;
                         break;
                 }
+            
+                //Values must be between 0 and 255
+                if (value < 0)
+                {
+                    value = 0;
+                }
+                if (value > 255)
+                {
+                    value = 255;
+                }
+
                 parameters.emplace(it->first, value);
             }
 

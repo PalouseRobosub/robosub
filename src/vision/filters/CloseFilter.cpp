@@ -11,6 +11,16 @@ void CloseFilter::setParams(XmlRpcValue &params)
     int width = params["width"];
     int height = params["height"];
 
+    // Width and height must be greater than 1
+    if (width < 3)
+    {
+        width = 3;
+    }
+    if (height < 3)
+    {
+        height = 3;
+    }
+
     // Width and height must be odd
     if (width % 2 != 1)
     {
