@@ -75,8 +75,8 @@ void displayFinalImage(const Image::ConstPtr &image,
 
     finalImg = toCvCopy(image, sensor_msgs::image_encodings::BGR8)->image;
 
-    int imHeight = finalImg.size().width;
-    int imWidth = finalImg.size().height;
+    int imHeight = finalImg.size().height;
+    int imWidth = finalImg.size().width;
 
     for (visionPos point : messages)
     {
