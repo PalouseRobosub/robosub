@@ -7,3 +7,12 @@ min:
 - {hue: 0, sat: 200, val: 200}
 - {hue: 170, sat: 175, val: 70}
 open: {height: 7, iters: 1, width: 7}
+
+filters:
+    - {Convert: {code: "BGR2HSV"}}
+    - {MedianBlur: {kernel_size: 3}}
+    - {InRange: {max: {hue: 20, sat: 255, val: 255}, min: {hue: 0, sat: 200, val: 200}}}
+    - {InRange: {max: {hue: 190, sat: 210, val: 200}, min: {hue: 170, sat: 175, val: 70}}}
+    - {Or: {}}
+    - {Close: {width: 7, height: 7, iters: 2}}
+    - {Open: {width: 7, height: 7, iters: 1}}

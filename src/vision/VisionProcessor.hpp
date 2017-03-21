@@ -18,6 +18,8 @@
 #include <vector>
 #include <map>
 
+#include "filters/FilterSet.hpp"
+
 using std::string;
 using std::vector;
 using std::map;
@@ -41,6 +43,8 @@ class VisionProcessor
         NodeHandle *n;
 
         bool initialized;
+        
+        FilterSet filterSet;
 
         void getScalarParamSet(string mapName, vector<Scalar> &scalars);
         void getLowerBoundParams(vector<Scalar> &lower_bounds);

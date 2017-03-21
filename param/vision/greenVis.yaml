@@ -5,3 +5,10 @@ max:
 min:
 - {hue: 50, sat: 100, val: 50}
 open: {height: 7, iters: 2, width: 7}
+
+filters:
+    - {Convert: {code: "BGR2HSV"}}
+    - {MedianBlur: {kernel_size: 3}}
+    - {InRange: {max: {hue: 80, sat: 200, val: 200}, min: {hue: 50, sat: 100, val: 50}}}
+    - {Close: {width: 7, height: 7, iters: 2}}
+    - {Open: {width: 7, height: 7, iters: 2}}

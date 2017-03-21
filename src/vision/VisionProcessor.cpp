@@ -26,139 +26,39 @@ void VisionProcessor::init()
 //Processes the image using color filtering with parameters under given subgroup
 Mat VisionProcessor::process(const Image& image)
 {
-    if (!initialized)
+    if(!initialized)
     {
         ROS_FATAL_STREAM("Vision Processor process called before init.");
         ros::shutdown();
         return Mat();
     }
+    
+    XmlRpcValue params;
+    string key;
+    if (!n.searchParam("filters", key))
+    {
+        ROS_FATAL_STREAM("Could not locate filter params");
+        ros::shutdown();
+        return Mat();
+    }
+    if (!n.getParamCached(key, params))
+    {
+        ROS_FATAL_STREAM("Filter params not present!!");
+        ros::shutdown();
+        return Mat();
+    }
 
+    filterSet.setParams(params);
+    
     //Convert image message to OpenCV Mat
     Mat toProcess = toOpenCV(image);
 
     ROS_DEBUG_STREAM("Image now OpenCv Mat");
 
-    //Convert to HSV color space
-    Mat hsv;
-    cvtColor(toProcess, hsv, cv::COLOR_BGR2HSV);
-
-    ROS_DEBUG_STREAM("Converted image to hsv");
-
-    //Create the lowerbound of thresholding with defaults
-    vector<Scalar> lower_bounds;
-
-    getLowerBoundParams(lower_bounds);
-
-    //Create upperbound of thresholding with defaults
-    vector<Scalar> upper_bounds;
-
-    getUpperBoundParams(upper_bounds);
-
-    //Initialize blur iteration num with default
-    int numBlurIters = 3;
-
-    //Get blur param
-    if (!n->getParamCached("blur_iters", numBlurIters))
-    {
-        ROS_ERROR_STREAM("Node does not contain blur_iters param");
-    }
-
-    //Initialize open filter size with default of 3x3
-    int openSize[] = {3, 3};
-
-    //Initialize open filter iteration num with default
-    int numOpenIters = 1;
-
-    //Get open params
-    if (n->getParamCached("open/width", openSize[0]) == 0)
-    {
-        ROS_WARN("Failed to load open/width.");
-    }
-
-    if (n->getParamCached("open/height", openSize[1]) == 0)
-    {
-        ROS_WARN("Failed to load open/height");
-    }
-
-    if (n->getParamCached("open/iters", numOpenIters) == 0)
-    {
-        ROS_WARN("Failed to load open/iters.");
-    }
-
-    //Initialize open filter size with default of 3x3
-    int closeSize[] = {3, 3};
-
-    //Initialize open filter iteration num with default
-    int numCloseIters = 1;
-
-    //Get open params
-    n->getParamCached("close/width", closeSize[0]);
-    n->getParamCached("close/height", closeSize[1]);
-    n->getParamCached("close/iters", numCloseIters);
-
-    //Sizes must be odd for open filter
-    if (openSize[0] % 2 != 1)
-    {
-        openSize[0]++;
-    }
-
-    if (openSize[1] % 2 != 1)
-    {
-        openSize[1]++;
-    }
-
-    if (closeSize[0] % 2 != 1)
-    {
-        closeSize[0]++;
-    }
-
-    if (closeSize[1] % 2 != 1)
-    {
-        closeSize[1]++;
-    }
-
-    ROS_DEBUG_STREAM("Performing Masking and/or other processing");
-
-    //Blur the image for a bit more smoothness
-    medianBlur(hsv, hsv, 3);
-
-    bool doImShow = true;
-    n->getParamCached("doImShow", doImShow);
-
+    //Mask according to the filterSet
     Mat mask;
-    //Mask the image within the threshold ranges
-    for (unsigned int i = 0;
-         i < lower_bounds.size() && i < upper_bounds.size(); i++)
-    {
-        ROS_DEBUG_STREAM("Masking color range " << i << " from "
-                            << lower_bounds[i] << " to " << upper_bounds[i]);
-        Mat temp;
-        inRange(hsv, lower_bounds[i], upper_bounds[i], temp);
-        if (doImShow)
-        {
-            imshow(ros::this_node::getName() + " [" + std::to_string(i) +
-                   "] Found", temp);
-        }
-
-        if (!mask.empty())
-        {
-            bitwise_or(mask, temp, mask);
-        }
-        else
-        {
-            temp.copyTo(mask);
-        }
-    }
-
-    //Add a close filter to remove holes in objects
-    morphologyEx(mask, mask, MORPH_CLOSE, getStructuringElement(MORPH_RECT,
-              Size(closeSize[0], closeSize[1])), Point(-1, -1), numCloseIters);
-
-    //Add an open filter which reduces small noise.
-    morphologyEx(mask, mask, MORPH_OPEN, getStructuringElement(MORPH_RECT,
-                 Size(openSize[0], openSize[1])), Point(-1, -1), numOpenIters);
-
-    ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
+    
+    filterSet.apply(toProcess, mask);
 
     return mask;
 }

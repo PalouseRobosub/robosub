@@ -71,12 +71,21 @@ void displayFinalImage(const Image::ConstPtr &image,
                        const vector<visionPos> messages,
                        const string &outputTitle)
 {
+    if (!doImShow)
+    {
+        //No need to do anything here except destroy any open windows
+        destroyAllWindows();
+        return;
+    }
+
     Mat finalImg;
 
     finalImg = toCvCopy(image, sensor_msgs::image_encodings::BGR8)->image;
 
     int imHeight = finalImg.size().height;
     int imWidth = finalImg.size().width;
+    
+    ROS_INFO_STREAM("Image size: " << imHeight << " x " << imWidth);
 
     for (visionPos point : messages)
     {
@@ -86,23 +95,18 @@ void displayFinalImage(const Image::ConstPtr &image,
                         (imHeight / 2.0);
         Point2f center = cv::Point2f(xPosition, yPosition);
 
-        ROS_DEBUG_STREAM("Adding circle to image at [" << xPosition << ", " <<
-                        yPosition << "] with normalized: [" << point.xPos <<
-                        ", " << point.yPos << "]");
+        ROS_INFO_STREAM("Adding circle to image at [" << xPosition << ", " <<
+                        yPosition << "], point " << center
+                        << " with normalized: [" << point.xPos <<
+                        ", " << point.yPos << "]. Image Size: "
+                        << finalImg.size());
 
         circle(finalImg, center, 5, Scalar(255, 255, 255), -1);
         circle(finalImg, center, 4, Scalar(0, 0, 255), -1);
     }
 
-    if (doImShow)
-    {
-        imshow(ros::this_node::getName() + " " + outputTitle, finalImg);
-        waitKey(1);
-    }
-    else
-    {
-        destroyAllWindows();
-    }
+    imshow(ros::this_node::getName() + " " + outputTitle, finalImg);
+    waitKey(1);
 }
 
 // Process vision with only left and right images

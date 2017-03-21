@@ -16,6 +16,8 @@
 #include <XmlRpcException.h>
 #include <XmlRpcValue.h>
 
+#include <boost/algorithm/string.hpp>
+
 using namespace cv;
 using std::string;
 using std::map;
@@ -24,6 +26,8 @@ using XmlRpc::XmlRpcValue;
 class Filter
 {
     public:
+        virtual ~Filter() {};
+
         string getName()
         {
             return this->name;
