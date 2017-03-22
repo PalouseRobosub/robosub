@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 
+#include <opencv2/highgui.hpp>
+
 #include "CloseFilter.hpp"
 #include "ConvertFilter.hpp"
 #include "InRangeFilter.hpp"
@@ -15,6 +17,7 @@
 using std::string;
 using std::vector;
 using std::map;
+using cv::imshow;
 
 class FilterSet
 {
@@ -22,6 +25,7 @@ class FilterSet
         FilterSet();
         ~FilterSet();
 
+        void setImShow(const bool &doImShow);
         void setName(const string& name);
         void setParams(XmlRpcValue &params);
 
@@ -29,6 +33,7 @@ class FilterSet
         void apply(Mat &src, Mat &dst);
 
     private:
+        bool doImShow;
         string name;
         XmlRpcValue paramSet;
         vector<Filter *> filters;

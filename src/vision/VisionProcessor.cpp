@@ -48,6 +48,15 @@ Mat VisionProcessor::process(const Image& image)
         return Mat();
     }
 
+    bool doImShow = false;
+
+    if (!n.getParamCached("doImShow", doImShow))
+    {
+        ROS_WARN("Could not get doImShow parameter, defaulting to false");
+    }
+
+    filterSet.setImShow(doImShow);
+
     filterSet.setParams(params);
     
     //Convert image message to OpenCV Mat
@@ -59,6 +68,8 @@ Mat VisionProcessor::process(const Image& image)
     Mat mask;
     
     filterSet.apply(toProcess, mask);
+
+    ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
 
     return mask;
 }

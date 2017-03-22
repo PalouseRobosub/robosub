@@ -85,7 +85,7 @@ void displayFinalImage(const Image::ConstPtr &image,
     int imHeight = finalImg.size().height;
     int imWidth = finalImg.size().width;
     
-    ROS_INFO_STREAM("Image size: " << imHeight << " x " << imWidth);
+    ROS_DEBUG_STREAM("Image size: " << imHeight << " x " << imWidth);
 
     for (visionPos point : messages)
     {
@@ -95,7 +95,7 @@ void displayFinalImage(const Image::ConstPtr &image,
                         (imHeight / 2.0);
         Point2f center = cv::Point2f(xPosition, yPosition);
 
-        ROS_INFO_STREAM("Adding circle to image at [" << xPosition << ", " <<
+        ROS_DEBUG_STREAM("Adding circle to image at [" << xPosition << ", " <<
                         yPosition << "], point " << center
                         << " with normalized: [" << point.xPos <<
                         ", " << point.yPos << "]. Image Size: "

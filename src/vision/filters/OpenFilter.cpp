@@ -2,6 +2,7 @@
 
 OpenFilter::OpenFilter()
 {
+    this->name = "Open";
     this->size = Size(0,0);
     this->iterations = 0;
 }

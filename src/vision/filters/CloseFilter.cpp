@@ -2,6 +2,7 @@
 
 CloseFilter::CloseFilter()
 {
+    this->name = "Close";
     this->size = Size(0,0);
     this->iterations = 0;
 }

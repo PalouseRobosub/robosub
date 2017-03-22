@@ -5,6 +5,7 @@ FilterSet::FilterSet()
 {
     //Set default name
     this->name = "Default filter name";
+    this->doImShow = false;
 }
 
 FilterSet::~FilterSet()
@@ -16,6 +17,11 @@ FilterSet::~FilterSet()
             delete(*it);
         }
     }
+}
+
+void FilterSet::setImShow(const bool &doImShow)
+{
+    this->doImShow = doImShow;
 }
 
 void FilterSet::setName(const string &name)
@@ -121,8 +127,19 @@ void FilterSet::apply(Mat &src, Mat &dst)
                                                      tempImg);
         }
 
+        if (doImShow)
+        {
+            imshow("" + ros::this_node::getName() + " " + (*it)->getName(),
+                   tempImg);
+        }
+
         previousImg.copyTo(secondPreviousImg);
         tempImg.copyTo(previousImg);
+    }
+
+    if (doImShow)
+    {
+        imshow("" + ros::this_node::getName() + " Filter Output", tempImg);
     }
 
     tempImg.copyTo(dst);
