@@ -5,7 +5,6 @@ LocalizationSystem::LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors
 {
     nh = _nh;
     sensors = _sensors;
-    num_positions = 0;
 
     tf_pub = nh->advertise<tf2_msgs::TFMessage>("tf", 1);
 }
@@ -68,6 +67,9 @@ void LocalizationSystem::Update()
     if(sensors->NewHydrophones())
     {
         pf.InputHydrophones(sensors->GetHydrophones(), sensors->GetHydrophonesDT());
+        // Since the pf will obtain the most accurate position estimate after a
+        // hydrophone input, pass that position into the kf
+        kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
     }
     if(sensors->NewAbsLinAcl())
     {
@@ -76,14 +78,6 @@ void LocalizationSystem::Update()
     if(sensors->NewAbsLinVel())
     {
         pf.InputAbsLinVel(sensors->GetAbsLinVel(), sensors->GetAbsLinVelDT());
-    }
-    if(sensors->NewPosition())
-    {
-        num_positions++;
-        if(num_positions % 50 == 1)
-        {
-            kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
-        }
     }
 
     // Handle output from filters. On the next update the new data from the kf

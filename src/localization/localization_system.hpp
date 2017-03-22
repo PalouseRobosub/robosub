@@ -44,8 +44,6 @@ private:
     ros::NodeHandle *nh;
     ros::Publisher tf_pub;
 
-    int num_positions;
-
 public:
 };
 #endif //LOCALIZATION_SYSTEM_HPP
