@@ -1,11 +1,3 @@
-blur_iters: 1
-close: {height: 7, iters: 2, width: 7}
-max:
-- {hue: 255, sat: 255, val: 255}
-min:
-- {hue: 200, sat: 200, val: 200}
-open: {height: 7, iters: 1, width: 7}
-
 filters:
     - {Convert: {code: "BGR2HSV"}}
     - {MedianBlur: {kernel_size: 3}}

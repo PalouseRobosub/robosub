@@ -1,12 +1,3 @@
-blur_iters: 1
-close: {height: 15, iters: 3, width: 15}
-doImShow: true
-max:
-- {hue: 15, sat: 240, val: 240}
-min:
-- {hue: 10, sat: 100, val: 100}
-open: {height: 3, iters: 0, width: 3}
-
 filters:
     - {Convert: {code: "BGR2HSV"}}
     - {MedianBlur: {kernel_size: 3}}
