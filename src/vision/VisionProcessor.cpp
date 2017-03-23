@@ -33,6 +33,7 @@ Mat VisionProcessor::process(const Image& image)
         return Mat();
     }
     
+    // Fetch filter params
     XmlRpcValue params;
     string key;
     if (!n.searchParam("filters", key))
@@ -48,6 +49,7 @@ Mat VisionProcessor::process(const Image& image)
         return Mat();
     }
 
+    // Fetch doImShow param
     bool doImShow = false;
 
     if (!n.getParamCached("doImShow", doImShow))
@@ -55,8 +57,10 @@ Mat VisionProcessor::process(const Image& image)
         ROS_WARN("Could not get doImShow parameter, defaulting to false");
     }
 
+    // Set doImShow within FilterSet
     filterSet.setImShow(doImShow);
 
+    //Set params within FilterSet
     filterSet.setParams(params);
     
     //Convert image message to OpenCV Mat
@@ -154,6 +158,18 @@ void VisionProcessor::getUpperBoundParams(vector<Scalar> &upper_bounds)
 {
     getScalarParamSet("max", upper_bounds);
 }
+=======
+    // Filter image and receive mask
+    Mat mask;
+    filterSet.apply(toProcess, mask);
+
+    ROS_DEBUG_STREAM("Returning mask");
+    
+    // Return result
+    return mask;
+}
+
+>>>>>>> Removed deprecated code and added comments
 
 //Converts a ros image_transport Image to an OpenCV Mat
 Mat VisionProcessor::toOpenCV(const Image& image)

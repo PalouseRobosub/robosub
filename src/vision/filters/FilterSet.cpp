@@ -10,6 +10,7 @@ FilterSet::FilterSet()
 
 FilterSet::~FilterSet()
 {
+    // Delete all filters in the vector
     for (auto it = filters.begin(); it != filters.end(); it++)
     {
         if (*it)
@@ -31,12 +32,15 @@ void FilterSet::setName(const string &name)
 
 void FilterSet::setParams(XmlRpcValue &params)
 {
+    // Reset params and filters
     this->paramSet = params;
     filters.clear();
 
+    // In Range count to separate InRange filters
     int inRangeCount = 0;
     try
     {
+        // Iterate over every parameter in the set
         for (int i = 0; i < params.size(); i++)
         {
             Filter *f;
@@ -81,7 +85,9 @@ void FilterSet::setParams(XmlRpcValue &params)
                 continue;
             }
 
+            // Set the params on the filter using this set's parameters
             f->setParams(params[i][memberName]);
+            // Add the filter to the vector
             filters.push_back(f);
         }
     } catch(XmlRpc::XmlRpcException e)
@@ -101,27 +107,33 @@ void FilterSet::apply(Mat &image)
 
 void FilterSet::apply(Mat &src, Mat &dst)
 {
-    Mat tempImg;
-    Mat previousImg;
+    Mat tempImg, previousImg;
+    // Copy the source image to the previous image
     src.copyTo(previousImg);
+
+    // Apply each filter in sequence
     for (auto it = filters.begin(); it != filters.end(); it++)
     {
-        //Not binary filter, do not need multiple images
+        // Apply to the previoius image and place the result in tempImg
         (*it)->apply(previousImg, tempImg);
 
+        // Show the individual filter results
         if (doImShow)
         {
             imshow("" + ros::this_node::getName() + " " + (*it)->getName(),
                    tempImg);
         }
 
+        // Set the previous image to this filter's result.
         tempImg.copyTo(previousImg);
     }
 
+    // Show the final output
     if (doImShow)
     {
         imshow("" + ros::this_node::getName() + " Filter Output", tempImg);
     }
 
+    // Copy the final image to the destination Mat
     tempImg.copyTo(dst);
 }

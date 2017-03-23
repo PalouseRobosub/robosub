@@ -35,6 +35,7 @@ class Filter
             return this->name;
         }
 
+        // Update the params for this filter
         virtual void setParams(XmlRpcValue &params) = 0;
 
         // Should apply the filter to the specified image

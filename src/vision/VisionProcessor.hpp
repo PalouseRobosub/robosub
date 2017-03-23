@@ -46,10 +46,6 @@ class VisionProcessor
         
         FilterSet filterSet;
 
-        void getScalarParamSet(string mapName, vector<Scalar> &scalars);
-        void getLowerBoundParams(vector<Scalar> &lower_bounds);
-        void getUpperBoundParams(vector<Scalar> &upper_bounds);
-
         Mat toOpenCV(const Image& image);
 };
 #endif // VISIONPROCESSOR_HPP
