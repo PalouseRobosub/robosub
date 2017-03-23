@@ -7,12 +7,7 @@
 
 #include <opencv2/highgui.hpp>
 
-#include "CloseFilter.hpp"
-#include "ConvertFilter.hpp"
-#include "InRangeFilter.hpp"
-#include "MedianBlurFilter.hpp"
-#include "OpenFilter.hpp"
-#include "OrFilter.hpp"
+#include "Filter.hpp"
 
 using std::string;
 using std::vector;

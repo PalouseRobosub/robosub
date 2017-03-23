@@ -102,30 +102,12 @@ void FilterSet::apply(Mat &image)
 void FilterSet::apply(Mat &src, Mat &dst)
 {
     Mat tempImg;
-    Mat previousImg, secondPreviousImg;
+    Mat previousImg;
     src.copyTo(previousImg);
     for (auto it = filters.begin(); it != filters.end(); it++)
     {
-        if (dynamic_cast<BinaryFilter *>(*it) == nullptr)
-        {
-            //Not binary filter, do not need multiple images
-            (*it)->apply(previousImg, tempImg);
-        }
-        else
-        {
-            //Binary filter, need multiple images
-            if (secondPreviousImg.empty())
-            {
-                ROS_FATAL_STREAM("Invalid filter ordering, a binary filter " <<
-                                " cannot be the first or second filter.");
-                ros::shutdown();
-                return;
-            }
-
-            dynamic_cast<BinaryFilter *>(*it)->apply(previousImg,
-                                                     secondPreviousImg,
-                                                     tempImg);
-        }
+        //Not binary filter, do not need multiple images
+        (*it)->apply(previousImg, tempImg);
 
         if (doImShow)
         {
@@ -133,7 +115,6 @@ void FilterSet::apply(Mat &src, Mat &dst)
                    tempImg);
         }
 
-        previousImg.copyTo(secondPreviousImg);
         tempImg.copyTo(previousImg);
     }
 
