@@ -24,7 +24,7 @@ using namespace Eigen;
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors *_sensors, int _num_particles);
+    LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors *_sensors);
 
     bool ResetFilterCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &rep);
@@ -37,12 +37,16 @@ public:
 private:
     void publish_tf_message(tf::Vector3 pos);
 
+    // Filter objects
     LinAccelKalmanFilter kf;
     ParticleFilter pf;
-    RobosubSensors *sensors;
 
-    ros::NodeHandle *nh;
+    // Publisher for tf data
     ros::Publisher tf_pub;
+
+    // Objects inputted from localization main
+    RobosubSensors *sensors;
+    ros::NodeHandle *nh;
 
 public:
 };

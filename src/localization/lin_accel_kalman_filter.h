@@ -12,59 +12,10 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
+#include "filter_utilities.h"
+
 using namespace Eigen;
-
-#define KF_PT_RATE 10
-#define KF_PRINT_THROTTLE(x) if(num_iterations % KF_PT_RATE == 0) { x }
-//#define KF_PRINT_THROTTLE(x) if(0 && num_iterations % KF_PT_RATE == 0) { x }
-
-bool getParamCachedMatrix(std::string param_name,
-                          Eigen::Ref<Eigen::MatrixXd> mat)
-{
-    XmlRpc::XmlRpcValue param;
-    if(!ros::param::getCached(param_name, param))
-    {
-        return false;
-    }
-
-    int nrows = mat.rows();
-    int ncols = mat.cols();
-
-    if(param.size() != nrows)
-    {
-        ROS_WARN_STREAM("number of rows of param " << param_name <<
-                        " does not match number of rows of inputted matix");
-        return false;
-    }
-
-    int i = 0;
-    int j = 0;
-    for(i = 0; i < nrows; i++)
-    {
-        XmlRpc::XmlRpcValue row = param[i];
-
-        for(j = 0; j < ncols; j++)
-        {
-            if(row.size() != ncols)
-            {
-                ROS_WARN_STREAM("number of columns of param " << param_name <<
-                                " does not match number of columns of inputted matix");
-                return false;
-            }
-
-            if(row[j].getType() == XmlRpc::XmlRpcValue::TypeDouble)
-            {
-                mat(i, j) = static_cast<double>(row[j]);
-            }
-            else if(row[j].getType() == XmlRpc::XmlRpcValue::TypeInt)
-            {
-                mat(i, j) = static_cast<double>(static_cast<int>(row[j]));
-            }
-        }
-    }
-
-    return true;
-}
+using namespace filter_utilities;
 
 class LinAccelKalmanFilter
 {
@@ -84,12 +35,13 @@ private:
     void initialize();
     void reload_params();
     void update_A(double dt);
-    Matrix<double, 9, 1> run_filter(Matrix<double, 7, 1> obs);
-    void update(Matrix<double, 7, 1> obs, double dt);
+    void run_filter();
+    void update();
 
     ros::NodeHandle *nh;
 
     int num_iterations;
+    double lin_acl_dt;
 
     bool new_abs_lin_velocity;
     double abs_lin_velocity_dt;

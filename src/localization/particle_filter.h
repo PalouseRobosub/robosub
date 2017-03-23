@@ -14,61 +14,16 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/ChannelFloat32.h"
 
+#include "filter_utilities.h"
+
 using namespace Eigen;
-
-#define PF_PT_RATE 10
-#define PF_PRINT_THROTTLE(x) if(num_iterations % PF_PT_RATE == 0) { x }
-//#define PF_PRINT_THROTTLE(x) if(0 && num_iterations % PF_PT_RATE == 0) { x }
-
-constexpr double RAD_TO_DEG = (180.0 / 3.1415);
-constexpr double DEG_TO_RAD = (3.1415 / 180.0);
-constexpr double PI = (3.1415);
-
-double vector_max(std::vector<double> v)
-{
-    if(v.size() == 0)
-    {
-        return 0.0;
-    }
-
-    double max = v[0];
-    for(unsigned int i = 1; i < v.size(); i++)
-    {
-        if(v[i] > max)
-        {
-            max = v[i];
-        }
-    }
-
-    return max;
-}
-
-MatrixXd sqrt_elementwise(MatrixXd in)
-{
-    MatrixXd out(in.rows(), in.cols());
-    for(int i = 0; i < in.rows(); i++)
-    {
-        for(int j = 0; j < in.cols(); j++)
-        {
-            out(i, j) = std::sqrt(in(i, j));
-        }
-    }
-    return out;
-}
-
-double gaussian_prob(double mean, double sigma, double x)
-{
-    double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) * 2.0) /
-               std::sqrt(2.0 * 3.1415 * std::pow(sigma, 2));
-
-    return p;
-}
+using namespace filter_utilities;
 
 class ParticleFilter
 {
 public:
-    ParticleFilter(ros::NodeHandle *_nh, int _num_particles);
-    ~ParticleFilter();
+    ParticleFilter(ros::NodeHandle *_nh);
+    ~ParticleFilter() {};
 
     bool NewPosition();
     tf::Vector3 GetPosition();
@@ -92,78 +47,73 @@ private:
     void predict();
     void update();
 
-    ros::Publisher particle_cloud_pub;
+    // Nodehandle received from localization_system
     ros::NodeHandle *nh;
 
+    // Publisher for point cloud of particles.
+    ros::Publisher particle_cloud_pub;
+
+    // Set to true when estimate_state() called.
     bool new_position;
 
+    // Number of particles. Comes from localization param.
     int num_particles;
+
+    // Number of times update and predict steps have been run.
     int num_iterations;
 
-    double estimated_position_dt;
-    ros::Time last_estimated_position_time;
+    // Stores estimated position and necessary time info.
     tf::Vector3 estimated_position;
-    double pinger_depth;
+    ros::Time last_estimated_position_time;
+    double estimated_position_dt;
 
-    // Multiply system_update_model x state(k-1) to get state(k)
-    Matrix<double, 3, 3> system_update_model;
-    // I'm not 100% sure on this. Covariance matrices are magic
-    Matrix<double, 3, 3> system_update_covar;
-    Matrix<double, 3, 3> control_update_model;
+    // Stores position of pinger in pool. Loaded from param.
+    tf::Vector3 pinger_position;
 
-    Matrix<double, 3, 1> initial_distribution;
-    Matrix<double, 4, 4> measurement_covar;
-
-    Matrix<double, 4, 1> observation;
-    Matrix<double, 3, 1> control_input;
-
-    Matrix<double, 3, 1> est_state;
-    Matrix<double, 3, 1> initial_state;
-
-    // Could convert to 3-d matrices
-    std::vector<Matrix<double, 3, 1> > last_particle_states;
+    // Vectors of all particle states.
+    // Each particle state is a column vector as follows:
+    // | x_pos |
+    // | y_pos |
+    // | z_pos |
     std::vector<Matrix<double, 3, 1> > particle_states;
-    std::vector<double> last_particle_weights;
+    std::vector<Matrix<double, 3, 1> > last_particle_states;
+
+    // Vector of particle weights
     std::vector<double> particle_weights;
 
-    // Particle observations
-    std::vector<Matrix<double, 4, 1> > last_particle_obs;
-    std::vector<Matrix<double, 4, 1> > particle_obs;
+    // This stores the covariances of the observation inputs. Loaded from
+    // params.
+    Matrix<double, 4, 4> observation_covar;
 
-    std::default_random_engine rand_generator;
-    std::normal_distribution<double> *norm_distribution;
-    std::uniform_real_distribution<double> *uniform_distribution;
+    // This stores the current hydrophone and depth observations as a column
+    // vector as follows:
+    // | azimuth     |
+    // | inclination |
+    // | range       |
+    // | depth       |
+    Matrix<double, 4, 1> observation;
 
-    // This is meant to emulate the matlab function randn which
-    // returns a random value from a normal distribution with
-    // mean = 0 std dev = 1
-    double randn()
-    {
-        return (*norm_distribution)(rand_generator);
-    }
+    // Stores the initial state of the sub. Loaded from params.
+    Matrix<double, 3, 1> initial_state;
 
-    double pos_randn()
-    {
-        return std::abs((*norm_distribution)(rand_generator));
-    }
+    // This stores the standard deviations of the initial state in order to
+    // generate the initial particles. Loaded from params.
+    Matrix<double, 3, 1> initial_distribution;
 
-    // Uniform 0-1 random real
-    double randu()
-    {
-        return (*uniform_distribution)(rand_generator);
-    }
+    // This pushes the state forward based on the previous state. Since the
+    // state for each particle is only the subs position this is simply an
+    // identity matrix.
+    Matrix<double, 3, 3> system_update_model;
 
-    MatrixXd randn_mat(int rows, int cols)
-    {
-        MatrixXd r(rows, cols);
-        for(int i = 0; i < rows; i++)
-        {
-            for(int j = 0; j < cols; j++)
-            {
-                r(i, j) = randn();
-            }
-        }
-        return r;
-    }
+    // This stores the covariances of the system update step. This adds noise
+    // to the particles during the system update step.
+    Matrix<double, 3, 3> system_update_covar;
+
+    // This relates the control input to the state. It is currently an
+    // identity matrix * dt.
+    Matrix<double, 3, 3> control_update_model;
+
+    // This stores the inputted linear velocity.
+    Matrix<double, 3, 1> control_input;
 };
 #endif //PARTICLE_FILTER_H

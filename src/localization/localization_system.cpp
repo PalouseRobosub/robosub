@@ -1,7 +1,7 @@
 #include "localization_system.hpp"
 
 LocalizationSystem::LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors
-        *_sensors, int _num_particles) : kf(_nh), pf(_nh, _num_particles)
+        *_sensors) : kf(_nh), pf(_nh)
 {
     nh = _nh;
     sensors = _sensors;
@@ -67,6 +67,7 @@ void LocalizationSystem::Update()
     if(sensors->NewHydrophones())
     {
         pf.InputHydrophones(sensors->GetHydrophones(), sensors->GetHydrophonesDT());
+
         // Since the pf will obtain the most accurate position estimate after a
         // hydrophone input, pass that position into the kf
         kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
@@ -80,8 +81,8 @@ void LocalizationSystem::Update()
         pf.InputAbsLinVel(sensors->GetAbsLinVel(), sensors->GetAbsLinVelDT());
     }
 
-    // Handle output from filters. On the next update the new data from the kf
-    // will be fed to the pf and vice versa.
+    // Input output from filters to sensors class. On the next update the new
+    // data from the kf will be fed to the pf and vice versa.
     if(kf.NewAbsLinVel())
     {
         sensors->InputAbsLinVel(kf.GetAbsLinVel());

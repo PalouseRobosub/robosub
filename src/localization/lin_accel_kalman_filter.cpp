@@ -40,20 +40,19 @@ void LinAccelKalmanFilter::InputPosition(tf::Vector3 position, double dt)
 
 void LinAccelKalmanFilter::InputAbsLinAcl(tf::Vector3 lin_acl, double dt)
 {
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
+    PRINT_THROTTLE(ROS_INFO_STREAM("=================================="););
 
     obs(0, 0) = lin_acl[0];
     obs(1, 0) = lin_acl[1];
     obs(2, 0) = lin_acl[2];
 
-    update(obs, dt);
+    lin_acl_dt = dt;
+
+    update();
 }
 
 void LinAccelKalmanFilter::InputDepth(double depth, double dt)
 {
-    // TODO: Load param
-    //double pinger_depth = -4.1;
-    //obs(3, 0) = -1.0 * (pinger_depth - depth);
     obs(3, 0) = depth;
 }
 
@@ -101,7 +100,7 @@ void LinAccelKalmanFilter::initialize()
 
     new_position = false;
 
-    getParamCachedMatrix("kalman_filter/P", P);
+    getParamCachedMatrix("localization/kalman_filter/P", P);
     ROS_INFO_STREAM("P:\n" << P);
 
     ROS_INFO_STREAM("H:\n" << H);
@@ -117,9 +116,9 @@ void LinAccelKalmanFilter::reload_params()
         ros::shutdown();
     }
 
-    getParamCachedMatrix("kalman_filter/Q", Q);
-    getParamCachedMatrix("kalman_filter/R", R);
-    getParamCachedMatrix("kalman_filter/X0", x0);
+    getParamCachedMatrix("localization/kalman_filter/Q", Q);
+    getParamCachedMatrix("localization/kalman_filter/R", R);
+    getParamCachedMatrix("localization/kalman_filter/X0", x0);
 }
 
 void LinAccelKalmanFilter::update_A(double dt)
@@ -127,12 +126,12 @@ void LinAccelKalmanFilter::update_A(double dt)
     A(0, 3) = A(1, 4) = A(2, 5) = A(3, 6) = A(4, 7) = A(5, 8) = dt;
     A(0, 6) = A(1, 7) = A(2, 8) = 0.5 * (dt * dt);
 
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("A:\n" << A););
+    PRINT_THROTTLE(ROS_INFO_STREAM("A:\n" << A););
 }
 
-Matrix<double, 9, 1> LinAccelKalmanFilter::run_filter(Matrix<double, 7, 1> obs)
+void LinAccelKalmanFilter::run_filter()
 {
-    //KF_PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
+    //PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
 
     if(new_position)
     {
@@ -147,30 +146,30 @@ Matrix<double, 9, 1> LinAccelKalmanFilter::run_filter(Matrix<double, 7, 1> obs)
 
     // predict state forward
     x = A * x_prev;
-    //KF_PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
+    //PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
     // estimate prediction covariance
     P = A * P * A.transpose() + Q;
-    //KF_PRINT_THROTTLE(ROS_INFO_STREAM("Q:\n" << Q););
-    //KF_PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
+    //PRINT_THROTTLE(ROS_INFO_STREAM("Q:\n" << Q););
+    //PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
     // get error between reality and prediction
     y = obs - H * x;
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("obs:\n" << obs););
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("y:\n" << y););
+    PRINT_THROTTLE(ROS_INFO_STREAM("obs:\n" << obs););
+    PRINT_THROTTLE(ROS_INFO_STREAM("y:\n" << y););
     // add real error to predicted probability
     s = H * P * H.transpose() + R;
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("R:\n" << R););
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("s:\n" << s););
+    PRINT_THROTTLE(ROS_INFO_STREAM("R:\n" << R););
+    PRINT_THROTTLE(ROS_INFO_STREAM("s:\n" << s););
     // find kalman gain
     k = P * H.transpose() * s.inverse();
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("k:\n" << k););
+    PRINT_THROTTLE(ROS_INFO_STREAM("k:\n" << k););
     // update predicted state with kalman gain
     x = x + k * y;
-    //KF_PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
+    //PRINT_THROTTLE(ROS_INFO_STREAM("x:\n" << x););
     // update predicted covariances with kalmain gain
     P = (Matrix<double, 9, 9>::Identity() - k * H) * P;
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
+    PRINT_THROTTLE(ROS_INFO_STREAM("P:\n" << P););
 
-    //KF_PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
+    //PRINT_THROTTLE(ROS_INFO_STREAM("****************************"););
 
     x_prev = x;
 
@@ -179,19 +178,17 @@ Matrix<double, 9, 1> LinAccelKalmanFilter::run_filter(Matrix<double, 7, 1> obs)
                            last_abs_lin_velocity_time).toSec();
     last_abs_lin_velocity_time = ros::Time::now();
 
-    return x;
+    PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" <<
+                                      x););
 }
 
-void LinAccelKalmanFilter::update(Matrix<double, 7, 1> obs, double dt)
+void LinAccelKalmanFilter::update()
 {
     reload_params();
 
-    update_A(dt);
+    update_A(lin_acl_dt);
 
-    Matrix<double, 9, 1> predicted_state = run_filter(obs);
-
-    KF_PRINT_THROTTLE(ROS_INFO_STREAM("predicted_state:\n" <<
-                                      predicted_state););
+    run_filter();
 
     num_iterations++;
 }
