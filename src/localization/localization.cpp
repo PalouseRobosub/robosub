@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     LocalizationSystem loc_system(&nh, &sensors);
 
     ros::ServiceServer reset_filter_service =
-        nh.advertiseService("reset_particle_filter",
+        nh.advertiseService("localization/reset",
                             &LocalizationSystem::ResetFilterCallback, &loc_system);
 
     // RobosubSensors class handles all sensor callbacks

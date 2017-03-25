@@ -14,9 +14,8 @@
 
 using namespace Eigen;
 
-#define PT_RATE 10
+#define PT_RATE 5
 #define PRINT_THROTTLE(x) if(num_iterations % PT_RATE == 0) { x }
-//#define PRINT_THROTTLE(x) if(0 && num_iterations % PT_RATE == 0) { x }
 
 constexpr double PI = (3.1415);
 constexpr double RAD_TO_DEG = (180.0 / PI);
@@ -28,13 +27,16 @@ std::default_random_engine rand_generator;
 std::normal_distribution<double> norm_distribution(0.0, 1.0);
 std::uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
 
-// I'm not sure this works. TODO: Fix?
+// Loads a nXm eigen matrix from a ros param consisting of an array of n lists
+// of m numbers. n and m are determined by dimensions of inputted matrix.
 bool getParamCachedMatrix(std::string param_name,
         Eigen::Ref<Eigen::MatrixXd> mat)
 {
+    // Load param.
     XmlRpc::XmlRpcValue param;
     if(!ros::param::getCached(param_name, param))
     {
+        ROS_WARN_STREAM("Param " << param_name << " not found.");
         return false;
     }
 
@@ -52,6 +54,7 @@ bool getParamCachedMatrix(std::string param_name,
     int j = 0;
     for(i = 0; i < nrows; i++)
     {
+        // Grab i'th row of param.
         XmlRpc::XmlRpcValue row = param[i];
 
         for(j = 0; j < ncols; j++)
@@ -77,25 +80,7 @@ bool getParamCachedMatrix(std::string param_name,
     return true;
 }
 
-double vector_max(std::vector<double> v)
-{
-    if(v.size() == 0)
-    {
-        return 0.0;
-    }
-
-    double max = v[0];
-    for(unsigned int i = 1; i < v.size(); i++)
-    {
-        if(v[i] > max)
-        {
-            max = v[i];
-        }
-    }
-
-    return max;
-}
-
+// Takes the square root of every element of an array.
 MatrixXd sqrt_elementwise(MatrixXd in)
 {
     MatrixXd out(in.rows(), in.cols());
@@ -109,6 +94,7 @@ MatrixXd sqrt_elementwise(MatrixXd in)
     return out;
 }
 
+// This is the gaussian probability density function.
 double gaussian_prob(double mean, double sigma, double x)
 {
     double p = std::exp(- std::pow((mean - x), 2) / std::pow(sigma, 2) * 2.0) /
@@ -131,6 +117,7 @@ double randu()
     return uniform_distribution(rand_generator);
 }
 
+// Returns a matrix with all elements equal to randn().
 MatrixXd randn_mat(int rows, int cols)
 {
     MatrixXd r(rows, cols);

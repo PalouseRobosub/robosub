@@ -7,13 +7,15 @@ LocalizationSystem::LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors
     sensors = _sensors;
 
     tf_pub = nh->advertise<tf2_msgs::TFMessage>("tf", 1);
+
+    start_time = ros::Time::now();
 }
 
 bool LocalizationSystem::ResetFilterCallback(std_srvs::Empty::Request &req,
         std_srvs::Empty::Response &rep)
 {
-    pf.Reset();
     kf.Reset();
+    pf.Reset();
 
     return true;
 }
@@ -69,7 +71,7 @@ void LocalizationSystem::Update()
         pf.InputHydrophones(sensors->GetHydrophones(), sensors->GetHydrophonesDT());
 
         // Since the pf will obtain the most accurate position estimate after a
-        // hydrophone input, pass that position into the kf
+        // hydrophone input, pass that position into the kf now.
         kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
     }
     if(sensors->NewAbsLinAcl())
@@ -78,14 +80,19 @@ void LocalizationSystem::Update()
     }
     if(sensors->NewAbsLinVel())
     {
-        pf.InputAbsLinVel(sensors->GetAbsLinVel(), sensors->GetAbsLinVelDT());
+        // TODO: Get measure of pf convergence. Only input lin vel when pf
+        // is converged and in agreement with the kf.
+        if(ros::Time::now().toSec() - start_time.toSec() > 20.0)
+        {
+            pf.InputAbsLinVel(sensors->GetAbsLinVel(), sensors->GetAbsLinVelDT());
+        }
     }
 
     // Input output from filters to sensors class. On the next update the new
     // data from the kf will be fed to the pf and vice versa.
     if(kf.NewAbsLinVel())
     {
-        sensors->InputAbsLinVel(kf.GetAbsLinVel());
+            sensors->InputAbsLinVel(kf.GetAbsLinVel());
     }
     if(pf.NewPosition())
     {

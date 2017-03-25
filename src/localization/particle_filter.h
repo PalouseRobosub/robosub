@@ -62,7 +62,7 @@ private:
     // Number of times update and predict steps have been run.
     int num_iterations;
 
-    // Stores estimated position and necessary time info.
+    // Stores estimated position and metadata.
     tf::Vector3 estimated_position;
     ros::Time last_estimated_position_time;
     double estimated_position_dt;

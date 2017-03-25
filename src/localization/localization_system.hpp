@@ -48,6 +48,8 @@ private:
     RobosubSensors *sensors;
     ros::NodeHandle *nh;
 
+    ros::Time start_time;
+
 public:
 };
 #endif //LOCALIZATION_SYSTEM_HPP
