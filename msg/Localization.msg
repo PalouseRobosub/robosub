@@ -1,1 +1,0 @@
-WeightedPosition[] data
