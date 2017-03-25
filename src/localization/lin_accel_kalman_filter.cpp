@@ -167,7 +167,8 @@ void LinAccelKalmanFilter::run_filter()
     k = P * H.transpose() * s.inverse();
     PRINT_THROTTLE(ROS_DEBUG_STREAM("k:\n" << k););
 
-    // Update predicted state with kalman gain and error between sensors and prediction.
+    // Update predicted state with kalman gain and error between sensors and
+    // prediction.
     x = x + k * y;
     PRINT_THROTTLE(ROS_DEBUG_STREAM("x corrected:\n" << x););
 

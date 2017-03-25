@@ -14,7 +14,7 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/ChannelFloat32.h"
 
-#include "filter_utilities.h"
+#include "localization/filter_utilities.h"
 
 using namespace Eigen;
 using namespace filter_utilities;
@@ -23,7 +23,7 @@ class ParticleFilter
 {
 public:
     ParticleFilter(ros::NodeHandle *_nh);
-    ~ParticleFilter() {};
+    ~ParticleFilter() {}
 
     bool NewPosition();
     tf::Vector3 GetPosition();

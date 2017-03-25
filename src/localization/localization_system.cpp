@@ -68,7 +68,8 @@ void LocalizationSystem::Update()
     }
     if(sensors->NewHydrophones())
     {
-        pf.InputHydrophones(sensors->GetHydrophones(), sensors->GetHydrophonesDT());
+        pf.InputHydrophones(sensors->GetHydrophones(),
+                sensors->GetHydrophonesDT());
 
         // Since the pf will obtain the most accurate position estimate after a
         // hydrophone input, pass that position into the kf now.
@@ -84,7 +85,8 @@ void LocalizationSystem::Update()
         // is converged and in agreement with the kf.
         if(ros::Time::now().toSec() - start_time.toSec() > 20.0)
         {
-            pf.InputAbsLinVel(sensors->GetAbsLinVel(), sensors->GetAbsLinVelDT());
+            pf.InputAbsLinVel(sensors->GetAbsLinVel(),
+                    sensors->GetAbsLinVelDT());
         }
     }
 

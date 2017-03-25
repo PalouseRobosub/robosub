@@ -7,8 +7,12 @@ ParticleFilter::ParticleFilter(ros::NodeHandle *_nh)
     particle_cloud_pub =
         nh->advertise<sensor_msgs::PointCloud>("/localization/particles", 1);
 
-    ROS_ERROR_COND(!ros::param::getCached("localization/particle_filter/num_particles",
-            num_particles), "Failed to load number of particles.");
+    if(!ros::param::getCached("localization/particle_filter/num_particles",
+                num_particles))
+    {
+            ROS_FATAL_STREAM("Failed to load number of particles.");
+            ros::shutdown();
+    }
 
     initialize();
 }
@@ -34,7 +38,8 @@ void ParticleFilter::InputDepth(const double depth, const double dt)
     observation(3, 0) = depth;
 }
 
-void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double dt)
+void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double
+        dt)
 {
     // Convert the cartesian [x, y, z] offset from the pingers as calculated by
     // the hydrophones node into polar [azimuth, inclination, range]
@@ -42,10 +47,10 @@ void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double d
     // This is done since polar coords better describe the distributions of the
     // hydrophone error.
 
-    // Azimuth is the angle between the x axis and the subs xy position relative
-    // to the pinger.
-    // Inclination is the angle between the xy plane and the subs z position relative
-    // to the pinger.
+    // Azimuth is the angle between the x axis and the subs xy position
+    // relative to the pinger.
+    // Inclination is the angle between the xy plane and the subs z position
+    // relative to the pinger.
     // Range is the distance from the pinger to the sub.
 
     // The following formulas are used:
@@ -54,9 +59,9 @@ void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double d
     // range = sqrt(x^2 + y^2 + z^2)
     double azimuth = std::atan2(position[1], position[0]);
     double inclination = std::atan2(position[2],
-                                    std::sqrt(std::pow(position[0], 2) + std::pow(position[1], 2)));
+            std::sqrt(std::pow(position[0], 2) + std::pow(position[1], 2)));
     double range = std::sqrt(std::pow(position[0], 2) + std::pow(position[1],
-                             2) + std::pow(position[2], 2));
+                2) + std::pow(position[2], 2));
 
     observation(0, 0) = azimuth;
     observation(1, 0) = inclination;
@@ -173,28 +178,38 @@ void ParticleFilter::reload_params()
     ros::param::getCached("localization/particle_filter/initial/z",
                           initial_state(2, 0));
 
-    ros::param::getCached("localization/particle_filter/initial/x_initial_stddev",
-                          initial_distribution(0, 0));
-    ros::param::getCached("localization/particle_filter/initial/y_initial_stddev",
-                          initial_distribution(1, 0));
-    ros::param::getCached("localization/particle_filter/initial/z_initial_stddev",
-                          initial_distribution(2, 0));
+    ros::param::getCached(
+            "localization/particle_filter/initial/x_initial_stddev",
+            initial_distribution(0, 0));
+    ros::param::getCached(
+            "localization/particle_filter/initial/y_initial_stddev",
+            initial_distribution(1, 0));
+    ros::param::getCached(
+            "localization/particle_filter/initial/z_initial_stddev",
+            initial_distribution(2, 0));
 
-    ros::param::getCached("localization/particle_filter/variances/x_state_update",
-                          system_update_covar(0, 0));
-    ros::param::getCached("localization/particle_filter/variances/y_state_update",
-                          system_update_covar(1, 1));
-    ros::param::getCached("localization/particle_filter/variances/z_state_update",
-                          system_update_covar(2, 2));
+    ros::param::getCached(
+            "localization/particle_filter/variances/x_state_update",
+            system_update_covar(0, 0));
+    ros::param::getCached(
+            "localization/particle_filter/variances/y_state_update",
+            system_update_covar(1, 1));
+    ros::param::getCached(
+            "localization/particle_filter/variances/z_state_update",
+            system_update_covar(2, 2));
 
-    ros::param::getCached("localization/particle_filter/variances/azimuth_measurement",
-                          observation_covar(0, 0));
-    ros::param::getCached("localization/particle_filter/variances/inclination_measurement",
-                          observation_covar(1, 1));
-    ros::param::getCached("localization/particle_filter/variances/range_measurement",
-                          observation_covar(2, 2));
-    ros::param::getCached("localization/particle_filter/variances/depth_measurement",
-                          observation_covar(3, 3));
+    ros::param::getCached(
+            "localization/particle_filter/variances/azimuth_measurement",
+            observation_covar(0, 0));
+    ros::param::getCached(
+            "localization/particle_filter/variances/inclination_measurement",
+            observation_covar(1, 1));
+    ros::param::getCached(
+            "localization/particle_filter/variances/range_measurement",
+            observation_covar(2, 2));
+    ros::param::getCached(
+            "localization/particle_filter/variances/depth_measurement",
+            observation_covar(3, 3));
 
     // The params for azimuth and inclination are in degress but internally
     // azimuth and inclination are radians.
@@ -229,7 +244,8 @@ void ParticleFilter::publish_point_cloud()
     particle_cloud_pub.publish(pc);
 }
 
-Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1> state)
+Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1>
+        state)
 {
     Matrix<double, 4, 1> obs;
 
@@ -241,8 +257,10 @@ Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1> s
     // Calculate azimuth, inclination, and range as in the InputHydrophones
     // method.
     double azimuth = std::atan2(hy, hx);
-    double inclination = std::atan2(hz, std::sqrt(std::pow(hx, 2) + std::pow(hy, 2)));
-    double range = std::sqrt(std::pow(hx, 2) + std::pow(hy, 2) + std::pow(hz, 2));
+    double inclination = std::atan2(hz, std::sqrt(std::pow(hx, 2) +
+                std::pow(hy, 2)));
+    double range = std::sqrt(std::pow(hx, 2) + std::pow(hy, 2) + std::pow(hz,
+                2));
 
     obs(0, 0) = azimuth;
     obs(1, 0) = inclination;
@@ -267,8 +285,8 @@ void ParticleFilter::update_particle_states()
     for(int n = 0; n < num_particles; n++)
     {
         particle_states[n] = system_update_model * last_particle_states[n] +
-                             control_update_model * control_input +
-                             sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
+            control_update_model * control_input +
+            sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
     }
 }
 
@@ -295,8 +313,7 @@ void ParticleFilter::update_particle_weights()
         for(unsigned int i = 0; i < observation.rows(); i++)
         {
             double p = gaussian_prob(observation(i, 0),
-                                     std::sqrt(observation_covar(i, i)),
-                                     particle_obs(i, 0));
+                    std::sqrt(observation_covar(i, i)), particle_obs(i, 0));
 
             particle_weights[n] *= p;
         }
@@ -327,7 +344,8 @@ void ParticleFilter::resample_particles()
     std::vector<Matrix<double, 3, 1> > p;
     int index = static_cast<int>(randu() * num_particles);
     double beta = 0.0;
-    double max_w = *(std::max_element(std::begin(particle_weights), std::end(particle_weights)));
+    double max_w = *(std::max_element(std::begin(particle_weights),
+                std::end(particle_weights)));
     for(int i = 0; i < num_particles; i++)
     {
         beta += randu() * 2.0 * max_w;
@@ -369,7 +387,8 @@ void ParticleFilter::estimate_state()
 
     // Set estimated position metadata.
     new_position = true;
-    estimated_position_dt = (ros::Time::now() - last_estimated_position_time).toSec();
+    estimated_position_dt = (ros::Time::now() -
+            last_estimated_position_time).toSec();
     last_estimated_position_time = ros::Time::now();
 }
 

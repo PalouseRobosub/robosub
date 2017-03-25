@@ -27,7 +27,7 @@ class RobosubSensors
 public:
     RobosubSensors();
 
-    // Sensor callbacks 
+    // Sensor callbacks
     // DT is calculated using the msg stamp and last receive time
     void InputRelLinAcl(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputDepth(const robosub::Float32Stamped::ConstPtr &msg);
@@ -111,4 +111,4 @@ private:
     tf::Vector3 position;
 };
 
-#endif
+#endif // ROBOSUB_SENSORS_H

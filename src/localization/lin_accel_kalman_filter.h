@@ -12,7 +12,7 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
-#include "filter_utilities.h"
+#include "localization/filter_utilities.h"
 
 using namespace Eigen;
 using namespace filter_utilities;
@@ -21,7 +21,7 @@ class LinAccelKalmanFilter
 {
 public:
     LinAccelKalmanFilter(ros::NodeHandle *_nh);
-    ~LinAccelKalmanFilter() {};
+    ~LinAccelKalmanFilter() {}
 
     bool NewAbsLinVel();
     tf::Vector3 GetAbsLinVel();
@@ -76,7 +76,8 @@ private:
     // Stores state to observation matrix. Loaded from params.
     Matrix<double, 7, 9> H;
 
-    // Stores predicted error covariances of the overall filter prediction. Initial values loaded from params.
+    // Stores predicted error covariances of the overall filter prediction.
+    // Initial values loaded from params.
     Matrix<double, 9, 9> P;
 
     // Stores covariance matrix of system update errors. Loaded from params.

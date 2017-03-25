@@ -1,4 +1,4 @@
-#include "robosub_sensors.h"
+#include "localization/robosub_sensors.h"
 
 RobosubSensors::RobosubSensors()
 {
@@ -53,17 +53,17 @@ void RobosubSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
 }
 
 void RobosubSensors::InputHydrophones(const
-                                     robosub::PositionArrayStamped::ConstPtr &msg)
+        robosub::PositionArrayStamped::ConstPtr &msg)
 {
     hydrophones = tf::Vector3(msg->positions[0].position.x,
-                              msg->positions[0].position.y, msg->positions[0].position.z);
+            msg->positions[0].position.y, msg->positions[0].position.z);
     hydrophones_dt = (msg->header.stamp - last_hydrophones_time).toSec();
     new_hydrophones = true;
     last_hydrophones_time = msg->header.stamp;
 }
 
 void RobosubSensors::InputOrientation(const
-                                     robosub::QuaternionStampedAccuracy::ConstPtr &msg)
+        robosub::QuaternionStampedAccuracy::ConstPtr &msg)
 {
     orientation = tf::Quaternion(msg->quaternion.x, msg->quaternion.y,
                                  msg->quaternion.z, msg->quaternion.w);

@@ -1,6 +1,6 @@
-#include "localization_system.hpp"
+#include "localization/localization_system.hpp"
 
-#include "robosub_sensors.h"
+#include "localization/robosub_sensors.h"
 
 using namespace Eigen;
 
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     ros::ServiceServer reset_filter_service =
         nh.advertiseService("localization/reset",
-                            &LocalizationSystem::ResetFilterCallback, &loc_system);
+                &LocalizationSystem::ResetFilterCallback, &loc_system);
 
     // RobosubSensors class handles all sensor callbacks
     ros::Subscriber depth_sub = nh.subscribe("depth", 1,
