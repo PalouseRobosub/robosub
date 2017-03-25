@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-    <rosparam command="load" file="$(find robosub)/param/localization.yaml"/>
-    <node pkg="robosub" type="dead_reckoning" name="dead_reckoning" output="screen"/>
-</launch>
