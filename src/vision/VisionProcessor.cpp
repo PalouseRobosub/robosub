@@ -36,13 +36,13 @@ Mat VisionProcessor::process(const Image& image)
     // Fetch filter params
     XmlRpcValue params;
     string key;
-    if (!n.searchParam("filters", key))
+    if (!n->searchParam("filters", key))
     {
         ROS_FATAL_STREAM("Could not locate filter params");
         ros::shutdown();
         return Mat();
     }
-    if (!n.getParamCached(key, params))
+    if (!n->getParamCached(key, params))
     {
         ROS_FATAL_STREAM("Filter params not present!!");
         ros::shutdown();
@@ -52,7 +52,7 @@ Mat VisionProcessor::process(const Image& image)
     // Fetch doImShow param
     bool doImShow = false;
 
-    if (!n.getParamCached("doImShow", doImShow))
+    if (!n->getParamCached("doImShow", doImShow))
     {
         ROS_WARN("Could not get doImShow parameter, defaulting to false");
     }
@@ -68,97 +68,6 @@ Mat VisionProcessor::process(const Image& image)
 
     ROS_DEBUG_STREAM("Image now OpenCv Mat");
 
-    //Mask according to the filterSet
-    Mat mask;
-    
-    filterSet.apply(toProcess, mask);
-
-    ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
-
-    return mask;
-}
-
-///////Private functions///////
-
-// Fetches a list of parameters from the parameter server and represents
-//   them as a vector of Scalars
-void VisionProcessor::getScalarParamSet(string mapName,
-                                        vector<Scalar> &scalars)
-{
-    string key;
-    //Get params based upon the list name
-    if (n->searchParam(mapName, key))
-    {
-        // Fetch param
-        XmlRpc::XmlRpcValue map;
-        n->getParamCached(key, map);
-        ROS_DEBUG_STREAM("Found: " << map.size() << " sets in key " << key);
-
-        // For every value in the list of values
-        for (int i = 0; i < map.size(); i++)
-        {
-            std::map<std::string, double> parameters;
-            try
-            {
-                // Iterate over every element within the map contained in this
-                //   element in the overall list
-                for (auto it = map[i].begin(); it != map[i].end(); it++)
-                {
-                    double value = 0.0;
-                    //Double check the type is valid and cast if necessary
-                    switch(it->second.getType())
-                    {
-                        case XmlRpc::XmlRpcValue::TypeDouble:
-                            value = it->second;
-                            break;
-                        case XmlRpc::XmlRpcValue::TypeInt:
-                            value = static_cast<double>(
-                                                 static_cast<int>(it->second));
-                            break;
-                        default:
-                            ROS_ERROR_STREAM("Invalid parameter type for " <<
-                                             mapName << ": " << it->first);
-                            return;
-                            break;
-                    }
-
-                    // Add this value to the map of values containing hue,
-                    //   sat, and val
-                    parameters.emplace(it->first, value);
-                }
-            }
-            catch (XmlRpc::XmlRpcException e)
-            {
-                ROS_ERROR_STREAM("XmlRpcException code " << e.getCode() <<
-                                 ": " << e.getMessage());
-                ros::shutdown();
-            }
-
-            Scalar s;
-            s[0] = parameters["hue"];//map[i]["hue"];
-            s[1] = parameters["sat"];
-            s[2] = parameters["val"];
-            ROS_DEBUG_STREAM("Scalar: " << s);
-            scalars.push_back(s);
-        }
-        ROS_DEBUG_STREAM(mapName << " Params fetched");
-    }
-    else
-    {
-        ROS_ERROR_STREAM("Node does not contain " << mapName << " params");
-    }
-    ROS_DEBUG_STREAM("Size of scalars: " << scalars.size());
-}
-
-void VisionProcessor::getLowerBoundParams(vector<Scalar> &lower_bounds)
-{
-    getScalarParamSet("min", lower_bounds);
-}
-void VisionProcessor::getUpperBoundParams(vector<Scalar> &upper_bounds)
-{
-    getScalarParamSet("max", upper_bounds);
-}
-=======
     // Filter image and receive mask
     Mat mask;
     filterSet.apply(toProcess, mask);
@@ -168,8 +77,6 @@ void VisionProcessor::getUpperBoundParams(vector<Scalar> &upper_bounds)
     // Return result
     return mask;
 }
-
->>>>>>> Removed deprecated code and added comments
 
 //Converts a ros image_transport Image to an OpenCV Mat
 Mat VisionProcessor::toOpenCV(const Image& image)
