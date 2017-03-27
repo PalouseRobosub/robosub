@@ -43,7 +43,7 @@ class VisionProcessor
         NodeHandle *n;
 
         bool initialized;
-        
+
         FilterSet filterSet;
 
         Mat toOpenCV(const Image& image);

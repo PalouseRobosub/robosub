@@ -28,7 +28,7 @@ using XmlRpc::XmlRpcValue;
 class Filter
 {
     public:
-        virtual ~Filter() {};
+        virtual ~Filter() {}
 
         string getName()
         {
@@ -55,12 +55,12 @@ class CloseFilter : public Filter
 {
     public:
         CloseFilter();
-        ~CloseFilter() {};
+        ~CloseFilter() {}
 
         void setParams(XmlRpcValue &params);
         void apply(Mat &image);
         void apply(const Mat &src, Mat &dst);
-    
+
     private:
         int iterations;
         Size size;
@@ -72,7 +72,7 @@ class ConvertFilter : public Filter
 {
     public:
         ConvertFilter();
-        ~ConvertFilter() {};
+        ~ConvertFilter() {}
 
         void setParams(XmlRpcValue &params);
 
@@ -82,13 +82,14 @@ class ConvertFilter : public Filter
     private:
         int code;
 
-        const std::map<string, int> paramList {
-                                    {"BGR2HSV", cv::COLOR_BGR2HSV},
-                                    {"BGR2RGB", cv::COLOR_BGR2RGB},
-                                    {"RGB2BGR", cv::COLOR_RGB2BGR},
-                                    {"RGB2HSV", cv::COLOR_RGB2HSV},
-                                    {"BGR2GRAY", cv::COLOR_BGR2GRAY},
-                                    {"RGB2GRAY", cv::COLOR_RGB2GRAY}
+        const std::map<string, int> paramList
+                                    {
+                                        {"BGR2HSV", cv::COLOR_BGR2HSV},
+                                        {"BGR2RGB", cv::COLOR_BGR2RGB},
+                                        {"RGB2BGR", cv::COLOR_RGB2BGR},
+                                        {"RGB2HSV", cv::COLOR_RGB2HSV},
+                                        {"BGR2GRAY", cv::COLOR_BGR2GRAY},
+                                        {"RGB2GRAY", cv::COLOR_RGB2GRAY}
                                     };
 };
 
@@ -98,13 +99,13 @@ class InRangeFilter : public Filter
 {
     public:
         InRangeFilter(string &inRangeName);
-        ~InRangeFilter() {};
+        ~InRangeFilter() {}
 
         void setParams(XmlRpcValue &params);
-    
+
         void apply(Mat &image);
         void apply(const Mat &src, Mat &dst);
-    
+
     private:
         Scalar upperBounds;
         Scalar lowerBounds;
@@ -116,7 +117,7 @@ class MedianBlurFilter : public Filter
 {
     public:
         MedianBlurFilter();
-        ~MedianBlurFilter() {};
+        ~MedianBlurFilter() {}
 
         void setParams(XmlRpcValue &params);
         void apply(Mat &image);
@@ -132,13 +133,13 @@ class OpenFilter : public Filter
 {
     public:
         OpenFilter();
-        ~OpenFilter() {};
+        ~OpenFilter() {}
 
         void setParams(XmlRpcValue &params);
-        
+
         void apply(Mat &image);
         void apply(const Mat &src, Mat &dst);
-    
+
     private:
         int iterations;
         Size size;
@@ -150,7 +151,7 @@ class OrFilter : public Filter
 {
     public:
         OrFilter();
-        ~OrFilter() {};
+        ~OrFilter() {}
 
         void setParams(XmlRpcValue &params);
 

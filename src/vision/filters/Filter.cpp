@@ -1,11 +1,13 @@
 #include "Filter.hpp"
+#include <map>
+#include <string>
 
 ///// ------------ Close Filter ---------- ////
 
 CloseFilter::CloseFilter()
 {
     this->name = "Close";
-    this->size = Size(0,0);
+    this->size = Size(0, 0);
     this->iterations = 0;
 }
 
@@ -47,7 +49,7 @@ void CloseFilter::apply(Mat &image)
 void CloseFilter::apply(const Mat &src, Mat &dst)
 {
     morphologyEx(src, dst, MORPH_CLOSE, getStructuringElement(MORPH_RECT,
-                 size), Point(-1, -1), iterations);  
+                 size), Point(-1, -1), iterations);
 }
 
 ///// ----------- Convert Filter ----------- /////
@@ -64,7 +66,7 @@ void ConvertFilter::setParams(XmlRpcValue &params)
     try
     {
         XmlRpc::XmlRpcValue xrv = params["code"];
-    
+
         if (xrv.getType() != XmlRpc::XmlRpcValue::Type::TypeString)
         {
             ROS_FATAL_STREAM("Convert filter param invalid type");
@@ -73,15 +75,15 @@ void ConvertFilter::setParams(XmlRpcValue &params)
         }
 
         strCode = static_cast<string>(xrv);
-
-    } catch (XmlRpc::XmlRpcException e)
+    }
+    catch (XmlRpc::XmlRpcException e)
     {
         ROS_FATAL_STREAM("Convert filter params malformed");
         ros::shutdown();
         return;
     }
     auto it = paramList.find(strCode);
-    
+
     if (it != paramList.end())
     {
         code = it->second;
@@ -91,8 +93,8 @@ void ConvertFilter::setParams(XmlRpcValue &params)
         ROS_FATAL_STREAM("Unknown convert code for ConvertFilter. "
                          << "Consider adding it in ConvertFilter.hpp");
         ros::shutdown();
-    } 
- }
+    }
+}
 
 void ConvertFilter::apply(Mat &image)
 {
@@ -117,7 +119,7 @@ void InRangeFilter::setParams(XmlRpcValue &params)
     {
         for (auto i = params.begin(); i != params.end(); i++)
         {
-            std::map<std::string, double> parameters;           
+            std::map<std::string, double> parameters;
             for (auto it = i->second.begin(); it != i->second.end(); it++)
             {
                 double value = 0.0;
@@ -127,7 +129,8 @@ void InRangeFilter::setParams(XmlRpcValue &params)
                         value = it->second;
                         break;
                     case XmlRpc::XmlRpcValue::TypeInt:
-                        value = static_cast<double>(static_cast<int>(it->second));
+                        value = static_cast<double>(
+                                                  static_cast<int>(it->second));
                         break;
                     default:
                         ROS_ERROR_STREAM("Invalid parameter type for " <<
@@ -135,7 +138,7 @@ void InRangeFilter::setParams(XmlRpcValue &params)
                         return;
                         break;
                 }
-            
+
                 //Values must be between 0 and 255
                 if (value < 0)
                 {
@@ -197,7 +200,7 @@ void InRangeFilter::apply(Mat &image)
 
 void InRangeFilter::apply(const Mat &src, Mat &dst)
 {
-   inRange(src, lowerBounds, upperBounds, dst); 
+    inRange(src, lowerBounds, upperBounds, dst);
 }
 
 ////// ------------ Median Blur Filter ---------- /////
@@ -239,7 +242,7 @@ void MedianBlurFilter::apply(const Mat &src, Mat &dst)
 OpenFilter::OpenFilter()
 {
     this->name = "Open";
-    this->size = Size(0,0);
+    this->size = Size(0, 0);
     this->iterations = 0;
 }
 
@@ -281,7 +284,7 @@ void OpenFilter::apply(Mat &image)
 void OpenFilter::apply(const Mat &src, Mat &dst)
 {
     morphologyEx(src, dst, MORPH_OPEN, getStructuringElement(MORPH_RECT,
-                 size), Point(-1, -1), iterations);  
+                 size), Point(-1, -1), iterations);
 }
 
 
@@ -344,7 +347,8 @@ void OrFilter::setParams(XmlRpcValue &params)
             f->setParams(params[i][memberName]);
             children.push_back(f);
         }
-    } catch(XmlRpc::XmlRpcException e)
+    }
+    catch(XmlRpc::XmlRpcException e)
     {
         ROS_FATAL_STREAM("" << ros::this_node::getName() << " threw XmlRpc"
                          << " exception " << e.getCode() << ": "
@@ -362,7 +366,7 @@ void OrFilter::apply(Mat &image)
 void OrFilter::apply(const Mat &src, Mat &dst)
 {
     Mat result;
-    
+
     children[0]->apply(src, result);
 
     for (auto it = children.begin() + 1; it != children.end(); it++)

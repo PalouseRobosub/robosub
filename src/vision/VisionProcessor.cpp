@@ -32,7 +32,7 @@ Mat VisionProcessor::process(const Image& image)
         ros::shutdown();
         return Mat();
     }
-    
+
     // Fetch filter params
     XmlRpcValue params;
     string key;
@@ -62,7 +62,7 @@ Mat VisionProcessor::process(const Image& image)
 
     //Set params within FilterSet
     filterSet.setParams(params);
-    
+
     //Convert image message to OpenCV Mat
     Mat toProcess = toOpenCV(image);
 
@@ -73,7 +73,7 @@ Mat VisionProcessor::process(const Image& image)
     filterSet.apply(toProcess, mask);
 
     ROS_DEBUG_STREAM("Returning mask");
-    
+
     // Return result
     return mask;
 }

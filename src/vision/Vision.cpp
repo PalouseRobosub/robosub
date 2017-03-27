@@ -84,7 +84,7 @@ void displayFinalImage(const Image::ConstPtr &image,
 
     int imHeight = finalImg.size().height;
     int imWidth = finalImg.size().width;
-    
+
     ROS_DEBUG_STREAM("Image size: " << imHeight << " x " << imWidth);
 
     for (visionPos point : messages)

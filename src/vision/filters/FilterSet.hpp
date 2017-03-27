@@ -1,5 +1,5 @@
-#ifndef FILTER_SET_HPP
-#define FILTER_SET_HPP
+#ifndef FILTERSET_HPP
+#define FILTERSET_HPP
 
 #include <string>
 #include <vector>
@@ -34,4 +34,4 @@ class FilterSet
         vector<Filter *> filters;
 };
 
-#endif //FILTER_SET_HPP
+#endif //FILTERSET_HPP

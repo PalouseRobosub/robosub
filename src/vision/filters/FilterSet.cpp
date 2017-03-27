@@ -1,5 +1,6 @@
 #include "FilterSet.hpp"
 #include <boost/algorithm/string.hpp>
+#include <string>
 
 FilterSet::FilterSet()
 {
@@ -90,7 +91,8 @@ void FilterSet::setParams(XmlRpcValue &params)
             // Add the filter to the vector
             filters.push_back(f);
         }
-    } catch(XmlRpc::XmlRpcException e)
+    }
+    catch(XmlRpc::XmlRpcException e)
     {
         ROS_FATAL_STREAM("" << ros::this_node::getName() << " threw XmlRpc"
                          << " exception " << e.getCode() << ": "
