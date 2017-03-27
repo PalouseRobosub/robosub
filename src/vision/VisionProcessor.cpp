@@ -5,8 +5,8 @@
 #include <map>
 
 VisionProcessor::VisionProcessor()
+    : initialized(false)
 {
-    this->initialized = false;
 }
 
 VisionProcessor::~VisionProcessor()
@@ -16,6 +16,9 @@ VisionProcessor::~VisionProcessor()
 
 void VisionProcessor::init()
 {
+    //The NodeHandle is dynamically allocated here to prevent the constructor
+    //  from creating it. This is so ros::init() can be called before
+    //  the NodeHandle is constructed.
     this->n = new NodeHandle("~processing");
     this->initialized = true;
 }

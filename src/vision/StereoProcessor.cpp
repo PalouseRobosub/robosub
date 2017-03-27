@@ -6,8 +6,8 @@
 #include <algorithm>
 
 StereoProcessor::StereoProcessor()
+    : initialized(false)
 {
-    this->initialized = false;
 }
 
 StereoProcessor::~StereoProcessor()
@@ -17,6 +17,9 @@ StereoProcessor::~StereoProcessor()
 
 void StereoProcessor::init()
 {
+    //The NodeHandle is dynamically allocated here to prevent the constructor
+    //  from creating it. This is so ros::init() can be called before
+    //  the NodeHandle is constructed.
     this->n = new NodeHandle("~processing");
     this->initialized = true;
 }

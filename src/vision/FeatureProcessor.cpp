@@ -3,8 +3,8 @@
 #include <vector>
 
 FeatureProcessor::FeatureProcessor()
+    : initialized(false)
 {
-    this->initialized = false;
 }
 
 FeatureProcessor::~FeatureProcessor()
@@ -14,6 +14,9 @@ FeatureProcessor::~FeatureProcessor()
 
 void FeatureProcessor::init()
 {
+    //The NodeHandle is dynamically allocated here to prevent the constructor
+    //  from creating it. This is so ros::init() can be called before
+    //  the NodeHandle is constructed.
     this->n = new NodeHandle("~");
     this->initialized = true;
 }
@@ -67,9 +70,8 @@ void FeatureProcessor::process(const Mat &leftImg,
         }
         else
         {
-            ROS_FATAL_STREAM("Invalid m00 moment found in "
+            ROS_WARN_STREAM("Invalid m00 moment found in "
                              << ros::this_node::getName());
-            ros::shutdown();
             return;
         }
 
