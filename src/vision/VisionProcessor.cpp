@@ -203,7 +203,7 @@ void VisionProcessor::getScalarParamSet(string mapName,
                             return;
                             break;
                     }
-                    
+
                     // Add this value to the map of values containing hue,
                     //   sat, and val
                     parameters.emplace(it->first, value);

@@ -255,19 +255,12 @@ int main(int argc, char **argv)
     {
         ROS_INFO_STREAM(ros::this_node::getName() <<
                         " creating sync with bottom cam");
-
-//        sync3 = new Synchronizer<ApproximateTime<Image, Image, Image>>(
-//                        ApproximateTime<Image, Image, Image>(5), leftCamSub,
-//                        rightCamSub, bottomCamSub);
         sync3.registerCallback(boost::bind(&threeCamCallback, _1, _2, _3));
     }
     else
     {
         ROS_INFO_STREAM(ros::this_node::getName() <<
                         " creating sync without bottom cam");
-//        syncStereo = new Synchronizer<ApproximateTime<Image, Image>>(
-//                        ApproximateTime<Image, Image>(5), leftCamSub,
-//                        rightCamSub);
         syncStereo.registerCallback(boost::bind(&callback, _1, _2));
     }
 
@@ -281,15 +274,5 @@ int main(int argc, char **argv)
 
     ros::spin();
 
-/*    if (sync3)
-    {
-        delete sync3;
-    }
-
-    if (syncStereo)
-    {
-        delete syncStereo;
-    }*/
-    
     return 0;
 }
