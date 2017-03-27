@@ -33,10 +33,14 @@ class VisionProcessor
         VisionProcessor();
         ~VisionProcessor();
 
+        void init();
+
         Mat process(const Image& image);
 
     private:
-        NodeHandle n;
+        NodeHandle *n;
+
+        bool initialized;
 
         void getScalarParamSet(string mapName, vector<Scalar> &scalars);
         void getLowerBoundParams(vector<Scalar> &lower_bounds);

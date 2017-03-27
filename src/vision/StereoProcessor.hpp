@@ -41,11 +41,15 @@ class StereoProcessor
         StereoProcessor();
         ~StereoProcessor();
 
+        void init();
+
         void process(const Image& leftImage, const Image& rightImage,
                      const Mat &Q, Mat &disparityMat, Mat &_3dImageMat);
 
     private:
-        NodeHandle n;
+        NodeHandle *n;
+
+        bool initialized;
 
         Mat toOpenCV(const Image& image);
 };

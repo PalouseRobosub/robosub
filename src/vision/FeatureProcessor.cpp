@@ -4,11 +4,18 @@
 
 FeatureProcessor::FeatureProcessor()
 {
-    n = NodeHandle("~");
+    this->initialized = false;
 }
 
 FeatureProcessor::~FeatureProcessor()
 {
+    delete n;
+}
+
+void FeatureProcessor::init()
+{
+    this->n = new NodeHandle("~");
+    this->initialized = true;
 }
 
 void FeatureProcessor::setNLargest(int nLargest)
@@ -22,6 +29,13 @@ void FeatureProcessor::process(const Mat &leftImg,
                                const Mat &_3dImg,
                                vector<visionPos> &messages)
 {
+    if (!initialized)
+    {
+        ROS_FATAL_STREAM("Feature Processor process called before init.");
+        ros::shutdown();
+        return;
+    }
+
     vector<vector<Point>> lContours, rContours;
     vector<Vec4i> lHierarchy, rHierarchy;
 
@@ -50,6 +64,13 @@ void FeatureProcessor::process(const Mat &leftImg,
         {
             cx = static_cast<int>(moment.m10 / moment.m00);
             cy = static_cast<int>(moment.m01 / moment.m00);
+        }
+        else
+        {
+            ROS_FATAL_STREAM("Invalid m00 moment found in "
+                             << ros::this_node::getName());
+            ros::shutdown();
+            return;
         }
 
         robosub::visionPos msg;
@@ -83,7 +104,7 @@ void FeatureProcessor::process(const Mat &leftImg,
                  CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
     bool doImShow = false;
-    n.getParamCached("processing/doImShow", doImShow);
+    n->getParamCached("processing/doImShow", doImShow);
 
     // Process bottom image
     std::sort(bContours.begin(), bContours.end(),
@@ -104,6 +125,13 @@ void FeatureProcessor::process(const Mat &leftImg,
         {
             cx = static_cast<int>(moment.m10 / moment.m00);
             cy = static_cast<int>(moment.m01 / moment.m00);
+        }
+        else
+        {
+            ROS_FATAL_STREAM("Invalid m00 moment found in "
+                             << ros::this_node::getName());
+            ros::shutdown();
+            return;
         }
 
         robosub::visionPos msg;

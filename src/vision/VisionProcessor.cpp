@@ -6,16 +6,30 @@
 
 VisionProcessor::VisionProcessor()
 {
-    this->n = NodeHandle("~processing");
+    this->initialized = false;
 }
 
 VisionProcessor::~VisionProcessor()
 {
+    delete n;
+}
+
+void VisionProcessor::init()
+{
+    this->n = new NodeHandle("~processing");
+    this->initialized = true;
 }
 
 //Processes the image using color filtering with parameters under given subgroup
 Mat VisionProcessor::process(const Image& image)
 {
+    if (!initialized)
+    {
+        ROS_FATAL_STREAM("Vision Processor process called before init.");
+        ros::shutdown();
+        return Mat();
+    }
+
     //Convert image message to OpenCV Mat
     Mat toProcess = toOpenCV(image);
 
@@ -41,7 +55,7 @@ Mat VisionProcessor::process(const Image& image)
     int numBlurIters = 3;
 
     //Get blur param
-    if (!n.getParamCached("blur_iters", numBlurIters))
+    if (!n->getParamCached("blur_iters", numBlurIters))
     {
         ROS_ERROR_STREAM("Node does not contain blur_iters param");
     }
@@ -53,17 +67,17 @@ Mat VisionProcessor::process(const Image& image)
     int numOpenIters = 1;
 
     //Get open params
-    if (n.getParamCached("open/width", openSize[0]) == 0)
+    if (n->getParamCached("open/width", openSize[0]) == 0)
     {
         ROS_WARN("Failed to load open/width.");
     }
 
-    if (n.getParamCached("open/height", openSize[1]) == 0)
+    if (n->getParamCached("open/height", openSize[1]) == 0)
     {
         ROS_WARN("Failed to load open/height");
     }
 
-    if (n.getParamCached("open/iters", numOpenIters) == 0)
+    if (n->getParamCached("open/iters", numOpenIters) == 0)
     {
         ROS_WARN("Failed to load open/iters.");
     }
@@ -75,9 +89,9 @@ Mat VisionProcessor::process(const Image& image)
     int numCloseIters = 1;
 
     //Get open params
-    n.getParamCached("close/width", closeSize[0]);
-    n.getParamCached("close/height", closeSize[1]);
-    n.getParamCached("close/iters", numCloseIters);
+    n->getParamCached("close/width", closeSize[0]);
+    n->getParamCached("close/height", closeSize[1]);
+    n->getParamCached("close/iters", numCloseIters);
 
     //Sizes must be odd for open filter
     if (openSize[0] % 2 != 1)
@@ -106,7 +120,7 @@ Mat VisionProcessor::process(const Image& image)
     medianBlur(hsv, hsv, 3);
 
     bool doImShow = true;
-    n.getParamCached("doImShow", doImShow);
+    n->getParamCached("doImShow", doImShow);
 
     Mat mask;
     //Mask the image within the threshold ranges
@@ -143,31 +157,37 @@ Mat VisionProcessor::process(const Image& image)
 
     ROS_DEBUG_STREAM("Image Masked and/or processed otherwise");
 
-    ROS_DEBUG_STREAM("Returning mask");
     return mask;
 }
 
 ///////Private functions///////
 
+// Fetches a list of parameters from the parameter server and represents
+//   them as a vector of Scalars
 void VisionProcessor::getScalarParamSet(string mapName,
                                         vector<Scalar> &scalars)
 {
     string key;
-    //Get lowerbound params
-    if (n.searchParam(mapName, key))
+    //Get params based upon the list name
+    if (n->searchParam(mapName, key))
     {
+        // Fetch param
         XmlRpc::XmlRpcValue map;
-        n.getParamCached(key, map);
+        n->getParamCached(key, map);
         ROS_DEBUG_STREAM("Found: " << map.size() << " sets in key " << key);
 
+        // For every value in the list of values
         for (int i = 0; i < map.size(); i++)
         {
             std::map<std::string, double> parameters;
             try
             {
+                // Iterate over every element within the map contained in this
+                //   element in the overall list
                 for (auto it = map[i].begin(); it != map[i].end(); it++)
                 {
                     double value = 0.0;
+                    //Double check the type is valid and cast if necessary
                     switch(it->second.getType())
                     {
                         case XmlRpc::XmlRpcValue::TypeDouble:
@@ -183,7 +203,9 @@ void VisionProcessor::getScalarParamSet(string mapName,
                             return;
                             break;
                     }
-
+                    
+                    // Add this value to the map of values containing hue,
+                    //   sat, and val
                     parameters.emplace(it->first, value);
                 }
             }
@@ -226,7 +248,7 @@ Mat VisionProcessor::toOpenCV(const Image& image)
     //Determine if the image is empty, may be deprecated.
     if (sizeof(image.data) == 0)
     {
-        ROS_ERROR_STREAM("Empty image");
+        ROS_ERROR_STREAM("Conversion from Image to Mat failed: Empty image");
         //Return empty mat on empty image
         return Mat();
     }
@@ -242,7 +264,8 @@ Mat VisionProcessor::toOpenCV(const Image& image)
     catch (cv_bridge::Exception& e)
     {
         ROS_ERROR("cv_bridge exception: %s", e.what());
-        exit(1);
+        ros::shutdown();
+        return Mat();
     }
 
     ROS_DEBUG_STREAM("Returning Mat");

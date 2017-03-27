@@ -7,17 +7,31 @@
 
 StereoProcessor::StereoProcessor()
 {
-    this->n = NodeHandle("~processing");
+    this->initialized = false;
 }
 
 StereoProcessor::~StereoProcessor()
 {
+    delete n;
+}
+
+void StereoProcessor::init()
+{
+    this->n = new NodeHandle("~processing");
+    this->initialized = true;
 }
 
 //Processes the image using color filtering with parameters under given subgroup
 void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
                               const Mat &Q, Mat &disparityMat, Mat &_3dImageMat)
 {
+    if (!initialized)
+    {
+        ROS_FATAL_STREAM("Stereo Processor process called before init.");
+        ros::shutdown();
+        return;
+    }
+
     Mat leftImg = toOpenCV(leftImage);
     Mat rightImg = toOpenCV(rightImage);
 
@@ -38,14 +52,14 @@ void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
     ROS_DEBUG_STREAM("Converted images to grayscale");
 
     bool doImShow = false;
-    n.getParamCached("doImShow", doImShow);
+    n->getParamCached("doImShow", doImShow);
 
     int nDisparities = 16*5; //Range of disparity
     int SADWindowSize = 21; // Size of the block window. Must be odd.
 
     //Get params
-    n.getParamCached("stereo/nDisparities", nDisparities);
-    n.getParamCached("stereo/SADWindowSize", SADWindowSize);
+    n->getParamCached("stereo/nDisparities", nDisparities);
+    n->getParamCached("stereo/SADWindowSize", SADWindowSize);
 
     if (nDisparities < 0)
     {
@@ -55,7 +69,7 @@ void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
     {
         //Must be divisible by 16
         nDisparities += 16 - (nDisparities % 16);
-        n.setParam("stereo/nDisparities", nDisparities);
+        n->setParam("stereo/nDisparities", nDisparities);
     }
 
     if (SADWindowSize < 5)

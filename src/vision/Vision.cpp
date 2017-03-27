@@ -25,9 +25,9 @@ using robosub::visionPosArray;
 
 ros::Publisher pub;
 
-VisionProcessor *colorProcessor;
-StereoProcessor *stereoProcessor;
-FeatureProcessor *featureProcessor;
+VisionProcessor colorProcessor;
+StereoProcessor stereoProcessor;
+FeatureProcessor featureProcessor;
 
 int nLargest = 1;
 bool doImShow = false;
@@ -80,10 +80,10 @@ void displayFinalImage(const Image::ConstPtr &image,
 
     for (visionPos point : messages)
     {
-        int xPosition = (point.xPos * static_cast<double>(imWidth / 2)) +
-                        (imWidth / 2);
-        int yPosition = (point.yPos * static_cast<double>(imHeight / 2)) +
-                        (imHeight / 2);
+        int xPosition = (point.xPos * imWidth / 2.0) +
+                        (imWidth / 2.0);
+        int yPosition = (point.yPos * imHeight / 2.0) +
+                        (imHeight / 2.0);
         Point2f center = cv::Point2f(xPosition, yPosition);
 
         ROS_DEBUG_STREAM("Adding circle to image at [" << xPosition << ", " <<
@@ -112,25 +112,25 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
 
     /////  Color Processing  /////
     //Process the image using the VisionProcessor
-    Mat leftProcessed = colorProcessor->process(*left);
-    Mat rightProcessed = colorProcessor->process(*right);
+    Mat leftProcessed = colorProcessor.process(*left);
+    Mat rightProcessed = colorProcessor.process(*right);
 
     /////  Stereo Processing  /////
     Mat disparity;
     Mat _3dImage;
 
     //Compute stereo depth map
-    stereoProcessor->process(*left, *right, Q, disparity, _3dImage);
+    stereoProcessor.process(*left, *right, Q, disparity, _3dImage);
 
     /////  Feature Processing  /////
 
     //Send information to feature processing
-    featureProcessor->setNLargest(nLargest);
+    featureProcessor.setNLargest(nLargest);
 
     vector<visionPos> messages;
     Mat copy_left = leftProcessed.clone();
     Mat copy_right = rightProcessed.clone();
-    featureProcessor->process(copy_left, copy_right, disparity, _3dImage,
+    featureProcessor.process(copy_left, copy_right, disparity, _3dImage,
                               messages);
 
     displayFinalImage(left, messages, "Original");
@@ -155,22 +155,21 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     fetchParams();
 
     /////  Color Processing  /////
-
     //Process the image using the VisionProcessor
-    Mat leftProcessed = colorProcessor->process(*left);
-    Mat rightProcessed = colorProcessor->process(*right);
-    Mat bottomProcessed = colorProcessor->process(*bottom);
+    Mat leftProcessed = colorProcessor.process(*left);
+    Mat rightProcessed = colorProcessor.process(*right);
+    Mat bottomProcessed = colorProcessor.process(*bottom);
 
     /////  Stereo Processing  /////
     Mat disparity;
     Mat _3dImage;
 
     //Compute stereo depth map
-    stereoProcessor->process(*left, *right, Q, disparity, _3dImage);
+    stereoProcessor.process(*left, *right, Q, disparity, _3dImage);
 
     /////  Feature Processing  /////
     //Send information to feature processing
-    featureProcessor->setNLargest(nLargest);
+    featureProcessor.setNLargest(nLargest);
 
     vector<visionPos> stereoMessages;
     vector<visionPos> bottomMessages;
@@ -178,12 +177,11 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     Mat copy_right = rightProcessed.clone();
     Mat copy_bottom = bottomProcessed.clone();
 
-
     Mat original = toCvCopy(left, sensor_msgs::image_encodings::BGR8)->image;
     Mat bottomOrig =
                    toCvCopy(bottom, sensor_msgs::image_encodings::BGR8)->image;
 
-    featureProcessor->process(copy_left, copy_right, copy_bottom, disparity,
+    featureProcessor.process(copy_left, copy_right, copy_bottom, disparity,
                               _3dImage, stereoMessages, bottomMessages);
 
     displayFinalImage(left, stereoMessages, "Original");
@@ -199,11 +197,10 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
         destroyAllWindows();
     }
 
-    vector<visionPos> messages = stereoMessages;
-    messages.insert(messages.end(), bottomMessages.begin(),
+    stereoMessages.insert(stereoMessages.end(), bottomMessages.begin(),
                     bottomMessages.end());
 
-    outputMessages(messages);
+    outputMessages(stereoMessages);
 }
 
 int main(int argc, char **argv)
@@ -223,9 +220,11 @@ int main(int argc, char **argv)
 
     fs["Q"] >> Q;
 
-    colorProcessor = new VisionProcessor();
-    stereoProcessor = new StereoProcessor();
-    featureProcessor = new FeatureProcessor();
+    // Initialize all processors. As each processor creates a nodehandle
+    //  internally, this cannot be done before ros::init()
+    colorProcessor.init();
+    stereoProcessor.init();
+    featureProcessor.init();
 
     message_filters::Subscriber<Image> leftCamSub(n, "camera/left/undistorted",
                                                   1);
@@ -236,11 +235,15 @@ int main(int argc, char **argv)
                                                     "camera/bottom/undistorted",
                                                     1);
 
-    Synchronizer<ApproximateTime<Image, Image, Image>> *sync3;
-    Synchronizer<ApproximateTime<Image, Image>> *syncStereo;
+    Synchronizer<ApproximateTime<Image, Image, Image>> sync3(
+                        ApproximateTime<Image, Image, Image>(5), leftCamSub,
+                        rightCamSub, bottomCamSub);
+    Synchronizer<ApproximateTime<Image, Image>> syncStereo(
+                        ApproximateTime<Image, Image>(5), leftCamSub,
+                        rightCamSub);
 
-    //Currently, use command line argument to determine whether or not to use
-    // the bottom camera. Another method should probably be devised.
+    // Fetch the parameter to determine if this node should use the botom
+    //   camera as well.
     ros::NodeHandle privateNH("~");
     bool useBottomCam = false;
     if (!privateNH.getParam("use_bottom_cam", useBottomCam))
@@ -253,19 +256,19 @@ int main(int argc, char **argv)
         ROS_INFO_STREAM(ros::this_node::getName() <<
                         " creating sync with bottom cam");
 
-        sync3 = new Synchronizer<ApproximateTime<Image, Image, Image>>(
-                        ApproximateTime<Image, Image, Image>(5), leftCamSub,
-                        rightCamSub, bottomCamSub);
-        sync3->registerCallback(boost::bind(&threeCamCallback, _1, _2, _3));
+//        sync3 = new Synchronizer<ApproximateTime<Image, Image, Image>>(
+//                        ApproximateTime<Image, Image, Image>(5), leftCamSub,
+//                        rightCamSub, bottomCamSub);
+        sync3.registerCallback(boost::bind(&threeCamCallback, _1, _2, _3));
     }
     else
     {
         ROS_INFO_STREAM(ros::this_node::getName() <<
                         " creating sync without bottom cam");
-        syncStereo = new Synchronizer<ApproximateTime<Image, Image>>(
-                        ApproximateTime<Image, Image>(5), leftCamSub,
-                        rightCamSub);
-        syncStereo->registerCallback(boost::bind(&callback, _1, _2));
+//        syncStereo = new Synchronizer<ApproximateTime<Image, Image>>(
+//                        ApproximateTime<Image, Image>(5), leftCamSub,
+//                        rightCamSub);
+        syncStereo.registerCallback(boost::bind(&callback, _1, _2));
     }
 
     /*
@@ -274,15 +277,11 @@ int main(int argc, char **argv)
      */
     pub = n.advertise<robosub::visionPosArray>("vision/output_default", 1);
 
-    //Create named windows
-    namedWindow(ros::this_node::getName() + " Original");
-    namedWindow(ros::this_node::getName() + " left_mask");
-
     ROS_INFO_STREAM("Init done");
 
     ros::spin();
 
-    if (sync3)
+/*    if (sync3)
     {
         delete sync3;
     }
@@ -290,22 +289,7 @@ int main(int argc, char **argv)
     if (syncStereo)
     {
         delete syncStereo;
-    }
-
-    if (colorProcessor)
-    {
-        delete colorProcessor;
-    }
-
-    if (stereoProcessor)
-    {
-        delete stereoProcessor;
-    }
-
-    if (featureProcessor)
-    {
-        delete featureProcessor;
-    }
-
+    }*/
+    
     return 0;
 }

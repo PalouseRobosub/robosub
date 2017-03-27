@@ -14,7 +14,7 @@
     <arg name="rightImage" default="camera/right" if="$(arg simulated)"/>
     <arg name="bottomImage" default="camera/bottom" if="$(arg simulated)"/>
     
-    <arg name="calibFile" default="$(find robosub)/src/vision/calib/stereo_out_camera_data.xml"/>
+    <arg name="calibFile" default="src/vision/calib/stereo_out_camera_data.xml"/>
 
     <!--Set /visualize_thrusters to false if being simulated.
         This prevents visualization from messing with color detection-->

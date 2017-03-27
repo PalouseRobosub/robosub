@@ -26,6 +26,7 @@ class FeatureProcessor
         FeatureProcessor();
         ~FeatureProcessor();
 
+        void init();
 
         void setNLargest(int nLargest);
         void process(const Mat &leftMask, const Mat &rightMask, const Mat &disp,
@@ -37,7 +38,9 @@ class FeatureProcessor
                      vector<visionPos> &bottomMessages);
 
     private:
-        NodeHandle n;
+        NodeHandle *n;
+
+        bool initialized;
 
         int nLargest;
 
