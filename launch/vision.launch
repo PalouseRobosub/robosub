@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<xml version="1.0"?>
 
 <launch>
 
@@ -9,11 +9,11 @@
     <arg name="leftImage" default="camera/left/undistorted" unless="$(arg simulated)"/>
     <arg name="rightImage" default="camera/right/undistorted" unless="$(arg simulated)"/>
     <arg name="bottomImage" default="camera/bottom/undistorted" unless="$(arg simulated)"/>
-    
+
     <arg name="leftImage" default="camera/left" if="$(arg simulated)"/>
     <arg name="rightImage" default="camera/right" if="$(arg simulated)"/>
     <arg name="bottomImage" default="camera/bottom" if="$(arg simulated)"/>
-    
+
     <arg name="calibFile" default="src/vision/calib/stereo_out_camera_data.xml"/>
 
     <!--Set /visualize_thrusters to false if being simulated.
@@ -45,7 +45,7 @@
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
     </node>
-    
+
     <!-- Green buoy vision detection -->
     <node pkg="robosub" type="vision" name="green_vision" args="$(find robosub)/$(arg calibFile)"  output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/green"/>
@@ -84,7 +84,7 @@
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
     </node>
-    
+
     <!-- Marker Bin vision detection -->
     <node pkg="robosub" type="vision" name="bin_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/bins"/>
