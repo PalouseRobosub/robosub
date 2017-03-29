@@ -1,5 +1,5 @@
 <launch>
     <test test-name="test_thruster_sabertooth" pkg="robosub" type="test_thruster_sabertooth" />
-    <node name="thruster_sabertooth" pkg="robosub" type="delayed_node.sh" args="1 thruster_sabertooth"/>
+    <node name="thruster_sabertooth" pkg="robosub" type="delayed_node.sh" args="2 thruster_sabertooth"/>
     <rosparam command="load" file="$(find robosub)/param/ironman.yaml" />
 </launch>
