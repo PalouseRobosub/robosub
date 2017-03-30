@@ -141,7 +141,7 @@ namespace robosub
     */
     bool ControlSystem::isEnabled(void)
     {
-      return enabled;
+        return enabled;
     }
 
     /**

@@ -25,7 +25,6 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "control");
 
-
     ros::NodeHandle nh;
 
     control_system = new ControlSystem();
@@ -54,9 +53,9 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         control_state_pub.publish(control_system->GetControlStatus());
-        if(isEnabled())
+        if(control_system->isEnabled())
         {
-          pub.publish(control_system->CalculateThrusterMessage());
+            pub.publish(control_system->CalculateThrusterMessage());
         }
         ros::spinOnce();
         r.sleep();
