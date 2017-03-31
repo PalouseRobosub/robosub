@@ -5,8 +5,8 @@
 #include <map>
 #include <algorithm>
 
-StereoProcessor::StereoProcessor()
-    : initialized(false)
+StereoProcessor::StereoProcessor() :
+    initialized(false)
 {
 }
 

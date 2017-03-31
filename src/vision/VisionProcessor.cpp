@@ -4,8 +4,8 @@
 #include <vector>
 #include <map>
 
-VisionProcessor::VisionProcessor()
-    : initialized(false)
+VisionProcessor::VisionProcessor() :
+    initialized(false)
 {
 }
 

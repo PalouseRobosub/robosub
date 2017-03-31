@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <vector>
 
-FeatureProcessor::FeatureProcessor()
-    : initialized(false)
+FeatureProcessor::FeatureProcessor() :
+    initialized(false)
 {
 }
 

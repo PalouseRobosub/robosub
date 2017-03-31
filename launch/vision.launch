@@ -71,7 +71,7 @@
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
     </node>
-    
+
     <!-- Navigate Pass vision detection -->
     <node pkg="robosub" type="vision" name="navigate_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/navigate_pass"/>
