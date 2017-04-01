@@ -19,28 +19,30 @@ void CloseFilter::setParams(XmlRpcValue &params)
     // Width and height must be greater than 1
     if (width < 3)
     {
-        ROS_WARN("Close Filter width param set to below 3. This is invalid, "
-                 << "setting to 3");
+        ROS_WARN_STREAM("Close Filter width param set to below 3. "
+                        << "This is invalid, "
+                        << "setting to 3");
         width = 3;
     }
     if (height < 3)
     {
-        ROS_WARN("Close Filter height param set to below 3. This is invalid, "
-                 << "setting to 3");
+        ROS_WARN_STREAM("Close Filter height param set to below 3. "
+                        << "This is invalid, "
+                        << "setting to 3");
         height = 3;
     }
 
     // Width and height must be odd
     if (width % 2 != 1)
     {
-        ROS_WARN("Close Filter width param is even. This is invalid, "
-                 << "adding one to make it odd.");
+        ROS_WARN_STREAM("Close Filter width param is even. This is invalid, "
+                        << "adding one to make it odd.");
         width++;
     }
     if (height % 2 != 1)
     {
-        ROS_WARN("Close Filter height param is even. This is invalid, "
-                 << "adding one to make it odd.");
+        ROS_WARN_STREAM("Close Filter height param is even. This is invalid, "
+                        << "adding one to make it odd.");
         height++;
     }
 
@@ -87,6 +89,9 @@ void ConvertFilter::setParams(XmlRpcValue &params)
     catch (XmlRpc::XmlRpcException e)
     {
         ROS_FATAL_STREAM("Convert filter params malformed");
+        ROS_FATAL_STREAM("" << ros::this_node::getName() << " threw XmlRpc"
+                         << " exception " << e.getCode() << ": "
+                         << e.getMessage());
         ros::shutdown();
         return;
     }
@@ -200,8 +205,10 @@ void InRangeFilter::setParams(XmlRpcValue &params)
     }
     catch (XmlRpc::XmlRpcException e)
     {
-       ROS_ERROR_STREAM("XmlRpcException code " << e.getCode() <<
-                         ": " << e.getMessage());
+        ROS_FATAL_STREAM("InRange filter params malformed");
+        ROS_FATAL_STREAM("" << ros::this_node::getName() << " threw XmlRpc"
+                         << " exception " << e.getCode() << ": "
+                         << e.getMessage());
        ros::shutdown();
     }
 }
@@ -230,16 +237,16 @@ void MedianBlurFilter::setParams(XmlRpcValue &params)
     //Kernel size must be greater than 1
     if (this->kernelSize < 3)
     {
-        ROS_WARN("Median Blur kernel_size param is less than 3. This is "
-                 << "invalid, setting to 3.");
+        ROS_WARN_STREAM("Median Blur kernel_size param is less than 3. This is "
+                        << "invalid, setting to 3.");
         this->kernelSize = 3;
     }
 
     //Kernel size must be odd
     if (this->kernelSize % 2 != 1)
     {
-        ROS_WARN("Median Blur kernel_size param is even. This is invalid, "
-                 << "adding one to make it odd.");
+        ROS_WARN_STREAM("Median Blur kernel_size param is even. This is "
+                        << "invalid, adding one to make it odd.");
         this->kernelSize++;
     }
 }
@@ -271,27 +278,27 @@ void OpenFilter::setParams(XmlRpcValue &params)
     // Width and height must be greater than 1
     if (width < 3)
     {
-        ROS_WARN("Open Filter width param set to below 3. This is invalid, "
-                 << "setting to 3");
+        ROS_WARN_STREAM("Open Filter width param set to below 3. This is "
+                        << "invalid, setting to 3");
         width = 3;
     }
     if (height < 3)
     {
-        ROS_WARN("Open Filter height param set to below 3. This is invalid, "
-                 << "setting to 3");
+        ROS_WARN_STREAM("Open Filter height param set to below 3. This is "
+                        << "invalid, setting to 3");
         height = 3;
     }
 
     // Width and height must be odd
     if (width % 2 != 1)
     {
-        ROS_WARN("Open Filter width param is even. This is invalid, "
+        ROS_WARN_STREAM("Open Filter width param is even. This is invalid, "
                  << "adding one to make it odd.");
         width++;
     }
     if (height % 2 != 1)
     {
-        ROS_WARN("Open Filter height param is even. This is invalid, "
+        ROS_WARN_STREAM("Open Filter height param is even. This is invalid, "
                  << "adding one to make it odd.");
         height++;
     }
@@ -376,6 +383,7 @@ void OrFilter::setParams(XmlRpcValue &params)
     }
     catch(XmlRpc::XmlRpcException e)
     {
+        ROS_FATAL_STREAM("Or filter params malformed");
         ROS_FATAL_STREAM("" << ros::this_node::getName() << " threw XmlRpc"
                          << " exception " << e.getCode() << ": "
                          << e.getMessage());
