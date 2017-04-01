@@ -98,8 +98,7 @@ void displayFinalImage(const Image::ConstPtr &image,
         ROS_DEBUG_STREAM("Adding circle to image at [" << xPosition << ", " <<
                         yPosition << "], point " << center
                         << " with normalized: [" << point.xPos <<
-                        ", " << point.yPos << "]. Image Size: "
-                        << finalImg.size());
+                        ", " << point.yPos << "].");
 
         circle(finalImg, center, 5, Scalar(255, 255, 255), -1);
         circle(finalImg, center, 4, Scalar(0, 0, 255), -1);

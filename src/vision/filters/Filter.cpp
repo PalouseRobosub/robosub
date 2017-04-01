@@ -19,20 +19,28 @@ void CloseFilter::setParams(XmlRpcValue &params)
     // Width and height must be greater than 1
     if (width < 3)
     {
+        ROS_WARN("Close Filter width param set to below 3. This is invalid, "
+                 << "setting to 3");
         width = 3;
     }
     if (height < 3)
     {
+        ROS_WARN("Close Filter height param set to below 3. This is invalid, "
+                 << "setting to 3");
         height = 3;
     }
 
     // Width and height must be odd
     if (width % 2 != 1)
     {
+        ROS_WARN("Close Filter width param is even. This is invalid, "
+                 << "adding one to make it odd.");
         width++;
     }
     if (height % 2 != 1)
     {
+        ROS_WARN("Close Filter height param is even. This is invalid, "
+                 << "adding one to make it odd.");
         height++;
     }
 
@@ -91,7 +99,7 @@ void ConvertFilter::setParams(XmlRpcValue &params)
     else
     {
         ROS_FATAL_STREAM("Unknown convert code for ConvertFilter. "
-                         << "Consider adding it in ConvertFilter.hpp");
+                         << "Consider adding it in Filter.hpp");
         ros::shutdown();
     }
 }
@@ -136,16 +144,21 @@ void InRangeFilter::setParams(XmlRpcValue &params)
                         ROS_ERROR_STREAM("Invalid parameter type for " <<
                                          i->first << ": " << it->first);
                         return;
-                        break;
                 }
 
                 //Values must be between 0 and 255
                 if (value < 0)
                 {
+                    ROS_WARN_STREAM("InRange " << it->first
+                                    << " value should not be below zero."
+                                    << " Setting to zero.");
                     value = 0;
                 }
                 if (value > 255)
                 {
+                    ROS_WARN_STREAM("InRange " << it->first
+                                    << " value should not be above 255."
+                                    << " Setting to 255.");
                     value = 255;
                 }
 
@@ -217,12 +230,16 @@ void MedianBlurFilter::setParams(XmlRpcValue &params)
     //Kernel size must be greater than 1
     if (this->kernelSize < 3)
     {
+        ROS_WARN("Median Blur kernel_size param is less than 3. This is "
+                 << "invalid, setting to 3.");
         this->kernelSize = 3;
     }
 
     //Kernel size must be odd
     if (this->kernelSize % 2 != 1)
     {
+        ROS_WARN("Median Blur kernel_size param is even. This is invalid, "
+                 << "adding one to make it odd.");
         this->kernelSize++;
     }
 }
@@ -254,20 +271,28 @@ void OpenFilter::setParams(XmlRpcValue &params)
     // Width and height must be greater than 1
     if (width < 3)
     {
+        ROS_WARN("Open Filter width param set to below 3. This is invalid, "
+                 << "setting to 3");
         width = 3;
     }
     if (height < 3)
     {
+        ROS_WARN("Open Filter height param set to below 3. This is invalid, "
+                 << "setting to 3");
         height = 3;
     }
 
     // Width and height must be odd
     if (width % 2 != 1)
     {
+        ROS_WARN("Open Filter width param is even. This is invalid, "
+                 << "adding one to make it odd.");
         width++;
     }
     if (height % 2 != 1)
     {
+        ROS_WARN("Open Filter height param is even. This is invalid, "
+                 << "adding one to make it odd.");
         height++;
     }
 

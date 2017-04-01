@@ -25,6 +25,7 @@ using std::string;
 using std::map;
 using XmlRpc::XmlRpcValue;
 
+// Filter base class. All other filters inherit publicly from this class.
 class Filter
 {
     public:
