@@ -297,6 +297,7 @@ OrFilter::OrFilter()
 
 void OrFilter::setParams(XmlRpcValue &params)
 {
+    //An or filter contains two children, set the child filter's params
     try
     {
         int inRangeCount = 1;
