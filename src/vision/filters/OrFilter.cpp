@@ -1,4 +1,5 @@
 #include "Filter.hpp"
+#include <string>
 
 OrFilter::OrFilter()
 {
