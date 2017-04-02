@@ -4,7 +4,7 @@ add_library(vision_filters CloseFilter.cpp
                            MedianBlurFilter.cpp
                            OpenFilter.cpp
                            OrFilter.cpp
-                           
+
                            FilterSet.cpp
 
 )
