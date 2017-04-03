@@ -5,6 +5,7 @@ rate:
     control: 50
     depth: 10
     imu: 20
+    localization: 30
 thrusters:
     max_thrust: 24
     timeout: 2.0

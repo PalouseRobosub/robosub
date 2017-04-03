@@ -21,7 +21,6 @@ class LinAccelKalmanFilter
 {
 public:
     LinAccelKalmanFilter(ros::NodeHandle *_nh);
-    ~LinAccelKalmanFilter() {}
 
     bool NewAbsLinVel();
     tf::Vector3 GetAbsLinVel();
@@ -55,9 +54,17 @@ private:
     double position_dt;
 
     // Stores state information as column vector.
-    // The transposed state is as follows:
-    // [x_pos, y_pos, z_pos, x_vel, y_vel, z_vel, x_acl, y_acl, z_acl]
-    Matrix<double, 9, 1> x;
+    // The state is as follows:
+    // [ x_pos |
+    // | y_pos |
+    // | z_pos |
+    // | x_vel |
+    // | y_vel |
+    // | z_vel |
+    // | x_acl |
+    // | y_acl |
+    // | z_acl |
+    Vector9d x;
 
     // Stores most current linear acceleration, depth, and position data as
     // column vector as follows:
@@ -68,12 +75,15 @@ private:
     // | x_pos |
     // | y_pos |
     // | z_pos |
-    Matrix<double, 7, 1> obs;
+    Vector7d observation;
 
     // Stores system update matrix.
     Matrix<double, 9, 9> A;
 
-    // Stores state to observation matrix. Loaded from params.
+    // Stores state to observation matrix.
+    // The first 3 rows convert lin acl state to lin acl measurement
+    // The 4th row converts depth state to depth measurement
+    // The final 3 rows convert position state to position measurement
     Matrix<double, 7, 9> H;
 
     // Stores predicted error covariances of the overall filter prediction.

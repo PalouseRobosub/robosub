@@ -1,5 +1,4 @@
 #include "localization/localization_system.hpp"
-
 #include "localization/robosub_sensors.h"
 
 using namespace Eigen;
@@ -16,7 +15,7 @@ int main(int argc, char **argv)
 
     // Set up pose publisher. This is necessary for visualizing in rviz.
     ros::Publisher pose_pub =
-        nh.advertise<geometry_msgs::PoseStamped>("cobalt/pose", 1);
+        nh.advertise<geometry_msgs::PoseStamped>("rviz/cobalt/pose", 1);
 
     // Wait for ros::Time to initialize and return good values.
     while(!ros::Time::isValid())
@@ -44,7 +43,7 @@ int main(int argc, char **argv)
 
     // Load main loop update rate
     double rate;
-    ROS_ERROR_COND(!ros::param::getCached("localization/rate",
+    ROS_ERROR_COND(!ros::param::getCached("rate/localization",
             rate), "Failed to load localization rate.");
     ros::Rate r(rate);
 

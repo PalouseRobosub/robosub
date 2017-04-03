@@ -1,21 +1,21 @@
 #include "localization_system.hpp"
 
 LocalizationSystem::LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors
-        *_sensors) : kf(_nh), pf(_nh)
+        *_sensors):
+    sensors(_sensors),
+    nh(_nh),
+    kalman_filter(_nh),
+    particle_filter(_nh),
+    transform_pub("tf", 1, 2.0)
 {
-    nh = _nh;
-    sensors = _sensors;
-
-    tf_pub = nh->advertise<tf2_msgs::TFMessage>("tf", 1);
-
     start_time = ros::Time::now();
 }
 
 bool LocalizationSystem::ResetFilterCallback(std_srvs::Empty::Request &req,
         std_srvs::Empty::Response &rep)
 {
-    kf.Reset();
-    pf.Reset();
+    kalman_filter.Reset();
+    particle_filter.Reset();
 
     return true;
 }
@@ -24,14 +24,12 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
 {
     geometry_msgs::Vector3Stamped msg;
 
-    tf::Vector3 pos = pf.GetPosition();
+    tf::Vector3 pos = particle_filter.GetPosition();
 
     msg.vector.x = pos[0];
     msg.vector.y = pos[1];
     msg.vector.z = pos[2];
     msg.header.stamp = ros::Time::now();
-
-    publish_tf_message(pos);
 
     return msg;
 }
@@ -40,7 +38,7 @@ geometry_msgs::PoseStamped LocalizationSystem::GetPoseMessage()
 {
     geometry_msgs::PoseStamped msg;
 
-    tf::Vector3 pos = pf.GetPosition();
+    tf::Vector3 pos = particle_filter.GetPosition();
     tf::Quaternion quat = sensors->GetOrientation();
 
     msg.pose.position.x = pos[0];
@@ -63,43 +61,55 @@ void LocalizationSystem::Update()
     // Handle input to filters
     if(sensors->NewDepth())
     {
-        pf.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
-        kf.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
+        particle_filter.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
+        kalman_filter.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
     }
+
     if(sensors->NewHydrophones())
     {
-        pf.InputHydrophones(sensors->GetHydrophones(),
+        particle_filter.InputHydrophones(sensors->GetHydrophones(),
                 sensors->GetHydrophonesDT());
 
-        // Since the pf will obtain the most accurate position estimate after a
-        // hydrophone input, pass that position into the kf now.
-        kf.InputPosition(sensors->GetPosition(), sensors->GetPositionDT());
+        // Since the particle filter will obtain the most accurate position
+        // estimate after a hydrophone input, pass that position into the
+        // kalman filter now.
+        kalman_filter.InputPosition(particle_filter.GetPosition(),
+                particle_filter.GetPositionDT());
     }
+
     if(sensors->NewAbsLinAcl())
     {
-        kf.InputAbsLinAcl(sensors->GetAbsLinAcl(), sensors->GetAbsLinAclDT());
+        kalman_filter.InputAbsLinAcl(sensors->GetAbsLinAcl(),
+                sensors->GetAbsLinAclDT());
     }
+
     if(sensors->NewAbsLinVel())
     {
-        // TODO: Get measure of pf convergence. Only input lin vel when pf
-        // is converged and in agreement with the kf.
+        // TODO: Get measure of particle filter convergence. Only input lin vel
+        // when particle filter is converged and in agreement with the kalman
+        // filter.
         if(ros::Time::now().toSec() - start_time.toSec() > 20.0)
         {
-            pf.InputAbsLinVel(sensors->GetAbsLinVel(),
+            particle_filter.InputAbsLinVel(sensors->GetAbsLinVel(),
                     sensors->GetAbsLinVelDT());
         }
     }
 
     // Input output from filters to sensors class. On the next update the new
-    // data from the kf will be fed to the pf and vice versa.
-    if(kf.NewAbsLinVel())
+    // data from the kalman filter will be fed to the particle filter and vice
+    // versa.
+    if(kalman_filter.NewAbsLinVel())
     {
-            sensors->InputAbsLinVel(kf.GetAbsLinVel());
+        sensors->InputAbsLinVel(kalman_filter.GetAbsLinVel());
     }
-    if(pf.NewPosition())
+
+    if(particle_filter.NewPosition())
     {
-        sensors->InputPosition(pf.GetPosition());
+        sensors->InputPosition(particle_filter.GetPosition());
     }
+
+    tf::Vector3 pos = particle_filter.GetPosition();
+    publish_tf_message(pos);
 }
 
 void LocalizationSystem::publish_tf_message(tf::Vector3 pos)
@@ -121,5 +131,5 @@ void LocalizationSystem::publish_tf_message(tf::Vector3 pos)
     robosub_transform.transform.rotation.w = 1.0;
 
     tm.transforms.push_back(robosub_transform);
-    tf_pub.publish(tm);
+    transform_pub.publish(tm);
 }

@@ -23,7 +23,6 @@ class ParticleFilter
 {
 public:
     ParticleFilter(ros::NodeHandle *_nh);
-    ~ParticleFilter() {}
 
     bool NewPosition();
     tf::Vector3 GetPosition();
@@ -37,9 +36,9 @@ private:
     void initialize();
     void reload_params();
     void publish_point_cloud();
-    Matrix<double, 4, 1> state_to_observation(Matrix<double, 3, 1> state);
-    Matrix<double, 4, 1> add_observation_noise(
-        Matrix<double, 4, 1> particle_obs);
+    Vector4d state_to_observation(Vector3d state);
+    Vector4d add_observation_noise(
+        Vector4d particle_obs);
     void update_particle_states();
     void update_particle_weights();
     void resample_particles();
@@ -75,15 +74,15 @@ private:
     // | x_pos |
     // | y_pos |
     // | z_pos |
-    std::vector<Matrix<double, 3, 1> > particle_states;
-    std::vector<Matrix<double, 3, 1> > last_particle_states;
+    std::vector<Vector3d> particle_states;
+    std::vector<Vector3d> last_particle_states;
 
     // Vector of particle weights
     std::vector<double> particle_weights;
 
-    // This stores the covariances of the observation inputs. Loaded from
-    // params.
-    Matrix<double, 4, 4> observation_covar;
+    // This stores the standard deviations of the observation inputs. Loaded
+    // from params.
+    Matrix<double, 4, 4> observation_stddev;
 
     // This stores the current hydrophone and depth observations as a column
     // vector as follows:
@@ -91,29 +90,29 @@ private:
     // | inclination |
     // | range       |
     // | depth       |
-    Matrix<double, 4, 1> observation;
+    Vector4d observation;
 
     // Stores the initial state of the sub. Loaded from params.
-    Matrix<double, 3, 1> initial_state;
+    Vector3d initial_state;
 
     // This stores the standard deviations of the initial state in order to
     // generate the initial particles. Loaded from params.
-    Matrix<double, 3, 1> initial_distribution;
+    Vector3d initial_distribution;
 
     // This pushes the state forward based on the previous state. Since the
     // state for each particle is only the subs position this is simply an
     // identity matrix.
     Matrix<double, 3, 3> system_update_model;
 
-    // This stores the covariances of the system update step. This adds noise
-    // to the particles during the system update step.
-    Matrix<double, 3, 3> system_update_covar;
+    // This stores the standard deviations of the system update step. This adds
+    // noise to the particles during the system update step.
+    Matrix<double, 3, 3> system_update_stddev;
 
     // This relates the control input to the state. It is currently an
     // identity matrix * dt.
     Matrix<double, 3, 3> control_update_model;
 
     // This stores the inputted linear velocity.
-    Matrix<double, 3, 1> control_input;
+    Vector3d control_input;
 };
 #endif //PARTICLE_FILTER_H

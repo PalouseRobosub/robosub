@@ -1,11 +1,11 @@
 #include "localization/particle_filter.h"
 #include <vector>
 
-ParticleFilter::ParticleFilter(ros::NodeHandle *_nh)
+ParticleFilter::ParticleFilter(ros::NodeHandle *_nh):
+    nh(_nh)
 {
-    nh = _nh;
     particle_cloud_pub =
-        nh->advertise<sensor_msgs::PointCloud>("/localization/particles", 1);
+        nh->advertise<sensor_msgs::PointCloud>("localization/particles", 1);
 
     if(!ros::param::getCached("localization/particle_filter/num_particles",
                 num_particles))
@@ -67,10 +67,6 @@ void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double
     observation(1, 0) = inclination;
     observation(2, 0) = range;
 
-    // Since we don't want to double count control input, zero it out before
-    // calling update.
-    control_input.setZero();
-
     update();
 }
 
@@ -107,8 +103,8 @@ void ParticleFilter::initialize()
     system_update_model.setZero();
     control_input.setZero();
     control_update_model.setZero();
-    system_update_covar.setZero();
-    observation_covar.setZero();
+    system_update_stddev.setZero();
+    observation_stddev.setZero();
     initial_state.setZero();
     observation.setZero();
     initial_distribution.setZero();
@@ -128,10 +124,10 @@ void ParticleFilter::initialize()
 
     reload_params();
 
-    ROS_INFO_STREAM("initial_state:\n" << initial_state);
-    ROS_INFO_STREAM("initial_distribution:\n" << initial_distribution);
-    ROS_INFO_STREAM("system_update_covar:\n" << system_update_covar);
-    ROS_INFO_STREAM("observation_covar:\n" << observation_covar);
+    ROS_DEBUG_STREAM("initial_state:\n" << initial_state);
+    ROS_DEBUG_STREAM("initial_distribution:\n" << initial_distribution);
+    ROS_DEBUG_STREAM("system_update_stddev:\n" << system_update_stddev);
+    ROS_DEBUG_STREAM("observation_stddev:\n" << observation_stddev);
 
     // Set up system update model.
     system_update_model.setIdentity();
@@ -141,10 +137,13 @@ void ParticleFilter::initialize()
     {
         // Randomly generate particle around initial state based on initial
         // gaussian distribution.
-        Matrix<double, 3, 1> s;
-        s(0, 0) = initial_state(0, 0) + (randn() * initial_distribution(0, 0));
-        s(1, 0) = initial_state(1, 0) + (randn() * initial_distribution(1, 0));
-        s(2, 0) = initial_state(2, 0) + (randn() * initial_distribution(2, 0));
+        Vector3d s;
+        s(0, 0) = initial_state(0, 0) + (rand_normal() *
+                initial_distribution(0, 0));
+        s(1, 0) = initial_state(1, 0) + (rand_normal() *
+                initial_distribution(1, 0));
+        s(2, 0) = initial_state(2, 0) + (rand_normal() *
+                initial_distribution(2, 0));
 
         particle_states.push_back(s);
 
@@ -166,62 +165,82 @@ void ParticleFilter::reload_params()
     // Load pinger_depth and set pinger position. Currently the pinger is the
     // origin so the x and y of the pinger position is just 0.
     double pinger_depth = 0.0;
-    ros::param::getCached("hydrophones/pinger/depth", pinger_depth);
+    ROS_FATAL_COND(!ros::param::getCached("hydrophones/pinger/depth",
+                pinger_depth), "hydrophones/pinger/depth failed to load");
     pinger_position[0] = 0.0;
     pinger_position[1] = 0.0;
     pinger_position[2] = pinger_depth;
 
-    ros::param::getCached("localization/particle_filter/initial/x",
-                          initial_state(0, 0));
-    ros::param::getCached("localization/particle_filter/initial/y",
-                          initial_state(1, 0));
-    ros::param::getCached("localization/particle_filter/initial/z",
-                          initial_state(2, 0));
+    ROS_FATAL_COND(
+            !ros::param::getCached("localization/particle_filter/initial/x",
+                initial_state(0, 0)), "localization/particle_filter/initial/x"
+            " failed to load");
+    ROS_FATAL_COND(
+            !ros::param::getCached("localization/particle_filter/initial/y",
+                initial_state(1, 0)), "localization/particle_filter/initial/y"
+            " failed to load");
+    ROS_FATAL_COND(
+            !ros::param::getCached("localization/particle_filter/initial/z",
+                initial_state(2, 0)), "localization/particle_filter/initial/z"
+            " failed to load");
 
-    ros::param::getCached(
-            "localization/particle_filter/initial/x_initial_stddev",
-            initial_distribution(0, 0));
-    ros::param::getCached(
-            "localization/particle_filter/initial/y_initial_stddev",
-            initial_distribution(1, 0));
-    ros::param::getCached(
-            "localization/particle_filter/initial/z_initial_stddev",
-            initial_distribution(2, 0));
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/initial/x_stddev",
+            initial_distribution(0, 0)),
+            "localization/particle_filter/initial/x_stddev failed to load");
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/initial/y_stddev",
+            initial_distribution(1, 0)),
+            "localization/particle_filter/initial/y_stddev failed to load");
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/initial/z_stddev",
+            initial_distribution(2, 0)),
+            "localization/particle_filter/initial/z_stddev failed to load");
 
-    ros::param::getCached(
-            "localization/particle_filter/variances/x_state_update",
-            system_update_covar(0, 0));
-    ros::param::getCached(
-            "localization/particle_filter/variances/y_state_update",
-            system_update_covar(1, 1));
-    ros::param::getCached(
-            "localization/particle_filter/variances/z_state_update",
-            system_update_covar(2, 2));
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/stddev/x_state_update",
+            system_update_stddev(0, 0)),
+            "localization/particle_filter/stddev/x_state_update failed to"
+            " load");
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/stddev/y_state_update",
+            system_update_stddev(1, 1)),
+            "localization/particle_filter/stddev/y_state_update failed to"
+            " load");
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/stddev/z_state_update",
+            system_update_stddev(2, 2)),
+            "localization/particle_filter/stddev/z_state_update failed to"
+            " load");
 
-    ros::param::getCached(
-            "localization/particle_filter/variances/azimuth_measurement",
-            observation_covar(0, 0));
-    ros::param::getCached(
-            "localization/particle_filter/variances/inclination_measurement",
-            observation_covar(1, 1));
-    ros::param::getCached(
-            "localization/particle_filter/variances/range_measurement",
-            observation_covar(2, 2));
-    ros::param::getCached(
-            "localization/particle_filter/variances/depth_measurement",
-            observation_covar(3, 3));
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/stddev/azimuth",
+            observation_stddev(0, 0)),
+            "localization/particle_filter/stddev/azimuth failed to load");
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/stddev/inclination",
+            observation_stddev(1, 1)),
+            "localization/particle_filter/stddev/inclination failed to load");
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/stddev/range",
+            observation_stddev(2, 2)),
+            "localization/particle_filter/stddev/range failed to load");
+    ROS_FATAL_COND(!ros::param::getCached(
+            "localization/particle_filter/stddev/depth",
+            observation_stddev(3, 3)),
+            "localization/particle_filter/stddev/depth failed to load");
 
-    // The params for azimuth and inclination are in degress but internally
-    // azimuth and inclination are radians.
-    observation_covar(0, 0) *= DEG_TO_RAD;
-    observation_covar(1, 1) *= DEG_TO_RAD;
+    // The params for azimuth and inclination are in degrees but internally
+    // azimuth and inclination are in radians.
+    observation_stddev(0, 0) *= DEG_TO_RAD;
+    observation_stddev(1, 1) *= DEG_TO_RAD;
 }
 
 void ParticleFilter::publish_point_cloud()
 {
     // Set up pointcloud message with each point cooresponding to a particle
     // plus an additional weights channel.
-    sensor_msgs::PointCloud pc;
+    sensor_msgs::PointCloud point_cloud;
     sensor_msgs::ChannelFloat32 chan;
     chan.name = "weight";
 
@@ -232,22 +251,21 @@ void ParticleFilter::publish_point_cloud()
         p.y = particle_states[i](1, 0);
         p.z = particle_states[i](2, 0);
 
-        pc.points.push_back(p);
+        point_cloud.points.push_back(p);
 
         chan.values.push_back(particle_weights[i]);
     }
 
-    pc.header.frame_id = "world";
-    pc.channels.push_back(chan);
-    pc.header.stamp = ros::Time::now();
+    point_cloud.header.frame_id = "world";
+    point_cloud.channels.push_back(chan);
+    point_cloud.header.stamp = ros::Time::now();
 
-    particle_cloud_pub.publish(pc);
+    particle_cloud_pub.publish(point_cloud);
 }
 
-Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1>
-        state)
+Vector4d ParticleFilter::state_to_observation(Vector3d state)
 {
-    Matrix<double, 4, 1> obs;
+    Vector4d obs;
 
     // Convert the state coordinates to have the pinger as origin.
     double hx = state(0, 0) - pinger_position[0];
@@ -270,11 +288,11 @@ Matrix<double, 4, 1> ParticleFilter::state_to_observation(Matrix<double, 3, 1>
     return obs;
 }
 
-Matrix<double, 4, 1> ParticleFilter::add_observation_noise(
-    Matrix<double, 4, 1> obs)
+Vector4d ParticleFilter::add_observation_noise(
+    Vector4d obs)
 {
     return obs +
-           (sqrt_elementwise(observation_covar) * randn_mat(obs.rows(), 1));
+           (observation_stddev * randn_mat(obs.rows(), 1));
 }
 
 void ParticleFilter::update_particle_states()
@@ -286,7 +304,7 @@ void ParticleFilter::update_particle_states()
     {
         particle_states[n] = system_update_model * last_particle_states[n] +
             control_update_model * control_input +
-            sqrt_elementwise(system_update_covar) * randn_mat(3, 1);
+            system_update_stddev * randn_mat(3, 1);
     }
 }
 
@@ -297,7 +315,7 @@ void ParticleFilter::update_particle_weights()
     double particle_weights_sum = 0.0;
     for(int n = 0; n < num_particles; n++)
     {
-        Matrix<double, 4, 1> particle_obs;
+        Vector4d particle_obs;
 
         // Obtain a predicted observation based on a particles state.
         particle_obs = state_to_observation(particle_states[n]);
@@ -312,10 +330,8 @@ void ParticleFilter::update_particle_weights()
         particle_weights[n] = 1.0;
         for(unsigned int i = 0; i < observation.rows(); i++)
         {
-            double p = gaussian_prob(observation(i, 0),
-                    std::sqrt(observation_covar(i, i)), particle_obs(i, 0));
-
-            particle_weights[n] *= p;
+            particle_weights[n] *= gaussian_prob(observation(i, 0),
+                    observation_stddev(i, i), particle_obs(i, 0));
         }
 
         // Accumulate sum.
@@ -341,14 +357,14 @@ void ParticleFilter::resample_particles()
 {
     // Resample particles
     // TODO: Explain
-    std::vector<Matrix<double, 3, 1> > p;
-    int index = static_cast<int>(randu() * num_particles);
+    std::vector<Vector3d> p;
+    int index = static_cast<int>(rand_uniform() * num_particles);
     double beta = 0.0;
     double max_w = *(std::max_element(std::begin(particle_weights),
                 std::end(particle_weights)));
     for(int i = 0; i < num_particles; i++)
     {
-        beta += randu() * 2.0 * max_w;
+        beta += rand_uniform() * 2.0 * max_w;
 
         while(beta > particle_weights[index])
         {
@@ -363,7 +379,7 @@ void ParticleFilter::resample_particles()
 
 void ParticleFilter::estimate_state()
 {
-    Matrix<double, 3, 1> est_state;
+    Vector3d est_state;
 
     // Estimate state from all particles by averaging.
     // Note: Do not use a weighted average here since the resampling step will
@@ -411,6 +427,9 @@ void ParticleFilter::predict()
 void ParticleFilter::update()
 {
     reload_params();
+
+    // Since we don't want to double count control input, zero it out.
+    control_input.setZero();
 
     update_particle_states();
 

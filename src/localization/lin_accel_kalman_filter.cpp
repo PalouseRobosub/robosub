@@ -1,8 +1,8 @@
 #include "localization/lin_accel_kalman_filter.h"
 
-LinAccelKalmanFilter::LinAccelKalmanFilter(ros::NodeHandle *_nh)
+LinAccelKalmanFilter::LinAccelKalmanFilter(ros::NodeHandle *_nh) :
+    nh(_nh)
 {
-    nh = _nh;
     initialize();
 }
 
@@ -25,9 +25,9 @@ double LinAccelKalmanFilter::GetAbsLinVelDT()
 
 void LinAccelKalmanFilter::InputPosition(tf::Vector3 position, double dt)
 {
-    obs(4, 0) = position[0];
-    obs(5, 0) = position[1];
-    obs(6, 0) = position[2];
+    observation(4, 0) = position[0];
+    observation(5, 0) = position[1];
+    observation(6, 0) = position[2];
 
     position_dt = dt;
 
@@ -36,18 +36,19 @@ void LinAccelKalmanFilter::InputPosition(tf::Vector3 position, double dt)
 
 void LinAccelKalmanFilter::InputAbsLinAcl(tf::Vector3 lin_acl, double dt)
 {
-    obs(0, 0) = lin_acl[0];
-    obs(1, 0) = lin_acl[1];
-    obs(2, 0) = lin_acl[2];
+    observation(0, 0) = lin_acl[0];
+    observation(1, 0) = lin_acl[1];
+    observation(2, 0) = lin_acl[2];
 
     update_A(dt);
 
+    // Run kalman filter update on abs linear acl input.
     update();
 }
 
 void LinAccelKalmanFilter::InputDepth(double depth, double dt)
 {
-    obs(3, 0) = depth;
+    observation(3, 0) = depth;
 }
 
 void LinAccelKalmanFilter::Reset()
@@ -66,7 +67,7 @@ void LinAccelKalmanFilter::initialize()
     Q.setZero();
     H.setZero();
     R.setZero();
-    obs.setZero();
+    observation.setZero();
 
     // Set state to observation matrix.
     // These entries convert lin acl state to lin acl measurement
@@ -87,19 +88,19 @@ void LinAccelKalmanFilter::initialize()
     getParamCachedMatrix("localization/kalman_filter/P", P);
     reload_params();
 
-    ROS_INFO_STREAM("H:\n" << H);
-    ROS_INFO_STREAM("Q:\n" << Q);
-    ROS_INFO_STREAM("R:\n" << R);
+    ROS_DEBUG_STREAM("H:\n" << H);
+    ROS_DEBUG_STREAM("Q:\n" << Q);
+    ROS_DEBUG_STREAM("R:\n" << R);
 
-    ROS_INFO_STREAM("P initial:\n" << P);
-    ROS_INFO_STREAM("X initial:\n" << x);
+    ROS_DEBUG_STREAM("P initial:\n" << P);
+    ROS_DEBUG_STREAM("X initial:\n" << x);
 
     // Intialize output lin velocity metadata.
     new_abs_lin_velocity = false;
     abs_lin_velocity_dt = 0.0;
     last_abs_lin_velocity_time = ros::Time::now();
 
-    // Intialize inputted position metadata.
+    // Intialize input position metadata.
     new_position = false;
     position_dt = 0.0;
 
@@ -127,21 +128,22 @@ void LinAccelKalmanFilter::run_filter()
 {
     // If a position message has been inputted tell the filter we have taken
     // into account the position information.
+    // Else if no position message has been inputted, tell the filter to ignore
+    // the position portion of the observation matrix. To do this set the
+    // position measurement variances extremely high. R is reloaded every
+    // iteration so no need to bother resetting R to its previous value.
     if(new_position)
     {
         new_position = false;
     }
-    // If no position message has been inputted, tell the filter to ignore the
-    // position portion of the obs matrix. To do this set the position
-    // measurement variances extremely high. R is reloaded every iteration so
-    // no need bother resetting R to its previous value.
     else
     {
         R(4, 4) = R(5, 5) = R(6, 6) = 100000000000000000.0;
     }
 
     // Start of kalman filter main loop.
-    // TODO: Explain sources of kfilter equation.
+    // For a good reference on the general kalman filter equations see here:
+    // http://www.ece.montana.edu/seniordesign/archive/SP14/UnderwaterNavigation/kalman_filter.html
     PRINT_THROTTLE(ROS_DEBUG_STREAM("**Kalman Main Loop**"););
 
     // Push state forward in time.
@@ -153,18 +155,15 @@ void LinAccelKalmanFilter::run_filter()
     PRINT_THROTTLE(ROS_DEBUG_STREAM("P predicted:\n" << P););
 
     // Get error between sensor inputs and predicted based on current state.
-    Matrix<double, 7, 1> y;
-    y = obs - H * x;
+    Vector7d y = observation - H * x;
     PRINT_THROTTLE(ROS_DEBUG_STREAM("y:\n" << y););
 
-    // Use observed covariance matrix (P) to modify known sensor noises.
-    Matrix<double, 7, 7> s;
-    s = H * P * H.transpose() + R;
+    // Use observation covariance matrix (P) to modify known sensor noises.
+    Matrix<double, 7, 7> s = H * P * H.transpose() + R;
     PRINT_THROTTLE(ROS_DEBUG_STREAM("s:\n" << s););
 
     // Find kalman gain.
-    Matrix<double, 9, 7> k;
-    k = P * H.transpose() * s.inverse();
+    Matrix<double, 9, 7> k = P * H.transpose() * s.inverse();
     PRINT_THROTTLE(ROS_DEBUG_STREAM("k:\n" << k););
 
     // Update predicted state with kalman gain and error between sensors and
@@ -175,8 +174,6 @@ void LinAccelKalmanFilter::run_filter()
     // Update predicted covariances with kalman gain.
     P = (Matrix<double, 9, 9>::Identity() - k * H) * P;
     PRINT_THROTTLE(ROS_DEBUG_STREAM("P corrected:\n" << P););
-
-    // End of kalman filter main loop.
 
     // Set necessary linear velocity information.
     new_abs_lin_velocity = true;

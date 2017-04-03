@@ -15,9 +15,10 @@
 #include "std_srvs/Empty.h"
 #include "tf2_msgs/TFMessage.h"
 
-#include "localization/robosub_sensors.h"
 #include "localization/lin_accel_kalman_filter.h"
 #include "localization/particle_filter.h"
+#include "localization/robosub_sensors.h"
+#include "utility/ThrottledPublisher.hpp"
 
 using namespace Eigen;
 
@@ -37,19 +38,17 @@ public:
 private:
     void publish_tf_message(tf::Vector3 pos);
 
-    // Filter objects
-    LinAccelKalmanFilter kf;
-    ParticleFilter pf;
-
-    // Publisher for tf data
-    ros::Publisher tf_pub;
-
     // Objects inputted from localization main
     RobosubSensors *sensors;
     ros::NodeHandle *nh;
 
-    ros::Time start_time;
+    // Filter objects
+    LinAccelKalmanFilter kalman_filter;
+    ParticleFilter particle_filter;
 
-public:
+    // Publisher for tf data
+    rs::ThrottledPublisher<tf2_msgs::TFMessage> transform_pub;
+
+    ros::Time start_time;
 };
 #endif //LOCALIZATION_SYSTEM_HPP

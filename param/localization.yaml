@@ -1,20 +1,19 @@
 localization:
-    rate: 40.0
     particle_filter:
         num_particles: 2000
         initial:
             x: -31.0
             y: -21.0
             z: -2.0
-            x_initial_stddev: 5.0
-            y_initial_stddev: 5.0
-            z_initial_stddev: 5.0
-        variances:
+            x_stddev: 5.0
+            y_stddev: 5.0
+            z_stddev: 5.0
+        stddev:
             # measurement covariance matrix
-            azimuth_measurement: 0.05
-            inclination_measurement: 0.05
-            range_measurement: 0.05
-            depth_measurement: 0.05
+            azimuth: 0.05
+            inclination: 0.05
+            range: 0.05
+            depth: 0.05
 
             # state update covariance matrix
             x_state_update: 0.1
