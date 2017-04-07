@@ -13,11 +13,22 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include <vector>
+#include <string>
+
+#include <XmlRpcValue.h>
+#include <XmlRpcException.h>
+
+#include <boost/algorithm/string.hpp>
+
+#include "feature_processors/FeatureType.hpp"
 
 using namespace cv;
 using std::vector;
+using std::string;
 using ros::NodeHandle;
 using robosub::visionPos;
+using XmlRpc::XmlRpcValue;
+using XmlRpc::XmlRpcException;
 
 
 class FeatureProcessor
@@ -28,7 +39,6 @@ class FeatureProcessor
 
         void init();
 
-        void setNLargest(int nLargest);
         void process(const Mat &leftMask, const Mat &rightMask, const Mat &disp,
                      const Mat &_3dImg, vector<visionPos> &messages);
 
@@ -39,13 +49,10 @@ class FeatureProcessor
 
     private:
         NodeHandle *n;
-
         bool initialized;
 
-        int nLargest;
-
-        static bool compareContourAreas(vector<Point> contour1,
-                                 vector<Point> contour2);
+        FeatureType *type;
+        bool updateType();
 };
 
 #endif //FEATUREPROCESSOR_HPP

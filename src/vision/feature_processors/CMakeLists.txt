@@ -1,0 +1,1 @@
+add_library(feature_processors CentroidProcessor.cpp)

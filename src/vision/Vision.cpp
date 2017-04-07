@@ -128,8 +128,6 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     /////  Feature Processing  /////
 
     //Send information to feature processing
-    featureProcessor.setNLargest(nLargest);
-
     vector<visionPos> messages;
     Mat copy_left = leftProcessed.clone();
     Mat copy_right = rightProcessed.clone();
@@ -172,8 +170,6 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
 
     /////  Feature Processing  /////
     //Send information to feature processing
-    featureProcessor.setNLargest(nLargest);
-
     vector<visionPos> stereoMessages;
     vector<visionPos> bottomMessages;
     Mat copy_left = leftProcessed.clone();
