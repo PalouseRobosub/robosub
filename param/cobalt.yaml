@@ -4,7 +4,7 @@ ports:
 rate:
     control: 50
     depth: 10
-    sensor: 20
+    imu: 20
 thrusters:
     max_thrust: 24
     timeout: 2.0

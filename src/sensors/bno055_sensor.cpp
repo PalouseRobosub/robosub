@@ -290,9 +290,9 @@ int main(int argc, char **argv)
      * Enter the main ROS loop.
      */
     int rate;
-    if (!nh.getParam("rate/sensor", rate))
+    if (!nh.getParam("rate/imu", rate))
     {
-        ROS_WARN("Failed to load sensor node rate. Falling back to 20Hz.");
+        ROS_WARN("Failed to load BNO055 node rate. Falling back to 20Hz.");
         rate = 20;
     }
     ros::Rate r(rate);
