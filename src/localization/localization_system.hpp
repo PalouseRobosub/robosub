@@ -25,7 +25,7 @@ using namespace Eigen;
 class LocalizationSystem
 {
 public:
-    LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors *_sensors);
+    LocalizationSystem(ros::NodeHandle &_nh, RobosubSensors &_sensors);
 
     bool ResetFilterCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &rep);
@@ -39,8 +39,8 @@ private:
     void publish_tf_message(tf::Vector3 pos);
 
     // Objects inputted from localization main
-    RobosubSensors *sensors;
-    ros::NodeHandle *nh;
+    RobosubSensors &sensors;
+    ros::NodeHandle &nh;
 
     // Filter objects
     LinAccelKalmanFilter kalman_filter;

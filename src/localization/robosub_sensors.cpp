@@ -1,6 +1,13 @@
 #include "localization/robosub_sensors.h"
 
-RobosubSensors::RobosubSensors()
+RobosubSensors::RobosubSensors() :
+    rel_lin_acl(0.0, 0.0, 0.0),
+    depth(0.0),
+    hydrophones(0.0, 0.0, 0.0),
+    orientation(0.0, 0.0, 0.0, 1.0),
+    abs_lin_acl(0.0, 0.0, 0.0),
+    abs_lin_vel(0.0, 0.0, 0.0),
+    position(0.0, 0.0, 0.0)
 {
     new_rel_lin_acl = false;
     new_depth = false;
@@ -22,15 +29,6 @@ RobosubSensors::RobosubSensors()
     orientation_dt = 0.0;
     abs_lin_vel_dt = 0.0;
     position_dt = 0.0;
-
-    rel_lin_acl[0] = rel_lin_acl[1] = rel_lin_acl[2] = 0.0;
-    depth = 0.0;
-    hydrophones[0] = hydrophones[1] = hydrophones[2] = 0.0;
-    orientation[0] = orientation[1] = orientation[2] = 0.0;
-    orientation[3] = 1.0;
-    abs_lin_acl[0] = abs_lin_acl[1] = abs_lin_acl[2] = 0.0;
-    abs_lin_vel[0] = abs_lin_vel[1] = abs_lin_vel[2] = 0.0;
-    position[0] = position[1] = position[2] = 0.0;
 }
 
 void RobosubSensors::InputRelLinAcl(const
@@ -55,11 +53,19 @@ void RobosubSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
 void RobosubSensors::InputHydrophones(const
         robosub::PositionArrayStamped::ConstPtr &msg)
 {
-    hydrophones = tf::Vector3(msg->positions[0].position.x,
-            msg->positions[0].position.y, msg->positions[0].position.z);
-    hydrophones_dt = (msg->header.stamp - last_hydrophones_time).toSec();
-    new_hydrophones = true;
-    last_hydrophones_time = msg->header.stamp;
+    if(msg->positions.size())
+    {
+        hydrophones = tf::Vector3(msg->positions[0].position.x,
+                msg->positions[0].position.y, msg->positions[0].position.z);
+        hydrophones_dt = (msg->header.stamp - last_hydrophones_time).toSec();
+        new_hydrophones = true;
+        last_hydrophones_time = msg->header.stamp;
+    }
+    else
+    {
+        ROS_INFO("Received hydrophone message with empty list (this usually"
+            "indicates invalid hydrophone data).");
+    }
 }
 
 void RobosubSensors::InputOrientation(const

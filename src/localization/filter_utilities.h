@@ -87,7 +87,11 @@ bool getParamCachedMatrix(std::string param_name,
             }
             else
             {
-                ROS_FATAL_STREAM("input is not an int or double");
+                // See here for Type decoding: https://goo.gl/X7ey2d
+                ROS_FATAL_STREAM("param " << param_name << " contains a" <<
+                        " non-integer or non-double value (row: " << i
+                        << " column: " << j << "): " << row[j] << " (type: " <<
+                        row[j].getType() << ")");
                 exit(1);
             }
         }

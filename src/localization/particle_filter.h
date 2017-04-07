@@ -22,7 +22,7 @@ using namespace filter_utilities;
 class ParticleFilter
 {
 public:
-    ParticleFilter(ros::NodeHandle *_nh);
+    ParticleFilter(ros::NodeHandle &_nh);
 
     bool NewPosition();
     tf::Vector3 GetPosition();
@@ -47,7 +47,7 @@ private:
     void update();
 
     // Nodehandle received from localization_system
-    ros::NodeHandle *nh;
+    ros::NodeHandle &nh;
 
     // Publisher for point cloud of particles.
     ros::Publisher particle_cloud_pub;

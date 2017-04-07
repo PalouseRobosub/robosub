@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     }
 
     RobosubSensors sensors;
-    LocalizationSystem loc_system(&nh, &sensors);
+    LocalizationSystem loc_system(nh, sensors);
 
     ros::ServiceServer reset_filter_service =
         nh.advertiseService("localization/reset",

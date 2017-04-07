@@ -20,7 +20,7 @@ using namespace filter_utilities;
 class LinAccelKalmanFilter
 {
 public:
-    LinAccelKalmanFilter(ros::NodeHandle *_nh);
+    LinAccelKalmanFilter(ros::NodeHandle &_nh);
 
     bool NewAbsLinVel();
     tf::Vector3 GetAbsLinVel();
@@ -38,7 +38,7 @@ private:
     void update();
 
     // Nodehandle received from localization_system
-    ros::NodeHandle *nh;
+    ros::NodeHandle &nh;
 
     // Number of times update step has been run.
     int num_iterations;

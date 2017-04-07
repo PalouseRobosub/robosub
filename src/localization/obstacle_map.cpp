@@ -4,13 +4,12 @@
 
 namespace robosub
 {
-    ObstacleMap::ObstacleMap(ros::NodeHandle *nh)
+    ObstacleMap::ObstacleMap(ros::NodeHandle _nh) :
+        nh(_nh)
     {
-        obstacle_sub = nh->subscribe("obstacles/positions", 1,
-                &ObstacleMap::obstacle_position_callback, this);
     }
 
-    void ObstacleMap::obstacle_position_callback(const
+    void ObstacleMap::InputPositionCallback(const
             robosub::ObstaclePosArray::ConstPtr &msg)
     {
         for(unsigned int i = 0; i < msg->data.size(); i++)

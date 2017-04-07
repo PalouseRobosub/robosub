@@ -1,11 +1,11 @@
 #include "localization/particle_filter.h"
 #include <vector>
 
-ParticleFilter::ParticleFilter(ros::NodeHandle *_nh):
+ParticleFilter::ParticleFilter(ros::NodeHandle &_nh):
     nh(_nh)
 {
     particle_cloud_pub =
-        nh->advertise<sensor_msgs::PointCloud>("localization/particles", 1);
+        nh.advertise<sensor_msgs::PointCloud>("localization/particles", 1);
 
     if(!ros::param::getCached("localization/particle_filter/num_particles",
                 num_particles))

@@ -1,13 +1,14 @@
 #include "localization_system.hpp"
 
-LocalizationSystem::LocalizationSystem(ros::NodeHandle *_nh, RobosubSensors
-        *_sensors):
+LocalizationSystem::LocalizationSystem(ros::NodeHandle &_nh, RobosubSensors
+        &_sensors):
     sensors(_sensors),
     nh(_nh),
     kalman_filter(_nh),
     particle_filter(_nh),
     transform_pub("tf", 1, 2.0)
 {
+
     start_time = ros::Time::now();
 }
 
@@ -39,7 +40,7 @@ geometry_msgs::PoseStamped LocalizationSystem::GetPoseMessage()
     geometry_msgs::PoseStamped msg;
 
     tf::Vector3 pos = particle_filter.GetPosition();
-    tf::Quaternion quat = sensors->GetOrientation();
+    tf::Quaternion quat = sensors.GetOrientation();
 
     msg.pose.position.x = pos[0];
     msg.pose.position.y = pos[1];
@@ -59,16 +60,16 @@ geometry_msgs::PoseStamped LocalizationSystem::GetPoseMessage()
 void LocalizationSystem::Update()
 {
     // Handle input to filters
-    if(sensors->NewDepth())
+    if(sensors.NewDepth())
     {
-        particle_filter.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
-        kalman_filter.InputDepth(sensors->GetDepth(), sensors->GetDepthDT());
+        particle_filter.InputDepth(sensors.GetDepth(), sensors.GetDepthDT());
+        kalman_filter.InputDepth(sensors.GetDepth(), sensors.GetDepthDT());
     }
 
-    if(sensors->NewHydrophones())
+    if(sensors.NewHydrophones())
     {
-        particle_filter.InputHydrophones(sensors->GetHydrophones(),
-                sensors->GetHydrophonesDT());
+        particle_filter.InputHydrophones(sensors.GetHydrophones(),
+                sensors.GetHydrophonesDT());
 
         // Since the particle filter will obtain the most accurate position
         // estimate after a hydrophone input, pass that position into the
@@ -77,21 +78,26 @@ void LocalizationSystem::Update()
                 particle_filter.GetPositionDT());
     }
 
-    if(sensors->NewAbsLinAcl())
+    if(sensors.NewAbsLinAcl())
     {
-        kalman_filter.InputAbsLinAcl(sensors->GetAbsLinAcl(),
-                sensors->GetAbsLinAclDT());
+        kalman_filter.InputAbsLinAcl(sensors.GetAbsLinAcl(),
+                sensors.GetAbsLinAclDT());
     }
 
-    if(sensors->NewAbsLinVel())
+    if(sensors.NewAbsLinVel())
     {
-        // TODO: Get measure of particle filter convergence. Only input lin vel
-        // when particle filter is converged and in agreement with the kalman
-        // filter.
+        // Since the particle filter takes some time to converge and is passing
+        // positions to the kalman filter during that time, we cannot assume
+        // that the linear velocity output from the kalman filter is accurate.
+        // To alleviate this just delay the linear velocity from the kalman
+        // filter from being input to the particle filter until things are
+        // converged and stable.
+        // TODO: Get measure of particle filter convergence so we don't have to
+        // have a magic number here (or just parameterize the delay).
         if(ros::Time::now().toSec() - start_time.toSec() > 20.0)
         {
-            particle_filter.InputAbsLinVel(sensors->GetAbsLinVel(),
-                    sensors->GetAbsLinVelDT());
+            particle_filter.InputAbsLinVel(sensors.GetAbsLinVel(),
+                    sensors.GetAbsLinVelDT());
         }
     }
 
@@ -100,12 +106,12 @@ void LocalizationSystem::Update()
     // versa.
     if(kalman_filter.NewAbsLinVel())
     {
-        sensors->InputAbsLinVel(kalman_filter.GetAbsLinVel());
+        sensors.InputAbsLinVel(kalman_filter.GetAbsLinVel());
     }
 
     if(particle_filter.NewPosition())
     {
-        sensors->InputPosition(particle_filter.GetPosition());
+        sensors.InputPosition(particle_filter.GetPosition());
     }
 
     tf::Vector3 pos = particle_filter.GetPosition();
