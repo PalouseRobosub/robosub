@@ -28,11 +28,31 @@ StereoCalibrator *stereoCalib;
 void callback(const WFOVImage::ConstPtr &rightImg,
               const WFOVImage::ConstPtr &leftImg)
 {
+    ros::NodeHandle nh("~");
+
     Mat rview = toCvShare(rightImg->image, rightImg,
                          sensor_msgs::image_encodings::BGR8)->image;
 
     Mat lview = toCvShare(leftImg->image, leftImg,
                          sensor_msgs::image_encodings::BGR8)->image;
+
+    Mat cropMask = Mat::zeros(rview.rows, rview.cols, CV_8UC1);
+    int cropRadius = 400;
+    if (!nh.getParamCached("cropRadius", cropRadius))
+    {
+        ROS_WARN_ONCE("Could not get cropRadius parameter, defaulting to 400."
+                      " (This will print only once)");
+    }
+
+    circle(cropMask, Point(rview.size().width / 2, rview.size().height),
+           cropRadius, Scalar(255, 255, 255), -1, 8, 0);
+    //Rect roi(100, 100, rview.size().width - 200, rview.size().width - 200);
+
+    //rview = rview(roi);
+    //lview = lview(roi);
+
+    rview.copyTo(rview, cropMask);
+    lview.copyTo(lview, cropMask);
 
     ros::Duration timeDelta;
 
