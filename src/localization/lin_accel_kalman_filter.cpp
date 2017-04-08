@@ -23,7 +23,8 @@ double LinAccelKalmanFilter::GetAbsLinVelDT()
     return abs_lin_velocity_dt;
 }
 
-void LinAccelKalmanFilter::InputPosition(const tf::Vector3 position, const double dt)
+void LinAccelKalmanFilter::InputPosition(const tf::Vector3 position, const
+        double dt)
 {
     observation(4, 0) = position[0];
     observation(5, 0) = position[1];
@@ -34,7 +35,8 @@ void LinAccelKalmanFilter::InputPosition(const tf::Vector3 position, const doubl
     new_position = true;
 }
 
-void LinAccelKalmanFilter::InputAbsLinAcl(const tf::Vector3 lin_acl, const double dt)
+void LinAccelKalmanFilter::InputAbsLinAcl(const tf::Vector3 lin_acl, const
+        double dt)
 {
     observation(0, 0) = lin_acl[0];
     observation(1, 0) = lin_acl[1];

@@ -314,7 +314,8 @@ void ParticleFilter::update_particle_weights()
         particle_obs = state_to_observation(particle_states[n]);
 
         // Add noise to predicted observation.
-        particle_obs += (observation_stddev * randn_mat(particle_obs.rows(), 1));
+        particle_obs += (observation_stddev *
+                randn_mat(particle_obs.rows(), 1));
 
         // Calculate particle weights using the gaussian probability
         // distribution function for each observation.
