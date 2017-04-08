@@ -1,3 +1,8 @@
+features:
+    type: "CENTROID"
+    params:
+        nLargest: 1
+
 filters:
     - {Convert: {code: "BGR2HSV"}}
     - {MedianBlur: {kernel_size: 3}}
