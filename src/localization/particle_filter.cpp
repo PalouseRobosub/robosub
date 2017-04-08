@@ -33,7 +33,7 @@ double ParticleFilter::GetPositionDT()
     return estimated_position_dt;
 }
 
-void ParticleFilter::InputDepth(const double depth, const double dt)
+void ParticleFilter::InputDepth(const double depth)
 {
     observation(3, 0) = depth;
 }
@@ -288,13 +288,6 @@ Vector4d ParticleFilter::state_to_observation(Vector3d state)
     return obs;
 }
 
-Vector4d ParticleFilter::add_observation_noise(
-    Vector4d obs)
-{
-    return obs +
-           (observation_stddev * randn_mat(obs.rows(), 1));
-}
-
 void ParticleFilter::update_particle_states()
 {
     // Update each particle state from the previous state based on the system
@@ -321,7 +314,7 @@ void ParticleFilter::update_particle_weights()
         particle_obs = state_to_observation(particle_states[n]);
 
         // Add noise to predicted observation.
-        particle_obs = add_observation_noise(particle_obs);
+        particle_obs += (observation_stddev * randn_mat(particle_obs.rows(), 1));
 
         // Calculate particle weights using the gaussian probability
         // distribution function for each observation.
@@ -355,25 +348,35 @@ void ParticleFilter::update_particle_weights()
 
 void ParticleFilter::resample_particles()
 {
-    // Resample particles
-    // TODO: Explain
-    std::vector<Vector3d> p;
+    // Generate N new particles by drawing, with replacement, from the current
+    // set of particles. Particles are selected conditionally with probability
+    // based on their (previously normalized) weights. In the end the new
+    // particles will satisfy a binomial distribution, that is, a particle with
+    // weight W will appear in the new set approximately W*N times. Intuitively
+    // the goal of this step is to concentrate particles in the most likely
+    // locations for the sub to be in the iteration, increasing the accuracy of
+    // the filter.
+
+    std::vector<Vector3d> selected_particles;
+
     int index = static_cast<int>(rand_uniform() * num_particles);
     double beta = 0.0;
-    double max_w = *(std::max_element(std::begin(particle_weights),
+    double max_weight = *(std::max_element(std::begin(particle_weights),
                 std::end(particle_weights)));
+
     for(int i = 0; i < num_particles; i++)
     {
-        beta += rand_uniform() * 2.0 * max_w;
+        beta += rand_uniform() * 2.0 * max_weight;
 
         while(beta > particle_weights[index])
         {
             beta -= particle_weights[index];
             index = (index + 1) % num_particles;
         }
-        p.push_back(particle_states[index]);
+        selected_particles.push_back(particle_states[index]);
     }
-    particle_states = p;
+
+    particle_states = selected_particles;
     last_particle_states = particle_states;
 }
 

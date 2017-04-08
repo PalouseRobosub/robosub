@@ -4,7 +4,7 @@
 
 namespace robosub
 {
-    ObstacleMap::ObstacleMap(ros::NodeHandle _nh) :
+    ObstacleMap::ObstacleMap(ros::NodeHandle &_nh) :
         nh(_nh)
     {
     }

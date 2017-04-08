@@ -27,7 +27,7 @@ public:
     bool NewPosition();
     tf::Vector3 GetPosition();
     double GetPositionDT();
-    void InputDepth(const double depth, const double dt);
+    void InputDepth(const double depth);
     void InputHydrophones(const tf::Vector3 position, const double dt);
     void InputAbsLinVel(const tf::Vector3 lin_vel, const double dt);
     void Reset();

@@ -25,9 +25,9 @@ public:
     bool NewAbsLinVel();
     tf::Vector3 GetAbsLinVel();
     double GetAbsLinVelDT();
-    void InputPosition(tf::Vector3 position, double dt);
-    void InputAbsLinAcl(tf::Vector3 lin_acl, double dt);
-    void InputDepth(double depth, double dt);
+    void InputPosition(const tf::Vector3 position, const double dt);
+    void InputAbsLinAcl(const tf::Vector3 lin_acl, const double dt);
+    void InputDepth(const double depth);
     void Reset();
 
 private:

@@ -1,6 +1,24 @@
 #include "localization/robosub_sensors.h"
 
 RobosubSensors::RobosubSensors() :
+    new_rel_lin_acl(false),
+    new_depth(false),
+    new_hydrophones(false),
+    new_orientation(false),
+    new_abs_lin_vel(false),
+    new_position(false),
+    last_rel_lin_acl_time(ros::Time::now()),
+    last_depth_time(ros::Time::now()),
+    last_hydrophones_time(ros::Time::now()),
+    last_orientation_time(ros::Time::now()),
+    last_abs_lin_vel_time(ros::Time::now()),
+    last_position_time(ros::Time::now()),
+    rel_lin_acl_dt(0.0),
+    depth_dt(0.0),
+    hydrophones_dt(0.0),
+    orientation_dt(0.0),
+    abs_lin_vel_dt(0.0),
+    position_dt(0.0),
     rel_lin_acl(0.0, 0.0, 0.0),
     depth(0.0),
     hydrophones(0.0, 0.0, 0.0),
@@ -9,26 +27,6 @@ RobosubSensors::RobosubSensors() :
     abs_lin_vel(0.0, 0.0, 0.0),
     position(0.0, 0.0, 0.0)
 {
-    new_rel_lin_acl = false;
-    new_depth = false;
-    new_hydrophones = false;
-    new_orientation = false;
-    new_abs_lin_vel = false;
-    new_position = false;
-
-    last_rel_lin_acl_time = ros::Time::now();
-    last_depth_time = ros::Time::now();
-    last_hydrophones_time = ros::Time::now();
-    last_orientation_time = ros::Time::now();
-    last_abs_lin_vel_time = ros::Time::now();
-    last_position_time = ros::Time::now();
-
-    rel_lin_acl_dt = 0.0;
-    depth_dt = 0.0;
-    hydrophones_dt = 0.0;
-    orientation_dt = 0.0;
-    abs_lin_vel_dt = 0.0;
-    position_dt = 0.0;
 }
 
 void RobosubSensors::InputRelLinAcl(const
@@ -63,7 +61,7 @@ void RobosubSensors::InputHydrophones(const
     }
     else
     {
-        ROS_INFO("Received hydrophone message with empty list (this usually"
+        ROS_WARN("Received hydrophone message with empty list (this usually"
             "indicates invalid hydrophone data).");
     }
 }

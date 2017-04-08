@@ -6,10 +6,9 @@ LocalizationSystem::LocalizationSystem(ros::NodeHandle &_nh, RobosubSensors
     nh(_nh),
     kalman_filter(_nh),
     particle_filter(_nh),
-    transform_pub("tf", 1, 2.0)
+    transform_pub("tf", 1, 2.0),
+    start_time(ros::Time::now())
 {
-
-    start_time = ros::Time::now();
 }
 
 bool LocalizationSystem::ResetFilterCallback(std_srvs::Empty::Request &req,
@@ -62,8 +61,8 @@ void LocalizationSystem::Update()
     // Handle input to filters
     if(sensors.NewDepth())
     {
-        particle_filter.InputDepth(sensors.GetDepth(), sensors.GetDepthDT());
-        kalman_filter.InputDepth(sensors.GetDepth(), sensors.GetDepthDT());
+        particle_filter.InputDepth(sensors.GetDepth());
+        kalman_filter.InputDepth(sensors.GetDepth());
     }
 
     if(sensors.NewHydrophones())
@@ -96,6 +95,8 @@ void LocalizationSystem::Update()
         // have a magic number here (or just parameterize the delay).
         if(ros::Time::now().toSec() - start_time.toSec() > 20.0)
         {
+            ROS_INFO_ONCE("Absolute linear velocity now being input to particle"
+                    " filter");
             particle_filter.InputAbsLinVel(sensors.GetAbsLinVel(),
                     sensors.GetAbsLinVelDT());
         }
