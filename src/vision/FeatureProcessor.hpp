@@ -20,7 +20,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "feature_processors/FeatureType.hpp"
+#include "feature_processors/ObstacleDetector.hpp"
 
 using namespace cv;
 using std::vector;
@@ -51,8 +51,8 @@ class FeatureProcessor
         NodeHandle *n;
         bool initialized;
 
-        FeatureType *type;
-        bool updateType();
+        ObstacleDetector *detector;
+        bool updateDetector();
 };
 
 #endif //FEATUREPROCESSOR_HPP

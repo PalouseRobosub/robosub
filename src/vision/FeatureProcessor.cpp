@@ -1,4 +1,6 @@
 #include "FeatureProcessor.hpp"
+#include <string>
+#include <vector>
 
 FeatureProcessor::FeatureProcessor() :
     initialized(false)
@@ -8,16 +10,16 @@ FeatureProcessor::FeatureProcessor() :
 FeatureProcessor::~FeatureProcessor()
 {
     delete n;
-    delete type;
+    delete detector;
 }
 
 void FeatureProcessor::init()
 {
     if (!initialized)
     {
-        //The NodeHandle is dynamically allocated here to prevent the constructor
-        //  from creating it. This is so ros::init() can be called before
-        //  the NodeHandle is constructed.
+        //The NodeHandle is dynamically allocated here to prevent the
+        //  constructor from creating it. This is so ros::init() can be called
+        //  before the NodeHandle is constructed.
         this->n = new NodeHandle("~processing/features");
         this->initialized = true;
     }
@@ -34,17 +36,18 @@ void FeatureProcessor::process(const Mat &leftMask, const Mat &rightMask,
         return;
     }
 
-    if (!updateType())
+    if (!updateDetector())
     {
         return;
     }
 
-    type->process(leftMask, rightMask, disp, _3dImg, messages);
+    detector->process(leftMask, rightMask, disp, _3dImg, messages);
 }
 
 void FeatureProcessor::process(const Mat &leftMask, const Mat &rightMask,
                                const Mat &bottomMask, const Mat &disp,
-                               const Mat &_3dImg, vector<visionPos> &stereoMessages,
+                               const Mat &_3dImg,
+                               vector<visionPos> &stereoMessages,
                                vector<visionPos> &bottomMessages)
 {
     if (!initialized)
@@ -54,33 +57,33 @@ void FeatureProcessor::process(const Mat &leftMask, const Mat &rightMask,
         return;
     }
 
-    if (!updateType())
+    if (!updateDetector())
     {
         return;
     }
 
-    type->process(leftMask, rightMask, disp, _3dImg, stereoMessages);
-    type->process(bottomMask, bottomMessages);
+    detector->process(leftMask, rightMask, disp, _3dImg, stereoMessages);
+    detector->process(bottomMask, bottomMessages);
 }
 
-bool FeatureProcessor::updateType()
+bool FeatureProcessor::updateDetector()
 {
-    string processType = "";
-    if(!n->getParamCached("type", processType))
+    string detectorType = "";
+    if(!n->getParamCached("detector", detectorType))
     {
-        ROS_WARN_ONCE("Could not get feature processor type, defaulting to "
+        ROS_WARN_ONCE("Could not get feature detector type, defaulting to "
                       "CENTROID. (This prints only once)");
-        processType = "CENTROID";
+        detectorType = "CENTROID";
     }
 
-    if (boost::iequals(processType, "CENTROID"))
+    if (boost::iequals(detectorType, "CENTROID"))
     {
-        type = new CentroidProcessor();
+        detector = new CentroidProcessor();
     }
     else
     {
-        ROS_FATAL_STREAM("Invalid process type: " << processType << ". "
-                         "Consider adding it to updateType in "
+        ROS_FATAL_STREAM("Invalid process type: " << detectorType << ". "
+                         "Consider adding it to updateDetector in "
                          "FeatureProcessor.");
         ros::shutdown();
         return false;
@@ -89,11 +92,11 @@ bool FeatureProcessor::updateType()
     XmlRpcValue params;
     if (!n->getParamCached("params", params))
     {
-        ROS_FATAL("Could not get params for feature processor.");
+        ROS_FATAL("Could not get params for feature detector.");
         ros::shutdown();
         return false;
     }
-    
-    type->setParams(params);
+
+    detector->setParams(params);
     return true;
 }

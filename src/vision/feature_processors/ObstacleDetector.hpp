@@ -1,5 +1,5 @@
-#ifndef FEATURETYPE_HPP
-#define FEATURETYPE_HPP
+#ifndef OBSTACLEDETECTOR_HPP
+#define OBSTACLEDETECTOR_HPP
 
 #include <ros/ros.h>
 
@@ -16,10 +16,10 @@ using std::vector;
 using XmlRpc::XmlRpcValue;
 using robosub::visionPos;
 
-class FeatureType
+class ObstacleDetector
 {
    public:
-        virtual ~FeatureType() {}
+        virtual ~ObstacleDetector() {}
 
         virtual void setParams(XmlRpcValue &params) = 0;
 
@@ -34,7 +34,7 @@ class FeatureType
 
 /////////   Centroid Processor  ////////
 
-class CentroidProcessor : public FeatureType
+class CentroidProcessor : public ObstacleDetector
 {
     public:
         CentroidProcessor();
@@ -54,4 +54,4 @@ class CentroidProcessor : public FeatureType
         static bool compareContourAreas(vector<Point> contour1,
                                         vector<Point> contour2);
 };
-#endif //FEATURETYPE_HPP
+#endif //OBSTACLEDETECTOR_HPP

@@ -1,5 +1,5 @@
-#ifndef VISIONPROCESSOR_HPP
-#define VISIONPROCESSOR_HPP
+#ifndef COLORPROCESSOR_HPP
+#define COLORPROCESSOR_HPP
 #include <ros/ros.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
@@ -29,11 +29,11 @@ using cv_bridge::toCvCopy;
 using cv_bridge::CvImagePtr;
 using sensor_msgs::Image;
 
-class VisionProcessor
+class ColorProcessor
 {
     public:
-        VisionProcessor();
-        ~VisionProcessor();
+        ColorProcessor();
+        ~ColorProcessor();
 
         void init();
 
@@ -48,4 +48,4 @@ class VisionProcessor
 
         Mat toOpenCV(const Image& image);
 };
-#endif // VISIONPROCESSOR_HPP
+#endif // COLORPROCESSOR_HPP

@@ -1,4 +1,4 @@
-#include "VisionProcessor.hpp"
+#include "ColorProcessor.hpp"
 #include "StereoProcessor.hpp"
 #include "FeatureProcessor.hpp"
 #include "robosub/visionPos.h"
@@ -25,7 +25,7 @@ using robosub::visionPosArray;
 
 ros::Publisher pub;
 
-VisionProcessor colorProcessor;
+ColorProcessor colorProcessor;
 StereoProcessor stereoProcessor;
 FeatureProcessor featureProcessor;
 
@@ -114,7 +114,7 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     fetchParams();
 
     /////  Color Processing  /////
-    //Process the image using the VisionProcessor
+    //Process the image using the ColorProcessor
     Mat leftProcessed = colorProcessor.process(*left);
     Mat rightProcessed = colorProcessor.process(*right);
 
@@ -156,7 +156,7 @@ void threeCamCallback(const Image::ConstPtr &left, const Image::ConstPtr &right,
     fetchParams();
 
     /////  Color Processing  /////
-    //Process the image using the VisionProcessor
+    //Process the image using the ColorProcessor
     Mat leftProcessed = colorProcessor.process(*left);
     Mat rightProcessed = colorProcessor.process(*right);
     Mat bottomProcessed = colorProcessor.process(*bottom);

@@ -1,33 +1,33 @@
-#include "VisionProcessor.hpp"
+#include "ColorProcessor.hpp"
 #include <XmlRpcException.h>
 #include <string>
 #include <vector>
 #include <map>
 
-VisionProcessor::VisionProcessor() :
+ColorProcessor::ColorProcessor() :
     initialized(false)
 {
 }
 
-VisionProcessor::~VisionProcessor()
+ColorProcessor::~ColorProcessor()
 {
     delete n;
 }
 
-void VisionProcessor::init()
+void ColorProcessor::init()
 {
     if (!initialized)
     {
-        //The NodeHandle is dynamically allocated here to prevent the constructor
-        //  from creating it. This is so ros::init() can be called before
-        //  the NodeHandle is constructed.
+        //The NodeHandle is dynamically allocated here to prevent the
+        //  constructor from creating it. This is so ros::init() can be called
+        //  before the NodeHandle is constructed.
         this->n = new NodeHandle("~processing");
         this->initialized = true;
     }
 }
 
 //Processes the image using color filtering with parameters under given subgroup
-Mat VisionProcessor::process(const Image& image)
+Mat ColorProcessor::process(const Image& image)
 {
     if(!initialized)
     {
@@ -82,7 +82,7 @@ Mat VisionProcessor::process(const Image& image)
 }
 
 //Converts a ros image_transport Image to an OpenCV Mat
-Mat VisionProcessor::toOpenCV(const Image& image)
+Mat ColorProcessor::toOpenCV(const Image& image)
 {
     ROS_DEBUG_STREAM("Image size in bytes: " << sizeof(image.data));
     //Determine if the image is empty, may be deprecated.
