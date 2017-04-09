@@ -76,18 +76,17 @@ bool FeatureProcessor::updateDetector()
         detectorType = "CENTROID";
     }
 
-    if (boost::iequals(detectorType, "CENTROID"))
+    void (*initFunction)(ObstacleDetector *) = detectors[detectorType];
+
+    if (initFunction == nullptr)
     {
-        detector = new CentroidDetector();
-    }
-    else
-    {
-        ROS_FATAL_STREAM("Invalid process type: " << detectorType << ". "
-                         "Consider adding it to updateDetector in "
-                         "FeatureProcessor.");
-        ros::shutdown();
+        ROS_FATAL_STREAM_ONCE("Detector of type " << detectorType
+                              << " does not exist. Consider adding it to "
+                              << " the map in FeatureProcessor.hpp");
         return false;
     }
+
+    initFunction(detector);
 
     XmlRpcValue params;
     if (!n->getParamCached("params", params))

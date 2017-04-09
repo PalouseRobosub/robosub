@@ -14,6 +14,7 @@
 #include <opencv2/highgui.hpp>
 #include <vector>
 #include <string>
+#include <map>
 
 #include <XmlRpcValue.h>
 #include <XmlRpcException.h>
@@ -25,6 +26,7 @@
 using namespace cv;
 using std::vector;
 using std::string;
+using std::map;
 using ros::NodeHandle;
 using robosub::visionPos;
 using XmlRpc::XmlRpcValue;
@@ -53,6 +55,17 @@ class FeatureProcessor
 
         ObstacleDetector *detector;
         bool updateDetector();
+
+        map<string, void(*)(ObstacleDetector *)> detectors =
+        {
+            {"CENTROID", CentroidDetector::init},
+            {"START GATE", StartGateDetector::init},
+            {"BUOY", BuoyDetector::init},
+            {"CHANNEL", ChannelDetector::init},
+            {"MARKER BIN", MarkerBinDetector::init},
+            {"TORPEDO TARGET", TorpedoTargetDetector::init},
+            {"OCTAGON", OctagonDetector::init}
+        };
 };
 
 #endif //FEATUREPROCESSOR_HPP

@@ -10,6 +10,11 @@ CentroidDetector::~CentroidDetector()
 {
 }
 
+void CentroidDetector::init(ObstacleDetector *detector)
+{
+    detector = new CentroidDetector();
+}
+
 void CentroidDetector::setParams(XmlRpcValue &param)
 {
     this->nLargest = param["nLargest"];
