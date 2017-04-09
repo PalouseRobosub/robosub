@@ -34,11 +34,11 @@ class ObstacleDetector
 
 /////////   Centroid Processor  ////////
 
-class CentroidProcessor : public ObstacleDetector
+class CentroidDetector : public ObstacleDetector
 {
     public:
-        CentroidProcessor();
-        ~CentroidProcessor();
+        CentroidDetector();
+        ~CentroidDetector();
 
         void setParams(XmlRpcValue &params);
 

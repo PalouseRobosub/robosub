@@ -78,7 +78,7 @@ bool FeatureProcessor::updateDetector()
 
     if (boost::iequals(detectorType, "CENTROID"))
     {
-        detector = new CentroidProcessor();
+        detector = new CentroidDetector();
     }
     else
     {

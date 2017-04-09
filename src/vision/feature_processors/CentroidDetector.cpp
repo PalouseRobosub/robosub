@@ -2,20 +2,20 @@
 #include <algorithm>
 #include <vector>
 
-CentroidProcessor::CentroidProcessor()
+CentroidDetector::CentroidDetector()
 {
 }
 
-CentroidProcessor::~CentroidProcessor()
+CentroidDetector::~CentroidDetector()
 {
 }
 
-void CentroidProcessor::setParams(XmlRpcValue &param)
+void CentroidDetector::setParams(XmlRpcValue &param)
 {
     this->nLargest = param["nLargest"];
 }
 
-void CentroidProcessor::process(const Mat &leftImg,
+void CentroidDetector::process(const Mat &leftImg,
                                const Mat &rightImg,
                                const Mat &disp,
                                const Mat &_3dImg,
@@ -32,7 +32,7 @@ void CentroidProcessor::process(const Mat &leftImg,
 
     // For now use the left image, in future, use both
     std::sort(lContours.begin(), lContours.end(),
-              CentroidProcessor::compareContourAreas);
+              CentroidDetector::compareContourAreas);
 
     for (int i = 0; i < nLargest &&
                     static_cast<unsigned int>(i) < lContours.size(); ++i)
@@ -71,7 +71,7 @@ void CentroidProcessor::process(const Mat &leftImg,
     }
 }
 
-void CentroidProcessor::process(const Mat &bottomImg,
+void CentroidDetector::process(const Mat &bottomImg,
                                 vector<visionPos> &bottomMessages)
 {
     vector<vector<Point>> bContours;
@@ -82,7 +82,7 @@ void CentroidProcessor::process(const Mat &bottomImg,
 
     // Process bottom image
     std::sort(bContours.begin(), bContours.end(),
-              CentroidProcessor::compareContourAreas);
+              CentroidDetector::compareContourAreas);
 
     for (int i = 0; i < nLargest &&
                     static_cast<unsigned int>(i) < bContours.size(); ++i)
@@ -121,7 +121,7 @@ void CentroidProcessor::process(const Mat &bottomImg,
     }
 }
 
-bool CentroidProcessor::compareContourAreas(vector<Point> contour1,
+bool CentroidDetector::compareContourAreas(vector<Point> contour1,
                                            vector<Point> contour2)
 {
     double i = fabs(contourArea(Mat(contour1)));
