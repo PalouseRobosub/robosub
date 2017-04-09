@@ -41,13 +41,15 @@ Mat ColorProcessor::process(const Image& image)
     string key;
     if (!n->searchParam("filters", key))
     {
-        ROS_FATAL_STREAM("Could not locate filter params");
+        ROS_FATAL_STREAM("Could not locate filter params for "
+                         << ros::this_node::getName());
         ros::shutdown();
         return Mat();
     }
     if (!n->getParamCached(key, params))
     {
-        ROS_FATAL_STREAM("Filter params not present!!");
+        ROS_FATAL_STREAM("Filter params not present for "
+                         << ros::this_node::getName());
         ros::shutdown();
         return Mat();
     }

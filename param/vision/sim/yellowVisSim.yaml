@@ -1,11 +1,11 @@
 features:
-    type: "CENTROID"
+    detector: "CENTROID"
     params:
         nLargest: 1
 
 filters:
-    - {Convert: {code: "BGR2HSV"}}
-    - {MedianBlur: {kernel_size: 3}}
-    - {InRange: {max: {hue: 50, sat: 255, val: 255}, min: {hue: 20, sat: 0, val: 0}}}
-    - {Close: {width: 7, height: 7, iters: 0}}
-    - {Open: {width: 3, height: 3, iters: 1}}
+    - Convert: {code: "BGR2HSV"}
+    - MedianBlur: {kernel_size: 3}
+    - InRange: {max: {hue: 50, sat: 255, val: 255}, min: {hue: 20, sat: 0, val: 0}}
+    - Close: {width: 7, height: 7, iters: 0}
+    - Open: {width: 3, height: 3, iters: 1}

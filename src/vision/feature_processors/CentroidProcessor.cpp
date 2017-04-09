@@ -102,9 +102,8 @@ void CentroidProcessor::process(const Mat &bottomImg,
         }
         else
         {
-            ROS_FATAL_STREAM("Invalid m00 moment found in "
+            ROS_WARN_STREAM("Invalid m00 moment found in "
                              << ros::this_node::getName());
-            ros::shutdown();
             return;
         }
 
