@@ -86,6 +86,7 @@ bool FeatureProcessor::updateDetector()
         return false;
     }
 
+    delete detector;
     initFunction(detector);
 
     XmlRpcValue params;
