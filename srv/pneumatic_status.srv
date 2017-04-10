@@ -1,0 +1,12 @@
+#this service type is used for checking the current status of both the marker
+#droppers and the torpedoes
+
+#various possible statuses of the pnematics
+uint8 FIRED=0
+uint8 READY=1
+
+#request (empty)
+----
+#response
+uint8 left_status
+uint8 right_status
