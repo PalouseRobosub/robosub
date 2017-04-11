@@ -93,7 +93,7 @@ void LocalizationSystem::Update()
         // converged and stable.
         // TODO: Get measure of particle filter convergence so we don't have to
         // have a magic number here (or just parameterize the delay).
-        if(ros::Time::now().toSec() - start_time.toSec() > 20.0)
+        if(ros::Time::now() - start_time > ros::Duration(20.0))
         {
             ROS_INFO_ONCE("Absolute linear velocity now being input to particle"
                     " filter");
