@@ -6,5 +6,7 @@ add_library(vision_filters CloseFilter.cpp
                            OrFilter.cpp
 
                            FilterSet.cpp
-
 )
+
+add_dependencies(vision_filters ${${PROJECT_NAME}_EXPORTED_TARGETS}
+                                ${catkin_EXPORTED_TARGETS})
