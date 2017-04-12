@@ -4,6 +4,7 @@
 #various possible statuses of the pnematics
 uint8 FIRED=0
 uint8 READY=1
+uint8 FAULT=2
 
 #request (empty)
 ----
