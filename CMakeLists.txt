@@ -118,6 +118,8 @@ add_message_files(
   ObstaclePos.msg
   ObstaclePosArray.msg
   BatteryDetailed.msg
+  rgb.msg
+  rgbArray.msg
 )
 
 ## Generate services in the 'srv' folder
