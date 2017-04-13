@@ -22,8 +22,36 @@ uint8_t getKey(void)
     return fgetc(stdin);
 }
 
+// Prints out Help message
+
+void PrintHelp()
+{
+    std::cout << "There are two ways of control\n";
+    std::cout << "First way is:\n";
+    std::cout << "W -> forwardS\n";
+    std::cout << "S -> backwards\n";
+    std::cout << "A -> strafe to the left\n";
+    std::cout << "D -> strafe to the right\n";
+    std::cout << "Z -> dive down\n";
+    std::cout << "C -> dive up\n";
+    std::cout << "Q -> Pitch up\n";
+    std::cout << "E -> Pitch Down\n";
+    std::cout << "Ctrl + A -> rotate to the left\n";
+    std::cout << "Ctrl + D -> rotate to the right\n";
+    std::cout << "\n\n\nAlternative is to with arrow keys:\n";
+    std::cout << "ArrowUp -> forwardS\n";
+    std::cout << "ArrowDown -> backwards\n";
+    std::cout << "ArrowLeft -> strafe to the left\n";
+    std::cout << "ArrowRight -> strafe to the right\n";
+    std::cout << "PageDown -> dive down\n";
+    std::cout << "PageUp -> dive up\n";
+    std::cout << "Holding ctr and pressing arrow keys would control pitch.\n";
+    std::cout << "Press ? to see help message again";
+}
+
 int main(int argc, char **argv)
 {
+    PrintHelp();
     ros::init(argc, argv, "keyboard_control");
     ros::NodeHandle nh;
 
@@ -45,7 +73,7 @@ int main(int argc, char **argv)
     //setup new terminal settings
     struct termios attr_new;
     memcpy(&attr_new, &attr_backup, sizeof(struct termios));
-    attr_new.c_lflag &= ~(ECHO|ICANON);
+    attr_new.c_lflag &= ~(ECHO|ICANON|IXOFF);
     attr_new.c_cc[VTIME] = 0;
     attr_new.c_cc[VMIN] = 0;
 
@@ -74,6 +102,9 @@ int main(int argc, char **argv)
 
         switch (keys[0])
         {
+            case '?':
+                PrintHelp();
+                break;
             case 'w':
                 msg.forward = 1;
                 break;
@@ -86,17 +117,23 @@ int main(int argc, char **argv)
             case 'd':
                 msg.strafe_left = -1;
                 break;
-            case 'q':
-                msg.yaw_left = 10;
-                break;
-            case 'e':
-                msg.yaw_left = -10;
-                break;
             case 'z':
                 msg.dive = -0.25;
                 break;
             case 'c':
                 msg.dive = 0.25;
+                break;
+            case 4:
+                msg.yaw_left = -10;
+                break;
+            case 1:
+                msg.yaw_left = 10;
+                break;
+            case 'q':
+                msg.pitch_down = 10;
+                break;
+            case 'e':
+                msg.pitch_down = -10;
                 break;
             case 27:  // Escape Code for special keys
                 switch(keys[2])
@@ -148,6 +185,5 @@ int main(int argc, char **argv)
     }
 
     tcsetattr(fileno(stdin), TCSANOW, &attr_backup);
-
     return 0;
 }
