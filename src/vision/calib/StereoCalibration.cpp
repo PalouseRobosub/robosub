@@ -46,10 +46,6 @@ void callback(const WFOVImage::ConstPtr &rightImg,
 
     circle(cropMask, Point(rview.size().width / 2, rview.size().height),
            cropRadius, Scalar(255, 255, 255), -1, 8, 0);
-    //Rect roi(100, 100, rview.size().width - 200, rview.size().width - 200);
-
-    //rview = rview(roi);
-    //lview = lview(roi);
 
     rview.copyTo(rview, cropMask);
     lview.copyTo(lview, cropMask);

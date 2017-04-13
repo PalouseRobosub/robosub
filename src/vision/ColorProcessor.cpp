@@ -31,7 +31,7 @@ Mat ColorProcessor::process(const Image& image)
 {
     if(!initialized)
     {
-        ROS_FATAL_STREAM("Vision Processor process called before init.");
+        ROS_FATAL_STREAM("Color Processor process called before init.");
         ros::shutdown();
         return Mat();
     }

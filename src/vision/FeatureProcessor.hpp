@@ -21,7 +21,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "feature_processors/ObstacleDetector.hpp"
+#include "feature_detectors/ObstacleDetector.hpp"
 
 using namespace cv;
 using std::vector;
