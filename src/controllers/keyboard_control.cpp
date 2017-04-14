@@ -26,27 +26,29 @@ uint8_t getKey(void)
 
 void PrintHelp()
 {
-    std::cout << "There are two ways of control\n";
-    std::cout << "First way is:\n";
-    std::cout << "W -> forwardS\n";
-    std::cout << "S -> backwards\n";
-    std::cout << "A -> strafe to the left\n";
-    std::cout << "D -> strafe to the right\n";
-    std::cout << "Z -> dive down\n";
-    std::cout << "C -> dive up\n";
-    std::cout << "Q -> Pitch up\n";
-    std::cout << "E -> Pitch Down\n";
-    std::cout << "Ctrl + A -> rotate to the left\n";
-    std::cout << "Ctrl + D -> rotate to the right\n";
-    std::cout << "\n\n\nAlternative is to with arrow keys:\n";
-    std::cout << "ArrowUp -> forwardS\n";
-    std::cout << "ArrowDown -> backwards\n";
-    std::cout << "ArrowLeft -> strafe to the left\n";
-    std::cout << "ArrowRight -> strafe to the right\n";
-    std::cout << "PageDown -> dive down\n";
-    std::cout << "PageUp -> dive up\n";
-    std::cout << "Holding ctr and pressing arrow keys would control pitch.\n";
-    std::cout << "Press ? to see help message again";
+    std::cout << "There are two ways of control\n"
+                 "First way is:\n"
+                 "W -> forwardS\n"
+                 "S -> backwards\n"
+                 "A -> strafe to the left\n"
+                 "D -> strafe to the right\n"
+                 "Z -> dive down\n"
+                 "C -> dive up\n"
+                 "J -> Pitch up\n"
+                 "K -> Pitch Down\n"
+                 "Q -> rotate to the left\n"
+                 "E -> rotate to the right\n"
+                 "L -> roll to the left\n"
+                 "; -> roll to the right"
+                 "\n\n\nAlternative is to with arrow keys:\n"
+                 "ArrowUp -> forwardS\n"
+                 "ArrowDown -> backwards\n"
+                 "ArrowLeft -> strafe to the left\n"
+                 "ArrowRight -> strafe to the right\n"
+                 "PageDown -> dive down\n"
+                 "PageUp -> dive up\n"
+                 "Holding ctr and pressing arrow keys would control pitch.\n"
+                 "Press ? to see help message again" << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -73,7 +75,7 @@ int main(int argc, char **argv)
     //setup new terminal settings
     struct termios attr_new;
     memcpy(&attr_new, &attr_backup, sizeof(struct termios));
-    attr_new.c_lflag &= ~(ECHO|ICANON|IXOFF);
+    attr_new.c_lflag &= ~(ECHO|ICANON);
     attr_new.c_cc[VTIME] = 0;
     attr_new.c_cc[VMIN] = 0;
 
@@ -123,17 +125,23 @@ int main(int argc, char **argv)
             case 'c':
                 msg.dive = 0.25;
                 break;
-            case 4:
-                msg.yaw_left = -10;
-                break;
-            case 1:
+            case 'q':
                 msg.yaw_left = 10;
                 break;
-            case 'q':
+            case 'e':
+                msg.yaw_left = -10;
+                break;
+            case 'j':
+                msg.pitch_down = -10;
+                break;
+            case 'k':
                 msg.pitch_down = 10;
                 break;
-            case 'e':
-                msg.pitch_down = -10;
+            case 'l':
+                msg.roll_right = -10;
+                break;
+            case ';':
+                msg.roll_right = 10;
                 break;
             case 27:  // Escape Code for special keys
                 switch(keys[2])
