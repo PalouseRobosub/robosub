@@ -134,7 +134,6 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     featureProcessor.process(copy_left, copy_right, disparity, _3dImage,
                               messages);
 
-
     displayFinalImage(left, messages, "Original");
 
     if (doImShow)
