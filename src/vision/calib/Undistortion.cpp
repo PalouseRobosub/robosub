@@ -24,6 +24,8 @@ Mat rectifyMap[2][2];
 Mat bottomCamMat;
 Mat bottomDistCoeffs;
 
+int stereoCropRadius = -1;
+
 void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
 {
     ROS_DEBUG_STREAM("Right Cam Callback.");
@@ -32,13 +34,28 @@ void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
     image_ptr = toCvCopy(msg->image, sensor_msgs::image_encodings::BGR8);
 
     Mat temp = image_ptr->image.clone();
+    Mat cropped;
 
-    remap(temp, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
+    if (stereoCropRadius != -1)
+    {
+        Mat cropMask = Mat::zeros(temp.rows, temp.cols, CV_8UC1);
+        circle(cropMask, Point(temp.size().width / 2, temp.size().height / 2),
+               stereoCropRadius, Scalar(255, 255, 255), -1, 8, 0);
+
+        temp.copyTo(cropped, cropMask);
+    }
+    else
+    {
+        temp.copyTo(cropped);
+    }
+
+    remap(cropped, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
           INTER_LINEAR);
 
     sensor_msgs::Image outMsg;
 
     image_ptr->toImageMsg(outMsg);
+    outMsg.header = msg->header;
 
     rightPub.publish(outMsg);
 }
@@ -51,13 +68,28 @@ void leftCallback(const wfov_camera_msgs::WFOVImage::ConstPtr &msg)
     image_ptr = toCvCopy(msg->image, sensor_msgs::image_encodings::BGR8);
 
     Mat temp = image_ptr->image.clone();
+    Mat cropped;
 
-    remap(temp, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
+    if (stereoCropRadius != -1)
+    {
+        Mat cropMask = Mat::zeros(temp.rows, temp.cols, CV_8UC1);
+        circle(cropMask, Point(temp.size().width / 2, temp.size().height / 2),
+               stereoCropRadius, Scalar(255, 255, 255), -1, 8, 0);
+
+        temp.copyTo(cropped, cropMask);
+    }
+    else
+    {
+        temp.copyTo(cropped);
+    }
+
+    remap(cropped, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
           INTER_LINEAR);
 
     sensor_msgs::Image outMsg;
 
     image_ptr->toImageMsg(outMsg);
+    outMsg.header = msg->header;
 
     leftPub.publish(outMsg);
 }
@@ -73,6 +105,7 @@ void bottomCallback(const wfov_camera_msgs::WFOVImage::ConstPtr &msg)
                             bottomDistCoeffs, Matx33d::eye());
 
     sensor_msgs::Image outMsg;
+    outMsg.header = msg->header;
 
     image_ptr->toImageMsg(outMsg);
 
@@ -130,6 +163,7 @@ int main (int argc, char** argv)
         ROS_INFO_STREAM("Valid calibration file");
         string calibTime;
         fs["calibration_time"] >> calibTime;
+        fs["crop_radius"] >> stereoCropRadius;
         ROS_INFO_STREAM("Calibration was performed on: " << calibTime);
         fs["K1"] >> K1;
         fs["D1"] >> D1;
