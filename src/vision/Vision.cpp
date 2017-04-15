@@ -133,7 +133,7 @@ void callback(const Image::ConstPtr &left, const Image::ConstPtr &right)
     Mat copy_right = rightProcessed.clone();
     featureProcessor.process(copy_left, copy_right, disparity, _3dImage,
                               messages);
-    
+
 
     displayFinalImage(left, messages, "Original");
 
