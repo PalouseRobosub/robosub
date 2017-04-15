@@ -9,7 +9,7 @@ OctagonDetector::~OctagonDetector()
 {
 }
 
-void OctagonDetector::init(ObstacleDetector *detector)
+void OctagonDetector::init(ObstacleDetector *&detector)
 {
     detector = new OctagonDetector();
 }

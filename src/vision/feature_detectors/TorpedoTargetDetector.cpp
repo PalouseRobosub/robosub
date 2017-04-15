@@ -9,7 +9,7 @@ TorpedoTargetDetector::~TorpedoTargetDetector()
 {
 }
 
-void TorpedoTargetDetector::init(ObstacleDetector *detector)
+void TorpedoTargetDetector::init(ObstacleDetector *&detector)
 {
     detector = new TorpedoTargetDetector();
 }

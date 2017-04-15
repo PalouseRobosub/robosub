@@ -9,7 +9,7 @@ StartGateDetector::~StartGateDetector()
 {
 }
 
-void StartGateDetector::init(ObstacleDetector *detector)
+void StartGateDetector::init(ObstacleDetector *&detector)
 {
     detector = new StartGateDetector();
 }

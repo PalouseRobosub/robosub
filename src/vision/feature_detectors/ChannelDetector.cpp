@@ -9,7 +9,7 @@ ChannelDetector::~ChannelDetector()
 {
 }
 
-void ChannelDetector::init(ObstacleDetector *detector)
+void ChannelDetector::init(ObstacleDetector *&detector)
 {
     detector = new ChannelDetector();
 }

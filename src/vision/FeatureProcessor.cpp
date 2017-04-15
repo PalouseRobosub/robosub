@@ -76,7 +76,7 @@ bool FeatureProcessor::updateDetector()
         detectorType = "CENTROID";
     }
 
-    void (*initFunction)(ObstacleDetector *) = detectors[detectorType];
+    void (*initFunction)(ObstacleDetector *&) = detectors[detectorType];
 
     if (initFunction == nullptr)
     {
@@ -88,6 +88,12 @@ bool FeatureProcessor::updateDetector()
 
     delete detector;
     initFunction(detector);
+
+    if (detector == nullptr)
+    {
+        ROS_FATAL_STREAM_ONCE("Detector not instantiated correctly");
+        return false;
+    }
 
     XmlRpcValue params;
     if (!n->getParamCached("params", params))

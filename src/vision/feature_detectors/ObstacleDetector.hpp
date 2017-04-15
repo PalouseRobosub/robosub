@@ -40,7 +40,7 @@ class CentroidDetector : public ObstacleDetector
         CentroidDetector();
         ~CentroidDetector();
 
-        static void init(ObstacleDetector *detector);
+        static void init(ObstacleDetector *&detector);
 
         void setParams(XmlRpcValue &params);
 
@@ -65,7 +65,7 @@ class StartGateDetector : public ObstacleDetector
         StartGateDetector();
         ~StartGateDetector();
 
-        static void init(ObstacleDetector *detector);
+        static void init(ObstacleDetector *&detector);
 
         void setParams(XmlRpcValue &params);
 
@@ -84,7 +84,7 @@ class BuoyDetector : public ObstacleDetector
         BuoyDetector();
         ~BuoyDetector();
 
-        static void init(ObstacleDetector *detector);
+        static void init(ObstacleDetector *&detector);
 
         void setParams(XmlRpcValue &params);
 
@@ -103,7 +103,7 @@ class ChannelDetector : public ObstacleDetector
         ChannelDetector();
         ~ChannelDetector();
 
-        static void init(ObstacleDetector *detector);
+        static void init(ObstacleDetector *&detector);
 
         void setParams(XmlRpcValue &params);
 
@@ -122,7 +122,7 @@ class MarkerBinDetector : public ObstacleDetector
         MarkerBinDetector();
         ~MarkerBinDetector();
 
-        static void init(ObstacleDetector *detector);
+        static void init(ObstacleDetector *&detector);
 
         void setParams(XmlRpcValue &params);
 
@@ -141,7 +141,7 @@ class TorpedoTargetDetector : public ObstacleDetector
         TorpedoTargetDetector();
         ~TorpedoTargetDetector();
 
-        static void init(ObstacleDetector *detector);
+        static void init(ObstacleDetector *&detector);
 
         void setParams(XmlRpcValue &params);
 
@@ -160,7 +160,7 @@ class OctagonDetector : public ObstacleDetector
         OctagonDetector();
         ~OctagonDetector();
 
-        static void init(ObstacleDetector *detector);
+        static void init(ObstacleDetector *&detector);
 
         void setParams(XmlRpcValue &params);
 

@@ -9,7 +9,7 @@ MarkerBinDetector::~MarkerBinDetector()
 {
 }
 
-void MarkerBinDetector::init(ObstacleDetector *detector)
+void MarkerBinDetector::init(ObstacleDetector *&detector)
 {
     detector = new MarkerBinDetector();
 }

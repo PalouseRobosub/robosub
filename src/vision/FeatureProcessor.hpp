@@ -56,7 +56,7 @@ class FeatureProcessor
         ObstacleDetector *detector;
         bool updateDetector();
 
-        map<string, void(*)(ObstacleDetector *)> detectors =
+        map<string, void(*)(ObstacleDetector *&)> detectors =
         {
             {"CENTROID", CentroidDetector::init},
             {"START GATE", StartGateDetector::init},

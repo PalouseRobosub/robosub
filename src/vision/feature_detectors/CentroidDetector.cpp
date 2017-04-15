@@ -10,7 +10,7 @@ CentroidDetector::~CentroidDetector()
 {
 }
 
-void CentroidDetector::init(ObstacleDetector *detector)
+void CentroidDetector::init(ObstacleDetector *&detector)
 {
     detector = new CentroidDetector();
 }

@@ -9,7 +9,7 @@ BuoyDetector::~BuoyDetector()
 {
 }
 
-void BuoyDetector::init(ObstacleDetector *detector)
+void BuoyDetector::init(ObstacleDetector *&detector)
 {
     detector = new BuoyDetector();
 }
