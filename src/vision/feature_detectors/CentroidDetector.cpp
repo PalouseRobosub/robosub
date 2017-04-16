@@ -69,8 +69,9 @@ void CentroidDetector::process(const Mat &leftImg,
         msg.yPos = (cy - (imHeight / 2)) /
                    static_cast<double>(imHeight / 2);
 
-        msg.magnitude = static_cast<double>(contourArea(lContours[i], false)) /
-                        static_cast<double>(imWidth * imHeight);
+        msg.magnitude = _3dImg.at<double>(cx, cy);
+                    //static_cast<double>(contourArea(lContours[i], false)) /
+                    //static_cast<double>(imWidth * imHeight);
 
         messages.push_back(msg);
     }

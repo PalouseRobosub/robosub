@@ -148,8 +148,8 @@ void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
 
     if (doImShow)
     {
-        imshow("Disparity 8U", imgDisparity8U);
-        imshow("3D Image", _3dImage);
+        //imshow("Disparity 8U", imgDisparity8U);
+        //imshow("3D Image", _3dImage);
         imshow("ELAS left", leftDisp);
         imshow("ELAS right", rightDisp);
         imshow("ELAS left 3D", elas3dLeft);
@@ -157,8 +157,8 @@ void StereoProcessor::process(const Image &leftImage, const Image &rightImage,
     }
 
     ROS_DEBUG_STREAM("Returning masks");
-    disparityMat = imgDisparity8U;
-    _3dImageMat = _3dImage;
+    disparityMat = leftDisp;//imgDisparity8U;
+    _3dImageMat = elas3dLeft;//_3dImage;
 }
 
 ///////Private functions///////
