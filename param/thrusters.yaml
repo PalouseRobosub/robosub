@@ -48,3 +48,37 @@ thrusters:
                 x: 0.0
                 y: 1.0
                 z: 0.0
+            position:
+                x: 0.46
+                y: 0.0
+                z: -0.01
+        -   name: "strafe_back"
+            channel: 0
+            orientation:
+                x: 0.0
+                y: 1.0
+                z: 0.0
+            position:
+                x: -0.46
+                y: 0.0
+                z: -0.01
+        -   name: "forward_left"
+            channel: 10
+            orientation:
+                x: -1.0
+                y: 0.0
+                z: 0.0
+            position:
+                x: 0.0
+                y: 0.2075
+                z: -0.01
+        -   name: "forward_right"
+            channel: 1
+            orientation:
+                x: -1.0
+                y: 0.0
+                z: 0.0
+            position:
+                x: 0.0
+                y: -0.2075
+                z: -0.01
