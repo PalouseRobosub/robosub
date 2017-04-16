@@ -144,17 +144,19 @@ int main(int argc, char **argv)
     /*
      * Construct a node handle for communicating with ROS.
      */
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("~");
+    ros::NodeHandle n_pub;
 
     /*
      * Advertise the stamped quaternion and acceleration sensor
      * data to the software and the trim service call.
      */
-    quaternion_publisher =
-            nh.advertise<robosub::QuaternionStampedAccuracy>("orientation", 1);
+    quaternion_publisher = n_pub.advertise<robosub::QuaternionStampedAccuracy>(
+            "orientation", 1);
     linear_acceleration_publisher =
-        nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
-    euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
+            n_pub.advertise<geometry_msgs::Vector3Stamped>(
+            "acceleration/linear", 1);
+    euler_publisher = n_pub.advertise<robosub::Euler>("pretty/orientation", 2);
     ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
     ros::ServiceServer mode_service = nh.advertiseService("set_bno_mode",
             set_mode);
@@ -164,8 +166,7 @@ int main(int argc, char **argv)
      * class. Use a private NodeHandle to load the serial port.
      */
     std::string port_name;
-    ros::NodeHandle np("~");
-    FatalAbortIf(np.getParam("port", port_name) == false,
+    FatalAbortIf(nh.getParam("port", port_name) == false,
             "Failed to get port name parameter.");
     FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
     ROS_INFO("Sensor successfully initialized.");
@@ -291,7 +292,7 @@ int main(int argc, char **argv)
      * Enter the main ROS loop.
      */
     int rate;
-    if (!nh.getParam("rate/imu", rate))
+    if (!nh.getParam("/rate/imu", rate))
     {
         ROS_WARN("Failed to load BNO055 node rate. Falling back to 20Hz.");
         rate = 20;
@@ -365,13 +366,13 @@ int main(int argc, char **argv)
                         magnetometer_accuracy + gyroscope_accuracy +
                         accelerometer_accuracy) / 12.0;
         quaternion_message.system_accuracy =
-                static_cast<double>(system_accuracy) / 3;
+                static_cast<double>(system_accuracy) / 3.0;
         quaternion_message.magnetometer_accuracy =
-                static_cast<double>(magnetometer_accuracy) / 3;
+                static_cast<double>(magnetometer_accuracy) / 3.0;
         quaternion_message.gyroscope_accuracy =
-                static_cast<double>(gyroscope_accuracy) / 3;
+                static_cast<double>(gyroscope_accuracy) / 3.0;
         quaternion_message.accelerometer_accuracy =
-                static_cast<double>(accelerometer_accuracy) / 3;
+                static_cast<double>(accelerometer_accuracy) / 3.0;
 
         quaternion_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
                           euler_message.roll * _PI_OVER_180,

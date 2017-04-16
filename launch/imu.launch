@@ -2,14 +2,15 @@
 <!-- This file launches the sensor node with the specified serial port. -->
 
 <launch>
-    <arg name="name" default="bno055" />
+    <arg name="name" default="bno055_stern" />
     <arg name="remapped" default="False"/>
     <arg name="port" default="/dev/$(arg name)" />
-    <rosparam file="$(find robosub)/param/imu.yaml" />
-    <node name="$(arg name)" pkg="robosub" type="bno055_sensor">
+    <rosparam file="$(find robosub)/param/cobalt.yaml" />
+    <node name="$(arg name)" pkg="robosub" type="bno055_sensor" output="screen">
+        <rosparam file="$(find robosub)/param/$(arg name).yaml" />
         <rosparam param="port" subst_value="True">$(arg port)</rosparam>
-        <remap from="orientation" to="orientation2" if="$(arg remapped)"/>
-        <remap from="pretty/orientation" to="pretty/orientation2" if="$(arg remapped)"/>
-        <remap from="acceleration/linear" to="acceleration2/linear" if="$(arg remapped)"/>
+        <remap from="orientation"         to="$(arg name)/orientation"         if="$(arg remapped)"/>
+        <remap from="pretty/orientation"  to="$(arg name)/pretty/orientation"  if="$(arg remapped)"/>
+        <remap from="acceleration/linear" to="$(arg name)/acceleration/linear" if="$(arg remapped)"/>
     </node>
 </launch>
