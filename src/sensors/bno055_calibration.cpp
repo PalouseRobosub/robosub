@@ -55,7 +55,8 @@ int main(int argc, char **argv)
      * Perform a calibration of all sensors.
      */
     uint8_t acc_calib = 0, gyr_calib = 0, mag_calib = 0, sys_calib = 0;
-    while (sys_calib < 3 || acc_calib < 3 || mag_calib < 3 || gyr_calib < 3)
+    while ((sys_calib < 3 || acc_calib < 3 || mag_calib < 3 || gyr_calib < 3)
+            && ros::ok())
     {
         HandleError(bno.getSensorCalibration(Bno055::Sensor::Accelerometer,
                     acc_calib), "Bno055::getSensorCalibration()");
@@ -71,6 +72,12 @@ int main(int argc, char **argv)
         cout << "M: " << static_cast<int>(mag_calib) << "/3" << endl;
         cout << "S: " << static_cast<int>(sys_calib) << "/3" << endl;
         usleep(500000);
+    }
+
+    if (!ros::ok())
+    {
+        ROS_INFO("Shutting down.");
+        return -1;
     }
 
     HandleError(bno.setOperationMode(Bno055::OperationMode::Config),

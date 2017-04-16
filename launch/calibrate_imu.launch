@@ -2,10 +2,10 @@
 <!-- This file launches the sensor node with the specified serial port. -->
 
 <launch>
-    <arg name="name" default="bno055" />
-    <arg name="remapped" default="False"/>
+    <arg name="name" default="bno055_stern" />
+    <arg name="remapped" default="False" />
     <arg name="port" default="/dev/$(arg name)" />
-    <rosparam file="$(find robosub)/param/imu.yaml" />
+    <rosparam file="$(find robosub)/param/$(arg name).yaml" />
     <node name="$(arg name)" pkg="robosub" type="bno055_calibrate" output="screen">
         <rosparam param="port" subst_value="True">$(arg port)</rosparam>
     </node>
