@@ -319,6 +319,20 @@ int main(int argc, char **argv)
 
         FatalAbortIf(sensor.getSystemCalibration(confidence_level) != 0,
                 "Bno055 failed to read system calibration status.");
+
+        /*
+         * Read the calibration for each individual sensor.
+         */
+        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Accelerometer,
+                     quaternion_message.accelerometer_accuracy) != 0,
+                     "Bno055 failed to read accelerometer calibration status.");
+        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Gyroscope,
+                     quaternion_message.gyroscope_accuracy) != 0,
+                     "Bno055 failed to read gyroscope calibration status.");
+        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Magnetometer,
+                     quaternion_message.magnetometer_accuracy) != 0,
+                     "Bno055 failed to read magnetometer calibration status.");
+
         /*
          * Convert the quaternion to human-readable roll, pitch, and yaw.
          */
@@ -347,8 +361,11 @@ int main(int argc, char **argv)
          * Confidence ranges from [0,3], so normalize the value for
          * transmission.
          */
-        quaternion_message.accuracy =
-                static_cast<double>(confidence_level)/3.0;
+        quaternion_message.accuracy = static_cast<double>(confidence_level +
+                        quaternion_message.magnetometer_accuracy +
+                        quaternion_message.gyroscope_accuracy +
+                        quaternion_message.accelerometer_accuracy) / 12.0;
+
         quaternion_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
                           euler_message.roll * _PI_OVER_180,
                           euler_message.pitch * _PI_OVER_180,

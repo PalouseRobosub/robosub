@@ -1,3 +1,7 @@
 std_msgs/Header header
 geometry_msgs/Quaternion quaternion
 float32 accuracy
+uint8 accelerometer_accuracy
+uint8 magnetometer_accuracy
+uint8 gyroscope_accuracy
+uint8 system_accuracy
