@@ -83,6 +83,72 @@ namespace rs
     }
 
     /**
+     * Reinitilizes the sensor into a default power-on state.
+     *
+     * @return Zero upon success and -1 upon error.
+     */
+    int Bno055::reinit()
+    {
+        uint8_t self_test_result, chip_id, clock_status;
+
+        /*
+         * Begin by getting in sync by attempting to read the chip ID a few
+         * times.
+         */
+        AbortIf(read_register(Bno055::Register::CHIP_ID, chip_id));
+        AbortIfNot(chip_id == Bno055::chip_id, -1);
+
+        /*
+         * Perform a software reset to start off in a default state.
+         */
+        AbortIf(reset());
+
+        /*
+         * Sanity check that this is the chip we expect it to be. Result
+         * derived from [4.3.1].
+         */
+        AbortIf(read_register(Bno055::Register::CHIP_ID, chip_id));
+        AbortIfNot(chip_id == Bno055::chip_id, -1);
+
+        /*
+         * Validate that the power on self-test passed for all sensors.
+         */
+        AbortIf(read_register(Bno055::Register::ST_RESULT, self_test_result));
+        AbortIfNot(self_test_result  == 0x0F, -1);
+
+        /*
+         * Begin a built-in self-test of the device and wait for it to
+         * complete.
+         */
+        uint8_t sys_trigger_reg;
+        AbortIf(read_register(Bno055::Register::SYS_TRIGGER, sys_trigger_reg));
+        AbortIf(write_register(Bno055::Register::SYS_TRIGGER,
+                sys_trigger_reg | 1));
+        usleep(500000);
+        AbortIf(read_register(Bno055::Register::ST_RESULT,
+                self_test_result));
+        AbortIfNot(self_test_result == 0x0F, -1);
+
+        /*
+         * Read and configure the clock to utilize the external oscillator if
+         * the clock is able to be configured.
+         */
+        AbortIf(read_register(Bno055::Register::SYS_CLK_STATUS, clock_status));
+        if (clock_status & 0b1)
+        {
+            AbortIf(write_register(Bno055::Register::SYS_TRIGGER, 1<<7));
+        }
+
+        /*
+         * Set the power mode to normal and operating mode to configuration.
+         */
+        AbortIf(write_register(Bno055::Register::PWR_MODE, 0))
+        AbortIf(setOperationMode(Bno055::OperationMode::Config));
+
+        return 0;
+    }
+
+    /**
      * Sets the current operating mode of the sensor.
      *
      * @param mode The mode to switch to.

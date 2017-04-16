@@ -72,104 +72,17 @@ Bno055::Axis encodeAxis(int axis)
     exit(-1);
 }
 
-bool trim(std_srvs::Empty::Request &req,
-          std_srvs::Empty::Response &res)
+/**
+ * Sets up the sensor calibration profile.
+ *
+ * @return Zero upon successful load of a calibration profile.
+ */
+int setup_calibration_profile()
 {
-    ROS_INFO("Trimming the sensors");
-    trim_roll = last_roll;
-    trim_pitch = last_pitch;
-
-    return true;
-}
-
-bool set_mode(robosub::bno_mode::Request &req,
-              robosub::bno_mode::Response &res)
-{
-    Bno055::OperationMode mode;
-    res.mode = req.mode;
-    switch (req.mode)
-    {
-        case robosub::bno_mode::Request::IMU:
-            mode = Bno055::OperationMode::Imu;
-            ROS_INFO("Setting the mode to IMU.");
-            break;
-
-        case robosub::bno_mode::Request::COMPASS:
-            mode = Bno055::OperationMode::Compass;
-            ROS_INFO("Setting the mode to compass.");
-            break;
-
-        case robosub::bno_mode::Request::M4G:
-            mode = Bno055::OperationMode::M4G;
-            ROS_INFO("Setting the mode to M4G.");
-            break;
-
-        case robosub::bno_mode::Request::NDOFFMCOFF:
-            mode = Bno055::OperationMode::NdofFmcOff;
-            ROS_INFO("Setting the mode to NdofFmcOff.");
-            break;
-
-        case robosub::bno_mode::Request::NDOF:
-            mode = Bno055::OperationMode::Ndof;
-            ROS_INFO("Setting the mode to Ndof.");
-            break;
-
-        default:
-            ROS_ERROR("Invalid mode: %d", req.mode);
-            res.success = false;
-            return false;
-            break;
-    }
-
-    /*
-     * It appears we need to enter config mode before changing to another mode
-     */
-    if (sensor.setOperationMode(Bno055::OperationMode::Config) != 0)
-    {
-        ROS_ERROR("failed to enter config mode");
-        res.success = false;
-        return false;
-    }
-    res.success = (sensor.setOperationMode(mode) == 0);
-    return res.success;
-}
-
-int main(int argc, char **argv)
-{
-    /*
-     * Initialize ROS for this node.
-     */
-    ros::init(argc, argv, "sensor");
-
     /*
      * Construct a node handle for communicating with ROS.
      */
     ros::NodeHandle nh("~");
-    ros::NodeHandle n_pub;
-
-    /*
-     * Advertise the stamped quaternion and acceleration sensor
-     * data to the software and the trim service call.
-     */
-    quaternion_publisher = n_pub.advertise<robosub::QuaternionStampedAccuracy>(
-            "orientation", 1);
-    linear_acceleration_publisher =
-            n_pub.advertise<geometry_msgs::Vector3Stamped>(
-            "acceleration/linear", 1);
-    euler_publisher = n_pub.advertise<robosub::Euler>("pretty/orientation", 2);
-    ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
-    ros::ServiceServer mode_service = nh.advertiseService("set_bno_mode",
-            set_mode);
-
-    /*
-     * Create the serial port, initialize it, and hand it to the Bno055 sensor
-     * class. Use a private NodeHandle to load the serial port.
-     */
-    std::string port_name;
-    FatalAbortIf(nh.getParam("port", port_name) == false,
-            "Failed to get port name parameter.");
-    FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
-    ROS_INFO("Sensor successfully initialized.");
 
     /*
      * Load calibration parameters from the param server.
@@ -180,16 +93,12 @@ int main(int argc, char **argv)
             gyroscope_offset[3] = {-1, -1, -1};
 
     /*
-     * Initialize trim variables
-     */
-    last_roll = trim_roll = last_pitch = trim_pitch = 0.0;
-
-    /*
      * Use explicit short-circuiting to guarentee that flags are only set when
      * the parameter load fails.
      */
     bool failed_radii_load = false, failed_offset_load = false,
             failed_axis_load = false;
+
     ROS_WARN_COND(nh.getParam("sensor/accelerometer/radius",
             accelerometer_radius) == false && (failed_radii_load = true),
             "Failed to load accelerometer calibration radius.");
@@ -256,15 +165,13 @@ int main(int argc, char **argv)
     /*
      * Write sensor calibrations to the sensor.
      */
-    if (failed_radii_load == false)
+    if (failed_radii_load == false && failed_offset_load == false)
     {
         ROS_WARN_COND(sensor.writeRadii(static_cast<int16_t>(
                 accelerometer_radius),
                 static_cast<int16_t>(magnetometer_radius)) != 0,
                 "Bno055 failed to write sensor radius calibrations.");
-    }
-    if (failed_offset_load == false)
-    {
+
         ROS_WARN_COND(sensor.writeOffsets(Bno055::Sensor::Accelerometer,
                 static_cast<int16_t>(accelerometer_offset[0]),
                 static_cast<int16_t>(accelerometer_offset[1]),
@@ -280,7 +187,119 @@ int main(int argc, char **argv)
                 static_cast<int16_t>(gyroscope_offset[1]),
                 static_cast<int16_t>(gyroscope_offset[2])) != 0,
                 "Bno055 failed to write gyroscope offset calibrations.");
+        return 0;
     }
+
+    return -1;
+}
+
+bool trim(std_srvs::Empty::Request &req,
+          std_srvs::Empty::Response &res)
+{
+    ROS_INFO("Trimming the sensors");
+    trim_roll = last_roll;
+    trim_pitch = last_pitch;
+
+    return true;
+}
+
+bool set_mode(robosub::bno_mode::Request &req,
+              robosub::bno_mode::Response &res)
+{
+    Bno055::OperationMode mode;
+    res.mode = req.mode;
+    switch (req.mode)
+    {
+        case robosub::bno_mode::Request::IMU:
+            mode = Bno055::OperationMode::Imu;
+            ROS_INFO("Setting the mode to IMU.");
+            break;
+
+        case robosub::bno_mode::Request::COMPASS:
+            mode = Bno055::OperationMode::Compass;
+            ROS_INFO("Setting the mode to compass.");
+            break;
+
+        case robosub::bno_mode::Request::M4G:
+            mode = Bno055::OperationMode::M4G;
+            ROS_INFO("Setting the mode to M4G.");
+            break;
+
+        case robosub::bno_mode::Request::NDOFFMCOFF:
+            mode = Bno055::OperationMode::NdofFmcOff;
+            ROS_INFO("Setting the mode to NdofFmcOff.");
+            break;
+
+        case robosub::bno_mode::Request::NDOF:
+            mode = Bno055::OperationMode::Ndof;
+            ROS_INFO("Setting the mode to Ndof.");
+            break;
+
+        default:
+            ROS_ERROR("Invalid mode: %d", req.mode);
+            res.success = false;
+            return false;
+            break;
+    }
+
+    FatalAbortIf(sensor.reinit() != 0, "Bno055 failed to initialize");
+    ROS_INFO("Sensor successfully re-initialized.");
+
+    if (setup_calibration_profile() != 0)
+    {
+        ROS_INFO("Did not load calibration profile.");
+    }
+
+    res.success = (sensor.setOperationMode(mode) == 0);
+    return res.success;
+}
+
+int main(int argc, char **argv)
+{
+    /*
+     * Initialize ROS for this node.
+     */
+    ros::init(argc, argv, "sensor");
+
+    /*
+     * Construct a node handle for communicating with ROS.
+     */
+    ros::NodeHandle nh("~");
+    ros::NodeHandle n_pub;
+
+    /*
+     * Advertise the stamped quaternion and acceleration sensor
+     * data to the software and the trim service call.
+     */
+    quaternion_publisher = n_pub.advertise<robosub::QuaternionStampedAccuracy>(
+            "orientation", 1);
+    linear_acceleration_publisher =
+            n_pub.advertise<geometry_msgs::Vector3Stamped>(
+            "acceleration/linear", 1);
+    euler_publisher = n_pub.advertise<robosub::Euler>("pretty/orientation", 2);
+    ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
+    ros::ServiceServer mode_service = nh.advertiseService("set_bno_mode",
+            set_mode);
+
+    /*
+     * Create the serial port, initialize it, and hand it to the Bno055 sensor
+     * class. Use a private NodeHandle to load the serial port.
+     */
+    std::string port_name;
+    FatalAbortIf(nh.getParam("port", port_name) == false,
+            "Failed to get port name parameter.");
+    FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
+    ROS_INFO("Sensor successfully initialized.");
+
+    if (setup_calibration_profile() != 0)
+    {
+        ROS_INFO("Did not load calibration profile.");
+    }
+
+    /*
+     * Initialize trim variables
+     */
+    last_roll = trim_roll = last_pitch = trim_pitch = 0.0;
 
     /*
      * Configure the sensor to operate in nine degrees of freedom fusion mode.
@@ -297,6 +316,7 @@ int main(int argc, char **argv)
         ROS_WARN("Failed to load BNO055 node rate. Falling back to 20Hz.");
         rate = 20;
     }
+
     ros::Rate r(rate);
     ROS_INFO("BNO055 is now running in Ndof mode.");
 

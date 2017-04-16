@@ -260,6 +260,7 @@ public:
     }
 
     int init(string port_name);
+    int reinit();
 
     int reset();
 
