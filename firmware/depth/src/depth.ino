@@ -92,7 +92,7 @@ void setup()
      * delay in milliseconds between loops.
      */
     int rate;
-    if (n.getParam("rate/depth", &rate, 1) == false)
+    if (n.getParam("/rate/depth", &rate, 1) == false)
     {
         rate = 10;
         n.logwarn("Failed to load depth rate. Defaulting to 10Hz.");
@@ -111,7 +111,15 @@ void setup()
     /*
      * Load the depth sensor offset parameter from the parameter server.
      */
-    if (n.getParam("depth/offset", &depth_offset, 1) == false)
+    int id = 0;
+    if (n.getParam("~id", &id, 1) == false)
+    {
+        n.logwarn("Failed to load depth sensor ID.");
+    }
+
+    char param_string[50];
+    sprintf(param_string, "depth/sensor_%d/offset", id);
+    if (n.getParam(param_string, &depth_offset, 1) == false)
     {
         n.logwarn("Failed to load depth offset.");
         depth_offset = 0;

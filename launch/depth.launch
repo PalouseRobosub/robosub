@@ -3,8 +3,10 @@
 
 <launch>
     <arg name="name" default="depth" />
-    <arg name="port" default="/dev/$(arg name)" />
-    <rosparam file="$(find robosub)/param/depth.yaml" />
+    <arg name="id" default="0" />
+    <arg name="port" value="/dev/$(arg name)" />
     <rosparam file="$(find robosub)/param/cobalt.yaml" />
-    <node name="$(arg name)" pkg="rosserial_python" type="serial_node.py" args="$(arg port)" />
+    <node name="$(arg name)" pkg="rosserial_python" type="serial_node.py" args="$(arg port)">
+        <rosparam param="id" subst_value="True">$(arg id)</rosparam>
+    </node>
 </launch>
