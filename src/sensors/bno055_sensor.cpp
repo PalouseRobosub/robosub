@@ -302,7 +302,8 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         double x, y, z, w, roll, pitch, yaw;
-        uint8_t confidence_level = 0;
+        uint8_t system_accuracy = 0, magnetometer_accuracy = 0,
+                gyroscope_accuracy = 0, accelerometer_accuracy = 0;
         robosub::QuaternionStampedAccuracy quaternion_message;
         robosub::Euler euler_message;
         geometry_msgs::Vector3Stamped linear_acceleration_message;
@@ -317,21 +318,20 @@ int main(int argc, char **argv)
 
         quaternion_message.header.stamp = ros::Time::now();
 
-        FatalAbortIf(sensor.getSystemCalibration(confidence_level) != 0,
-                "Bno055 failed to read system calibration status.");
-
         /*
          * Read the calibration for each individual sensor.
          */
+        FatalAbortIf(sensor.getSystemCalibration(system_accuracy) != 0,
+                "Bno055 failed to read system calibration status.");
         FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Accelerometer,
-                     quaternion_message.accelerometer_accuracy) != 0,
-                     "Bno055 failed to read accelerometer calibration status.");
+                accelerometer_accuracy) != 0,
+                "Bno055 failed to read accelerometer calibration status.");
         FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Gyroscope,
-                     quaternion_message.gyroscope_accuracy) != 0,
-                     "Bno055 failed to read gyroscope calibration status.");
+                gyroscope_accuracy) != 0,
+                "Bno055 failed to read gyroscope calibration status.");
         FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Magnetometer,
-                     quaternion_message.magnetometer_accuracy) != 0,
-                     "Bno055 failed to read magnetometer calibration status.");
+                magnetometer_accuracy) != 0,
+                "Bno055 failed to read magnetometer calibration status.");
 
         /*
          * Convert the quaternion to human-readable roll, pitch, and yaw.
@@ -361,10 +361,17 @@ int main(int argc, char **argv)
          * Confidence ranges from [0,3], so normalize the value for
          * transmission.
          */
-        quaternion_message.accuracy = static_cast<double>(confidence_level +
-                        quaternion_message.magnetometer_accuracy +
-                        quaternion_message.gyroscope_accuracy +
-                        quaternion_message.accelerometer_accuracy) / 12.0;
+        quaternion_message.accuracy = static_cast<double>(system_accuracy +
+                        magnetometer_accuracy + gyroscope_accuracy +
+                        accelerometer_accuracy) / 12.0;
+        quaternion_message.system_accuracy =
+                static_cast<double>(system_accuracy) / 3;
+        quaternion_message.magnetometer_accuracy =
+                static_cast<double>(magnetometer_accuracy) / 3;
+        quaternion_message.gyroscope_accuracy =
+                static_cast<double>(gyroscope_accuracy) / 3;
+        quaternion_message.accelerometer_accuracy =
+                static_cast<double>(accelerometer_accuracy) / 3;
 
         quaternion_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
                           euler_message.roll * _PI_OVER_180,
