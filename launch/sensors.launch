@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="use_two_imus" default="False" />
+    <include file="$(find robosub)/launch/depth.launch" />
+    <include file="$(find robosub)/launch/imu.launch" />
+    <include file="$(find robosub)/launch/imu.launch" if="$(arg use_two_imus)">
+        <arg name="name" value="imu2" />
+        <arg name="remapped" value="True" />
+    </include>
+</launch>

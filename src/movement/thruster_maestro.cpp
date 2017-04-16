@@ -66,7 +66,8 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("thruster", 1, Callback);
 
-    if(!n.getParam("ports/thruster", thruster_port))
+    ros::NodeHandle np("~");
+    if(!np.getParam("port", thruster_port))
     {
         ROS_FATAL("no serial port specified, exiting!");
         exit(1);

@@ -161,10 +161,11 @@ int main(int argc, char **argv)
 
     /*
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
-     * class.
+     * class. Use a private NodeHandle to load the serial port.
      */
     std::string port_name;
-    FatalAbortIf(ros::param::get("ports/sensor", port_name) == false,
+    ros::NodeHandle np("~");
+    FatalAbortIf(np.getParam("port", port_name) == false,
             "Failed to get port name parameter.");
     FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
     ROS_INFO("Sensor successfully initialized.");
@@ -188,39 +189,39 @@ int main(int argc, char **argv)
      */
     bool failed_radii_load = false, failed_offset_load = false,
             failed_axis_load = false;
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/radius",
+    ROS_WARN_COND(nh.getParam("sensor/accelerometer/radius",
             accelerometer_radius) == false && (failed_radii_load = true),
             "Failed to load accelerometer calibration radius.");
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/x",
+    ROS_WARN_COND(nh.getParam("sensor/accelerometer/offset/x",
             accelerometer_offset[0]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/y",
+    ROS_WARN_COND(nh.getParam("sensor/accelerometer/offset/y",
             accelerometer_offset[1]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/z",
+    ROS_WARN_COND(nh.getParam("sensor/accelerometer/offset/z",
             accelerometer_offset[2]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
 
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/radius",
+    ROS_WARN_COND(nh.getParam("sensor/magnetometer/radius",
             magnetometer_radius) == false && (failed_radii_load = true),
             "Failed to load magnetometer calibration radius.");
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/x",
+    ROS_WARN_COND(nh.getParam("sensor/magnetometer/offset/x",
             magnetometer_offset[0]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/y",
+    ROS_WARN_COND(nh.getParam("sensor/magnetometer/offset/y",
             magnetometer_offset[1]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/z",
+    ROS_WARN_COND(nh.getParam("sensor/magnetometer/offset/z",
             magnetometer_offset[2]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
 
-    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/x",
+    ROS_WARN_COND(nh.getParam("sensor/gyroscope/offset/x",
             gyroscope_offset[0]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/y",
+    ROS_WARN_COND(nh.getParam("sensor/gyroscope/offset/y",
             gyroscope_offset[1]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/z",
+    ROS_WARN_COND(nh.getParam("sensor/gyroscope/offset/z",
             gyroscope_offset[2]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
 
@@ -231,13 +232,13 @@ int main(int argc, char **argv)
      * the negative direction.
      */
     int axis_x, axis_y, axis_z;
-    ROS_WARN_COND(nh.getParamCached("sensor/axis/x", axis_x) == false &&
+    ROS_WARN_COND(nh.getParam("sensor/axis/x", axis_x) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped X axis.");
-    ROS_WARN_COND(nh.getParamCached("sensor/axis/y", axis_y) == false &&
+    ROS_WARN_COND(nh.getParam("sensor/axis/y", axis_y) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped Y axis.");
-    ROS_WARN_COND(nh.getParamCached("sensor/axis/z", axis_z) == false &&
+    ROS_WARN_COND(nh.getParam("sensor/axis/z", axis_z) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped Z axis.");
 
