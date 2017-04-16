@@ -28,8 +28,8 @@ void PrintHelp()
 {
     std::cout << "There are two ways of control\n"
                  "First way is:\n"
-                 "W -> forwardS\n"
-                 "S -> backwards\n"
+                 "W -> forward\n"
+                 "S -> backward\n"
                  "A -> strafe to the left\n"
                  "D -> strafe to the right\n"
                  "Z -> dive down\n"
@@ -41,8 +41,8 @@ void PrintHelp()
                  "L -> roll to the left\n"
                  "; -> roll to the right"
                  "\n\n\nAlternative is to with arrow keys:\n"
-                 "ArrowUp -> forwardS\n"
-                 "ArrowDown -> backwards\n"
+                 "ArrowUp -> forward\n"
+                 "ArrowDown -> backward\n"
                  "ArrowLeft -> strafe to the left\n"
                  "ArrowRight -> strafe to the right\n"
                  "PageDown -> dive down\n"
@@ -143,6 +143,10 @@ int main(int argc, char **argv)
             case ';':
                 msg.roll_right = 10;
                 break;
+            case 'r':
+                msg.pitch_down = 0;
+                msg.yaw_left = 0;
+                msg.roll_right = 0;
             case 27:  // Escape Code for special keys
                 switch(keys[2])
                 {
