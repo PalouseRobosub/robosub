@@ -3,7 +3,6 @@
 
 <launch>
     <arg name="name" default="bno055_stern" />
-    <arg name="remapped" default="False" />
     <arg name="port" default="/dev/$(arg name)" />
     <rosparam file="$(find robosub)/param/$(arg name).yaml" />
     <node name="$(arg name)" pkg="robosub" type="bno055_calibrate" output="screen">
