@@ -110,6 +110,7 @@ add_message_files(
   Float32Stamped.msg
   Euler.msg
   QuaternionStampedAccuracy.msg
+  RawImu.msg
   HydrophoneDeltas.msg
   Position.msg
   PositionArrayStamped.msg

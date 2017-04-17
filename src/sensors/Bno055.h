@@ -292,6 +292,8 @@ public:
     int readRadii(int16_t &accelerometer_radius,
             int16_t &magnometer_radius);
 
+    int readSensor(Bno055::Sensor sensor, int16_t &x, int16_t &y, int16_t &z);
+
 private:
     int write_register(Bno055::Register start, vector<uint8_t> data);
 

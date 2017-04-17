@@ -3,3 +3,21 @@ sensor:
         x: 1
         y: 2
         z: 3
+    accelerometer:
+        offset:
+            x: -7
+            y: 38
+            z: 42
+        radius: 1000
+    magnetometer:
+        offset:
+            x: 1857
+            y: -880
+            z: 3981
+        radius: 587
+    gyroscope:
+        offset:
+            x: -1
+            y: 3
+            z: 1
+

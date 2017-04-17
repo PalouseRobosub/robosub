@@ -845,4 +845,42 @@ namespace rs
 
         return 0;
     }
+
+    /**
+     * Read the raw data from the BNO.
+     *
+     * @param sensor which sensor to read.
+     * @param[out] x The location to store the x reading.
+     * @param[out] y The location to store the y reading.
+     * @param[out] z The location to store the z reading.
+     *
+     * @return Zero upon success and -1 upon error.
+     */
+    int Bno055::readSensor(Sensor sensor, int16_t &x, int16_t &y, int16_t &z)
+    {
+        Register reg;
+        switch (sensor)
+        {
+            case Sensor::Accelerometer:
+                reg = Register::ACC_DATA_X_LSB;
+                break;
+            case Sensor::Gyroscope:
+                reg = Register::GYR_DATA_X_LSB;
+                break;
+            case Sensor::Magnetometer:
+                reg = Register::MAG_DATA_X_LSB;
+                break;
+            default:
+                return -1;
+        }
+
+        vector<uint8_t> data(6);
+        AbortIf(read_register(reg, data, 6));
+
+        x = static_cast<int16_t>(data[1]) << 8 | data[0];
+        y = static_cast<int16_t>(data[3]) << 8 | data[2];
+        z = static_cast<int16_t>(data[5]) << 8 | data[4];
+
+        return 0;
+    }
 }

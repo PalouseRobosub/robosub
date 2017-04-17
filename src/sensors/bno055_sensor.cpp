@@ -3,6 +3,7 @@
 #include "robosub/bno_mode.h"
 #include "robosub/Euler.h"
 #include "robosub/QuaternionStampedAccuracy.h"
+#include "robosub/RawImu.h"
 #include "ros/ros.h"
 #include "sensors/Bno055.h"
 #include "std_srvs/Empty.h"
@@ -18,6 +19,7 @@ using namespace rs;
 ros::Publisher euler_publisher;
 ros::Publisher quaternion_publisher;
 ros::Publisher linear_acceleration_publisher;
+ros::Publisher raw_data_publisher;
 
 Bno055 sensor;
 
@@ -151,6 +153,7 @@ int main(int argc, char **argv)
      * Advertise the stamped quaternion and acceleration sensor
      * data to the software and the trim service call.
      */
+    raw_data_publisher = n_pub.advertise<robosub::RawImu>("raw", 1);
     quaternion_publisher = n_pub.advertise<robosub::QuaternionStampedAccuracy>(
             "orientation", 1);
     linear_acceleration_publisher =
@@ -285,7 +288,7 @@ int main(int argc, char **argv)
     /*
      * Configure the sensor to operate in nine degrees of freedom fusion mode.
      */
-    FatalAbortIf(sensor.setOperationMode(Bno055::OperationMode::Ndof),
+    FatalAbortIf(sensor.setOperationMode(Bno055::OperationMode::Imu),
             "Bno055 failed to enter fusion mode.");
 
     /*
@@ -298,7 +301,7 @@ int main(int argc, char **argv)
         rate = 20;
     }
     ros::Rate r(rate);
-    ROS_INFO("BNO055 is now running in Ndof mode.");
+    ROS_INFO("BNO055 is now running in IMU mode.");
 
     while (ros::ok())
     {
@@ -380,6 +383,31 @@ int main(int argc, char **argv)
                           euler_message.yaw * _PI_OVER_180);
 
         quaternion_publisher.publish(quaternion_message);
+
+        /*
+         * Read the raw IMU data.
+         */
+        robosub::RawImu raw_msg;
+        raw_msg.header.stamp = ros::Time::now();
+
+        int16_t x_raw, y_raw, z_raw;
+        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Accelerometer, x_raw, y_raw, z_raw),
+                "Failed to read accelerometer data.");
+        raw_msg.accelerometer.x = x_raw;
+        raw_msg.accelerometer.y = y_raw;
+        raw_msg.accelerometer.z = z_raw;
+        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Gyroscope, x_raw, y_raw, z_raw),
+                "Failed to read gyroscope data.");
+        raw_msg.gyroscope.x = x_raw;
+        raw_msg.gyroscope.y = y_raw;
+        raw_msg.gyroscope.z = z_raw;
+        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Magnetometer, x_raw, y_raw, z_raw),
+                "Failed to read magnetometer data.");
+        raw_msg.magnetometer.x = x_raw;
+        raw_msg.magnetometer.y = y_raw;
+        raw_msg.magnetometer.z = z_raw;
+
+        raw_data_publisher.publish(raw_msg);
 
         /*
          * Read and publish the linear acceleration from the Bno055.
