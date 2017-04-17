@@ -1,10 +1,20 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="use_two_imus" default="False" />
-    <include file="$(find robosub)/launch/depth.launch" />
-    <include file="$(find robosub)/launch/imu.launch" />
+    <arg name="load" default="True" />
+
+    <include file="$(find robosub)/launch/depth.launch">
+        <arg name="load" value="False" />
+    </include>
+
+    <include file="$(find robosub)/launch/imu.launch">
+        <arg name="load" value="False" />
+    </include>
+
     <include file="$(find robosub)/launch/imu.launch" if="$(arg use_two_imus)">
+        <arg name="load" value="False" />
         <arg name="name" value="bno055_bow" />
+        <arg name="id" value="1" />
         <arg name="remapped" value="True" />
     </include>
 </launch>

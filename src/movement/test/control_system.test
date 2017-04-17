@@ -1,8 +1,6 @@
 <launch>
     <test test-name="test_control_system" pkg="robosub" type="test_control_system" time-limit="120.0" />
 
-    <rosparam command="load" file="$(find robosub)/param/cobalt.yaml" />
-
     <include file="$(find robosub_simulator)/launch/gazebo.launch">
         <arg name="gui" value="false"/>
     </include>

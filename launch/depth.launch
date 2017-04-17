@@ -5,7 +5,8 @@
     <arg name="name" default="depth" />
     <arg name="id" default="0" />
     <arg name="port" default="/dev/$(arg name)" />
-    <rosparam file="$(find robosub)/param/cobalt.yaml" />
+    <arg name="load" default="True" />
+    <rosparam file="$(find robosub)/param/cobalt.yaml" if="$(arg load)" />
     <node name="$(arg name)" pkg="rosserial_python" type="serial_node.py" args="$(arg port)">
         <rosparam param="id" subst_value="True">$(arg id)</rosparam>
     </node>

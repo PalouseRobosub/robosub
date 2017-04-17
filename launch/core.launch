@@ -1,12 +1,16 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="use_two_imus" default="False" />
-    <rosparam file="$(find robosub)/param/cobalt.yaml" />
+    <arg name="load" default="True" />
+    <rosparam file="$(find robosub)/param/cobalt.yaml" if="$(arg load)" />
 
     <include file="$(find robosub)/launch/sensors.launch">
         <arg name="use_two_imus" value="$(arg use_two_imus)" />
+        <arg name="load" value="False" />
     </include>
 
     <node pkg="robosub" name="control" type="control" />
-    <include file="$(find robosub)/launch/thrusters.launch" />
+    <include file="$(find robosub)/launch/thrusters.launch">
+        <arg name="load" value="False" />
+    </include>
 </launch>

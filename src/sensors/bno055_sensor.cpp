@@ -168,9 +168,12 @@ int main(int argc, char **argv)
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
      * class. Use a private NodeHandle to load the serial port.
      */
+    int id = 0;
+    FatalAbortIf(nh.getParam("id", id) == false, "Failed to get ID parameter.");
+
     std::string port_name;
-    FatalAbortIf(nh.getParam("port", port_name) == false,
-            "Failed to get port name parameter.");
+    FatalAbortIf(n_pub.getParam("ports/imu_" + std::to_string(id), port_name)
+            == false, "Failed to get port name parameter.");
     FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
     ROS_INFO("Sensor successfully initialized.");
 
@@ -288,20 +291,21 @@ int main(int argc, char **argv)
     /*
      * Configure the sensor to operate in nine degrees of freedom fusion mode.
      */
-    FatalAbortIf(sensor.setOperationMode(Bno055::OperationMode::Imu),
+    FatalAbortIf(sensor.setOperationMode(Bno055::OperationMode::Ndof),
             "Bno055 failed to enter fusion mode.");
 
     /*
      * Enter the main ROS loop.
      */
     int rate;
-    if (!nh.getParam("/rate/imu", rate))
+    if (!n_pub.getParam("rate/imu", rate))
     {
         ROS_WARN("Failed to load BNO055 node rate. Falling back to 20Hz.");
         rate = 20;
     }
+
     ros::Rate r(rate);
-    ROS_INFO("BNO055 is now running in IMU mode.");
+    ROS_INFO("BNO055 is now running in Ndof mode.");
 
     while (ros::ok())
     {
@@ -344,7 +348,7 @@ int main(int argc, char **argv)
         m.getRPY(roll, pitch, yaw);
 
         /*
-         * Backup the last roll and pitch, apply trim offsets
+         * Backup the last roll and pitch, apply trim offsets.
          */
         last_roll = roll;
         last_pitch = pitch;
@@ -353,8 +357,8 @@ int main(int argc, char **argv)
         pitch -= trim_pitch;
 
         /*
-         * Note that we flip the roll and pitch, we do this so that the output
-         * is in right-handed rotation notation
+         * Note that the roll and pitch are flipped so that the output is in
+         * right-handed rotation notation.
          */
         euler_message.roll = (-1) * roll * _180_OVER_PI;
         euler_message.pitch = (-1) * pitch * _180_OVER_PI;
@@ -391,18 +395,18 @@ int main(int argc, char **argv)
         raw_msg.header.stamp = ros::Time::now();
 
         int16_t x_raw, y_raw, z_raw;
-        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Accelerometer, x_raw, y_raw, z_raw),
-                "Failed to read accelerometer data.");
+        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Accelerometer, x_raw,
+                y_raw, z_raw), "Failed to read accelerometer data.");
         raw_msg.accelerometer.x = x_raw;
         raw_msg.accelerometer.y = y_raw;
         raw_msg.accelerometer.z = z_raw;
-        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Gyroscope, x_raw, y_raw, z_raw),
-                "Failed to read gyroscope data.");
+        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Gyroscope, x_raw, y_raw,
+                z_raw), "Failed to read gyroscope data.");
         raw_msg.gyroscope.x = x_raw;
         raw_msg.gyroscope.y = y_raw;
         raw_msg.gyroscope.z = z_raw;
-        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Magnetometer, x_raw, y_raw, z_raw),
-                "Failed to read magnetometer data.");
+        FatalAbortIf(sensor.readSensor(Bno055::Sensor::Magnetometer, x_raw,
+                y_raw, z_raw), "Failed to read magnetometer data.");
         raw_msg.magnetometer.x = x_raw;
         raw_msg.magnetometer.y = y_raw;
         raw_msg.magnetometer.z = z_raw;

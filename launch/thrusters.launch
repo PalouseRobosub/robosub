@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="port" default="/dev/maestro_control" />
-    <rosparam file="$(find robosub)/param/thrusters.yaml"/>
-    <node name="thrusters" pkg="robosub" type="thruster_maestro">
-        <rosparam param="port" subst_value="True">$(arg port)</rosparam>
-    </node>
+    <arg name="load" default="True" />
+    <rosparam file="$(find robosub)/param/cobalt.yaml" if="$(arg load)"/>
+    <node name="thrusters" pkg="robosub" type="thruster_maestro" />
 </launch>

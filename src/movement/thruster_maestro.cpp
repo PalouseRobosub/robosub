@@ -66,8 +66,7 @@ int main(int argc, char **argv)
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("thruster", 1, Callback);
 
-    ros::NodeHandle np("~");
-    if(!np.getParam("port", thruster_port))
+    if(!n.getParam("ports/thruster", thruster_port))
     {
         ROS_FATAL("no serial port specified, exiting!");
         exit(1);
@@ -86,7 +85,8 @@ int main(int argc, char **argv)
 
     //Get the ports and names of the maestro thrusters (from coblat.yaml)
     XmlRpc::XmlRpcValue thruster_settings;
-    ros::param::get("thrusters/mapping", thruster_settings);
+    ROS_FATAL_COND(n.getParam("thrusters/mapping", thruster_settings) == false,
+            "Failed to load thruster mappings.");
 
     for(int i = 0; i < thruster_settings.size(); ++i)
     {
