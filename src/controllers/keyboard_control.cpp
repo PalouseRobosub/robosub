@@ -26,7 +26,7 @@ uint8_t getKey(void)
 
 void PrintHelp()
 {
-    std::cout << "There are two ways of control\n"
+    std::cout << "There are two methods of control\n"
                  "First way is:\n"
                  "W -> forward\n"
                  "S -> backward\n"
@@ -38,17 +38,17 @@ void PrintHelp()
                  "K -> Pitch Down\n"
                  "Q -> rotate to the left\n"
                  "E -> rotate to the right\n"
-                 "L -> roll to the left\n"
-                 "; -> roll to the right"
-                 "\n\n\nAlternative is to with arrow keys:\n"
+                 "L -> yaw to the left\n"
+                 "; -> yaw to the right"
+                 "\n\n\nAlternative is with arrow keys:\n"
                  "ArrowUp -> forward\n"
                  "ArrowDown -> backward\n"
                  "ArrowLeft -> strafe to the left\n"
                  "ArrowRight -> strafe to the right\n"
                  "PageDown -> dive down\n"
                  "PageUp -> dive up\n"
-                 "Holding ctr and pressing arrow keys would control pitch.\n"
-                 "Press ? to see help message again" << std::endl;
+                 "[ctr] + \"arrow key\" will control pitch, and yaw.\n"
+                 "Press ? to see this message again" << std::endl;
 }
 
 int main(int argc, char **argv)
