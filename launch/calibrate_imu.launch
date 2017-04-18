@@ -3,9 +3,9 @@
 
 <launch>
     <arg name="name" default="bno055_stern" />
-    <arg name="port" default="/dev/$(arg name)" />
+    <arg name="id" default="0" />
     <rosparam file="$(find robosub)/param/$(arg name).yaml" />
     <node name="$(arg name)" pkg="robosub" type="bno055_calibrate" output="screen">
-        <rosparam param="port" subst_value="True">$(arg port)</rosparam>
+        <rosparam param="id" subst_value="True">$(arg id)</rosparam>
     </node>
 </launch>

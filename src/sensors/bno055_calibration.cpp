@@ -38,11 +38,16 @@ void HandleError(int x, const char * s, bool abort = false)
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "sensor_calibration");
+    ros::NodeHandle n;
     ros::NodeHandle np("~");
     string port_name;
 
-    HandleError(np.getParam("port", port_name) == false,
-            "ros::param::get(\"port\")", true);
+    int id = 0;
+    HandleError(np.getParam("id", id) == false, "Failed to get sensor ID.",
+            true);
+
+    HandleError(n.getParam("ports/imu_" + std::to_string(id), port_name)
+            == false, "ros::param::get(\"port\")", true);
 
     Bno055 bno;
 
