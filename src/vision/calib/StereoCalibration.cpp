@@ -42,16 +42,16 @@ void callback(const WFOVImage::ConstPtr &rightImg,
     Mat rCrop, lCrop;
     if (cropRadius != -1)
     {
-    	circle(cropMask, Point(rview.size().width / 2, rview.size().height / 2),
+        circle(cropMask, Point(rview.size().width / 2, rview.size().height / 2),
                cropRadius, Scalar(255, 255, 255), -1, 8, 0);
-    
-    	rview.copyTo(rCrop, cropMask);
-    	lview.copyTo(lCrop, cropMask);
+
+        rview.copyTo(rCrop, cropMask);
+        lview.copyTo(lCrop, cropMask);
     }
     else
     {
-	rview.copyTo(rCrop);
-	lview.copyTo(lCrop);
+        rview.copyTo(rCrop);
+        lview.copyTo(lCrop);
     }
 
     circle(cropMask, Point(rview.size().width / 2, rview.size().height),
@@ -131,7 +131,7 @@ int main (int argc, char* argv[])
     stereoCalib = new StereoCalibrator(settings.boardSize, settings.squareSize,
                                        settings.outputFileName,
                                        false, settings.showUndistorted,
-				       cropRadius);
+                                       cropRadius);
 
     ROS_INFO_STREAM("Settings read and validated");
 
