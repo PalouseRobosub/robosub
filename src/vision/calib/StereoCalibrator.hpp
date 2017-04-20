@@ -27,7 +27,7 @@ class StereoCalibrator
         StereoCalibrator(Size boardSize, float squareSize,
                          string outputFilename, bool displayCorners = false,
                          bool useCalibrated = true, bool showRectified = true,
-			 int cropRadius = -1);
+                         int cropRadius = -1);
         ~StereoCalibrator();
 
         void submitLeftImg(const Mat &leftImg);
@@ -44,7 +44,7 @@ class StereoCalibrator
         bool displayCorners;
         bool useCalibrated;
         bool showRectified;
-	int cropRadius;
+        int cropRadius;
 
         vector<pair<Mat, Mat>> validPairs;
 

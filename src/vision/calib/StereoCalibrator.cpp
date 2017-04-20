@@ -7,7 +7,7 @@
 StereoCalibrator::StereoCalibrator(Size boardSize, float squareSize,
                          string outputFilename, bool displayCorners,
                          bool useCalibrated, bool showRectified,
-			 int cropRadius)
+                         int cropRadius)
 {
     this->boardSize = boardSize;
     this->squareSize = squareSize;
