@@ -36,10 +36,10 @@ void PrintHelp()
                  "C -> dive up\n"
                  "J -> Pitch up\n"
                  "K -> Pitch Down\n"
-                 "Q -> rotate to the left\n"
-                 "E -> rotate to the right\n"
-                 "L -> yaw to the left\n"
-                 "; -> yaw to the right"
+                 "Q -> yaw left\n"
+                 "E -> yaw right\n"
+                 "L -> roll left\n"
+                 "; -> roll right"
                  "\n\n\nAlternative is with arrow keys:\n"
                  "ArrowUp -> forward\n"
                  "ArrowDown -> backward\n"
@@ -47,7 +47,7 @@ void PrintHelp()
                  "ArrowRight -> strafe to the right\n"
                  "PageDown -> dive down\n"
                  "PageUp -> dive up\n"
-                 "[ctr] + \"arrow key\" will control pitch, and yaw.\n"
+                 "[ctrl] + \"arrow key\" will control pitch, and yaw.\n"
                  "Press ? to see this message again" << std::endl;
 }
 
