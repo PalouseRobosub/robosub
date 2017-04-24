@@ -55,5 +55,6 @@ class StereoProcessor
         bool initialized;
 
         Mat toOpenCV(const Image& image);
+        void getParams(Elas::parameters &params);
 };
 #endif // STEREOPROCESSOR_HPP

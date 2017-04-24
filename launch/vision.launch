@@ -33,7 +33,7 @@
         <param name="use_bottom_cam" value="false"/>
     </node>
 
-    <!-- Red buoy vision detection -->
+    <!-- Red buoy vision detection >
     <node pkg="robosub" type="vision" name="red_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/red"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
@@ -44,9 +44,9 @@
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
-    </node>
+    </node -->
 
-    <!-- Green buoy vision detection -->
+    <!-- Green buoy vision detection >
     <node pkg="robosub" type="vision" name="green_vision" args="$(find robosub)/$(arg calibFile)"  output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/green"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
@@ -57,9 +57,9 @@
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
-    </node>
+    </node -->
 
-    <!-- Yellow buoy vision detection -->
+    <!-- Yellow buoy vision detection >
     <node pkg="robosub" type="vision" name="yellow_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/buoys/yellow"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
@@ -70,9 +70,9 @@
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
-    </node>
+    </node-->
 
-    <!-- Navigate Pass vision detection -->
+    <!-- Navigate Pass vision detection >
     <node pkg="robosub" type="vision" name="navigate_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/navigate_pass"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
@@ -83,9 +83,9 @@
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
-    </node>
+    </node-->
 
-    <!-- Marker Bin vision detection -->
+    <!-- Marker Bin vision detection >
     <node pkg="robosub" type="vision" name="bin_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/bins"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
@@ -96,9 +96,9 @@
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="2"/>
         <param name="use_bottom_cam" value="true"/>
-    </node>
+    </node-->
 
-    <!-- Torpedo target vision detection -->
+    <!-- Torpedo target vision detection >
     <node pkg="robosub" type="vision" name="torpedo_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/torpedo_target"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
@@ -109,9 +109,9 @@
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="false"/>
-    </node>
+    </node-->
 
-    <!-- Octagon vision detection -->
+    <!-- Octagon vision detection >
     <node pkg="robosub" type="vision" name="octagon_vision" args="$(find robosub)/$(arg calibFile)" output="screen" required="false">
         <remap from="vision/output_default" to="vision/octagon"/>
         <remap from="camera/left/undistorted" to="$(arg leftImage)"/>
@@ -122,5 +122,5 @@
         <param name="processing/doImShow" value="$(arg doImShow)"/>
         <param name="nLargest" value="1"/>
         <param name="use_bottom_cam" value="true"/>
-    </node>
+    </node-->
 </launch>
