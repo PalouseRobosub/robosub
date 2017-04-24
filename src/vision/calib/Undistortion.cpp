@@ -39,12 +39,12 @@ void rightCallback(const Image::ConstPtr& msg)
     }
 
     Image outMsg;
-    
+
     if (doUndist)
     {
         cv_bridge::CvImagePtr image_ptr;
         image_ptr = toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-        
+
         Mat temp = image_ptr->image.clone();
         Mat cropped;
 
@@ -87,14 +87,14 @@ void leftCallback(const Image::ConstPtr &msg)
                       "callback)");
         doUndist = true;
     }
-    
+
     Image outMsg;
-    
+
     if (doUndist)
     {
         cv_bridge::CvImagePtr image_ptr;
         image_ptr = toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-        
+
         Mat temp = image_ptr->image.clone();
         Mat cropped;
 
@@ -156,7 +156,7 @@ void bottomCallback(const Image::ConstPtr &msg)
     {
         outMsg = *msg;
     }
-    
+
     bottomPub.publish(outMsg);
 }
 
