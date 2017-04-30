@@ -2,10 +2,10 @@
 #define TRAX_IMU_H
 
 #include <string>
-#include "util/Serial.h"
+#include "utility/serial.hpp"
 
 using std::string;
-using namespace robosub;
+using namespace rs;
 
 class PniTrax
 {
@@ -31,7 +31,7 @@ public:
         kStopCal = 0x0B,
         ksetFIRFilters = 0x0C,
         kGetFIRFilters = 0x0D,
-        kGetFIRFilters = 0x0E,
+        kGetFIRFiltersResp = 0x0E,
         kPowerDown = 0x0F,
         kSaveDone = 0x10,
         kUserCalSampleCount = 0x11,
@@ -60,6 +60,11 @@ public:
         kGetMagThruthMethodResp = 0x79
     };
 
+    enum class Config : uint8_t
+    {
+        kUserCalAutoSampling = 13
+    };
+
     enum class Component : uint8_t
     {
         kHeading = 0x05,
@@ -78,7 +83,7 @@ public:
         kGyroZ = 0x4D
     };
 
-    enum class Output
+    enum class Format
     {
         None,
         Raw,
@@ -97,7 +102,7 @@ public:
     /**
      * Specifies the type of calibration that should be performed.
      */
-    enum class Calibration  uint8_t
+    enum class Calibration : uint8_t
     {
         FullRange = 0x0A,
         TwoD = 0x14,
@@ -109,10 +114,9 @@ public:
 
     PniTrax();
 
-    int init(const string serial_port_name, Mode mode = Mode::AHRS,
-            bool _continuous = false);
+    int init(const string serial_port_name, const Mode mode = Mode::AHRS);
 
-    int setMode(Mode mode, bool _continuous = false);
+    int setMode(const Mode mode);
 
     int getRPY(float &roll, float &pitch, float &yaw,
                uint8_t &yaw_accuracy, bool &calibrated);
@@ -121,7 +125,7 @@ public:
                float &gyro_x, float &gyro_y, float &gyro_z,
                float &mag_x, float &mag_y, float &mag_z);
 
-    int startCalibration(Calibration type, bool auto_sample);
+    int startCalibration(const Calibration type, const bool auto_sample);
 
     int stopCalibration();
 
@@ -133,6 +137,8 @@ public:
             float &distribution_error, float &tilt_error, float &tilt_range);
 
     int resetMagnetometerReference();
+
+    int setOutput(const Format format);
 
     int save_configuration();
 

@@ -1,7 +1,5 @@
 #include "sensors/PniTrax.h"
 
-namespace robosub
-{
 /**
  * Constructor.
  */
@@ -26,7 +24,7 @@ int PniTrax::init(const string serial_port_name, Mode mode)
 {
     Command response;
 
-    if (serial_port.init(serial_port_name.c_str(), B38400))
+    if (serial_port.Open(serial_port_name.c_str(), B38400))
     {
         return -1;
     }
@@ -46,7 +44,8 @@ int PniTrax::init(const string serial_port_name, Mode mode)
         return -1;
     }
 
-    if (string(data, 4) != "TRAX")
+    string product(reinterpret_cast<char *>(data), 4);
+    if (product != "TRAX")
     {
         return -1;
     }
@@ -64,12 +63,10 @@ int PniTrax::init(const string serial_port_name, Mode mode)
         return -1;
     }
 
-    if (read_command(response, 0 NULL) || response != Command::kSetAcqParamsDone)
+    if (read_command(response, NULL, 0) || response != Command::kSetAcqParamsDone)
     {
         return -1;
     }
-
-    continuous = _ continuous;
 
     if (setOutput(Format::Euler))
     {
@@ -89,18 +86,18 @@ int PniTrax::init(const string serial_port_name, Mode mode)
  *
  * @return Zero upon success and -1 upon error.
  */
-int PniTrax::setOutput(const Output format)
+int PniTrax::setOutput(const Format format)
 {
     if (format == Format::Euler && output_format != Format::Euler)
     {
         uint8_t data[6] = {0};
 
         data[0] = 5;
-        data[1] = reinterpret_cast<uint8_t>(Component::kHeading);
-        data[2] = reinterpret_cast<uint8_t>(Component::kPitch);
-        data[3] = reinterpret_cast<uint8_t>(Component::kRoll);
-        data[4] = reinterpret_cast<uint8_t>(Component::kHeadingStatus);
-        data[5] = reinterpret_cast<uint8_t>(Component::kCalStatus);
+        data[1] = static_cast<uint8_t>(Component::kHeading);
+        data[2] = static_cast<uint8_t>(Component::kPitch);
+        data[3] = static_cast<uint8_t>(Component::kRoll);
+        data[4] = static_cast<uint8_t>(Component::kHeadingStatus);
+        data[5] = static_cast<uint8_t>(Component::kCalStatus);
 
         if (write_command(Command::kSetDataComponents, data, 6))
         {
@@ -114,15 +111,15 @@ int PniTrax::setOutput(const Output format)
         uint8_t data[10] = {0};
 
         data[0] = 9;
-        data[1] = reinterpret_cast<uint8_t>(Component::kAccelX);
-        data[2] = reinterpret_cast<uint8_t>(Component::kAccelY);
-        data[3] = reinterpret_cast<uint8_t>(Component::kAccelZ);
-        data[4] = reinterpret_cast<uint8_t>(Component::kMagX);
-        data[5] = reinterpret_cast<uint8_t>(Component::kMagY);
-        data[6] = reinterpret_cast<uint8_t>(Component::kMagZ);
-        data[7] = reinterpret_cast<uint8_t>(Component::kGyroX);
-        data[8] = reinterpret_cast<uint8_t>(Component::kGyroY);
-        data[9] = reinterpret_cast<uint8_t>(Component::kGyroZ);
+        data[1] = static_cast<uint8_t>(Component::kAccelX);
+        data[2] = static_cast<uint8_t>(Component::kAccelY);
+        data[3] = static_cast<uint8_t>(Component::kAccelZ);
+        data[4] = static_cast<uint8_t>(Component::kMagX);
+        data[5] = static_cast<uint8_t>(Component::kMagY);
+        data[6] = static_cast<uint8_t>(Component::kMagZ);
+        data[7] = static_cast<uint8_t>(Component::kGyroX);
+        data[8] = static_cast<uint8_t>(Component::kGyroY);
+        data[9] = static_cast<uint8_t>(Component::kGyroZ);
 
         if (write_command(Command::kSetDataComponents, data, 10))
         {
@@ -165,6 +162,7 @@ int PniTrax::getRPY(float &roll, float &pitch, float &yaw,
     }
 
     uint8_t data[18] = {0};
+    Command response;
     if (read_command(response, data, 18) || response != Command::kGetDataResp)
     {
         return -1;
@@ -221,6 +219,7 @@ int PniTrax::getRawReadings(float &accel_x, float &accel_y, float &accel_z,
      * Read the data response from the sensor.
      */
     uint8_t data[36];
+    Command response;
     if (read_command(response, data, 36) || response != Command::kGetDataResp)
     {
         return -1;
@@ -253,18 +252,19 @@ int PniTrax::getRawReadings(float &accel_x, float &accel_y, float &accel_z,
  *
  * @return Zero upon success and -1 upon error.
  */
-int PniTrax::startCalibration(const Calibraton type, const bool auto_sample)
+int PniTrax::startCalibration(const Calibration type, const bool auto_sample)
 {
-    uint8_t data[2] = {reinterpret_cast<uint8_t>(Config::kUserCalAutoSampling),
-        (auto_sample)? 1 : 0};
-    if (write_command(Command:kSetConfig, data, 2))
+    uint8_t data[2] = { static_cast<uint8_t>(Config::kUserCalAutoSampling),
+        auto_sample};
+
+    if (write_command(Command::kSetConfig, data, 2))
     {
         return -1;
     }
 
-    autonomatic_calibration = auto_sample;
+    automatic_calibration = auto_sample;
 
-    uint8_t cal_type = reinterpret_cast<uint8_t>(type);
+    uint8_t cal_type = static_cast<uint8_t>(type);
     if (write_command(Command::kStartCal, &cal_type, 1))
     {
         return -1;
@@ -278,8 +278,7 @@ int PniTrax::startCalibration(const Calibraton type, const bool auto_sample)
  *
  * @return Zero upon success and -1 upon error.
  */
-int PniTrax::StopCalibration(float &mag_score, float &accel_score,
-        float &distribution_error, float &tilt_error, float &tilt_range)
+int PniTrax::stopCalibration()
 {
     if (write_command(Command::kStopCal, NULL, 0))
     {
@@ -325,11 +324,11 @@ int PniTrax::finishCalibration(float &mag_score, float &accel_score,
     /*
      * Copy the parameter fields from the buffer.
      */
-    memcpy(mag_score, &data[0], 4);
-    memcpy(accel_score, &data[8], 4);
-    memcpy(distribution_error, &data[12], 4);
-    memcpy(tilt_error, &data[16], 4);
-    memcpy(tilt_range, &data[20], 4);
+    memcpy(&mag_score, &data[0], 4);
+    memcpy(&accel_score, &data[8], 4);
+    memcpy(&distribution_error, &data[12], 4);
+    memcpy(&tilt_error, &data[16], 4);
+    memcpy(&tilt_range, &data[20], 4);
 
     return 0;
 }
@@ -447,7 +446,7 @@ int PniTrax::write_command(const Command cmd, const uint8_t *payload,
      * write the command FRAME_ID byte.
      */
     memcpy(packet, &packet_len, 2);
-    packet[2] = reinterpret_cast<uint8_t>(cmd);
+    packet[2] = static_cast<uint8_t>(cmd);
 
     /*
      * Follow the packet data with the payload for the command.
@@ -483,13 +482,13 @@ int PniTrax::write_command(const Command cmd, const uint8_t *payload,
  * @return Zero upon success and -1 upon error.
  */
 int PniTrax::read_command(Command &resp, uint8_t *payload,
-        const uint8_t max_payload_len)
+        const uint16_t max_payload_length)
 {
     /*
      * Read the packet header (packet length stored as uint16_t)
      */
     uint8_t data[4096];
-    if (serial_port.read(data, 2) != 2)
+    if (serial_port.Read(data, 2) != 2)
     {
         return -1;
     }
@@ -549,7 +548,7 @@ int PniTrax::read_command(Command &resp, uint8_t *payload,
  *
  * @return The final checksum value.
  */
-uint16_t crc16(uint8_t *data, const int length)
+uint16_t PniTrax::crc16(uint8_t *data, const int length)
 {
     uint16_t checksum = 0;
     for (int i = 0; i < length; ++i)
@@ -558,5 +557,4 @@ uint16_t crc16(uint8_t *data, const int length)
     }
 
     return checksum;
-}
 }
