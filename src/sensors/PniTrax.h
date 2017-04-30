@@ -166,7 +166,7 @@ private:
      */
     Format output_format;
 
-    uint16_t crc16(uint8_t *data, const int length);
+    uint16_t crc16(uint8_t *data, int length);
 
     int write_command(const Command cmd, const uint8_t *payload,
             const uint16_t payload_length);
