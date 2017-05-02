@@ -20,3 +20,6 @@ add_ros_node(trax_sensor trax_sensor.cpp)
 target_link_libraries(trax_sensor serial trax)
 
 add_ros_node(hydrophones trilateration.cpp)
+
+add_ros_node(trax_calibrate trax_calibration.cpp)
+target_link_libraries(trax_calibrate serial trax)
