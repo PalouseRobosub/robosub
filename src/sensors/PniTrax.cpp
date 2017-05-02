@@ -126,7 +126,15 @@ int PniTrax::init(const string serial_port_name, Mode mode)
  */
 int PniTrax::setOutput(const Format format)
 {
-    if (format == Format::Euler && output_format != Format::Euler)
+    /*
+     * Ignore redundant changes in output format.
+     */
+    if (output_format == format)
+    {
+        return 0;
+    }
+
+    if (format == Format::Euler)
     {
         uint8_t data[6] = {0};
 
@@ -141,10 +149,8 @@ int PniTrax::setOutput(const Format format)
         {
             return -1;
         }
-
-        output_format = Format::Euler;
     }
-    else if (format == Format::Raw && output_format != Format::Raw)
+    else if (format == Format::Raw)
     {
         uint8_t data[10] = {0};
 
@@ -163,10 +169,9 @@ int PniTrax::setOutput(const Format format)
         {
             return -1;
         }
-
-        output_format = Format::Raw;
     }
 
+    output_format = format;
     return 0;
 }
 
@@ -450,7 +455,8 @@ int PniTrax::ackCalibrationPoint()
  * Resets the magnetometer field reference.
  *
  * @note Only call this function when the sensor is in a magnetically-pure
- *       environment.
+ *       environment. Aka, when the sensor is only within Earth's magnetic field
+ *       and will experience no other distortions.
  *
  * @return Zero upon success and -1 upon error.
  */
@@ -471,12 +477,7 @@ int PniTrax::resetMagnetometerReference()
  */
 int PniTrax::save_configuration()
 {
-    if (write_command(Command::kSave, NULL, 0))
-    {
-        return -1;
-    }
-
-    return 0;
+    return write_command(Command::kSave, NULL, 0);
 }
 
 /**
@@ -486,7 +487,7 @@ int PniTrax::save_configuration()
  */
 int PniTrax::flush()
 {
-    return ((serial_port.Flush())? -1 : 0);
+    return serial_port.Flush();
 }
 
 /**
