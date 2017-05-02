@@ -131,12 +131,16 @@ int main(int argc, char *argv[])
             "Failed to begin TRAX calibration.");
 
     /*
-     * Loop while the calibration is incomplete and ROS is okay.
+     * Loop while the calibration is incomplete and ROS is okay. A calibration
+     * defaults to 12 data points. The TRAX driver class does not change this
+     * value. Please refer to the TRAX datasheet for specific information about
+     * what each calibration point should be.
      */
     ros::Rate r(20);
     while (ros::ok() && points_taken < 12)
     {
-        ROS_INFO_THROTTLE(10, "Please use the service call for this node with");
+        ROS_INFO_THROTTLE(10, "Please use the `calibrate` service call for this "
+                "node to take calibration points.");
         ros::spinOnce();
         r.sleep();
     }
