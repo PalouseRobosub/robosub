@@ -13,16 +13,32 @@ PniTrax::PniTrax() :
 }
 
 /**
- * Copies a float from network endianness to little-endian.
+ * Copies a float from network endianness to host endianness.
+ *
+ * @param data A float stored in network endianness.
+ *
+ * @return A float stored in host endianness.
  */
-float ntohf(uint8_t *data)
+float PniTrax::ntohf(float data)
 {
     float result;
-    char *result_ptr = reinterpret_cast<char *>(&result);
-    result_ptr[0] = data[3];
-    result_ptr[1] = data[2];
-    result_ptr[2] = data[1];
-    result_ptr[3] = data[0];
+
+    /*
+     * Check to see if host system is big-endian. If so, memcpy is functional.
+     */
+    if (htonl(47) == 47)
+    {
+        memcpy(&result, &data, 4);
+    }
+    else
+    {
+        char *result_ptr = reinterpret_cast<char *>(&result);
+        char *data_ptr = reinterpret_cast<char *>(&data);
+        result_ptr[0] = data_ptr[3];
+        result_ptr[1] = data_ptr[2];
+        result_ptr[2] = data_ptr[1];
+        result_ptr[3] = data_ptr[0];
+    }
 
     return result;
 }
@@ -200,9 +216,14 @@ int PniTrax::getRPY(float &roll, float &pitch, float &yaw,
         return -1;
     }
 
-    yaw = ntohf(&data[2]);
-    pitch = ntohf(&data[7]);
-    roll = ntohf(&data[12]);
+    float temp;
+    memcpy(&temp, &data[2], 4);
+    yaw = ntohf(temp);
+    memcpy(&temp, &data[7], 4);
+    pitch = ntohf(temp);
+    memcpy(&temp, &data[12], 4);
+    roll = ntohf(temp);
+
     yaw_accuracy = data[17];
     calibrated = data[19];
 

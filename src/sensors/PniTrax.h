@@ -125,7 +125,7 @@ public:
                float &gyro_x, float &gyro_y, float &gyro_z,
                float &mag_x, float &mag_y, float &mag_z);
 
-    int startCalibration(const Calibration type, const bool auto_sample);
+    int startCalibration(const Calibration type, const bool auto_sample = false);
 
     int stopCalibration();
 
@@ -167,6 +167,8 @@ private:
     Format output_format;
 
     uint16_t crc16(uint8_t *data, int length);
+
+    float ntohf(float data);
 
     int write_command(const Command cmd, const uint8_t *payload,
             const uint16_t payload_length);
