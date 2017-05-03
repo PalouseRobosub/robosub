@@ -51,7 +51,8 @@ bool take_calibration_point(std_srvs::Empty::Request &req,
     const int ret = trax.takeCalibrationPoint();
     if (ret)
     {
-        ROS_INFO_STREAM("Failed to take calibration point " << points_taken + 1);
+        ROS_INFO_STREAM("Failed to take calibration point " <<
+                points_taken + 1);
     }
     else
     {
@@ -141,8 +142,8 @@ int main(int argc, char *argv[])
     ros::Rate r(20);
     while (ros::ok() && points_taken < 12)
     {
-        ROS_INFO_THROTTLE(10, "Please use the `calibrate` service call for this "
-                "node to take calibration points.");
+        ROS_INFO_THROTTLE(10, "Please use the `calibrate` service call for this"
+                " node to take calibration points.");
         ros::spinOnce();
         r.sleep();
     }
