@@ -1,5 +1,5 @@
 #ifndef PNITRAX_H
-#define PNITAX_H
+#define PNITRAX_H
 
 #include <string>
 #include "utility/serial.hpp"
@@ -179,3 +179,4 @@ private:
 };
 
 #endif // PNITRAX_H
+
