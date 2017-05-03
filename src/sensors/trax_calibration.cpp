@@ -1,6 +1,8 @@
 #include "sensors/PniTrax.h"
 #include "std_srvs/Empty.h"
+
 #include <ros/ros.h>
+#include <string>
 
 static volatile int points_taken = 0;
 
@@ -68,7 +70,7 @@ int main(int argc, char *argv[])
     /*
      * Load the serial port name from the parameter server.
      */
-    string port_name;
+    std::string port_name;
     ROS_FATAL_COND(nh.getParam("ports/trax", port_name) == false,
             "Failed to load TRAX serial port.");
 
@@ -77,9 +79,9 @@ int main(int argc, char *argv[])
     /*
      * Set up the server for the calibration points.
      */
-    ros::ServiceServer point_service = nh.advertiseService("calibrate",
+    ros::ServiceServer point_service = nh.advertiseService("trax/calibrate",
             take_calibration_point);
-    ros::ServiceServer save_service = nh.advertiseService("save", save);
+    ros::ServiceServer save_service = nh.advertiseService("trax/save", save);
 
     /*
      * Detect what type of calibration should be completed.
@@ -151,16 +153,18 @@ int main(int argc, char *argv[])
      */
     if (points_taken >= 12)
     {
-        float mag_score, accel_score, distribution_error, tilt_error, tilt_range;
-        ROS_ERROR_COND(trax.finishCalibration(mag_score, accel_score, distribution_error, tilt_error, tilt_range),
+        float mag_score, accel_score, distribution_error, tilt_error,
+                tilt_range;
+        ROS_ERROR_COND(trax.finishCalibration(mag_score, accel_score,
+                distribution_error, tilt_error, tilt_range),
                 "Failed to read the TRAX calibration results.");
 
         ROS_INFO_STREAM("Calibration score:\n"
                 << "Mag: " << mag_score << " [Should be < 1 for full-range and "
                         "< 2 for others]\n"
                 << "Acl: " << accel_score << " [Should be < 1]\n"
-                << "Dst: " << distribution_error << " [Should be zero. Non-zero "
-                        "indicates improper point distribution]\n"
+                << "Dst: " << distribution_error << " [Should be zero. Non-zero"
+                        " indicates improper point distribution]\n"
                 << "Tilt_error: " << tilt_error << " [Should be zero. Non-zero "
                         "indicates invalid tilt range encountered.]\n"
                 << "Tilt_range: " << tilt_range << "[Total dynamic tilt during "
@@ -172,10 +176,10 @@ int main(int argc, char *argv[])
          */
         while (ros::ok())
         {
-            ROS_INFO_THROTTLE(10, "If you would like to save the calibration to "
-                    "EEPROM of device, please use the `save` service call.");
-            ROS_INFO_THROTTLE(10, "If you would not like to save results, please"
-                    " kill this node now.");
+            ROS_INFO_THROTTLE(10, "If you would like to save the calibration to"
+                    " EEPROM of device, please use the `save` service call.");
+            ROS_INFO_THROTTLE(10, "If you would not like to save results, "
+                    "please kill this node now.");
         }
     }
 

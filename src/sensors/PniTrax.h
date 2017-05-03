@@ -1,5 +1,5 @@
-#ifndef TRAX_IMU_H
-#define TRAX_IMU_H
+#ifndef PNITRAX_H
+#define PNITAX_H
 
 #include <string>
 #include "utility/serial.hpp"
@@ -125,7 +125,8 @@ public:
                float &gyro_x, float &gyro_y, float &gyro_z,
                float &mag_x, float &mag_y, float &mag_z);
 
-    int startCalibration(const Calibration type, const bool auto_sample = false);
+    int startCalibration(const Calibration type,
+            const bool auto_sample = false);
 
     int stopCalibration();
 
@@ -177,5 +178,4 @@ private:
             const uint16_t max_payload_length);
 };
 
-#endif // TRAX_IMU_H
-
+#endif // PNITRAX_H

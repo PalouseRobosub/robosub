@@ -1,5 +1,9 @@
 #include "sensors/PniTrax.h"
+
+#include <string>
 #include <netinet/in.h>
+
+using std::string;
 
 /**
  * Constructor.
@@ -77,7 +81,8 @@ int PniTrax::init(const string serial_port_name, Mode mode)
     }
 
     uint8_t data[256] = {0};
-    if (read_command(response, data, 256) || response != Command::kGetModInfoResp)
+    if (read_command(response, data, 256) ||
+            response != Command::kGetModInfoResp)
     {
         return -1;
     }
@@ -101,7 +106,8 @@ int PniTrax::init(const string serial_port_name, Mode mode)
         return -1;
     }
 
-    if (read_command(response, NULL, 0) || response != Command::kSetAcqParamsDone)
+    if (read_command(response, NULL, 0) ||
+            response != Command::kSetAcqParamsDone)
     {
         return -1;
     }
@@ -622,7 +628,7 @@ int PniTrax::read_command(Command &resp, uint8_t *payload,
  *
  * @return The final checksum value.
  */
-static const unsigned short crc_table[256] = {
+static const uint16_t crc_table[256] = {
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
         0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
         0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
@@ -661,7 +667,8 @@ uint16_t PniTrax::crc16(uint8_t *data, int length)
     uint16_t crc = 0x0000;
     for (int i = 0; i < length; ++i)
     {
-        crc = ((crc << 8) & 0xFF00) ^ (crc_table[((crc >> 8) & 0xFF) ^ data[i]]);
+        crc = ((crc << 8) & 0xFF00) ^ (crc_table[((crc >> 8) & 0xFF)
+                ^ data[i]]);
     }
 
     return crc & 0xFFFF;
