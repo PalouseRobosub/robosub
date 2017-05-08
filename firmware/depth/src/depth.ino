@@ -30,10 +30,10 @@ float depth_offset = 0;
 void setup()
 {
     /*
-     * Turn on the depth sensor by writing high to the transistor gate.
+     * Turn on the depth sensor by writing low to the transistor gate.
      */
     pinMode(depth_power_control_pin, OUTPUT);
-    digitalWrite(depth_power_control_pin, HIGH);
+    digitalWrite(depth_power_control_pin, LOW);
 
     /*
      * Delay to allow sensor to power up and ROS node to initialize.
