@@ -11,7 +11,7 @@ thrusters:
     timeout: 2.0
     mapping:
         -   name: "dive_front_left"
-            channel: 8
+            channel: 4
             orientation:
                 x: 0.0
                 y: 0.0
@@ -31,7 +31,7 @@ thrusters:
                 y: -0.23
                 z: -0.1
         -   name: "dive_back_left"
-            channel: 4
+            channel: 8
             orientation:
                 x: 0.0
                 y: 0.0
@@ -41,7 +41,7 @@ thrusters:
                 y: 0.23
                 z: -0.1
         -   name: "dive_back_right"
-            channel: 6
+            channel: 1
             orientation:
                 x: 0.0
                 y: 0.0
@@ -51,7 +51,7 @@ thrusters:
                 y: -0.23
                 z: -0.1
         -   name: "strafe_front"
-            channel: 9
+            channel: 10
             orientation:
                 x: 0.0
                 y: 1.0
@@ -71,7 +71,7 @@ thrusters:
                 y: 0.0
                 z: -0.01
         -   name: "forward_left"
-            channel: 10
+            channel: 9
             orientation:
                 x: -1.0
                 y: 0.0
@@ -81,7 +81,7 @@ thrusters:
                 y: 0.2075
                 z: -0.01
         -   name: "forward_right"
-            channel: 1
+            channel: 6
             orientation:
                 x: -1.0
                 y: 0.0
