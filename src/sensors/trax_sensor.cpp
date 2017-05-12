@@ -9,10 +9,11 @@ using namespace robosub;
 PniTrax imu;
 
 /*
- * Declaring trimming variables for correcting sensor mounting offsets.
+ * Declare trimming variables for correcting sensor mounting offsets. The
+ * values of -88.66 and -4.35 are a result of the current mounting position of
+ * the TRAX on the submarine.
  */
-
-double last_roll = 0, last_pitch = 0, trim_roll = 0, trim_pitch = 0;
+double last_roll = 0, last_pitch = 0, trim_roll = 88.66, trim_pitch = -4.35;
 
 /**
  * ROS Service call for trimming sensor pitch and roll offsets.
@@ -33,7 +34,7 @@ bool trim(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 
 int main(int argc, char *argv[])
 {
-    ros::init(argc, argv, "sensor");
+    ros::init(argc, argv, "trax_sensor");
 
     ros::NodeHandle nh;
 
@@ -76,6 +77,12 @@ int main(int argc, char *argv[])
                 "Failed to get roll, pitch, and yaw from the TRAX.");
 
         /*
+         * Transform the TRAX output values to conform with robosub standards.
+         */
+        yaw = 180 - yaw;
+        roll *= -1;
+
+        /*
          * Update sensor trim variables.
          */
         last_pitch = pitch;
@@ -83,6 +90,10 @@ int main(int argc, char *argv[])
 
         /*
          * Construct the data message.
+         *
+         * Yaw-right is positive on the TRAX. [0, 360)
+         * Roll-left is positive on the TRAX. [-180, 180]
+         * Pitch-down is positive on the TRAX. [-90, 90]
          */
         robosub::Trax trax_message;
         trax_message.roll = roll - trim_roll;
