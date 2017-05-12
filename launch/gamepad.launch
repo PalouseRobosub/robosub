@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <node name="gamepad_control" pkg="robosub" type="gamepad_control" />
-    <node name="gamepad_driver" pkg="robosub" type="gamepad_driver" />
+    <node name="gamepad_control" pkg="robosub" type="gamepad_control" output="screen"/>
+    <node name="gamepad_driver" pkg="robosub" type="gamepad_driver" output="screen"/>
     <rosparam command="load" file="$(find robosub)/param/gamepad.yaml" />
 </launch>
