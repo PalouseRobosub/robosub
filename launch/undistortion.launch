@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
-	<param name="stereo_calib_file" value="$(find robosub)/src/vision/calib/stereo_out_camera_data.xml"/>
-	<param name="bottom_calib_file" value="$(find robosub)/src/vision/calib/out_camera_data.xml"/>
-	<node pkg="robosub" type="undistortion" name="undistortion" required="True"/>
+    <param name="stereo_calib_file" value="$(find robosub)/src/vision/calib/stereo_out_camera_data.xml"/>
+    <param name="bottom_calib_file" value="$(find robosub)/src/vision/calib/out_camera_data.xml"/>
+    <node pkg="robosub" type="undistortion" name="undistortion" required="True"/>
 </launch>
