@@ -1,12 +1,16 @@
 #include "sensors/PniTrax.h"
 #include "ros/ros.h"
-#include "robosub/Trax.h"
+#include "robosub/Euler.h"
+#include <geometry_msgs/QuaternionStamped.h>
+#include <std_msgs/String.h>
 #include <std_srvs/Empty.h>
 #include <string>
+#include "tf/transform_datatypes.h"
 
+using std::to_string;
 using namespace robosub;
 
-PniTrax imu;
+#define _PI_OVER_180 (3.14159) / 180.0
 
 /*
  * Declare trimming variables for correcting sensor mounting offsets. The
@@ -32,11 +36,18 @@ bool trim(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
     return true;
 }
 
+/**
+ * Main program entry point.
+ *
+ * @return Zero upon success and non-zero upon error.
+ */
 int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "trax_sensor");
 
     ros::NodeHandle nh;
+
+    PniTrax imu;
 
     /*
      * Initialize the TRAX IMU.
@@ -52,7 +63,12 @@ int main(int argc, char *argv[])
      */
     ros::ServiceServer trim_service = nh.advertiseService("trax/trim", trim);
 
-    ros::Publisher trax_publisher = nh.advertise<robosub::Trax>("trax", 1);
+    ros::Publisher trax_publisher =
+            nh.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
+    ros::Publisher trax_pretty_publisher =
+            nh.advertise<robosub::Euler>("pretty/orientation", 1);
+    ros::Publisher trax_info_publisher =
+            nh.advertise<std_msgs::String>("info/trax", 1);
 
     float rate = 20;
     if (nh.getParam("rate/imu", rate) == false)
@@ -77,7 +93,8 @@ int main(int argc, char *argv[])
                 "Failed to get roll, pitch, and yaw from the TRAX.");
 
         /*
-         * Transform the TRAX output values to conform with robosub standards.
+         * Transform the TRAX output values to conform with robosub standards
+         * of roll_right, yaw_left, and pitch_down positives.
          */
         yaw = 180 - yaw;
         roll *= -1;
@@ -95,14 +112,33 @@ int main(int argc, char *argv[])
          * Roll-left is positive on the TRAX. [-180, 180]
          * Pitch-down is positive on the TRAX. [-90, 90]
          */
-        robosub::Trax trax_message;
-        trax_message.roll = roll - trim_roll;
-        trax_message.pitch = pitch - trim_pitch;
-        trax_message.yaw = yaw;
-        trax_message.yaw_accuracy = yaw_accuracy;
-        trax_message.calibrated = calibrated;
+        geometry_msgs::QuaternionStamped trax_message;
+        trax_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
+                (roll - trim_roll) * _PI_OVER_180,
+                (pitch - trim_pitch) * _PI_OVER_180,
+                yaw * _PI_OVER_180);
+        trax_message.header.stamp = ros::Time::now();
 
+        /*
+         * Construct the human-readable message. Note that due to the trim,
+         * these values may not lie within the TRAX specified ranges.
+         */
+        robosub::Euler trax_pretty_message;
+        trax_pretty_message.roll = roll - trim_roll;
+        trax_pretty_message.pitch = pitch - trim_pitch;
+        trax_pretty_message.yaw = yaw;
+
+        std_msgs::String trax_status_message;
+        trax_status_message.data = "Heading accuracy: " +
+                to_string(yaw_accuracy) + "\nCalibrated: " +
+                to_string(calibrated);
+
+        /*
+         * Publish orientation messages and status message, then continue.
+         */
         trax_publisher.publish(trax_message);
+        trax_pretty_publisher.publish(trax_pretty_message);
+        trax_info_publisher.publish(trax_status_message);
 
         ros::spinOnce();
         r.sleep();
