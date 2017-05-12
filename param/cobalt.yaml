@@ -1,6 +1,7 @@
 ports:
     thruster: "/dev/maestro_control"
-    sensor: "/dev/bno055"
+    sensor: "/dev/bno055_right"
+    trax: "/dev/trax"
 rate:
     control: 50
     depth: 10
