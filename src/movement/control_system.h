@@ -8,7 +8,7 @@
 
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/Vector3.h"
-#include "robosub/QuaternionStampedAccuracy.h"
+#include "geometry_msgs/QuaternionStamped.h"
 #include "robosub/control.h"
 #include "robosub/control_status.h"
 #include "robosub/Float32Stamped.h"
@@ -42,7 +42,7 @@ public:
     ControlSystem();
     void InputControlMessage(const robosub::control::ConstPtr& msg);
     void InputOrientationMessage(
-            const robosub::QuaternionStampedAccuracy::ConstPtr& quat_msg);
+            const geometry_msgs::QuaternionStamped::ConstPtr& quat_msg);
     void InputLocalizationMessage(
             const geometry_msgs::Vector3::ConstPtr& vector_msg);
     void InputDepthMessage(const robosub::Float32Stamped::ConstPtr& depth_msg);

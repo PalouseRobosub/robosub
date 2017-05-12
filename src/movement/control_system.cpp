@@ -310,7 +310,7 @@ namespace robosub
      * @return None.
      */
     void ControlSystem::InputOrientationMessage(
-            const robosub::QuaternionStampedAccuracy::ConstPtr &quat_msg)
+            const geometry_msgs::QuaternionStamped::ConstPtr &quat_msg)
     {
         /*
          * Convert the Quaternion to roll, pitch, and yaw and store the result

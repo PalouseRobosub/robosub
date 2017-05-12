@@ -109,7 +109,6 @@ add_message_files(
   gamepad.msg
   Float32Stamped.msg
   Euler.msg
-  QuaternionStampedAccuracy.msg
   HydrophoneDeltas.msg
   Position.msg
   PositionArrayStamped.msg

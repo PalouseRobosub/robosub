@@ -2,7 +2,8 @@
 #include "geometry_msgs/Vector3Stamped.h"
 #include "robosub/bno_mode.h"
 #include "robosub/Euler.h"
-#include "robosub/QuaternionStampedAccuracy.h"
+#include "geometry_msgs/QuaternionStamped.h"
+#include "std_msgs/String.h"
 #include "ros/ros.h"
 #include "sensors/Bno055.h"
 #include "std_srvs/Empty.h"
@@ -14,10 +15,12 @@ static constexpr double _PI_OVER_180 = 3.14159 / 180.0;
 static constexpr double _180_OVER_PI = 180.0 / 3.14159;
 
 using namespace rs;
+using std::to_string;
 
 ros::Publisher euler_publisher;
 ros::Publisher quaternion_publisher;
 ros::Publisher linear_acceleration_publisher;
+ros::Publisher info_publisher;
 
 Bno055 sensor;
 
@@ -151,10 +154,11 @@ int main(int argc, char **argv)
      * data to the software and the trim service call.
      */
     quaternion_publisher =
-            nh.advertise<robosub::QuaternionStampedAccuracy>("orientation", 1);
+            nh.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
     linear_acceleration_publisher =
         nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
     euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
+    info_publisher = nh.advertise<std_msgs::String>("info/bno055", 1);
     ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
     ros::ServiceServer mode_service = nh.advertiseService("set_bno_mode",
             set_mode);
@@ -302,7 +306,7 @@ int main(int argc, char **argv)
     {
         double x, y, z, w, roll, pitch, yaw;
         uint8_t confidence_level = 0;
-        robosub::QuaternionStampedAccuracy quaternion_message;
+        geometry_msgs::QuaternionStamped quaternion_message;
         robosub::Euler euler_message;
         geometry_msgs::Vector3Stamped linear_acceleration_message;
 
@@ -316,8 +320,6 @@ int main(int argc, char **argv)
 
         quaternion_message.header.stamp = ros::Time::now();
 
-        FatalAbortIf(sensor.getSystemCalibration(confidence_level) != 0,
-                "Bno055 failed to read system calibration status.");
         /*
          * Convert the quaternion to human-readable roll, pitch, and yaw.
          */
@@ -342,12 +344,6 @@ int main(int argc, char **argv)
         euler_message.yaw = yaw * _180_OVER_PI;
         euler_publisher.publish(euler_message);
 
-         /*
-         * Confidence ranges from [0,3], so normalize the value for
-         * transmission.
-         */
-        quaternion_message.accuracy =
-                static_cast<double>(confidence_level)/3.0;
         quaternion_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
                           euler_message.roll * _PI_OVER_180,
                           euler_message.pitch * _PI_OVER_180,
@@ -365,6 +361,29 @@ int main(int argc, char **argv)
         linear_acceleration_message.vector.y = y;
         linear_acceleration_message.vector.z = z;
         linear_acceleration_publisher.publish(linear_acceleration_message);
+
+        /*
+         * Publish the BNO055 status. Confidence ranges from [0,3].
+         */
+        uint8_t mag_calib_status, acc_calib_status, gyro_calib_status;
+        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Accelerometer,
+                acc_calib_status),
+                "Failed to read accelerometer calibration status.");
+        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Gyroscope,
+                gyro_calib_status),
+                "Failed to read magnetometercalibration status.");
+        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Magnetometer,
+                mag_calib_status),
+                "Failed to read magnetometercalibration status.");
+        FatalAbortIf(sensor.getSystemCalibration(confidence_level) != 0,
+                "Bno055 failed to read system calibration status.");
+
+        std_msgs::String info_msg;
+        info_msg.data = "Acc: " + to_string(acc_calib_status) + '\n' +
+                        "Gyro: " + to_string(acc_calib_status) + '\n' +
+                        "Mag: " + to_string(acc_calib_status) + '\n' +
+                        "Sys: " + to_string(confidence_level);
+        info_publisher.publish(info_msg);
 
         ros::spinOnce();
         r.sleep();

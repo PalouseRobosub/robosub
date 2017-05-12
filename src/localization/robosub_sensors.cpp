@@ -67,7 +67,7 @@ void RobosubSensors::InputHydrophones(const
 }
 
 void RobosubSensors::InputOrientation(const
-        robosub::QuaternionStampedAccuracy::ConstPtr &msg)
+        geometry_msgs::QuaternionStamped::ConstPtr &msg)
 {
     orientation = tf::Quaternion(msg->quaternion.x, msg->quaternion.y,
                                  msg->quaternion.z, msg->quaternion.w);

@@ -17,7 +17,7 @@
 
 #include "robosub/HydrophoneDeltas.h"
 #include "robosub/PositionArrayStamped.h"
-#include "robosub/QuaternionStampedAccuracy.h"
+#include "geometry_msgs/QuaternionStamped.h"
 #include "robosub/Float32Stamped.h"
 #include "geometry_msgs/Point.h"
 #include "ros/ros.h"
@@ -72,7 +72,7 @@ double zeta;
  * @return None.
  */
 void orientationCallback(const
-        robosub::QuaternionStampedAccuracy::ConstPtr& msg)
+        geometry_msgs::QuaternionStamped::ConstPtr& msg)
 {
     current_orientation = Quaterniond(msg->quaternion.w, msg->quaternion.x,
             msg->quaternion.y, msg->quaternion.z);
