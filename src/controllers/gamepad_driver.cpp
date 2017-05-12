@@ -36,15 +36,15 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
         ROS_FATAL ("Unable to query the gamepad for its number of buttons.");
         exit(1);
     }
-    ROS_INFO("Name: %s", name);
-    ROS_INFO("Number of Buttons: %d", num_btns);
+    ROS_ERROR("Name: %s", name);
+    ROS_ERROR("Number of Buttons: %d", num_btns);
 
     // Set the internal type for the gamepad based on the name
     if (0 == strncmp(name, "Microsoft", 9))
     {
         gamepad_data.type = robosub::gamepad::XBOX;
     }
-    else if (0 == strncmp(name, "Sony Playstation", 16))
+    else if (0 == strncmp(name, "Sony PLAYSTATION", 16))
     {
         gamepad_data.type = robosub::gamepad::PS3;
     }
