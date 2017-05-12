@@ -6,13 +6,9 @@
 
     <arg name="simulated" default="false"/>
 
-    <arg name="leftImage" default="camera/left/undistorted" unless="$(arg simulated)"/>
-    <arg name="rightImage" default="camera/right/undistorted" unless="$(arg simulated)"/>
-    <arg name="bottomImage" default="camera/bottom/undistorted" unless="$(arg simulated)"/>
-
-    <arg name="leftImage" default="camera/left" if="$(arg simulated)"/>
-    <arg name="rightImage" default="camera/right" if="$(arg simulated)"/>
-    <arg name="bottomImage" default="camera/bottom" if="$(arg simulated)"/>
+    <arg name="leftImage" default="camera/left/undistorted"/>
+    <arg name="rightImage" default="camera/right/undistorted"/>
+    <arg name="bottomImage" default="camera/bottom/undistorted"/>
 
     <arg name="calibFile" default="src/vision/calib/stereo_out_camera_data.xml"/>
 
