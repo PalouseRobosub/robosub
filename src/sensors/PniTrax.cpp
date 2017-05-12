@@ -621,7 +621,7 @@ int PniTrax::read_command(Command &resp, uint8_t *payload,
  * CRC16 CCITT Calculator.
  *
  * @note Code was taken from:
- * stackoverflow.com/questions/10564491/function-to-calculate-a-crc16-checksum
+ * https://github.com/gtrafimenkov/pycrc16/blob/master/src/_crc16module.c
  *
  * @param data A pointer to the buffer to be summed.
  * @param length The length of data in bytes pointed to by data.
