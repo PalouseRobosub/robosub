@@ -19,7 +19,7 @@ from python_qt_binding.QtCore import QTimer
 # Import Messages
 from robosub.msg import thruster
 from robosub.msg import Float32Stamped
-from robosub.msg import QuaternionStampedAccuracy
+from geometry_msgs import QuaternionStamped
 
 class SysCheck(Plugin):
 
@@ -46,7 +46,7 @@ class SysCheck(Plugin):
         self.depth_sub = rospy.Subscriber('depth', Float32Stamped,
                                           self.depthSubCallback, queue_size=1)
         self.imu_sub = rospy.Subscriber('orientation',
-                                        QuaternionStampedAccuracy,
+                                        QuaternionStamped,
                                         self.imuSubCallback, queue_size=1)
 
         # Initialize the timers

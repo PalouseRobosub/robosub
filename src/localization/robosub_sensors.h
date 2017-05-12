@@ -5,7 +5,7 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
-#include "robosub/QuaternionStampedAccuracy.h"
+#include "geometry_msgs/QuaternionStamped.h"
 #include "robosub/Float32Stamped.h"
 #include "robosub/PositionArrayStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
@@ -32,7 +32,7 @@ public:
     void InputRelLinAcl(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputDepth(const robosub::Float32Stamped::ConstPtr &msg);
     void InputHydrophones(const robosub::PositionArrayStamped::ConstPtr &msg);
-    void InputOrientation(const robosub::QuaternionStampedAccuracy::ConstPtr
+    void InputOrientation(const geometry_msgs::QuaternionStamped::ConstPtr
                           &msg);
 
     // Inputs for derived data
