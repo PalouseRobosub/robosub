@@ -12,6 +12,14 @@
 
     <arg name="calibFile" default="src/vision/calib/stereo_out_camera_data.xml"/>
 
+    <arg name="undist_stereo" default="true"/>
+    <arg name="undist_bottom" default="true"/>
+
+    <include file="$(find robosub)/launch/undistortion.launch">
+        <arg name="undist_stereo" value="$(arg undist_stereo)"/>
+        <arg name="undist_bottom" value="$(arg undist_bottom)"/>
+    </include>
+
     <!--Set /visualize_thrusters to false if being simulated.
         This prevents visualization from messing with color detection-->
     <rosparam param="/visualize_thrusters" subst_value="True" if="$(arg simulated)">false</rosparam>
