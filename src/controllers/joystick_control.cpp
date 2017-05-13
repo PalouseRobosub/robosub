@@ -3,6 +3,7 @@
 #include "std_msgs/Float64.h"
 #include "robosub/joystick.h"
 #include "robosub/control.h"
+#include "std_srvs/Empty.h"
 
 ros::Publisher pub;
 
@@ -20,6 +21,19 @@ void reloadDepthParams()
 {
     ros::param::getCached("joystick_control/min_depth", min_depth);
     ros::param::getCached("joystick_control/max_depth", max_depth);
+}
+
+bool checkArming(const robosub::joystick msg)
+{
+    int armingButtonsPressed = static_cast<int>(msg.buttons[2])
+                            + static_cast<int>(msg.buttons[3])
+                            + static_cast<int>(msg.buttons[4])
+                            + static_cast<int>(msg.buttons[5]);
+    if (armingButtonsPressed > 1)
+    {
+        ROS_WARN("More than one arming button is pressed!!!!");
+    }
+    return (armingButtonsPressed == 1);
 }
 
 void joystickToControlCallback(const robosub::joystick msg)
@@ -50,7 +64,7 @@ void joystickToControlCallback(const robosub::joystick msg)
         outmsg.yaw_left = 0;
     }
 
-    if (!msg.buttons[0])
+    if (!msg.buttons[11])
     {
         if (msg.hatX)
         {
@@ -82,6 +96,51 @@ void joystickToControlCallback(const robosub::joystick msg)
     }
     outmsg.yaw_left *= -15;
     outmsg.forward *= 2;
+
+    // Marker Droppers and Torpedos
+    // buttons 3-6 are arming buttons, trigger fires
+    // 3 and 4 arm marker droppers, 5 and 6 arm torpedos
+    // (Subtract one from button number to get array index)
+    if (msg.buttons[2] && checkArming(msg) && msg.buttons[0])
+    {
+        // Fire left marker dropper
+        ros::NodeHandle n;
+        ros::ServiceClient client =
+            n.serviceClient<std_srvs::Empty>("drop_marker");
+        std_srvs::Empty e;
+        if (client.call(e))
+        {
+            ROS_INFO("Left Marker Dropped");
+        }
+        else
+        {
+            ROS_WARN("Failed to drop left marker");
+        }
+    }
+    else if (msg.buttons[3] && checkArming(msg) && msg.buttons[0])
+    {
+        // Fire right marker dropper
+        ros::NodeHandle n;
+        ros::ServiceClient client =
+            n.serviceClient<std_srvs::Empty>("drop_marker");
+        std_srvs::Empty e;
+        if (client.call(e))
+        {
+            ROS_INFO("Right Marker Dropped");
+        }
+        else
+        {
+            ROS_WARN("Failed to drop Right marker");
+        }
+    }
+    else if (msg.buttons[4] && checkArming(msg) && msg.buttons[0])
+    {
+        // Fire left torpedo
+    }
+    else if (msg.buttons[5] && checkArming(msg) && msg.buttons[0])
+    {
+        // Fire right torpedo
+    }
 
     pub.publish(outmsg);
 }
