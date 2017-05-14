@@ -31,37 +31,30 @@ double dead_scale(double value, double deadzone, double scaling_power)
     return pow( num/(1-deadzone), scaling_power ) * sgn;
 }
 
-bool checkXBOXArmingAndTriggers(const robosub::gamepad msg)
+bool checkArmingAndTriggers(const robosub::gamepad msg)
 {
-    int armingButtonsPressed = static_cast<int>(msg.buttons[1])
+    int armingButtonsPressed = 0;
+    int triggersPressed = 0;
+    if (msg.type == robosub::gamepad::XBOX)
+    {
+        armingButtonsPressed = static_cast<int>(msg.buttons[1])
                             + static_cast<int>(msg.buttons[2]);
-    if (armingButtonsPressed > 1)
-    {
-        ROS_WARN("More than one arming button is pressed!!!!");
-    }
 
-    int triggersPressed = static_cast<int>(msg.buttons[4])
+        triggersPressed = static_cast<int>(msg.buttons[4])
                         + static_cast<int>(msg.buttons[5]);
-
-    if (triggersPressed > 1)
-    {
-        ROS_WARN("More than one firing trigger is pressed");
     }
-
-    return (armingButtonsPressed == 1) && (triggersPressed == 1);
-}
-
-bool checkPS3ArmingAndTriggers(const robosub::gamepad msg)
-{
-    int armingButtonsPressed = static_cast<int>(msg.buttons[13])
+    else if (msg.type == robosub::gamepad::PS3)
+    {
+        armingButtonsPressed = static_cast<int>(msg.buttons[13])
                             + static_cast<int>(msg.buttons[15]);
+
+        triggersPressed = static_cast<int>(msg.buttons[10])
+                        + static_cast<int>(msg.buttons[11]);
+    }
     if (armingButtonsPressed > 1)
     {
         ROS_WARN("More than one arming button is pressed!!!!");
     }
-
-    int triggersPressed = static_cast<int>(msg.buttons[10])
-                        + static_cast<int>(msg.buttons[11]);
 
     if (triggersPressed > 1)
     {
@@ -99,7 +92,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
     }
 
     // Using Xbox controller
-    if (robosub::gamepad::XBOX == msg.type && !msg.buttons[0])
+    if (robosub::gamepad::XBOX == msg.type && !msg.buttons[8])
     {
         if (msg.hatX)
         {
@@ -125,7 +118,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         // Marker Droppers and Torpedos
         // buttons 2 (X) and 1 (Square) are arming buttons
         // RB and LB fire respective side
-        if (msg.buttons[2] && checkXBOXArmingAndTriggers(msg)
+        if (msg.buttons[2] && checkArmingAndTriggers(msg)
                 && msg.buttons[4])
         {
             // Fire left marker dropper
@@ -142,7 +135,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 ROS_WARN("Failed to drop left marker");
             }
         }
-        else if (msg.buttons[2] && checkXBOXArmingAndTriggers(msg)
+        else if (msg.buttons[2] && checkArmingAndTriggers(msg)
                 && msg.buttons[5])
         {
             // Fire right marker dropper
@@ -159,12 +152,12 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 ROS_WARN("Failed to drop right marker");
             }
         }
-        else if (msg.buttons[1] && checkXBOXArmingAndTriggers(msg)
+        else if (msg.buttons[1] && checkArmingAndTriggers(msg)
                 && msg.buttons[4])
         {
             // Fire left torpedo
         }
-        else if (msg.buttons[1] && checkXBOXArmingAndTriggers(msg)
+        else if (msg.buttons[1] && checkArmingAndTriggers(msg)
                 && msg.buttons[5])
         {
             // Fire right torpedo
@@ -199,7 +192,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         // Marker Droppers and Torpedos
         // buttons 13 (Circle) and 15 (Square) are arming buttons
         // R1 and L1 fire respective side
-        if (msg.buttons[15] && checkPS3ArmingAndTriggers(msg)
+        if (msg.buttons[15] && checkArmingAndTriggers(msg)
                 && msg.buttons[10])
         {
             // Fire left marker dropper
@@ -216,7 +209,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 ROS_WARN("Failed to drop left marker");
             }
         }
-        else if (msg.buttons[15] && checkPS3ArmingAndTriggers(msg)
+        else if (msg.buttons[15] && checkArmingAndTriggers(msg)
                 && msg.buttons[11])
         {
             // Fire right marker dropper
@@ -233,12 +226,12 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 ROS_WARN("Failed to drop right marker");
             }
         }
-        else if (msg.buttons[13] && checkPS3ArmingAndTriggers(msg)
+        else if (msg.buttons[13] && checkArmingAndTriggers(msg)
                 && msg.buttons[10])
         {
             // Fire left torpedo
         }
-        else if (msg.buttons[13] && checkPS3ArmingAndTriggers(msg)
+        else if (msg.buttons[13] && checkArmingAndTriggers(msg)
                 && msg.buttons[11])
         {
             // Fire right torpedo
