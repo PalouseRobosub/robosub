@@ -2,6 +2,7 @@
 #include "std_msgs/Float64.h"
 #include "robosub/gamepad.h"
 #include "robosub/control.h"
+#include "std_srvs/Empty.h"
 
 ros::Publisher pub;
 
@@ -28,6 +29,26 @@ double dead_scale(double value, double deadzone, double scaling_power)
 
     double sgn = (value > 0) ? 1.0 : -1.0;
     return pow( num/(1-deadzone), scaling_power ) * sgn;
+}
+
+bool checkPS3ArmingAndTriggers(const robosub::gamepad msg)
+{
+    int armingButtonsPressed = static_cast<int>(msg.buttons[13])
+                            + static_cast<int>(msg.buttons[15]);
+    if (armingButtonsPressed > 1)
+    {
+        ROS_WARN("More than one arming button is pressed!!!!");
+    }
+
+    int triggersPressed = static_cast<int>(msg.buttons[10])
+                        + static_cast<int>(msg.buttons[11]);
+
+    if (triggersPressed > 1)
+    {
+        ROS_WARN("More than one firing trigger is pressed");
+    }
+
+    return (armingButtonsPressed == 1) && (triggersPressed == 1);
 }
 
 void gamepadToControlCallback(const robosub::gamepad msg)
@@ -82,7 +103,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         }
     }
     // Using PlayStation controller
-    else if (robosub::gamepad::PS3 == msg.type && !msg.buttons[14])
+    else if (robosub::gamepad::PS3 == msg.type && !msg.buttons[3])
     {
         if (msg.buttons[4] || msg.buttons[6])
         {
@@ -105,6 +126,50 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         {
             outmsg.roll_state = outmsg.STATE_NONE;
             outmsg.roll_right = 0;
+        }
+
+        // Marker Droppers and Torpedos
+        // buttons 13 (Circle) and 15 (Square) are arming buttons
+        // R1 and L1 fire respective side
+        if (msg.buttons[15] && checkPS3ArmingAndTriggers(msg) && msg.buttons[10])
+        {
+            // Fire left marker dropper
+            ros::NodeHandle n;
+            ros::ServiceClient client =
+                n.serviceClient<std_srvs::Empty>("drop_marker");
+            std_srvs::Empty e;
+            if (client.call(e))
+            {
+                ROS_INFO("Left Marker Dropped");
+            }
+            else
+            {
+                ROS_WARN("Failed to drop left marker");
+            }
+        }
+        else if (msg.buttons[15] && checkPS3ArmingAndTriggers(msg) && msg.buttons[11])
+        {
+            // Fire right marker dropper
+            ros::NodeHandle n;
+            ros::ServiceClient client =
+                n.serviceClient<std_srvs::Empty>("drop_marker");
+            std_srvs::Empty e;
+            if (client.call(e))
+            {
+                ROS_INFO("Right Marker Dropped");
+            }
+            else
+            {
+                ROS_WARN("Failed to drop right marker");
+            }
+        }
+        else if (msg.buttons[13] && checkPS3ArmingAndTriggers(msg) && msg.buttons[10])
+        {
+            // Fire left torpedo
+        }
+        else if (msg.buttons[13] && checkPS3ArmingAndTriggers(msg) && msg.buttons[11])
+        {
+            // Fire right torpedo
         }
     }
     else
