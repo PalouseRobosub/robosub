@@ -91,6 +91,9 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         outmsg.yaw_left = 0;
     }
 
+    ros::NodeHandle n;
+    ros::ServiceClient client = n.serviceClient<std_srvs::Empty>("drop_marker");
+    std_srvs::Empty e;
     // Using Xbox controller
     if (robosub::gamepad::XBOX == msg.type && !msg.buttons[8])
     {
@@ -122,10 +125,6 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 && msg.buttons[4])
         {
             // Fire left marker dropper
-            ros::NodeHandle n;
-            ros::ServiceClient client =
-                n.serviceClient<std_srvs::Empty>("drop_marker");
-            std_srvs::Empty e;
             if (client.call(e))
             {
                 ROS_INFO("Left Marker Dropped");
@@ -139,10 +138,6 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 && msg.buttons[5])
         {
             // Fire right marker dropper
-            ros::NodeHandle n;
-            ros::ServiceClient client =
-                n.serviceClient<std_srvs::Empty>("drop_marker");
-            std_srvs::Empty e;
             if (client.call(e))
             {
                 ROS_INFO("Right Marker Dropped");
@@ -196,10 +191,6 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 && msg.buttons[10])
         {
             // Fire left marker dropper
-            ros::NodeHandle n;
-            ros::ServiceClient client =
-                n.serviceClient<std_srvs::Empty>("drop_marker");
-            std_srvs::Empty e;
             if (client.call(e))
             {
                 ROS_INFO("Left Marker Dropped");
@@ -213,10 +204,6 @@ void gamepadToControlCallback(const robosub::gamepad msg)
                 && msg.buttons[11])
         {
             // Fire right marker dropper
-            ros::NodeHandle n;
-            ros::ServiceClient client =
-                n.serviceClient<std_srvs::Empty>("drop_marker");
-            std_srvs::Empty e;
             if (client.call(e))
             {
                 ROS_INFO("Right Marker Dropped");

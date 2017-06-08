@@ -101,13 +101,14 @@ void joystickToControlCallback(const robosub::joystick msg)
     // buttons 3-6 are arming buttons, trigger fires
     // 3 and 4 arm marker droppers, 5 and 6 arm torpedos
     // (Subtract one from button number to get array index)
+    ros::NodeHandle n;
+    ros::ServiceClient client =
+        n.serviceClient<std_srvs::Empty>("drop_marker");
+    std_srvs::Empty e;
+
     if (msg.buttons[2] && checkArming(msg) && msg.buttons[0])
     {
         // Fire left marker dropper
-        ros::NodeHandle n;
-        ros::ServiceClient client =
-            n.serviceClient<std_srvs::Empty>("drop_marker");
-        std_srvs::Empty e;
         if (client.call(e))
         {
             ROS_INFO("Left Marker Dropped");
@@ -120,10 +121,6 @@ void joystickToControlCallback(const robosub::joystick msg)
     else if (msg.buttons[3] && checkArming(msg) && msg.buttons[0])
     {
         // Fire right marker dropper
-        ros::NodeHandle n;
-        ros::ServiceClient client =
-            n.serviceClient<std_srvs::Empty>("drop_marker");
-        std_srvs::Empty e;
         if (client.call(e))
         {
             ROS_INFO("Right Marker Dropped");
