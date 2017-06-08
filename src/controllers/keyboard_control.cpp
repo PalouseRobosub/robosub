@@ -26,8 +26,8 @@ uint8_t getKey(void)
 
 void PrintHelp()
 {
-    std::cout << "There are two methods of control\n"
-                 "First way is:\n"
+    std::cout << "There are two control methods\n"
+                 "One method:\n"
                  "W -> forward\n"
                  "S -> backward\n"
                  "A -> strafe to the left\n"
@@ -40,7 +40,7 @@ void PrintHelp()
                  "E -> yaw right\n"
                  "L -> roll left\n"
                  "; -> roll right"
-                 "\n\n\nAlternative is with arrow keys:\n"
+                 "\n\n\nSecond method:\n"
                  "ArrowUp -> forward\n"
                  "ArrowDown -> backward\n"
                  "ArrowLeft -> strafe to the left\n"
