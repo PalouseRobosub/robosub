@@ -23,6 +23,7 @@ using message_filters::Synchronizer;
 using message_filters::sync_policies::ApproximateTime;
 
 Settings settings;
+int cropRadius = -1;
 StereoCalibrator *stereoCalib;
 
 void callback(const WFOVImage::ConstPtr &rightImg,
@@ -37,11 +38,20 @@ void callback(const WFOVImage::ConstPtr &rightImg,
                          sensor_msgs::image_encodings::BGR8)->image;
 
     Mat cropMask = Mat::zeros(rview.rows, rview.cols, CV_8UC1);
-    int cropRadius = 400;
-    if (!nh.getParamCached("cropRadius", cropRadius))
+
+    Mat rCrop, lCrop;
+    if (cropRadius != -1)
     {
-        ROS_WARN_ONCE("Could not get cropRadius parameter, defaulting to 400."
-                      " (This will print only once)");
+        circle(cropMask, Point(rview.size().width / 2, rview.size().height / 2),
+               cropRadius, Scalar(255, 255, 255), -1, 8, 0);
+
+        rview.copyTo(rCrop, cropMask);
+        lview.copyTo(lCrop, cropMask);
+    }
+    else
+    {
+        rview.copyTo(rCrop);
+        lview.copyTo(lCrop);
     }
 
     circle(cropMask, Point(rview.size().width / 2, rview.size().height),
@@ -67,7 +77,7 @@ void callback(const WFOVImage::ConstPtr &rightImg,
     }
     else
     {
-        stereoCalib->submitImgs(rview, lview);
+        stereoCalib->submitImgs(rCrop, lCrop);
     }
 }
 
@@ -97,7 +107,9 @@ int main (int argc, char* argv[])
     ROS_DEBUG_STREAM("Settings file opened");
 
     fs["Settings"] >> settings;
+    fs["CropRadius"] >> cropRadius;
     ROS_DEBUG_STREAM("Settings data fetched");
+    ROS_INFO_STREAM("Crop radius: " << cropRadius);
     fs.release();
 
     if (!settings.goodInput)
@@ -118,7 +130,8 @@ int main (int argc, char* argv[])
 
     stereoCalib = new StereoCalibrator(settings.boardSize, settings.squareSize,
                                        settings.outputFileName,
-                                       false, settings.showUndistorted);
+                                       false, settings.showUndistorted,
+                                       cropRadius);
 
     ROS_INFO_STREAM("Settings read and validated");
 

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+    <arg name="undist_stereo" default="true"/>
+    <!-- This is currently false as the bottom camera has no calibration data-->
+    <arg name="undist_bottom" default="false"/>
+
+    <param name="stereo_calib_file" value="$(find robosub)/src/vision/calib/stereo_out_camera_data.xml"/>
+    <param name="bottom_calib_file" value="$(find robosub)/src/vision/calib/out_camera_data.xml"/>
+    <param name="undistortion/doUndistStereo" value="$(arg undist_stereo)"/>
+    <param name="undistortion/doUndistBottom" value="$(arg undist_bottom)"/>
+
+    <node pkg="robosub" type="undistortion" name="undistortion" required="True"/>
+</launch>

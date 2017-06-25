@@ -1,5 +1,4 @@
 #include <ros/ros.h>
-#include "wfov_camera_msgs/WFOVImage.h"
 // The following #if is to use the correct version of the cv_bridge
 // Kinetic by default uses OpenCV3 so we don't need the custom build
 #if ROS_VERSION_MINIMUM(1, 12, 0)  // Running Kinetic
@@ -15,6 +14,7 @@
 using namespace cv_bridge;
 using namespace cv;
 using std::string;
+using sensor_msgs::Image;
 
 image_transport::Publisher rightPub;
 image_transport::Publisher leftPub;
@@ -24,57 +24,138 @@ Mat rectifyMap[2][2];
 Mat bottomCamMat;
 Mat bottomDistCoeffs;
 
-void rightCallback(const wfov_camera_msgs::WFOVImage::ConstPtr& msg)
+int stereoCropRadius = -1;
+
+void rightCallback(const Image::ConstPtr& msg)
 {
-    ROS_DEBUG_STREAM("Right Cam Callback.");
+    ROS_DEBUG("Right Cam Callback.");
+    bool doUndist;
+    if (!ros::param::get("undistortion/doUndistStereo", doUndist))
+    {
+        ROS_WARN_ONCE("Could not get undistortion/doUndistStereo param, "
+                      "defaulting to true. (This prints only once for each "
+                      "callback)");
+        doUndist = true;
+    }
 
-    cv_bridge::CvImagePtr image_ptr;
-    image_ptr = toCvCopy(msg->image, sensor_msgs::image_encodings::BGR8);
+    Image outMsg;
 
-    Mat temp = image_ptr->image.clone();
+    if (doUndist)
+    {
+        cv_bridge::CvImagePtr image_ptr;
+        image_ptr = toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 
-    remap(temp, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
-          INTER_LINEAR);
+        Mat temp = image_ptr->image.clone();
+        Mat cropped;
 
-    sensor_msgs::Image outMsg;
+        if (stereoCropRadius != -1)
+        {
+            Mat cropMask = Mat::zeros(temp.rows, temp.cols, CV_8UC1);
+            circle(cropMask, Point(temp.size().width / 2,
+                   temp.size().height / 2), stereoCropRadius,
+                   Scalar(255, 255, 255), -1, 8, 0);
 
-    image_ptr->toImageMsg(outMsg);
+            temp.copyTo(cropped, cropMask);
+        }
+        else
+        {
+            temp.copyTo(cropped);
+        }
+
+        remap(temp, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
+              INTER_LINEAR);
+
+        image_ptr->toImageMsg(outMsg);
+        outMsg.header = msg->header;
+    }
+    else
+    {
+        outMsg = *msg;
+    }
 
     rightPub.publish(outMsg);
 }
 
-void leftCallback(const wfov_camera_msgs::WFOVImage::ConstPtr &msg)
+void leftCallback(const Image::ConstPtr &msg)
 {
-    ROS_DEBUG_STREAM("Right Cam Callback.");
+    ROS_DEBUG("Left Cam Callback.");
+    bool doUndist;
+    if (!ros::param::get("undistortion/doUndistStereo", doUndist))
+    {
+        ROS_WARN_ONCE("Could not get undistortion/doUndistStereo param, "
+                      "defaulting to true. (This prints only once for each "
+                      "callback)");
+        doUndist = true;
+    }
 
-    cv_bridge::CvImagePtr image_ptr;
-    image_ptr = toCvCopy(msg->image, sensor_msgs::image_encodings::BGR8);
+    Image outMsg;
 
-    Mat temp = image_ptr->image.clone();
+    if (doUndist)
+    {
+        cv_bridge::CvImagePtr image_ptr;
+        image_ptr = toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 
-    remap(temp, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
-          INTER_LINEAR);
+        Mat temp = image_ptr->image.clone();
+        Mat cropped;
 
-    sensor_msgs::Image outMsg;
+        if (stereoCropRadius != -1)
+        {
+            Mat cropMask = Mat::zeros(temp.rows, temp.cols, CV_8UC1);
+            circle(cropMask, Point(temp.size().width / 2,
+                   temp.size().height / 2), stereoCropRadius,
+                   Scalar(255, 255, 255), -1, 8, 0);
 
-    image_ptr->toImageMsg(outMsg);
+            temp.copyTo(cropped, cropMask);
+        }
+        else
+        {
+            temp.copyTo(cropped);
+        }
+
+        remap(temp, image_ptr->image, rectifyMap[0][0], rectifyMap[0][1],
+              INTER_LINEAR);
+
+        image_ptr->toImageMsg(outMsg);
+        outMsg.header = msg->header;
+    }
+    else
+    {
+        outMsg = *msg;
+    }
 
     leftPub.publish(outMsg);
 }
 
-void bottomCallback(const wfov_camera_msgs::WFOVImage::ConstPtr &msg)
+void bottomCallback(const Image::ConstPtr &msg)
 {
-    cv_bridge::CvImagePtr image_ptr;
-    image_ptr = toCvCopy(msg->image, sensor_msgs::image_encodings::BGR8);
+    ROS_DEBUG("Bottom Cam Callback.");
+    bool doUndist;
+    if (!ros::param::get("undistortion/doUndistBottom", doUndist))
+    {
+        ROS_WARN_ONCE("Could not get undistortion/doUndistBottom param, "
+                      "defaulting to true. (This prints only once for each "
+                      "callback)");
+        doUndist = true;
+    }
 
-    Mat temp = image_ptr->image.clone();
+    Image outMsg;
+    if(doUndist)
+    {
+        cv_bridge::CvImagePtr image_ptr;
+        image_ptr = toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 
-    fisheye::undistortImage(temp, image_ptr->image, bottomCamMat,
-                            bottomDistCoeffs, Matx33d::eye());
+        Mat temp = image_ptr->image.clone();
 
-    sensor_msgs::Image outMsg;
+        fisheye::undistortImage(temp, image_ptr->image, bottomCamMat,
+                                bottomDistCoeffs, Matx33d::eye());
 
-    image_ptr->toImageMsg(outMsg);
+        image_ptr->toImageMsg(outMsg);
+        outMsg.header = msg->header;
+    }
+    else
+    {
+        outMsg = *msg;
+    }
 
     bottomPub.publish(outMsg);
 }
@@ -89,13 +170,13 @@ int main (int argc, char** argv)
     image_transport::ImageTransport it(n);
 
     ROS_INFO_STREAM("Creating subscribers");
-    ros::Subscriber leftSub = n.subscribe("/camera/left/image", 1,
+    ros::Subscriber leftSub = n.subscribe("/camera/left/image_raw", 1,
                                            leftCallback);
 
-    ros::Subscriber rightSub = n.subscribe("/camera/right/image", 1,
+    ros::Subscriber rightSub = n.subscribe("/camera/right/image_raw", 1,
                                            rightCallback);
 
-    ros::Subscriber bottomSub = n.subscribe("/camera/bottom/image", 1,
+    ros::Subscriber bottomSub = n.subscribe("/camera/bottom/image_raw", 1,
                                             bottomCallback);
 
     ROS_INFO_STREAM("Subscribers created");
@@ -130,6 +211,7 @@ int main (int argc, char** argv)
         ROS_INFO_STREAM("Valid calibration file");
         string calibTime;
         fs["calibration_time"] >> calibTime;
+        fs["crop_radius"] >> stereoCropRadius;
         ROS_INFO_STREAM("Calibration was performed on: " << calibTime);
         fs["K1"] >> K1;
         fs["D1"] >> D1;

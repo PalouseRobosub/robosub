@@ -44,7 +44,7 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
     {
         gamepad_data.type = robosub::gamepad::XBOX;
     }
-    else if (0 == strncmp(name, "Sony Playstation", 16))
+    else if (0 == strncmp(name, "Sony PLAYSTATION", 16))
     {
         gamepad_data.type = robosub::gamepad::PS3;
     }

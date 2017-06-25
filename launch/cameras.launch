@@ -2,48 +2,41 @@
 <launch>
 
     <arg name="left_serial" default="14406634"/>
-
     <arg name="right_serial" default="14406637" />
+    <arg name="bottom_serial" default="0"/>
 
     <group ns="camera">
-
         <group ns="left">
-        <!-- Left Camera -->
-        <node pkg="nodelet" type="nodelet" name="left_camera_manager" args="manager" />
+            <node pkg="nodelet" type="nodelet" name="left_camera_manager" args="manager" />
 
-        <node pkg="nodelet" type="nodelet" name="left_camera_nodelet"
-              args="load pointgrey_camera_driver/PointGreyCameraNodelet left_camera_manager" >
-            <param name="frame_id" value="left" />
-            <param name="serial" value="$(arg left_serial)" />
-
-        </node>
-
-        <!-- The following currently does independent processing. This may be
-                altered in future to do stereo (and should). -->
-        <node pkg="nodelet" type="nodelet" name="image_proc_debayer_left"
-              args="load image_proc/debayer left_camera_manager">
-        </node>
-
-
+            <!-- Left Camera -->
+            <node pkg="nodelet" type="nodelet" name="left_camera_nodelet"
+                  args="load pointgrey_camera_driver/PointGreyCameraNodelet left_camera_manager" >
+                <param name="frame_id" value="left" />
+                <param name="serial" value="$(arg left_serial)" />
+            </node>
         </group>
 
         <group ns="right">
-        <node pkg="nodelet" type="nodelet" name="right_camera_manager" args="manager" />
+            <node pkg="nodelet" type="nodelet" name="right_camera_manager" args="manager" />
 
+            <!-- Right Camera -->
+            <node pkg="nodelet" type="nodelet" name="right_camera_nodelet"
+                  args="load pointgrey_camera_driver/PointGreyCameraNodelet right_camera_manager" >
+                <param name="frame_id" value="right" />
+                <param name="serial" value="$(arg right_serial)" />
+            </node>
+        </group>
 
-        <!-- Right Camera -->
-        <node pkg="nodelet" type="nodelet" name="right_camera_nodelet"
-              args="load pointgrey_camera_driver/PointGreyCameraNodelet right_camera_manager" >
-            <param name="frame_id" value="right" />
-            <param name="serial" value="$(arg right_serial)" />
+        <group ns="bottom" unless="$(arg bottom_serial)">
+            <node pkg="nodelet" type="nodelet" name="bottom_camera_manager" args="manager" />
 
-        </node>
-
-        <!-- The following currently does independent processing. This may be
-                altered in future to do stereo (and should). -->
-        <node pkg="nodelet" type="nodelet" name="image_proc_debayer_right"
-              args="load image_proc/debayer right_camera_manager">
-        </node>
+            <!-- Right Camera -->
+            <node pkg="nodelet" type="nodelet" name="bottom_camera_manager"
+                  args="load pointgrey_camera_driver/PointGreyCameraNodelet bottom_camera_manager" >
+                <param name="frame_id" value="bottom" />
+                <param name="serial" value="$(arg bottom_serial)" />
+            </node>
         </group>
     </group>
 </launch>

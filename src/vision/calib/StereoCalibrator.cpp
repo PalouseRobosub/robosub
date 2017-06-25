@@ -6,13 +6,15 @@
 
 StereoCalibrator::StereoCalibrator(Size boardSize, float squareSize,
                          string outputFilename, bool displayCorners,
-                         bool useCalibrated, bool showRectified)
+                         bool useCalibrated, bool showRectified,
+                         int cropRadius)
 {
     this->boardSize = boardSize;
     this->squareSize = squareSize;
     this->displayCorners = displayCorners;
     this->useCalibrated = useCalibrated;
     this->showRectified = showRectified;
+    this->cropRadius = cropRadius;
 
     outputFile.open(outputFilename, FileStorage::WRITE);
 }
@@ -237,7 +239,7 @@ void StereoCalibrator::calibrate()
     ROS_INFO_STREAM("Average Epipolar Error: " << err/nPoints);
 
     saveIntrinsics(cameraMatrix[0], distCoeffs[0], cameraMatrix[1],
-                   distCoeffs[1], imageSize);
+                   distCoeffs[1], imageSize, cropRadius);
 
 
     Mat R1, R2, P1, P2, Q;
@@ -370,7 +372,7 @@ void StereoCalibrator::calibrate()
 
 void StereoCalibrator::saveIntrinsics(Mat camMat1, Mat distCoeffs1,
                                       Mat camMat2, Mat distCoeffs2,
-                                      Size imageSize)
+                                      Size imageSize, int cropRadius)
 {
     ROS_INFO_STREAM("Saving Intrinsics");
     time_t tm;
@@ -380,6 +382,7 @@ void StereoCalibrator::saveIntrinsics(Mat camMat1, Mat distCoeffs1,
     strftime(buf, sizeof(buf), "%c", t2);
 
     outputFile << "calibration_time" << buf;
+    outputFile << "crop_radius" << cropRadius;
     outputFile << "K1" << camMat1;
     outputFile << "D1" << distCoeffs1;
     outputFile << "K2" << camMat2;
