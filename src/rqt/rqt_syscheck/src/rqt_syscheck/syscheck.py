@@ -19,7 +19,7 @@ from python_qt_binding.QtCore import QTimer
 # Import Messages
 from robosub.msg import thruster
 from robosub.msg import Float32Stamped
-from geometry_msgs import QuaternionStamped
+from geometry_msgs.msg import QuaternionStamped
 
 class SysCheck(Plugin):
 
