@@ -2,7 +2,7 @@
 # AUTHOR:   Brandon Kallaher
 # FILE:     control_wrapper.py
 # CREATED:  2017-07-03 23:20:06
-# MODIFIED: 2017-07-04 15:10:49
+# MODIFIED: 2017-07-04 15:16:49
 # DESC:     This class is used to wrap around the control messages for
 #           readability and simplicity. This uses a singleton so that all
 #           instances have the same internal state at any given time and
@@ -45,6 +45,9 @@ class control_wrapper():
     def yawRelative(self, value):
         self.setYawLeft(control.STATE_RELATIVE, value)
 
+    def yawError(self, error):
+        self.setYawLeft(control.STATE_ERROR, error)
+
     # ---------------Pitch Methods------------------
     
     # Pitch state-value pair setter
@@ -57,6 +60,9 @@ class control_wrapper():
 
     def pitchRelative(self, value):
         self.setPitchDown(control.STATE_RELATIVE, value)
+
+    def pitchError(self, error):
+        self.setPitchDown(control.STATE_ERROR, error)
 
     # ---------------Roll Methods-------------------
 
@@ -71,6 +77,9 @@ class control_wrapper():
     def rollRelative(self, value):
         self.setRollRight(control.STATE_RELATIVE, value)
 
+    def rollError(self, error):
+        self.setRollRight(control.STATE_ERROR, error)
+
     # ---------------Dive Methods-------------------
 
     # Dive state-value pair setter
@@ -83,6 +92,9 @@ class control_wrapper():
 
     def diveRelative(self, value):
         self.setDive(control.STATE_RELATIVE, value)
+
+    def diveError(self, error):
+        self.setDive(control.STATE_ERROR, error)
 
     # ---------------Forward Methods----------------
 
@@ -97,6 +109,9 @@ class control_wrapper():
     def forwardRelative(self, value):
         self.setForward(control.STATE_RELATIVE, value)
 
+    def forwardError(self, error):
+        self.setForward(control.STATE_ERROR, error)
+
     # ---------------Strafe Methods-----------------
 
     # Strafe state-value pair setter
@@ -110,6 +125,9 @@ class control_wrapper():
     def strafeRelative(self, value):
         self.setStrafeLeft(control.STATE_RELATIVE, value)
 
+    def strafeError(self, error):
+        self.setStrafeLeft(control.STATE_ERROR, error)
+
 
 
 # Main for testing
@@ -119,7 +137,7 @@ if __name__ == "__main__":
     print c.getCurrentState()
     c.rollAbsolute(50)
     c.diveAbsolute(10)
-    c.forwardAbsolute(3)
+    c.forwardAbsolute(20)
     c.yawAbsolute(20)
     c.pitchAbsolute(45)
     c.strafeAbsolute(145)
@@ -130,8 +148,17 @@ if __name__ == "__main__":
     print c.getCurrentState()
     c.rollRelative(50)
     c.diveRelative(10)
-    c.forwardRelative(3)
+    c.forwardRelative(20)
     c.yawRelative(20)
     c.pitchRelative(45)
     c.strafeRelative(145)
+    print d.getCurrentState()
+    d.clearState()
+    print c.getCurrentState()
+    c.rollError(50)
+    c.diveError(10)
+    c.forwardError(20)
+    c.yawError(20)
+    c.pitchError(45)
+    c.strafeError(145)
     print d.getCurrentState()
