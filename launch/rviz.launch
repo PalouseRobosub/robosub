@@ -1,0 +1,7 @@
+<launch>
+	<arg name="model" />
+	<param name="robot_description" textfile="$(find robosub)/models/cobalt.urdf" />
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" required="true"/>
+	<node name="tf_broadcaster" pkg="robosub" type="tf_broadcaster.py" required="true"/>
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find robosub)/rviz/basic.rviz" required="true" />
+</launch>

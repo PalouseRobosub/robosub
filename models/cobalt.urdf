@@ -1,0 +1,558 @@
+<?xml version="1.0" ?>
+<robot name="robosub_cobalt">
+
+  <link name="base_link"/>
+  <joint name="frame_base" type="fixed">
+    <parent link="base_link"/>
+    <child link="frame"/>
+  </joint>
+
+  <material name="blue">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+
+  <material name="white_transparent">
+    <color rgba="1 1 1 0.4"/>
+  </material>
+
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+
+  <joint name="hull_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="hull"/>
+    <!-- <origin rpy="0  0       0" xyz="0     0     0.082"/> -->
+    <origin rpy="0 1.57079  0" xyz="0     0     0.082"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="dive_front_left_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="dive_front_left"/>
+    <origin rpy="3.14159  0       3.14159" xyz="0.235  0.23  -0.1"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="dive_front_right_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="dive_front_right"/>
+    <origin rpy="3.14159  0       3.14159" xyz="0.235 -0.23  -0.1"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="dive_back_left_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="dive_back_left"/>
+    <origin rpy="3.14159  0       3.14159" xyz="-0.235  0.23  -0.1"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="dive_back_right_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="dive_back_right"/>
+    <origin rpy="3.14159  0       3.14159" xyz="-0.235 -0.23  -0.1"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="strafe_front_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="strafe_front"/>
+    <origin rpy="-1.57079  0       0" xyz="0.49  0   -0.01"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="strafe_back_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="strafe_back"/>
+    <origin rpy="-1.57079  0       0" xyz="-0.49  0   -0.01"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="forward_left_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="forward_left"/>
+    <origin rpy="0      -1.57079  0" xyz="0      0.2075 -0.01"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="forward_right_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="forward_right"/>
+    <origin rpy="0      -1.57079  0" xyz="0     -0.2075 -0.01"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="left_camera_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="left_camera"/>
+    <origin rpy="0       1.57079  0" xyz="0.37  0.2   0.04"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="right_camera_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="right_camera"/>
+    <origin rpy="0       1.57079  0" xyz="0.37 -0.2   0.04"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="bottom_camera_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="bottom_camera"/>
+    <origin rpy="3.14159  0       3.14159" xyz="0   0  -0.1"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+<!--
+ <joint name="hydrophone_h0_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="hydrophone_h0"/>
+    <origin rpy="0  0  0" xyz="0  0  0"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="hydrophone_hx_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="hydrophone_hx"/>
+    <origin rpy="0  0  0" xyz="3  0  0"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="hydrophone_hy_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="hydrophone_hy"/>
+    <origin rpy="0  0  0" xyz="0  3  0"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+  <joint name="hydrophone_hz_frame" type="fixed">
+    <parent link="frame"/>
+    <child link="hydrophone_hz"/>
+    <origin rpy="0  0  0" xyz="0  0  3"/>
+    <axis xyz="0  0  0"/>
+    <limit effort="0" lower="0" upper="0" velocity="0"/>
+  </joint>
+-->
+
+  <joint name="hull_bulkhead" type="fixed">
+    <parent link="hull"/>
+    <child link="bulkhead"/>
+  </joint>
+
+
+  <link name="bulkhead">
+    <visual name="bulkhead_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length=".13" radius="0.1"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+
+  <joint name="hull_front_ring" type="fixed">
+    <parent link="hull"/>
+    <child link="front_ring"/>
+  </joint>
+  <link name="front_ring">
+    <visual name="front_ring_visual">
+      <origin rpy="0  0  0" xyz="0     0     0.075"/>
+      <geometry>
+        <cylinder length=".05" radius="0.102"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <joint name="hull_rear_ring" type="fixed">
+    <parent link="hull"/>
+    <child link="rear_ring"/>
+  </joint>
+  <link name="rear_ring">
+    <visual name="rear_ring_visual">
+      <origin rpy="0  0  0" xyz="0     0    -0.075"/>
+      <geometry>
+        <cylinder length=".05" radius="0.102"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <joint name="hull_front_tube" type="fixed">
+    <parent link="hull"/>
+    <child link="front_tube"/>
+  </joint>
+  <link name="front_tube">
+    <visual name="front_tube_visual">
+      <origin rpy="0  0  0" xyz="0     0     0.235"/>
+      <geometry>
+        <cylinder length=".32" radius="0.1"/>
+      </geometry>
+      <material name="white_transparent"/>
+    </visual>
+  </link>
+
+  <joint name="hull_rear_tube" type="fixed">
+    <parent link="hull"/>
+    <child link="rear_tube"/>
+  </joint>
+  <link name="rear_tube">
+    <visual name="rear_tube_visual">
+      <origin rpy="0  0  0" xyz="0     0    -0.235"/>
+      <geometry>
+        <cylinder length=".32" radius="0.1"/>
+      </geometry>
+      <material name="white_transparent"/>
+    </visual>
+  </link>
+
+  <link name="hull">
+    <inertial>
+      <mass value="10"/>
+      <origin rpy="0  0  0" xyz="0  0  4"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="hull_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length=".77" radius="0.1"/>
+      </geometry>
+    </collision>
+  </link>
+<!--
+  <link name="hydrophone_h0">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="hydrophone_hx">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="hydrophone_hy">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="hydrophone_hz">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+-->
+  <link name="frame">
+    <inertial>
+      <mass value="16.5"/>
+      <origin rpy="0  0  0" xyz="0     0    -0.088"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="frame_collision">
+      <origin rpy="0  0  0" xyz="0     0    -0.088"/>
+      <geometry>
+        <box size=".85 .3 .13"/>
+      </geometry>
+    </collision>
+    <visual name="frame_visual">
+      <origin rpy="0  0  0" xyz="0     0    -0.088"/>
+      <geometry>
+        <box size=".85 .3 .13"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <link name="dive_front_left">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="dive_front_left_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="dive_front_left_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="dive_front_right">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="dive_front_right_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="dive_front_right_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="dive_back_left">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="dive_back_left_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="dive_back_left_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="dive_back_right">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="dive_back_right_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="dive_back_right_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="strafe_front">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="strafe_front_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="strafe_front_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="strafe_back">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="strafe_back_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="strafe_back_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="forward_left">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="forward_left_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="forward_left_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="forward_right">
+    <inertial>
+      <mass value="0.344"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="forward_right_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+    </collision>
+    <visual name="forward_right_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.101" radius="0.0485"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="left_camera">
+    <inertial>
+      <mass value="0.73"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="left_camera_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.0405"/>
+      </geometry>
+    </collision>
+    <visual name="left_camera_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.0405"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <link name="right_camera">
+    <inertial>
+      <mass value="0.73"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="right_camera_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.0405"/>
+      </geometry>
+    </collision>
+    <visual name="right_camera_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.0405"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <link name="bottom_camera">
+    <inertial>
+      <mass value="0.73"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision name="bottom_camera_collision">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.0405"/>
+      </geometry>
+    </collision>
+    <visual name="bottom_camera_visual">
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.0405"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+<!--
+  <link name="frame">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="dive_back_right">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="dive_back_left">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="dive_front_right">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="dive_front_left">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="strafe_front">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="strafe_back">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="forward_right">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <link name="forward_left">
+    <inertial>
+      <mass value="0"/>
+      <origin rpy="0  0  0" xyz="0  0  0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+-->
+</robot>
