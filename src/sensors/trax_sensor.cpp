@@ -17,7 +17,7 @@ using namespace robosub;
  * values of -88.66 and -4.35 are a result of the current mounting position of
  * the TRAX on the submarine.
  */
-double last_roll = 0, last_pitch = 0, trim_roll = 88.66, trim_pitch = -4.35;
+double last_roll = 0, last_pitch = 0, trim_roll = 0, trim_pitch = 0;
 
 /**
  * ROS Service call for trimming sensor pitch and roll offsets.
@@ -56,7 +56,11 @@ int main(int argc, char *argv[])
     ROS_FATAL_COND(nh.getParam("ports/trax", port_name) == false,
             "Failed to load TRAX serial port.");
 
-    ROS_FATAL_COND(imu.init(port_name), "Failed to initialize TRAX.");
+    if (imu.init(port_name, PniTrax::Mode::AHRS) != 0)
+    {
+        ROS_FATAL("Failed to initialize TRAX.");
+        return 1;
+    }
 
     /*
      * Set up the trim service and data publisher.
@@ -97,13 +101,19 @@ int main(int argc, char *argv[])
          * of roll_right, yaw_left, and pitch_down positives.
          */
         yaw = 180 - yaw;
-        roll *= -1;
+        pitch *= -1;
 
         /*
          * Update sensor trim variables.
          */
         last_pitch = pitch;
         last_roll = roll;
+
+        /*
+         * Apply trim offsets
+         */
+        roll -= trim_roll;
+        pitch -= trim_pitch;
 
         /*
          * Construct the data message.
@@ -114,8 +124,8 @@ int main(int argc, char *argv[])
          */
         geometry_msgs::QuaternionStamped trax_message;
         trax_message.quaternion = tf::createQuaternionMsgFromRollPitchYaw(
-                (roll - trim_roll) * _PI_OVER_180,
-                (pitch - trim_pitch) * _PI_OVER_180,
+                roll * _PI_OVER_180,
+                pitch * _PI_OVER_180,
                 yaw * _PI_OVER_180);
         trax_message.header.stamp = ros::Time::now();
 
@@ -124,8 +134,8 @@ int main(int argc, char *argv[])
          * these values may not lie within the TRAX specified ranges.
          */
         robosub::Euler trax_pretty_message;
-        trax_pretty_message.roll = roll - trim_roll;
-        trax_pretty_message.pitch = pitch - trim_pitch;
+        trax_pretty_message.roll = roll;
+        trax_pretty_message.pitch = pitch;
         trax_pretty_message.yaw = yaw;
 
         std_msgs::String trax_status_message;

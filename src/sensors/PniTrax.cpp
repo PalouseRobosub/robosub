@@ -117,6 +117,20 @@ int PniTrax::init(const string serial_port_name, Mode mode)
         return -1;
     }
 
+    /*
+     * Set the TRAX's mounting orientation
+     */
+    data[0] = static_cast<uint8_t>(Config::kMountingRef);
+    data[1] = static_cast<uint8_t>(Mounting::x_up_270);
+    if (write_command(Command::kSetConfig, data, 2))
+    {
+        return -1;
+    }
+    if (read_command(response, NULL, 0) || response != Command::kSetConfigDone)
+    {
+        return -1;
+    }
+
     return 0;
 }
 

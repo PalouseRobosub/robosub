@@ -62,6 +62,7 @@ public:
 
     enum class Config : uint8_t
     {
+        kMountingRef = 10,
         kUserCalAutoSampling = 13
     };
 
@@ -81,6 +82,11 @@ public:
         kGyroX = 0x4B,
         kGyroY = 0x4C,
         kGyroZ = 0x4D
+    };
+
+    enum class Mounting : uint8_t
+    {
+        x_up_270 = 10
     };
 
     enum class Format
