@@ -35,7 +35,7 @@ double last_roll, last_pitch, trim_roll, trim_pitch;
  * @param x The expression to evaluate.
  * @param s The string to list when exitting.
  */
-#define FatalAbortIf(x, s) { int ret = (x); if(ret) { ROS_FATAL(s); exit(-1); }}
+#define FatalAbortIf(x, ...) { int ret = (x); if(ret) { ROS_FATAL(__VA_ARGS__); exit(-1); }}
 
 /**
  * Encodes an axis integral value into the Bno055::Axis type.
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
     /*
      * Initialize ROS for this node.
      */
-    ros::init(argc, argv, "sensor");
+    ros::init(argc, argv, "bno055");
 
     /*
      * Construct a node handle for communicating with ROS.
@@ -168,8 +168,9 @@ int main(int argc, char **argv)
      * class.
      */
     std::string port_name;
-    FatalAbortIf(ros::param::get("ports/sensor", port_name) == false,
-            "Failed to get port name parameter.");
+    std::string port_param = "ports" + ros::this_node::getName();
+    FatalAbortIf(ros::param::get(port_param, port_name) == false,
+            "Failed to get port name parameter: \"%s\"", port_param.c_str());
     FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
     ROS_INFO("Sensor successfully initialized.");
 

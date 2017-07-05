@@ -11,7 +11,6 @@ add_ros_node(bno055_calibrate bno055_calibration.cpp)
 target_link_libraries(bno055_calibrate serial bno055)
 
 add_ros_node(imu imu.cpp)
-target_link_libraries(imu serial)
 
 add_ros_node(depth depth.cpp)
 target_link_libraries(depth serial)

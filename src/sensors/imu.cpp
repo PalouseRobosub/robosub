@@ -1,11 +1,18 @@
 #include "ros/ros.h"
-#include "utility/serial.hpp"
 
-using namespace rs;
+ros::Publisher pub;
 
 int main(int argc, char **argv)
 {
-    Serial s;
+
+    ros::init(argc, argv, "imu");
+
+    ros::NodeHandle n;
+
+    ROS_INFO_STREAM("name: " << ros::this_node::getName());
+    ROS_INFO_STREAM("namespace: " << ros::this_node::getNamespace());
+
+    ros::spin();
 
     return 0;
 }
