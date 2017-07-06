@@ -1,11 +1,15 @@
 ports:
     thruster: "/dev/maestro_control"
-    sensor: "/dev/bno055_right"
+    bno055_left: "/dev/bno055_left"
+    bno055_right: "/dev/bno055_right"
     trax: "/dev/trax"
 rate:
     control: 50
     depth: 10
     imu: 20
+    bno055_left: 20
+    bno055_right: 20
+    trax: 20
     localization: 30
 thrusters:
     max_thrust: 24
@@ -138,7 +142,29 @@ control:
     buoyancy_offset: -32.0
 depth:
     offset: 0.75
-sensor:
+bno055_left:
+    axis:
+        x: 1
+        y: 2
+        z: 3
+    accelerometer:
+        offset:
+            x: 0
+            y: 0
+            z: 0
+        radius: 0
+    magnetometer:
+        offset:
+            x: 0
+            y: 0
+            z: 0
+        radius: 0
+    gyroscope:
+        offset:
+            x: 0
+            y: 0
+            z: 0
+bno055_right:
     axis:
         x: 1
         y: 2

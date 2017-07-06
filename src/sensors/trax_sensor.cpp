@@ -13,9 +13,7 @@ using namespace robosub;
 #define _PI_OVER_180 (3.14159) / 180.0
 
 /*
- * Declare trimming variables for correcting sensor mounting offsets. The
- * values of -88.66 and -4.35 are a result of the current mounting position of
- * the TRAX on the submarine.
+ * Declare trimming variables for correcting sensor mounting offsets.
  */
 double last_roll = 0, last_pitch = 0, trim_roll = 0, trim_pitch = 0;
 
@@ -43,18 +41,21 @@ bool trim(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
  */
 int main(int argc, char *argv[])
 {
-    ros::init(argc, argv, "trax_sensor");
+    ros::init(argc, argv, "trax");
 
     ros::NodeHandle nh;
 
     PniTrax imu;
 
+    std::string node_name = ros::this_node::getName();
+
     /*
      * Initialize the TRAX IMU.
      */
     std::string port_name;
-    ROS_FATAL_COND(nh.getParam("ports/trax", port_name) == false,
-            "Failed to load TRAX serial port.");
+    std::string port_param_name = "ports/" + node_name;
+    ROS_FATAL_COND(nh.getParam(port_param_name, port_name) == false,
+            "Failed to load TRAX serial port (%s)", port_param_name.c_str());
 
     if (imu.init(port_name, PniTrax::Mode::AHRS) != 0)
     {
@@ -65,19 +66,23 @@ int main(int argc, char *argv[])
     /*
      * Set up the trim service and data publisher.
      */
-    ros::ServiceServer trim_service = nh.advertiseService("trax/trim", trim);
+    ros::ServiceServer trim_service = nh.advertiseService(node_name + "/trim",
+                                                          trim);
 
     ros::Publisher trax_publisher =
-            nh.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
+            nh.advertise<geometry_msgs::QuaternionStamped>(
+            node_name + "/orientation", 1);
     ros::Publisher trax_pretty_publisher =
-            nh.advertise<robosub::Euler>("pretty/orientation", 1);
+            nh.advertise<robosub::Euler>(node_name + "/pretty/orientation", 1);
     ros::Publisher trax_info_publisher =
-            nh.advertise<std_msgs::String>("info/trax", 1);
+            nh.advertise<std_msgs::String>(node_name + "/info", 1);
 
-    float rate = 20;
-    if (nh.getParam("rate/imu", rate) == false)
+    float rate;
+    std::string rate_param_name = "rate/" + node_name;
+    if (nh.getParam(rate_param_name, rate) == false)
     {
-        ROS_WARN_STREAM("Failed to load TRAX rate. Falling back to 20 Hz.");
+        ROS_WARN("Failed to load TRAX rate (%s)."
+                 "Falling back to 20 Hz.", rate_param_name.c_str());
         rate = 20;
     }
 

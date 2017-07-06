@@ -149,28 +149,36 @@ int main(int argc, char **argv)
      */
     ros::NodeHandle nh;
 
+    std::string node_name = ros::this_node::getName();
+
     /*
      * Advertise the stamped quaternion and acceleration sensor
      * data to the software and the trim service call.
      */
     quaternion_publisher =
-            nh.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
+            nh.advertise<geometry_msgs::QuaternionStamped>(
+            node_name + "/orientation", 1);
     linear_acceleration_publisher =
-        nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
-    euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
-    info_publisher = nh.advertise<std_msgs::String>("info/bno055", 1);
-    ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
-    ros::ServiceServer mode_service = nh.advertiseService("set_bno_mode",
-            set_mode);
+        nh.advertise<geometry_msgs::Vector3Stamped>(
+        node_name + "/acceleration/linear", 1);
+    euler_publisher = nh.advertise<robosub::Euler>(
+            node_name + "/pretty/orientation", 1);
+    info_publisher = nh.advertise<std_msgs::String>(
+            node_name + "/info/bno055", 1);
+    ros::ServiceServer trim_service = nh.advertiseService(
+            node_name + "/trim", trim);
+    ros::ServiceServer mode_service = nh.advertiseService(
+            node_name + "/set_mode", set_mode);
 
     /*
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
      * class.
      */
     std::string port_name;
-    std::string port_param = "ports" + ros::this_node::getName();
-    FatalAbortIf(ros::param::get(port_param, port_name) == false,
-            "Failed to get port name parameter: \"%s\"", port_param.c_str());
+    std::string port_param_name = "ports/" + node_name;
+    FatalAbortIf(ros::param::get(port_param_name, port_name) == false,
+            "Failed to get port name parameter: \"%s\"",
+            port_param_name.c_str());
     FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
     ROS_INFO("Sensor successfully initialized.");
 
@@ -193,39 +201,39 @@ int main(int argc, char **argv)
      */
     bool failed_radii_load = false, failed_offset_load = false,
             failed_axis_load = false;
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/radius",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/accelerometer/radius",
             accelerometer_radius) == false && (failed_radii_load = true),
             "Failed to load accelerometer calibration radius.");
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/x",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/accelerometer/offset/x",
             accelerometer_offset[0]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/y",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/accelerometer/offset/y",
             accelerometer_offset[1]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/accelerometer/offset/z",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/accelerometer/offset/z",
             accelerometer_offset[2]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
 
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/radius",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/magnetometer/radius",
             magnetometer_radius) == false && (failed_radii_load = true),
             "Failed to load magnetometer calibration radius.");
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/x",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/magnetometer/offset/x",
             magnetometer_offset[0]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/y",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/magnetometer/offset/y",
             magnetometer_offset[1]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/magnetometer/offset/z",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/magnetometer/offset/z",
             magnetometer_offset[2]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
 
-    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/x",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/gyroscope/offset/x",
             gyroscope_offset[0]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/y",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/gyroscope/offset/y",
             gyroscope_offset[1]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    ROS_WARN_COND(nh.getParamCached("sensor/gyroscope/offset/z",
+    ROS_WARN_COND(nh.getParamCached(node_name + "/gyroscope/offset/z",
             gyroscope_offset[2]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
 
@@ -236,13 +244,13 @@ int main(int argc, char **argv)
      * the negative direction.
      */
     int axis_x, axis_y, axis_z;
-    ROS_WARN_COND(nh.getParamCached("sensor/axis/x", axis_x) == false &&
+    ROS_WARN_COND(nh.getParamCached(node_name + "/axis/x", axis_x) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped X axis.");
-    ROS_WARN_COND(nh.getParamCached("sensor/axis/y", axis_y) == false &&
+    ROS_WARN_COND(nh.getParamCached(node_name + "/axis/y", axis_y) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped Y axis.");
-    ROS_WARN_COND(nh.getParamCached("sensor/axis/z", axis_z) == false &&
+    ROS_WARN_COND(nh.getParamCached(node_name + "/axis/z", axis_z) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped Z axis.");
 
@@ -295,9 +303,11 @@ int main(int argc, char **argv)
      * Enter the main ROS loop.
      */
     int rate;
-    if (!nh.getParam("rate/imu", rate))
+    std::string rate_param = "rate/" + node_name;
+    if (!nh.getParam(rate_param, rate))
     {
-        ROS_WARN("Failed to load BNO055 node rate. Falling back to 20Hz.");
+        ROS_WARN("Failed to load \"%s\". Falling back to 20Hz.",
+                 rate_param.c_str());
         rate = 20;
     }
     ros::Rate r(rate);
