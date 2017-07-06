@@ -39,10 +39,14 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "sensor_calibration");
     ros::Time::init();
-    string port_name;
+    string node_name = ros::this_node::getName();
 
-    HandleError(ros::param::get("/ports/sensor", port_name) == false,
-            "ros::param::get(\"/ports/sensor\")", true);
+
+    string port_name;
+    string port_param_name = "ports/" + node_name;
+    HandleError(ros::param::get(port_param_name, port_name) == false,
+            ("ros::param::get(\"" + port_param_name + "\")").c_str(),
+            true);
 
     Bno055 bno;
 
