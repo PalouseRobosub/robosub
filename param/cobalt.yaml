@@ -147,45 +147,11 @@ bno055_left:
         x: 1
         y: 2
         z: 3
-    accelerometer:
-        offset:
-            x: 0
-            y: 0
-            z: 0
-        radius: 0
-    magnetometer:
-        offset:
-            x: 0
-            y: 0
-            z: 0
-        radius: 0
-    gyroscope:
-        offset:
-            x: 0
-            y: 0
-            z: 0
 bno055_right:
     axis:
         x: 1
         y: 2
         z: 3
-    accelerometer:
-        offset:
-            x: 0
-            y: 0
-            z: 0
-        radius: 0
-    magnetometer:
-        offset:
-            x: 0
-            y: 0
-            z: 0
-        radius: 0
-    gyroscope:
-        offset:
-            x: 0
-            y: 0
-            z: 0
 hydrophones:
     pinger:
         depth: -4.1
