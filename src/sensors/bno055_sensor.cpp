@@ -33,7 +33,9 @@ double last_roll, last_pitch, trim_roll, trim_pitch;
  * Fatally exits if expression x evalutes true.
  *
  * @param x The expression to evaluate.
- * @param s The string to list when exitting.
+ * @param ... The format string to list when exitting, plus args.
+ *            This is similar to printf syntax.
+
  */
 #define FatalAbortIf(x, ...) { int ret = (x); if(ret) { ROS_FATAL(__VA_ARGS__); exit(-1); }}
 
