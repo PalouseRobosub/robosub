@@ -2,6 +2,7 @@
 #include "geometry_msgs/QuaternionStamped.h"
 #include "robosub/Euler.h"
 #include "tf/transform_datatypes.h"
+#include <string>
 
 ros::Publisher quaternion_publisher;
 ros::Publisher euler_publisher;

@@ -37,16 +37,12 @@ void HandleError(int x, const char * s, bool abort = false)
  */
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "sensor_calibration");
+    ros::init(argc, argv, "bno055");
     ros::Time::init();
-    string node_name = ros::this_node::getName();
-
 
     string port_name;
-    string port_param_name = "ports/" + node_name;
-    HandleError(ros::param::get(port_param_name, port_name) == false,
-            ("ros::param::get(\"" + port_param_name + "\")").c_str(),
-            true);
+    HandleError(ros::param::get("~port", port_name) == false,
+                "ros::param::get()", true);
 
     Bno055 bno;
 
