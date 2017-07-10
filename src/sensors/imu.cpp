@@ -1,8 +1,8 @@
-#include "ros/ros.h"
 #include "geometry_msgs/QuaternionStamped.h"
 #include "robosub/Euler.h"
-#include "tf/transform_datatypes.h"
+#include "ros/ros.h"
 #include <string>
+#include "tf/transform_datatypes.h"
 
 ros::Publisher quaternion_publisher;
 ros::Publisher euler_publisher;
