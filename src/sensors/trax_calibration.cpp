@@ -66,13 +66,13 @@ int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "trax");
 
-    ros::NodeHandle nh("~");
+    ros::NodeHandle np("~");
 
     /*
      * Load the serial port name from the parameter server.
      */
     std::string port_name;
-    ROS_FATAL_COND(nh.getParam("port", port_name) == false,
+    ROS_FATAL_COND(np.getParam("port", port_name) == false,
             "Failed to load TRAX serial port.");
 
     ROS_FATAL_COND(trax.init(port_name), "Failed to initialize TRAX sensor.");
@@ -80,15 +80,15 @@ int main(int argc, char *argv[])
     /*
      * Set up the server for the calibration points.
      */
-    ros::ServiceServer point_service = nh.advertiseService("calibrate",
+    ros::ServiceServer point_service = np.advertiseService("calibrate",
             take_calibration_point);
-    ros::ServiceServer save_service = nh.advertiseService("save", save);
+    ros::ServiceServer save_service = np.advertiseService("save", save);
 
     /*
      * Detect what type of calibration should be completed.
      */
     int type;
-    ROS_FATAL_COND(nh.getParam("type", type) == false,
+    ROS_FATAL_COND(np.getParam("type", type) == false,
             "Failed to load ~type for calibration type."
             "\n1 := FullRange,"
             "\n2 := 2-Dimensional"

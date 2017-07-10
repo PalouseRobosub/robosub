@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "trax");
 
-    ros::NodeHandle nh("~");
+    ros::NodeHandle np("~");
 
     PniTrax imu;
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
      * Initialize the TRAX IMU.
      */
     std::string port_name;
-    ROS_FATAL_COND(nh.getParam("port", port_name) == false,
+    ROS_FATAL_COND(np.getParam("port", port_name) == false,
                    "Failed to load TRAX serial port.");
 
     if (imu.init(port_name, PniTrax::Mode::AHRS) != 0)
@@ -63,17 +63,17 @@ int main(int argc, char *argv[])
     /*
      * Set up the trim service and data publisher.
      */
-    ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
+    ros::ServiceServer trim_service = np.advertiseService("trim", trim);
 
     ros::Publisher trax_publisher =
-              nh.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
+              np.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
     ros::Publisher trax_pretty_publisher =
-                         nh.advertise<robosub::Euler>("pretty/orientation", 1);
+                         np.advertise<robosub::Euler>("pretty/orientation", 1);
     ros::Publisher trax_info_publisher =
-                                     nh.advertise<std_msgs::String>("info", 1);
+                                     np.advertise<std_msgs::String>("info", 1);
 
     float rate;
-    if (nh.getParam("rate", rate) == false)
+    if (np.getParam("rate", rate) == false)
     {
         ROS_WARN("Failed to load TRAX rate. Falling back to 20 Hz.");
         rate = 20;

@@ -150,29 +150,27 @@ int main(int argc, char **argv)
     /*
      * Construct a node handle for communicating with ROS.
      */
-    ros::NodeHandle nh("~");
-
-    std::string node_name = ros::this_node::getName();
+    ros::NodeHandle np("~");
 
     /*
      * Advertise the stamped quaternion and acceleration sensor
      * data to the software and the trim service call.
      */
     quaternion_publisher =
-            nh.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
+            np.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
     linear_acceleration_publisher =
-        nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
-    euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
-    info_publisher = nh.advertise<std_msgs::String>("info", 1);
-    ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
-    ros::ServiceServer mode_service = nh.advertiseService("set_mode", set_mode);
+        np.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
+    euler_publisher = np.advertise<robosub::Euler>("pretty/orientation", 1);
+    info_publisher = np.advertise<std_msgs::String>("info", 1);
+    ros::ServiceServer trim_service = np.advertiseService("trim", trim);
+    ros::ServiceServer mode_service = np.advertiseService("set_mode", set_mode);
 
     /*
      * Create the serial port, initialize it, and hand it to the Bno055 sensor
      * class.
      */
     std::string port_name;
-    FatalAbortIf(nh.getParam("port", port_name) == false,
+    FatalAbortIf(np.getParam("port", port_name) == false,
                  "Failed to get port name parameter");
     FatalAbortIf(sensor.init(port_name) != 0, "Bno055 failed to initialize");
     ROS_INFO("Sensor successfully initialized.");
@@ -196,39 +194,39 @@ int main(int argc, char **argv)
      */
     bool failed_radii_load = false, failed_offset_load = false,
             failed_axis_load = false;
-    ROS_WARN_COND(nh.getParam("accelerometer/radius",
+    ROS_WARN_COND(np.getParam("accelerometer/radius",
             accelerometer_radius) == false && (failed_radii_load = true),
             "Failed to load accelerometer calibration radius.");
-    ROS_WARN_COND(nh.getParam("accelerometer/offset/x",
+    ROS_WARN_COND(np.getParam("accelerometer/offset/x",
             accelerometer_offset[0]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
-    ROS_WARN_COND(nh.getParam("accelerometer/offset/y",
+    ROS_WARN_COND(np.getParam("accelerometer/offset/y",
             accelerometer_offset[1]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
-    ROS_WARN_COND(nh.getParam("accelerometer/offset/z",
+    ROS_WARN_COND(np.getParam("accelerometer/offset/z",
             accelerometer_offset[2]) == false && (failed_offset_load = true),
             "Failed to load accelerometer calibration offset.");
 
-    ROS_WARN_COND(nh.getParam("magnetometer/radius",
+    ROS_WARN_COND(np.getParam("magnetometer/radius",
             magnetometer_radius) == false && (failed_radii_load = true),
             "Failed to load magnetometer calibration radius.");
-    ROS_WARN_COND(nh.getParam("magnetometer/offset/x",
+    ROS_WARN_COND(np.getParam("magnetometer/offset/x",
             magnetometer_offset[0]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
-    ROS_WARN_COND(nh.getParam("magnetometer/offset/y",
+    ROS_WARN_COND(np.getParam("magnetometer/offset/y",
             magnetometer_offset[1]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
-    ROS_WARN_COND(nh.getParam("magnetometer/offset/z",
+    ROS_WARN_COND(np.getParam("magnetometer/offset/z",
             magnetometer_offset[2]) == false && (failed_offset_load = true),
             "Failed to load magnetometer calibration offset.");
 
-    ROS_WARN_COND(nh.getParam("gyroscope/offset/x",
+    ROS_WARN_COND(np.getParam("gyroscope/offset/x",
             gyroscope_offset[0]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    ROS_WARN_COND(nh.getParam("gyroscope/offset/y",
+    ROS_WARN_COND(np.getParam("gyroscope/offset/y",
             gyroscope_offset[1]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
-    ROS_WARN_COND(nh.getParam("gyroscope/offset/z",
+    ROS_WARN_COND(np.getParam("gyroscope/offset/z",
             gyroscope_offset[2]) == false && (failed_offset_load = true),
             "Failed to load gyroscope calibration offset.");
 
@@ -239,13 +237,13 @@ int main(int argc, char **argv)
      * the negative direction.
      */
     int axis_x, axis_y, axis_z;
-    ROS_WARN_COND(nh.getParam("axis/x", axis_x) == false &&
+    ROS_WARN_COND(np.getParam("axis/x", axis_x) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped X axis.");
-    ROS_WARN_COND(nh.getParam("axis/y", axis_y) == false &&
+    ROS_WARN_COND(np.getParam("axis/y", axis_y) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped Y axis.");
-    ROS_WARN_COND(nh.getParam("axis/z", axis_z) == false &&
+    ROS_WARN_COND(np.getParam("axis/z", axis_z) == false &&
             (failed_axis_load = true),
             "Failed to load Bno055 remapped Z axis.");
 
@@ -298,7 +296,7 @@ int main(int argc, char **argv)
      * Enter the main ROS loop.
      */
     int rate;
-    if (!nh.getParam("rate", rate))
+    if (!np.getParam("rate", rate))
     {
         ROS_WARN("Failed to load rate. Falling back to 20Hz.");
         rate = 20;
