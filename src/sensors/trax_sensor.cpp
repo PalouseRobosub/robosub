@@ -66,11 +66,11 @@ int main(int argc, char *argv[])
     ros::ServiceServer trim_service = np.advertiseService("trim", trim);
 
     ros::Publisher trax_publisher =
-              np.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
+            np.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
     ros::Publisher trax_pretty_publisher =
-                         np.advertise<robosub::Euler>("pretty/orientation", 1);
+            np.advertise<robosub::Euler>("pretty/orientation", 1);
     ros::Publisher trax_info_publisher =
-                                     np.advertise<std_msgs::String>("info", 1);
+            np.advertise<std_msgs::String>("info", 1);
 
     float rate;
     if (np.getParam("rate", rate) == false)
