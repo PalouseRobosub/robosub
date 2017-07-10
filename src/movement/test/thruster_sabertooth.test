@@ -1,5 +1,5 @@
 <launch>
     <test test-name="test_thruster_sabertooth" pkg="robosub" type="test_thruster_sabertooth" />
-    <node name="thruster_sabertooth" pkg="robosub" type="thruster_sabertooth" launch-prefix="$(fins robosub)/scripts/sleepme.sh 2"/>
+    <node name="thruster_sabertooth" pkg="robosub" type="thruster_sabertooth" launch-prefix="$(find robosub)/scripts/sleepme.sh 2"/>
     <rosparam command="load" file="$(find robosub)/param/ironman.yaml" />
 </launch>
