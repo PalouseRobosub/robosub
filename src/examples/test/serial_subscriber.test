@@ -4,5 +4,5 @@
     <!-- We use the delayed_node.sh script to launch our UUT. This script simply 
     waits for 1 seconds then launches serial_subscriber_example the purpose is
     to give the testbench time to initialize itself -->
-    <node name="serial_subscriber" pkg="robosub" type="delayed_node.sh" args="1 serial_subscriber_example"/>
+    <node name="serial_subscriber" pkg="robosub" type="serial_subscriber_example" launch-prefix="$(find robosub)/scripts/sleepme.sh 1"/>
 </launch>
