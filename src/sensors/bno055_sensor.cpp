@@ -163,7 +163,7 @@ int main(int argc, char **argv)
     linear_acceleration_publisher =
         nh.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
     euler_publisher = nh.advertise<robosub::Euler>("pretty/orientation", 1);
-    info_publisher = nh.advertise<std_msgs::String>("info/bno055", 1);
+    info_publisher = nh.advertise<std_msgs::String>("info", 1);
     ros::ServiceServer trim_service = nh.advertiseService("trim", trim);
     ros::ServiceServer mode_service = nh.advertiseService("set_mode", set_mode);
 
