@@ -4,6 +4,8 @@
 #include <string>
 #include "tf/transform_datatypes.h"
 
+#define _180_OVER_PI (180.0 / 3.14159)
+
 ros::Publisher quaternion_publisher;
 ros::Publisher euler_publisher;
 
@@ -19,9 +21,9 @@ robosub::Euler quaternion_to_euler(
     tf::Matrix3x3 m(tf_quaternion);
     m.getRPY(roll, pitch, yaw);
 
-    euler_msg.roll = roll;
-    euler_msg.pitch = pitch;
-    euler_msg.yaw = yaw;
+    euler_msg.roll = roll * _180_OVER_PI;
+    euler_msg.pitch = pitch * _180_OVER_PI;
+    euler_msg.yaw = yaw * _180_OVER_PI;
 
     return euler_msg;
 }
