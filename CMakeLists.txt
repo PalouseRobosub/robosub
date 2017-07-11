@@ -119,6 +119,8 @@ add_message_files(
   BatteryDetailed.msg
   rgb.msg
   rgbArray.msg
+  HydrophoneStream.msg
+  HydrophoneSamples.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -232,3 +234,4 @@ add_subdirectory(src/sensors)
 add_subdirectory(src/controllers)
 add_subdirectory(src/vision)
 add_subdirectory(src/localization)
+add_subdirectory(src/hydrophones)
