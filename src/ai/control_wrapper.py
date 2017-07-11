@@ -2,7 +2,7 @@
 # AUTHOR:   Brandon Kallaher
 # FILE:     control_wrapper.py
 # CREATED:  2017-07-03 23:20:06
-# MODIFIED: 2017-07-11 13:59:50
+# MODIFIED: 2017-07-11 14:03:39
 # DESC:     This class is used to wrap around the control messages for
 #           readability and simplicity. This uses a singleton so that all
 #           instances have the same internal state at any given time and
@@ -37,7 +37,7 @@ class control_wrapper():
     # Allow for clearing of the movement state
     def clearState(self):
         self._control_msg = control()
-        
+
     # ---------------Yaw Methods--------------------
 
     # Yaw state-value pair setter
@@ -70,7 +70,7 @@ class control_wrapper():
         return self._control_msg.yaw_state
 
     # ---------------Pitch Methods------------------
-    
+
     # Pitch state-value pair setter
     def setPitchDown(self, state, value):
         self._control_msg.pitch_state = state
@@ -95,7 +95,7 @@ class control_wrapper():
     # Allow the user to get the current pitch value from the class
     def getCurrentPitchValue(self):
         return self._control_msg.pitch_down
-    
+
     # Allow the user to get the current pitch state from the class
     def getCurrentPitchState(self):
         return self._control_msg.pitch_state
@@ -126,7 +126,7 @@ class control_wrapper():
     # Allow the user to get the current roll value from the class
     def getCurrentRollValue(self):
         return self._control_msg.roll_right
-    
+
     # Allow the user to get the current roll state from the class
     def getCurrentRollState(self):
         return self._control_msg.roll_state
@@ -157,7 +157,7 @@ class control_wrapper():
     # Allow the user to get the current dive value from the class
     def getCurrentDiveValue(self):
         return self._control_msg.dive
-    
+
     # Allow the user to get the current dive state from the class
     def getCurrentDiveState(self):
         return self._control_msg.dive_state
@@ -188,7 +188,7 @@ class control_wrapper():
     # Allow the user to get the current forward value from the class
     def getCurrentForwardValue(self):
         return self._control_msg.forward
-    
+
     # Allow the user to get the current forward state from the class
     def getCurrentForwardState(self):
         return self._control_msg.forward_state
@@ -219,7 +219,7 @@ class control_wrapper():
     # Allow the user to get the current strafe value from the class
     def getCurrentStrafeValue(self):
         return self._control_msg.strafe_left
-    
+
     # Allow the user to get the current strafe state from the class
     def getCurrentStrafeState(self):
         return self._control_msg.strafe_state
