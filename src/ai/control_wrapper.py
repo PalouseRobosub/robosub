@@ -2,7 +2,7 @@
 # AUTHOR:   Brandon Kallaher
 # FILE:     control_wrapper.py
 # CREATED:  2017-07-03 23:20:06
-# MODIFIED: 2017-07-06 17:25:51
+# MODIFIED: 2017-07-11 13:59:50
 # DESC:     This class is used to wrap around the control messages for
 #           readability and simplicity. This uses a singleton so that all
 #           instances have the same internal state at any given time and
@@ -57,6 +57,10 @@ class control_wrapper():
     def yawError(self, error):
         self.setYawLeft(control.STATE_ERROR, error)
 
+    # Set the yaw state to none and clear out the value
+    def yawNone(self):
+        self.setYawLeft(control.STATE_NONE, 0)
+
     # Allow the user to get the current yaw value from the class
     def getCurrentYawValue(self):
         return self._control_msg.yaw_left
@@ -83,6 +87,10 @@ class control_wrapper():
     # Error Pitch method
     def pitchError(self, error):
         self.setPitchDown(control.STATE_ERROR, error)
+
+    # Set the pitch state to none and clear out the value
+    def pitchNone(self):
+        self.setPitchLeft(control.STATE_NONE, 0)
 
     # Allow the user to get the current pitch value from the class
     def getCurrentPitchValue(self):
@@ -111,6 +119,10 @@ class control_wrapper():
     def rollError(self, error):
         self.setRollRight(control.STATE_ERROR, error)
 
+    # Set the roll state to none and clear out the value
+    def rollNone(self):
+        self.setRollLeft(control.STATE_NONE, 0)
+
     # Allow the user to get the current roll value from the class
     def getCurrentRollValue(self):
         return self._control_msg.roll_right
@@ -137,6 +149,10 @@ class control_wrapper():
     # Error Dive method
     def diveError(self, error):
         self.setDive(control.STATE_ERROR, error)
+
+    # Set the dive state to none and clear out the value
+    def diveNone(self):
+        self.setDiveLeft(control.STATE_NONE, 0)
 
     # Allow the user to get the current dive value from the class
     def getCurrentDiveValue(self):
@@ -165,6 +181,10 @@ class control_wrapper():
     def forwardError(self, error):
         self.setForward(control.STATE_ERROR, error)
 
+    # Set the forward state to none and clear out the value
+    def forwardNone(self):
+        self.setForwardLeft(control.STATE_NONE, 0)
+
     # Allow the user to get the current forward value from the class
     def getCurrentForwardValue(self):
         return self._control_msg.forward
@@ -191,6 +211,10 @@ class control_wrapper():
     # Error Strafe method
     def strafeError(self, error):
         self.setStrafeLeft(control.STATE_ERROR, error)
+
+    # Set the strafe state to none and clear out the value
+    def strafeNone(self):
+        self.setStrafeLeft(control.STATE_NONE, 0)
 
     # Allow the user to get the current strafe value from the class
     def getCurrentStrafeValue(self):
