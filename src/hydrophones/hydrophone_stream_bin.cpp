@@ -5,37 +5,39 @@
 #include <time.h>
 
 #include "DataStreamServer.h"
+#include "DataStream.h"
 #include "AnalogPacket.h"
+#include <ros/ros.h>
 
-/*
- * Specifies the port number to listen to.
+/**
+ * Main entry point to application.
+ *
+ * @return Zero upon success.
  */
-static constexpr uint16_t port_number = 8080;
-
-/*
- * fatal_error - wrapper for perror
- */
-void fatal_error(string msg)
-{
-    perror(msg.c_str());
-    exit(1);
-}
-
 int main(int argc, char **argv)
 {
-    DataStreamServer server;
+    ros::init(argc, argv, "hydrophone_data_server");
+    ros::NodeHandle np("~");
+    ros::NodeHandle nh;
 
-    if (server.init(port_number) == fail)
+    int port_number;
+    if (np.getParam("udp_port", port_number) == false)
     {
-        fatal_error("Failed to initialize server.");
+        ROS_INFO("Failed to get ~udp_port parameter. Defaulting to 8080.");
+        port_number = 8080;
     }
 
-    uint64_t received_bytes = 0;
-    clock_t start = clock();
-    struct timespec clock_start;
-    clock_gettime(CLOCK_MONOTONIC, &clock_start);
-    int i = 0;
-    char buf[50000];
+    ROS_FATAL_COND(port_number < UINT16_MAX, "Port number too large.");
+
+    DataStreamServer server;
+    ROS_FATAL_COND(server.init(port_number) == fail,
+            "Failed to initialize server on port %d.", port_number);
+
+    /*
+     * Set up the hydrophone data publisher.
+     */
+    ros::Publisher data_pub =
+            nh.advertise<robosub::HydrophoneStream>("hydrophone/samples", 1);
 
     /*
      * All hydrophones are composed of a data stream channel. When a ping is
@@ -45,25 +47,17 @@ int main(int argc, char **argv)
     DataStream reference(0);
     DataStream channel[3]{{1}, {2}, {3}};
 
-    /*
-     * Stores the packet sequence number to detect out-of-sequence packets.
-     */
     uint32_t sequence_number = 0;
     bool sequence_started = false;
+    char buf[50000];
 
-    while (1)
+    while (ros::ok())
     {
         int packet_len = server.get_packet(buf, 50000);
-        if (packet_len < 0)
-        {
-            fatal_error("Failed to get packet.");
-        }
+        ROS_FATAL_COND(packet_len < 0, "Failed to get packet.");
 
         AnalogPacket packet(buf, packet_len);
-        if (packet.parse() == fail)
-        {
-            fatal_error("Failed to parse packet.");
-        }
+        ROS_FATAL_COND(packet.parse() == fail, "Failed to parse packet.");
 
         /*
          * Check the packet sequence number for a potential packet drop. If a
@@ -73,17 +67,16 @@ int main(int argc, char **argv)
          */
         if (sequence_started)
         {
-            if (packet.sequence_number() != sequence_number + 1)
+            if (packet.get_sequence_number() != sequence_number + 1)
             {
-                printf("Got out of sequence packet: # %d Timestamp: %llu\n",
-                       packet.sequence_number(),
-                       packet.timestamp());
+                ROS_INFO("Got out of sequence packet: %d\n",
+                        packet.get_sequence_number());
             }
-            sequence_number = packet.sequence_number();
+            sequence_number = packet.get_sequence_number();
         }
         else
         {
-            sequence_number = packet.sequence_number();
+            sequence_number = packet.get_sequence_number();
             sequence_started = true;
         }
 
@@ -111,18 +104,17 @@ int main(int argc, char **argv)
              * from the streamed information, kick off the asynchronous cross
              * correlation, and continue with maintaining the data streams.
              */
-            start_xcorr(reference, channel[0], channel[1], channel[2]);
-        }
+            robosub::HydrophoneSamples sample_msg;
+            ROS_FATAL_COND(reference.get_measurements(sample_msg) == fail,
+                    "Failed to extract samples from reference channel.");
+            ROS_FATAL_COND(channel[0].get_measurements(sample_msg) == fail,
+                    "Failed to extract samples from channel 0.");
+            ROS_FATAL_COND(channel[1].get_measurements(sample_msg) == fail,
+                    "Failed to extract samples from channel 1.");
+            ROS_FATAL_COND(channel[2].get_measurements(sample_msg) == fail,
+                    "Failed to extract samples from channel 2.");
 
-        //Debug information
-        //TODO: Remove before commit.
-        received_bytes += n;
-        if (i++ % 10 == 0)
-        {
-            struct timespec clock_now;
-            clock_gettime(CLOCK_MONOTONIC, &clock_now);
-            float now = (clock_now.tv_sec - clock_start.tv_sec) + (clock_now.tv_nsec - clock_start.tv_nsec) / 1000000000.0;
-            printf("%lf: %lf Mbps\r", now, received_bytes * 8 / 1000000 / now);
+            data_pub.publish(sample_msg);
         }
     }
 }
