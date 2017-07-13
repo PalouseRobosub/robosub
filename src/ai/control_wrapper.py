@@ -2,7 +2,7 @@
 # AUTHOR:   Brandon Kallaher
 # FILE:     control_wrapper.py
 # CREATED:  2017-07-03 23:20:06
-# MODIFIED: 2017-07-12 19:02:08
+# MODIFIED: 2017-07-13 13:25:40
 # DESC:     This class is used to wrap around the control messages for
 #           readability and simplicity. This uses a singleton so that all
 #           instances have the same internal state at any given time and
@@ -11,17 +11,7 @@
 import rospy
 from robosub.msg import control
 
-# Metaclass for singleton definition
-class SingletonType(type):
-    def __call__(cls, *args, **kwargs):
-        try:
-            return cls.__instance
-        except AttributeError:
-            cls.__instance = super(SingletonType, cls).__call__(*args, **kwargs)
-            return cls.__instance
-
 class control_wrapper():
-    __metaclass__ = SingletonType
     def __init__(self, topic="control"):
         self._control_msg = control()
         self._pub = rospy.Publisher(topic, control, queue_size=1)
@@ -40,7 +30,7 @@ class control_wrapper():
 
     # Set the yaw and pitch to absolute 0
     def levelOut(self):
-        self.yawAbsolute(0)
+        self.rollAbsolute(0)
         self.pitchAbsolute(0)
 
     # ---------------Yaw Methods--------------------
