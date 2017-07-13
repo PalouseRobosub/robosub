@@ -24,12 +24,7 @@ class BuoyTask():
     def callback(self, detections):
         msg = control()
 
-        vision_result = []
-
-        for detection in detections:
-            if "red_buoy" in detection.label:
-                vision_result.append(detection)
-
+        vision_result = getMostProbable(detections, label_name, thresh=0.5)
 
         # Maintain roll and pitch of 0
         msg.roll_state = control.STATE_ABSOLUTE
@@ -65,7 +60,7 @@ class BuoyTask():
             msg.dive = 0
 
         # Check for empty message, we can't see a buoy
-        elif len(vision_result.data) < 1:
+        elif vision_result is None:
             if self.state is "TRACKING":
                 # We were tracking the buoy, but we've lost it now...
                 # TODO: Decide what to do when this happens
@@ -80,8 +75,8 @@ class BuoyTask():
             msg.dive_state = control.STATE_RELATIVE
             msg.dive = 0
         # We have found the buoy and it is centered
-        elif (abs(vision_result.data[0].xPos) < self.errorGoal and
-              abs(vision_result.data[0].yPos) < self.errorGoal):
+        elif (abs(vision_result.x) < self.errorGoal and
+              abs(vision_result.y) < self.errorGoal):
             # Maintain yaw and dive
             msg.forward_state = control.STATE_ERROR
             msg.yaw_state = control.STATE_RELATIVE
@@ -95,7 +90,7 @@ class BuoyTask():
             # area of the object to the area of the image. This will need to be
             # updated when the magnitude calculation is replaced by stereo
             # disparity calculations.
-            if vision_result.data[0].magnitude < self.distGoal:
+            if vision_result.data[0].magnitude < self.distGoal: # !TODO!: Determine what to replace this with
                 msg.forward = 10
                 self.state = "RAMMING"
                 rospy.loginfo("{} from goal".format(self.distGoal -
@@ -110,12 +105,12 @@ class BuoyTask():
         else:
             # We see a buoy, but it is not centered.
             self.state = "TRACKING"
-            if abs(vision_result.data[0].xPos) > self.errorGoal:
+            if abs(vision_result.x) > self.errorGoal:
                 # Center X (yaw) first
                 msg.yaw_state = control.STATE_RELATIVE
                 # Calculation found by testing, will be updated with magnitude
                 # changes.
-                msg.yaw_left = (vision_result.data[0].xPos *
+                msg.yaw_left = (vision_result.x *
                                 (1 - (vision_result.data[0].magnitude * 10)) *
                                 (-50))
                 rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
@@ -129,7 +124,7 @@ class BuoyTask():
                 msg.dive_state = control.STATE_RELATIVE
                 # Calculation found by testing, will be updated with magnitude
                 # changes.
-                msg.dive = (vision_result.data[0].yPos *
+                msg.dive = (vision_result.y *
                             ((1 - (vision_result.data[0].magnitude * 10)) * -5))
                 rospy.loginfo("Dive error: {}".format(msg.dive))
 

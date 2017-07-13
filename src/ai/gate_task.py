@@ -3,8 +3,9 @@
 import sys
 import getopt
 import rospy
-from robosub.msg import visionPosArray as vision_pos_array
+from robosub.msg import DetectionArray
 from robosub.msg import control
+from util import *
 
 class GateTask():
     def __init__(self, commandArgs):
@@ -33,7 +34,7 @@ class GateTask():
                               self.duration))
 
         self.pub = rospy.Publisher('control', control, queue_size=1)
-        self.sub = rospy.Subscriber('vision/start_gate', vision_pos_array,
+        self.sub = rospy.Subscriber('vision', DetectionArray,
                                     self.callback)
         # Set initial state to LOST as we have no idea where we are
         self.state = "LOST"
@@ -76,7 +77,7 @@ class GateTask():
     # Called when there is only one gate post found
     def oneFound(self, msg, vision):
         if self.state is "LOST":
-            if vision.data[0].xPos < 0:
+            if vision[0].x < 0:
                 # If the post is on the left of the image, search right for the
                 # other one.
                 self.state = "SEARCHING_RIGHT"
@@ -108,7 +109,7 @@ class GateTask():
                 self.state = "SEARCHING_RIGHT"
             else:
                 # Our relative yaw was zero, use the vision to make decisions
-                if vision.data[0].xPos < 0:
+                if vision[0].x < 0:
                     # The post is on the left of the image, so yaw right to
                     # find the other post
                     self.state = "SEARCHING_RIGHT"
@@ -126,8 +127,8 @@ class GateTask():
 
         # Calculate the center of the gate itself by taking the median of the
         # individual post X and Y positions
-        gateXPos = (vision.data[0].xPos + vision.data[1].xPos) / 2
-        gateYPos = (vision.data[0].yPos + vision.data[1].yPos) / 2
+        gateXPos = (vision[0].x + vision[1].x) / 2
+        gateYPos = (vision[0].y + vision[1].y) / 2
 
         if abs(gateXPos) > self.errorGoal:
             # Center X (yaw) first
@@ -145,7 +146,7 @@ class GateTask():
             rospy.loginfo("Dive output: {}".format(msg.dive))
         else:
             # We are centered on the gate
-            if (vision.data[0].magnitude + vision.data[1].magnitude) > 0.012:
+            if (vision.data[0].magnitude + vision.data[1].magnitude) > 0.012: # !TODO!: Figure out what to do here
                 # We are within a good distance from the gate.
                 # The value of 0.012 was determined through testing and needs
                 # to be updated when stereo vision is implemented
@@ -166,7 +167,7 @@ class GateTask():
     # Called when a vision input is received.
     # Perhaps adding some safeguard timeouts so if a message isn't recieved
     # within a specific amount of time, stop motion.
-    def callback(self, vision_result):
+    def callback(self, detection):
         # A dictionary of function pointers mapping the number of gate posts
         # found to the proper function to call
         performTask = {0: self.noneFound,
@@ -177,6 +178,8 @@ class GateTask():
         # Construct the control message
         msg = control()
 
+        vision_result = getNMostProbable(detection, "start_gate", 2, thresh=0.5)
+
         rospy.loginfo("state: {}".format(self.state))
 
         if self.state is not "THROUGH":
@@ -184,7 +187,7 @@ class GateTask():
             # our other logic by finding the number of gate posts present in
             # sight and calling the appropriate function using the dictionary
             # of function pointers.
-            numFound = len(vision_result.data)
+            numFound = len(vision_result)
             performTask[numFound](msg, vision_result)
         elif not self.throughTime:
             # We have moved within our distance goal, but have not completed
