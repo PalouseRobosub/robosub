@@ -2,7 +2,7 @@
 # AUTHOR:   Brandon Kallaher
 # FILE:     control_wrapper.py
 # CREATED:  2017-07-03 23:20:06
-# MODIFIED: 2017-07-13 13:25:40
+# MODIFIED: 2017-07-13 14:33:45
 # DESC:     This class is used to wrap around the control messages for
 #           readability and simplicity. This uses a singleton so that all
 #           instances have the same internal state at any given time and
@@ -218,4 +218,3 @@ class control_wrapper():
     # Allow the user to get the current strafe state from the class
     def getCurrentStrafeState(self):
         return self._control_msg.strafe_state
-
