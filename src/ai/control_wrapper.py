@@ -2,7 +2,7 @@
 # AUTHOR:   Brandon Kallaher
 # FILE:     control_wrapper.py
 # CREATED:  2017-07-03 23:20:06
-# MODIFIED: 2017-07-11 14:03:39
+# MODIFIED: 2017-07-12 19:02:08
 # DESC:     This class is used to wrap around the control messages for
 #           readability and simplicity. This uses a singleton so that all
 #           instances have the same internal state at any given time and
@@ -38,6 +38,11 @@ class control_wrapper():
     def clearState(self):
         self._control_msg = control()
 
+    # Set the yaw and pitch to absolute 0
+    def levelOut(self):
+        self.yawAbsolute(0)
+        self.pitchAbsolute(0)
+
     # ---------------Yaw Methods--------------------
 
     # Yaw state-value pair setter
@@ -46,19 +51,19 @@ class control_wrapper():
         self._control_msg.yaw_left = value
 
     # Absolute Yaw method
-    def yawAbsolute(self, value):
+    def yawLeftAbsolute(self, value):
         self.setYawLeft(control.STATE_ABSOLUTE, value)
 
     # Relative Yaw method
-    def yawRelative(self, value):
+    def yawLeftRelative(self, value):
         self.setYawLeft(control.STATE_RELATIVE, value)
 
     # Error Yaw method
-    def yawError(self, error):
+    def yawLeftError(self, error):
         self.setYawLeft(control.STATE_ERROR, error)
 
     # Set the yaw state to none and clear out the value
-    def yawNone(self):
+    def yawLeftNone(self):
         self.setYawLeft(control.STATE_NONE, 0)
 
     # Allow the user to get the current yaw value from the class
@@ -77,19 +82,19 @@ class control_wrapper():
         self._control_msg.pitch_down = value
 
     # Absolute Pitch method
-    def pitchAbsolute(self, value):
+    def pitchDownAbsolute(self, value):
         self.setPitchDown(control.STATE_ABSOLUTE, value)
 
     # Relative Pitch method
-    def pitchRelative(self, value):
+    def pitchDownRelative(self, value):
         self.setPitchDown(control.STATE_RELATIVE, value)
 
     # Error Pitch method
-    def pitchError(self, error):
+    def pitchDownError(self, error):
         self.setPitchDown(control.STATE_ERROR, error)
 
     # Set the pitch state to none and clear out the value
-    def pitchNone(self):
+    def pitchDownNone(self):
         self.setPitchLeft(control.STATE_NONE, 0)
 
     # Allow the user to get the current pitch value from the class
@@ -108,19 +113,19 @@ class control_wrapper():
         self._control_msg.roll_right = value
 
     # Absolute Roll method
-    def rollAbsolute(self, value):
+    def rollRightAbsolute(self, value):
         self.setRollRight(control.STATE_ABSOLUTE, value)
 
     # Relative Roll method
-    def rollRelative(self, value):
+    def rollRightRelative(self, value):
         self.setRollRight(control.STATE_RELATIVE, value)
 
     # Error Roll method
-    def rollError(self, error):
+    def rollRightError(self, error):
         self.setRollRight(control.STATE_ERROR, error)
 
     # Set the roll state to none and clear out the value
-    def rollNone(self):
+    def rollRightNone(self):
         self.setRollLeft(control.STATE_NONE, 0)
 
     # Allow the user to get the current roll value from the class
@@ -201,19 +206,19 @@ class control_wrapper():
         self._control_msg.strafe_left = value
 
     # Absolute Strafe method
-    def strafeAbsolute(self, value):
+    def strafeLeftAbsolute(self, value):
         self.setStrafeLeft(control.STATE_ABSOLUTE, value)
 
     # Relative Strafe method
-    def strafeRelative(self, value):
+    def strafeLeftRelative(self, value):
         self.setStrafeLeft(control.STATE_RELATIVE, value)
 
     # Error Strafe method
-    def strafeError(self, error):
+    def strafeLeftError(self, error):
         self.setStrafeLeft(control.STATE_ERROR, error)
 
     # Set the strafe state to none and clear out the value
-    def strafeNone(self):
+    def strafeLeftNone(self):
         self.setStrafeLeft(control.STATE_NONE, 0)
 
     # Allow the user to get the current strafe value from the class
@@ -224,39 +229,3 @@ class control_wrapper():
     def getCurrentStrafeState(self):
         return self._control_msg.strafe_state
 
-
-
-# Main for testing
-if __name__ == "__main__":
-    rospy.init_node("controlWrapperTest")
-    c = control_wrapper("control")
-    print "C obj: " + str(c)
-    print c.getCurrentState()
-    c.rollAbsolute(50)
-    c.diveAbsolute(10)
-    c.forwardAbsolute(20)
-    c.yawAbsolute(20)
-    c.pitchAbsolute(45)
-    c.strafeAbsolute(145)
-    d = control_wrapper()
-    print "D obj: " + str(d)
-    print d.getCurrentState()
-    d.clearState()
-    print c.getCurrentState()
-    c.rollRelative(50)
-    c.diveRelative(10)
-    c.forwardRelative(20)
-    c.yawRelative(20)
-    c.pitchRelative(45)
-    c.strafeRelative(145)
-    print d.getCurrentState()
-    d.clearState()
-    print c.getCurrentState()
-    c.rollError(50)
-    c.diveError(10)
-    c.forwardError(20)
-    c.yawError(20)
-    c.pitchError(45)
-    c.strafeError(145)
-    print d.getCurrentState()
-    d.publish()
