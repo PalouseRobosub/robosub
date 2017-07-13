@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 
 import rospy
-from robosub.msg import visionPosArray as vision_pos_array
+from robosub.msg import DetectionArray as detection_array
 from robosub.msg import control
+from util import *
 
 class BuoyTask():
 
     def __init__(self):
         rospy.loginfo("Init done")
         self.pub = rospy.Publisher('control', control, queue_size=1)
-        self.sub = rospy.Subscriber('vision/buoys/red', vision_pos_array,
+        self.sub = rospy.Subscriber('vision', detection_array,
                                     self.callback)
         self.state = "SEARCHING"
         self.hitTime = None
@@ -20,8 +21,15 @@ class BuoyTask():
         # How close the sub has to get before reversing
         self.distGoal = 0.01
 
-    def callback(self, vision_result):
+    def callback(self, detections):
         msg = control()
+
+        vision_result = []
+
+        for detection in detections:
+            if "red_buoy" in detection.label:
+                vision_result.append(detection)
+
 
         # Maintain roll and pitch of 0
         msg.roll_state = control.STATE_ABSOLUTE
