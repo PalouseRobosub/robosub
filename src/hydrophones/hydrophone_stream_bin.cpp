@@ -27,7 +27,7 @@ int main(int argc, char **argv)
         port_number = 8080;
     }
 
-    ROS_FATAL_COND(port_number < UINT16_MAX, "Port number too large.");
+    ROS_FATAL_COND(port_number > UINT16_MAX, "Port number too large.");
 
     DataStreamServer server;
     ROS_FATAL_COND(server.init(port_number) == fail,
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
      * Set up the hydrophone data publisher.
      */
     ros::Publisher data_pub =
-            nh.advertise<robosub::HydrophoneStream>("hydrophone/samples", 1);
+            nh.advertise<robosub::HydrophoneSamples>("hydrophone/samples", 1);
 
     /*
      * All hydrophones are composed of a data stream channel. When a ping is
@@ -54,6 +54,10 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         int packet_len = server.get_packet(buf, 50000);
+        if (packet_len == 0)
+        {
+            continue;
+        }
         ROS_FATAL_COND(packet_len < 0, "Failed to get packet.");
 
         AnalogPacket packet(buf, packet_len);

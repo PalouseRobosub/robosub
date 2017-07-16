@@ -51,7 +51,7 @@ result_t DataStreamServer::init(const uint16_t port_number)
      */
     struct sockaddr_in serveraddr = {0};
     serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = INADDR_ANY;
+    serveraddr.sin_addr.s_addr = htonl(0xACA80019);
     serveraddr.sin_port = htons(port_number);
 
     /*

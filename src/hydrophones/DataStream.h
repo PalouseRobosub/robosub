@@ -14,7 +14,7 @@
  *
  * TODO: Select an appropriate threshold.
  */
-static constexpr uint16_t detection_threshold = 35535;
+static constexpr uint16_t detection_threshold = 0;
 
 /**
  * Represents a stream of analog samples from the hydrophones.

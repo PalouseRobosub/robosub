@@ -29,7 +29,7 @@ public:
      * Specifies the number of individual samples of a single channel that a
      * packet contains.
      */
-    static constexpr uint16_t samples_per_packet = 182;
+    static constexpr uint16_t samples_per_packet = 140;
 
     AnalogPacket(const char *buf, const uint32_t length);
 

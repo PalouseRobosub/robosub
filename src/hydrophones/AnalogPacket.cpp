@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include <cstdint>
+#include <endian.h>
 
 /**
  * Constructor.
@@ -24,7 +25,7 @@ AnalogPacket::AnalogPacket(const char *buf, const uint32_t len) :
  */
 result_t AnalogPacket::parse()
 {
-    if (raw_length != 12 + samples_per_packet * 10)
+    if (raw_length != 10 + samples_per_packet * 10)
     {
         return fail;
     }
@@ -34,34 +35,9 @@ result_t AnalogPacket::parse()
      */
     uint32_t data;
     memcpy(&data, raw_data, 4);
-    sequence_number = htonl(data);
+    sequence_number = ntohl(data);
 
     return success;
-}
-
-/**
- * Network order swap for 64 bit numbers.
- *
- * @note Taken from:
- *     https://stackoverflow.com/questions/3022552/is-there-any-standard-htonl-like-function-for-64-bits-integers-in-c
- *
- * @param value The value to convert.
- *
- * @return The proper system-specific value.
- */
-uint64_t htonll(uint64_t value)
-{
-    int num = 42;
-    if (*(char *)&num == 42)
-    {
-        uint32_t high_part = htonl((uint32_t)(value >> 32));
-        uint32_t low_part = htonl((uint32_t)(value & 0xFFFFFFFFLL));
-        return (((uint64_t)low_part) << 32) | high_part;
-    }
-    else
-    {
-        return value;
-    }
 }
 
 /**
@@ -89,7 +65,7 @@ result_t AnalogPacket::get_channel(const uint8_t channel_number,
 
     uint64_t long_data, timestamp;
     memcpy(&long_data, &raw_data[4], 8);
-    timestamp = htonll(long_data);
+    timestamp = be64toh(long_data);
 
     /*
      * Parse out analog measurements for the appropriate channel.
@@ -119,6 +95,8 @@ result_t AnalogPacket::get_channel(const uint8_t channel_number,
         uint16_t measurement;
         memcpy(&measurement, &raw_channel[channel_number * 2], 2);
         raw_channel += 8;
+
+        result[i].sample = ntohs(measurement);
     }
 
     return success;
