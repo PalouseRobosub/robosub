@@ -11,98 +11,105 @@
  *
  * @param buf The pointer to the raw data.
  * @param len The length of raw data. Should be 1468.
+ * @param cycle_scale The scale factor to convert processor cycles to seconds.
  */
-AnalogPacket::AnalogPacket(const char *buf, const uint32_t len) :
+AnalogPacket::AnalogPacket(const char *buf,
+                           const uint32_t len,
+                           const float cycle_scale) :
     raw_data(buf),
-    raw_length(len)
+    raw_length(len),
+    cycle_to_sec_scale(cycle_scale)
 {
-}
-
-/**
- * Parses analog packets into analog measurements per channel.
- *
- * @return Success or fail.
- */
-result_t AnalogPacket::parse()
-{
-    if (raw_length != 10 + samples_per_packet * 10)
-    {
-        return fail;
-    }
-
-    /*
-     * Extract the sequence number and time stamp.
-     */
-    uint32_t data;
-    memcpy(&data, raw_data, 4);
-    sequence_number = ntohl(data);
-
-    return success;
 }
 
 /**
  * Extract the measurements from a packet into an external buffer.
  *
  * @param channel_number The channel number to extract.
- * @param result The location to store the extracted data.
- * @param max_len The maximum number of datapoints to extract into the buffer.
  *
  * @return Success or fail.
  */
-result_t AnalogPacket::get_channel(const uint8_t channel_number,
-                                   AnalogMeasurement *result,
-                                   const uint32_t max_len)
+vector<AnalogMeasurement> AnalogPacket::get_data_channel(
+        const uint8_t channel_number)
 {
     if (channel_number > 3)
     {
-        return fail;
+        return vector<AnalogMeasurement>();
     }
 
-    if (max_len < samples_per_packet)
-    {
-        return fail;
-    }
-
-    uint64_t long_data, timestamp;
-    memcpy(&long_data, &raw_data[4], 8);
-    timestamp = be64toh(long_data);
+    vector<AnalogMeasurement> all_measurements;
 
     /*
      * Parse out analog measurements for the appropriate channel.
      */
-    const char *raw_channel = &raw_data[12];
-    for (int i = 0; i < samples_per_packet; ++i)
+    const char *raw_channel = raw_data;
+
+    for (int i = 0; i < samples_per_packet;
+                        ++i, raw_channel += SamplePacket::packet_size)
     {
+        AnalogMeasurement measurement;
+
+        SamplePacket sample_packet(raw_channel, SamplePacket::packet_size);
+
         /*
          * Extract the delta delays from each measurement to get the exact
-         * timestamp for every sample. The first does not have a delay.
+         * timestamp for every sample.
          */
-        if (i == 0)
-        {
-            result[i].timestamp = timestamp;
-        }
-        else
-        {
-            uint16_t delay = 0;
-            memcpy(&delay, raw_channel, 2);
-            result[i].timestamp = timestamp + ntohs(delay);
-            raw_channel += 2;
-        }
+        measurement.timestamp = sample_packet.get_cycle_counter() *
+                cycle_to_sec_scale;
 
         /*
-         * Copy the appropriate channel measurement
+         * Get the actual analog sample.
          */
-        uint16_t measurement;
-        memcpy(&measurement, &raw_channel[channel_number * 2], 2);
-        raw_channel += 8;
+        measurement.sample = sample_packet.get_sample(channel_number);
 
-        result[i].sample = ntohs(measurement);
+        all_measurements.push_back(measurement);
     }
 
-    return success;
+    return all_measurements;
 }
 
-uint32_t AnalogPacket::get_sequence_number()
+/**
+ * Constructor.
+ *
+ * @param buf The raw data to utilize.
+ * @param length The length of the raw data.
+ */
+AnalogPacket::SamplePacket::SamplePacket(const char * buf, const uint32_t length) :
+    raw_data(buf),
+    raw_length(length)
 {
-    return sequence_number;
+}
+
+/**
+ * Gets the processor cycle counter for the samples.
+ *
+ * @return The processor cycle counter.
+ */
+uint32_t AnalogPacket::SamplePacket::get_cycle_counter()
+{
+    uint32_t cycles;
+    memcpy(&cycles, raw_data, 4);
+
+    return ntohl(cycles);
+}
+
+/**
+ * Gets an analog sample measurement.
+ *
+ * @param channel_number The measurement to extract.
+ *
+ * @return The analog sample for the specified channel number.
+ */
+uint16_t AnalogPacket::SamplePacket::get_sample(uint8_t channel_number)
+{
+    if (channel_number > AnalogPacket::SamplePacket::samples_per_packet)
+    {
+        return 0;
+    }
+
+    uint16_t sample;
+    memcpy(&sample, &raw_data[4 + channel_number * 2], 2);
+
+    return ntohs(sample);
 }

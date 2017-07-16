@@ -5,6 +5,11 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include <string>
+#include <cstring>
+
+using std::string;
+
 /**
  * Constructor.
  */
@@ -20,12 +25,12 @@ DataStreamServer::DataStreamServer() :
  *
  * @return Success or fail.
  */
-result_t DataStreamServer::init(const uint16_t port_number)
+result_t DataStreamServer::init(const uint16_t dest_port)
 {
     /*
      * Build the socket.
      */
-    socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd < 0)
     {
         return fail;
@@ -46,19 +51,32 @@ result_t DataStreamServer::init(const uint16_t port_number)
         return fail;
     }
 
-    /*
-     * Construct the socket internet address to accept from any address.
-     */
-    struct sockaddr_in serveraddr = {0};
-    serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = htonl(0xACA80019);
-    serveraddr.sin_port = htons(port_number);
+    ///*
+    // * Construct the socket internet address to accept from any address.
+    // */
+    //struct sockaddr_in serveraddr = {0};
+    //serveraddr.sin_family = AF_INET;
+    //serveraddr.sin_addr.s_addr = htonl(0xACA80019);
+    //serveraddr.sin_port = htons(port_number);
+
+    ///*
+    // * Bind the socket to the port.
+    // */
+    //if (bind(socket_fd, reinterpret_cast<struct sockaddr *>(&serveraddr),
+    //            sizeof(serveraddr)) < 0)
+    //{
+    //    return fail;
+    //}
 
     /*
-     * Bind the socket to the port.
+     * Connect to the external device.
      */
-    if (bind(socket_fd, reinterpret_cast<struct sockaddr *>(&serveraddr),
-                sizeof(serveraddr)) < 0)
+    struct sockaddr_in connection_address = {0};
+    connection_address.sin_family = AF_INET;
+    connection_address.sin_port = htons(dest_port);
+    connection_address.sin_addr.s_addr = inet_addr("172.168.0.253");
+
+    if (connect(socket_fd, reinterpret_cast<struct sockaddr *>(&connection_address), sizeof(connection_address)))
     {
         return fail;
     }
@@ -66,15 +84,41 @@ result_t DataStreamServer::init(const uint16_t port_number)
     return success;
 }
 
-/**
- * Gets an AnalogPacket from the UDP port.
- *
- * @param buf The location to store the AnalogPacket.
- * @param max_len The maximum number of data bytes to store in buf.
- *
- * @RETURN The number of bytes read from the UDP port.
- */
-int32_t DataStreamServer::get_packet(char *buf, const uint16_t max_len)
+int32_t DataStreamServer::send_start_trigger()
 {
-    return recvfrom(socket_fd, buf, max_len, 0, nullptr, nullptr);
+    const string start_string = "trigger";
+
+    if (send(socket_fd, start_string.c_str(), start_string.length(), 0) !=
+            static_cast<ssize_t>(strlen(start_string.c_str())))
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * Gets a packet from the connected port.
+ *
+ * @param buf The location to store the read data.
+ * @param len The number of bytes to read from the connection.
+ *
+ * @return Zero upon success.
+ */
+int32_t DataStreamServer::get_packet(char *buf, const uint16_t len)
+{
+    uint32_t bytes_received = 0;
+    while (bytes_received < len)
+    {
+        int32_t ret = recv(socket_fd, &buf[bytes_received], len - bytes_received, 0);
+
+        if (ret < 0)
+        {
+            return -1;
+        }
+
+        bytes_received += ret;
+    }
+
+    return 0;
 }

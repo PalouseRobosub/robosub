@@ -119,8 +119,9 @@ add_message_files(
   BatteryDetailed.msg
   rgb.msg
   rgbArray.msg
-  HydrophoneStream.msg
-  HydrophoneSamples.msg
+  HydrophoneSampleArray.msg
+  HydrophonePingStamped.msg
+  HydrophoneMetadata.msg
 )
 
 ## Generate services in the 'srv' folder

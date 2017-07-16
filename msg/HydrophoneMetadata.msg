@@ -1,0 +1,5 @@
+int32 processor_frequency
+float32 processor_temperature
+float32 acquisition_time_system_cycles
+float32 start_time
+float32 acquisition_time_clock_cycles

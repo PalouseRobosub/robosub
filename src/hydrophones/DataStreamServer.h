@@ -16,7 +16,9 @@ class DataStreamServer
 public:
     DataStreamServer();
 
-    result_t init(uint16_t port_number);
+    result_t init(const uint16_t port_number);
+
+    int32_t send_start_trigger();
 
     int32_t get_packet(char *buf, const uint16_t max_len);
 

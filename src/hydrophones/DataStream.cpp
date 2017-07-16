@@ -4,17 +4,16 @@
 #include "robosub/HydrophoneSamples.h"
 
 #include <cstdint>
+#include <vector>
+
+using std::vector;
 
 /**
  * Constructor.
- *
- * @param channel The channel number this datastream represents.
  */
-DataStream::DataStream(const uint8_t channel) :
-    channel_number(channel),
-    data(),
+DataStream::DataStream() :
     ping_start_detected(false),
-    ping_done_timestamp(0)
+    ping_start_timestamp(0)
 {
 }
 
@@ -22,92 +21,78 @@ DataStream::DataStream(const uint8_t channel) :
  * Extract the data from internal buffering to a list of timestamp/value pairs
  * for the channel.
  *
- * @param packet The ROS message to extract data into.
+ * @param samples The location to store the received analog samples.
+ * @param timestampes The location to store the corresponding timestamps for
+ *        each sample.
  *
- * @return Success or fail.
+ * @return None.
  */
-result_t DataStream::get_measurements(robosub::HydrophoneSamples &packet)
+void DataStream::get_measurements(vector<uint16_t> &samples,
+                                 vector<float> &timestamps)
 {
     /*
      * Convert all data from the deque into individual measurements and copy
      * them into the provided buffer.
      */
-    packet.channel[channel_number].time.clear();
-    packet.channel[channel_number].data.clear();
+    timestamps.clear();
+    samples.clear();
 
-    for (uint32_t packet_num = 0; packet_num < data.size(); ++packet_num)
+    for (size_t i = 0; i < data.size(); ++i)
     {
-        ChannelPacket &data_packet = data[packet_num];
-        for (uint32_t i = 0; i < AnalogPacket::samples_per_packet; ++i)
-        {
-            packet.channel[channel_number].data.push_back(
-                    data_packet.samples[i].sample);
-            packet.channel[channel_number].time.push_back(
-                    data_packet.samples[i].timestamp);
-        }
+        samples.push_back(data[i].sample);
+        timestamps.push_back(data[i].timestamp);
     }
 
+    ping_start_timestamp = 0;
+    ping_start_detected = false;
+
     /*
-     * Remove the data from internal buffering until the deque is at most 5
-     * packets long.
+     * Remove the old data from buffering. Keep a small subsection of the most
+     * recent past.
      */
-    while (data.size() >= 5)
+    while (data.size() >= measurements_to_buffer)
     {
         data.pop_front();
     }
-
-    return success;
 }
 
 /**
- * Append packetized data into the stream.
+ * Append data into the stream.
  *
- * @param packet The packetized data to add to the stream.
+ * @param measurements A vector of measurements to add to the stream.
  *
- * @return Success or fail.
+ * @return None.
  */
-result_t DataStream::insert(AnalogPacket &packet)
+void DataStream::insert(vector<AnalogMeasurement> &measurements)
 {
-    ChannelPacket channel_packet;
-    channel_packet.sequence = packet.get_sequence_number();
-
-    if (packet.get_channel(channel_number,
-                           channel_packet.samples,
-                           AnalogPacket::samples_per_packet) == fail)
+    for (size_t i = 0; i < measurements.size(); ++i)
     {
-        return fail;
-    }
-
-    data.push_back(channel_packet);
-
-    /*
-     * Check the new data for the start of a ping.
-     */
-    if (ping_start_detected == false)
-    {
-        for (int32_t i = 0; i < AnalogPacket::samples_per_packet; ++i)
+        /*
+         * Check the new measurement for the detection threshold.
+         */
+        if (ping_start_detected == false &&
+                measurements[i].sample > detection_threshold)
         {
-            if (channel_packet.samples[i].sample > detection_threshold)
-            {
-                ping_start_detected = true;
-                ping_done_timestamp = channel_packet.samples[i].timestamp +
-                        ping_length_us;
-                break;
-            }
+            ping_start_timestamp = measurements[i].timestamp;
+            ping_start_detected = true;
+        }
+
+        /*
+         * Add the new measurement to the stream.
+         */
+        data.push_back(measurements[i]);
+
+        /*
+         * If there is no ping detected, pop data off the front to ensure the
+         * data buffer doesn't get too large. The stream only buffers a small
+         * subsection of the past.
+         */
+        if (ping_start_detected == false &&
+                data.size() > measurements_to_buffer)
+        {
+            data.pop_front();
         }
     }
-
-    /*
-     * If the packet did not contain our ping and the deque is
-     * larger than the allotment for when a ping has not been
-     * detected, pop the oldest data off.
-     */
-    if (ping_start_detected == false && data.size() > 5)
-    {
-        data.pop_front();
-    }
-
-    return success;
 }
 
 /**
@@ -117,19 +102,18 @@ result_t DataStream::insert(AnalogPacket &packet)
  */
 bool DataStream::has_ping()
 {
-    /*
-     * If the most recently received data point is past the end
-     * of the ping, a full ping has been captured in the deque.
-     */
-    if (ping_start_detected)
-    {
-        if (data[data.size() - 1].samples[
-                AnalogPacket::samples_per_packet - 1].timestamp >=
-            ping_done_timestamp)
-        {
-            return true;
-        }
-    }
+    return ping_start_detected &&
+            data.size() > 0 &&
+            data[data.size() - 1].timestamp >=
+                    ping_start_timestamp + ping_length_s;
+}
 
-    return false;
+/**
+ * Gets the start of ping timestamp.
+ *
+ * @return The start of ping timestamp;
+ */
+float DataStream::get_ping_start_timestamp()
+{
+    return ping_start_timestamp;
 }
