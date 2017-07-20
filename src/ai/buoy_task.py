@@ -90,11 +90,11 @@ class BuoyTask():
             # area of the object to the area of the image. This will need to be
             # updated when the magnitude calculation is replaced by stereo
             # disparity calculations.
-            if vision_result.data[0].magnitude < self.distGoal: # !TODO!: Determine what to replace this with
+            if vision_result.width * vision_result.height < self.distGoal: # !TODO!: Determine what to replace this with
                 msg.forward = 10
                 self.state = "RAMMING"
                 rospy.loginfo("{} from goal".format(self.distGoal -
-                              vision_result.data[0].magnitude))
+                              vision_result.width * vision_result.height))
             else:
                 # Since the buoy has been rammed, begin end procedure
                 msg.forward = 0
@@ -111,7 +111,8 @@ class BuoyTask():
                 # Calculation found by testing, will be updated with magnitude
                 # changes.
                 msg.yaw_left = (vision_result.x *
-                                (1 - (vision_result.data[0].magnitude * 10)) *
+                                (1 - (vision_result.width *
+                                      vision_result.height * 10)) *
                                 (-50))
                 rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
                 # Maintain depth
@@ -125,7 +126,8 @@ class BuoyTask():
                 # Calculation found by testing, will be updated with magnitude
                 # changes.
                 msg.dive = (vision_result.y *
-                            ((1 - (vision_result.data[0].magnitude * 10)) * -5))
+                            ((1 - (vision_result.width * vision_result.height *
+                                   10)) * -5))
                 rospy.loginfo("Dive error: {}".format(msg.dive))
 
         self.pub.publish(msg)

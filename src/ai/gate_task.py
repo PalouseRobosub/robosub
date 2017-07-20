@@ -146,7 +146,8 @@ class GateTask():
             rospy.loginfo("Dive output: {}".format(msg.dive))
         else:
             # We are centered on the gate
-            if (vision.data[0].magnitude + vision.data[1].magnitude) > 0.012: # !TODO!: Figure out what to do here
+            if ((vision[0].width * vision[0].height) +
+                (vision[1].width * vision[1].height)) > 0.012: # !TODO!: Figure out what to do here
                 # We are within a good distance from the gate.
                 # The value of 0.012 was determined through testing and needs
                 # to be updated when stereo vision is implemented
