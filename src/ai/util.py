@@ -3,7 +3,16 @@ def getNMostProbable(detection_array, label_name, n, thresh=0.1):
     return sorted_list[:n]
 
 def getMostProbable(detection_array, label_name, thresh=0.1):
-    return getNMostProbable(detection_array, label_name, n, thresh)
+    return getNMostProbable(detection_array, label_name, 1, thresh)[0]
+
+def normalize(detection_array):
+    if type(detection_array) is list:
+        for detection in detection_array:
+            detection.x = (detection.x - 0.5) * 2
+            detection.y = (detection.y - 0.5) * 2
+    else:
+        detection_array.x = (detection_array.x - 0.5) * 2
+        detection_array.y = (detection_array.y - 0.5) * 2
 
 def filterByLabel(detection_array, label_name, thresh=0.1):
     detections = []

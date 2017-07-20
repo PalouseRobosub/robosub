@@ -3,7 +3,7 @@
 import sys
 import getopt
 import rospy
-from robosub.msg import DetectionArray
+from rs_yolo.msg import DetectionArray
 from robosub.msg import control
 from util import *
 
@@ -130,6 +130,8 @@ class GateTask():
         gateXPos = (vision[0].x + vision[1].x) / 2
         gateYPos = (vision[0].y + vision[1].y) / 2
 
+        print("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos))
+
         if abs(gateXPos) > self.errorGoal:
             # Center X (yaw) first
             msg.yaw_state = control.STATE_RELATIVE
@@ -179,7 +181,9 @@ class GateTask():
         # Construct the control message
         msg = control()
 
-        vision_result = getNMostProbable(detection, "start_gate", 2, thresh=0.5)
+        vision_result = getNMostProbable(detection.detections, "start_gate", 2, thresh=0.5)
+
+        normalize(vision_result)
 
         rospy.loginfo("state: {}".format(self.state))
 
@@ -239,6 +243,6 @@ class GateTask():
 
 
 if __name__ == "__main__":
-    rospy.init_node('jirwin_gate_task')
+    rospy.init_node('gate_task')
     node = GateTask(sys.argv[1:])
     rospy.spin()

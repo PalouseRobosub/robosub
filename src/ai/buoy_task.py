@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
 import rospy
-from robosub.msg import DetectionArray as detection_array
+from rs_yolo.msg import DetectionArray as detection_array
 from robosub.msg import control
 from util import *
 
+import sys
+
 class BuoyTask():
 
-    def __init__(self):
+    def __init__(self, label_name):
         rospy.loginfo("Init done")
         self.pub = rospy.Publisher('control', control, queue_size=1)
         self.sub = rospy.Subscriber('vision', detection_array,
@@ -21,10 +23,14 @@ class BuoyTask():
         # How close the sub has to get before reversing
         self.distGoal = 0.01
 
+        self.label_name = label_name
+
     def callback(self, detections):
         msg = control()
 
-        vision_result = getMostProbable(detections, label_name, thresh=0.5)
+        vision_result = getMostProbable(detections.detections, self.label_name, thresh=0.5)
+
+        normalize(vision_result)
 
         # Maintain roll and pitch of 0
         msg.roll_state = control.STATE_ABSOLUTE
@@ -133,6 +139,6 @@ class BuoyTask():
         self.pub.publish(msg)
 
 if __name__ == "__main__":
-    rospy.init_node('jirwin_buoy_follower')
-    node = BuoyTask()
+    rospy.init_node('buoy_task')
+    node = BuoyTask(sys.argv[1])
     rospy.spin()
