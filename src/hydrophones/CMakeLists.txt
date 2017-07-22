@@ -3,3 +3,6 @@ add_dependencies(data_stream ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 
 add_ros_node(hydrophone_stream hydrophone_stream_bin.cpp)
 target_link_libraries(hydrophone_stream data_stream ${catkin_LIBRARIES})
+
+add_ros_node(hydrophone_logger stream_logger.cpp)
+target_link_libraries(hydrophone_logger data_stream ${catkin_LIBRARIES})

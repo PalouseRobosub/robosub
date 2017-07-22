@@ -7,8 +7,6 @@
 #ifndef DATA_STREAM_SERVER
 #define DATA_STREAM_SERVER
 
-#include "rs_types.h"
-
 #include <cstdint>
 
 class DataStreamServer
@@ -16,9 +14,9 @@ class DataStreamServer
 public:
     DataStreamServer();
 
-    result_t init(const uint16_t port_number);
+    int32_t init(const uint16_t port_number);
 
-    int32_t send_start_trigger();
+    int32_t send_start_trigger(const uint32_t sample_count);
 
     int32_t get_packet(char *buf, const uint16_t max_len);
 

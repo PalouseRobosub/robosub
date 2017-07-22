@@ -9,7 +9,7 @@ struct AnalogMeasurement
      * Specifies the time at which the sample was taken in seconds. This is a
      * relative time from the start of sampling.
      */
-    float timestamp;
+    double timestamp;
 
     /*
      * The actual analog sample measurement.

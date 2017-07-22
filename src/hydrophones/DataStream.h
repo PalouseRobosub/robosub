@@ -13,16 +13,6 @@
 class DataStream
 {
     /**
-     * Specifies the number of measurements to continually buffer.
-     */
-    static constexpr uint32_t measurements_to_buffer = 10000;
-
-    /**
-     * Specifies the length of a hydrophone ping in seconds.
-     */
-    static constexpr uint32_t ping_length_s = 0.004;
-
-    /**
      * Specifies the analog sample value that corresponds with a positive ping
      * start detection event.
      *
@@ -30,16 +20,34 @@ class DataStream
      */
     static constexpr uint16_t detection_threshold = 0;
 
+    /**
+     * Stores the period of the slowest analog waveform the stream represents
+     * (25KHz).
+     */
+    static constexpr float period_s = 1.0 / 25000;
+
+    /**
+     * Stores the decay rate [0, 1] over a single period for the rectification
+     * detector.
+     */
+    static constexpr float rectification_decay_per_cycle = 0.5;
+
+    static_assert(rectification_decay_per_cycle <= 1 &&
+                  rectification_decay_per_cycle >= 0,
+                  "Decay rate must be a proportion.");
+
 public:
     DataStream();
 
     void insert(vector<AnalogMeasurement> &new_measurements);
 
+    void window(double start_time, double end_time);
+
+    void clear();
+
     void get_measurements(vector<uint16_t> &samples, vector<float> &timestamps);
 
-    bool has_ping();
-
-    float get_ping_start_timestamp();
+    bool get_ping_start_time(double &start_time);
 
 private:
     /*
@@ -49,17 +57,6 @@ private:
      * through a call to get_measurements.
      */
     std::deque<AnalogMeasurement> data;
-
-    /*
-     * Specified true if the start of a ping has been detected in the data
-     * stream.
-     */
-    bool ping_start_detected;
-
-    /*
-     * The timestamp of the start of the ping.
-     */
-    float ping_start_timestamp;
 };
 
 #endif

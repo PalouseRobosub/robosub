@@ -2,6 +2,7 @@
 #include "AnalogMeasurement.h"
 
 #include <arpa/inet.h>
+#include <endian.h>
 #include <cstring>
 #include <cstdint>
 #include <endian.h>
@@ -15,7 +16,7 @@
  */
 AnalogPacket::AnalogPacket(const char *buf,
                            const uint32_t len,
-                           const float cycle_scale) :
+                           const double cycle_scale) :
     raw_data(buf),
     raw_length(len),
     cycle_to_sec_scale(cycle_scale)
@@ -86,12 +87,12 @@ AnalogPacket::SamplePacket::SamplePacket(const char * buf, const uint32_t length
  *
  * @return The processor cycle counter.
  */
-uint32_t AnalogPacket::SamplePacket::get_cycle_counter()
+uint64_t AnalogPacket::SamplePacket::get_cycle_counter()
 {
-    uint32_t cycles;
-    memcpy(&cycles, raw_data, 4);
+    uint64_t cycles;
+    memcpy(&cycles, raw_data, 8);
 
-    return ntohl(cycles);
+    return be64toh(cycles);
 }
 
 /**
@@ -109,7 +110,7 @@ uint16_t AnalogPacket::SamplePacket::get_sample(uint8_t channel_number)
     }
 
     uint16_t sample;
-    memcpy(&sample, &raw_data[4 + channel_number * 2], 2);
+    memcpy(&sample, &raw_data[8 + channel_number * 2], 2);
 
     return ntohs(sample);
 }

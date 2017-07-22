@@ -5,10 +5,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include <string>
 #include <cstring>
-
-using std::string;
+#include "AnalogPacket.h"
 
 /**
  * Constructor.
@@ -23,9 +21,9 @@ DataStreamServer::DataStreamServer() :
  *
  * @param port_number The UDP port number to listen on.
  *
- * @return Success or fail.
+ * @return Zero upon success.
  */
-result_t DataStreamServer::init(const uint16_t dest_port)
+int32_t DataStreamServer::init(const uint16_t dest_port)
 {
     /*
      * Build the socket.
@@ -33,7 +31,7 @@ result_t DataStreamServer::init(const uint16_t dest_port)
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd < 0)
     {
-        return fail;
+        return -1;
     }
 
     /*
@@ -48,25 +46,23 @@ result_t DataStreamServer::init(const uint16_t dest_port)
                    reinterpret_cast<const void *>(&optval),
                    sizeof(int)) < 0)
     {
-        return fail;
+        return -1;
     }
 
-    ///*
-    // * Construct the socket internet address to accept from any address.
-    // */
-    //struct sockaddr_in serveraddr = {0};
-    //serveraddr.sin_family = AF_INET;
-    //serveraddr.sin_addr.s_addr = htonl(0xACA80019);
-    //serveraddr.sin_port = htons(port_number);
-
-    ///*
-    // * Bind the socket to the port.
-    // */
-    //if (bind(socket_fd, reinterpret_cast<struct sockaddr *>(&serveraddr),
-    //            sizeof(serveraddr)) < 0)
-    //{
-    //    return fail;
-    //}
+    /*
+     * Set a recv timeout so we don't block forever.
+     */
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    if (setsockopt(socket_fd,
+                   SOL_SOCKET,
+                   SO_RCVTIMEO,
+                   reinterpret_cast<char *>(&tv),
+                   sizeof(tv)) < 0)
+    {
+        return -1;
+    }
 
     /*
      * Connect to the external device.
@@ -78,18 +74,35 @@ result_t DataStreamServer::init(const uint16_t dest_port)
 
     if (connect(socket_fd, reinterpret_cast<struct sockaddr *>(&connection_address), sizeof(connection_address)))
     {
-        return fail;
+        return -1;
     }
 
-    return success;
+    return 0;
 }
 
-int32_t DataStreamServer::send_start_trigger()
+/**
+ * Sends a trigger to initiate analog sampling.
+ *
+ * @param sample_count The number of samples to take.
+ *
+ * @return Zero upon success.
+ */
+int32_t DataStreamServer::send_start_trigger(const uint32_t sample_count)
 {
-    const string start_string = "trigger";
+    char trigger_buffer[12] = "trigger";
 
-    if (send(socket_fd, start_string.c_str(), start_string.length(), 0) !=
-            static_cast<ssize_t>(strlen(start_string.c_str())))
+    /*
+     * We can only request a multiple of samples_per_packet.
+     */
+    if (sample_count % AnalogPacket::samples_per_packet)
+    {
+        return -1;
+    }
+
+    uint32_t samples_net = htonl(sample_count);
+    memcpy(&trigger_buffer[8], &samples_net, 4);
+
+    if (send(socket_fd, trigger_buffer, 12, 0) != 12)
     {
         return -1;
     }

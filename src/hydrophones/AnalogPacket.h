@@ -46,14 +46,14 @@ class AnalogPacket
     public:
         /**
          * Describes the size of each sample packet in bytes. Each
-         * sample packet is composed of a 32 bit cycle counter and the
+         * sample packet is composed of a 64 bit cycle counter and the
          * 4 16-bit analog measurements.
          */
-        static constexpr size_t packet_size = (2 * 4) + 4;
+        static constexpr size_t packet_size = (2 * samples_per_packet) + 8;
 
         SamplePacket(const char * buf, const uint32_t length);
 
-        uint32_t get_cycle_counter();
+        uint64_t get_cycle_counter();
 
         uint16_t get_sample(uint8_t channel_number);
 
@@ -80,7 +80,7 @@ public:
      */
     AnalogPacket() = delete;
 
-    AnalogPacket(const char *buf, const uint32_t length, const float cc_scale_factor);
+    AnalogPacket(const char *buf, const uint32_t length, const double cc_scale_factor);
 
     vector<AnalogMeasurement> get_data_channel(const uint8_t channel_number);
 
@@ -98,6 +98,6 @@ private:
     /**
      * Stores the scale factor of cycle counts to seconds.
      */
-    const float cycle_to_sec_scale;
+    const double cycle_to_sec_scale;
 };
 #endif
