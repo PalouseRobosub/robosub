@@ -32,13 +32,25 @@ static constexpr float preping_wakeup_s = 0.025;
  * Specifies the number of seconds before the ping start detection time that
  * preceeding data samples should be truncated to.
  */
-static constexpr float preping_truncate_s = 0.01;
+static constexpr float preping_truncate_s = 0.001;
+
+/**
+ * Specifies the number of seconds involved in an actual ping.
+ */
+static constexpr float ping_duration_s = 0.004;
+
+/**
+ * Defines the maximum time delay between any two hydrophones receiving the
+ * same ping and is defined by the mechanical mounting of the hydrophones.
+ */
+static constexpr float geometric_constraint_s = 0.001;
 
 /**
  * Specifies the number of seconds after the ping start detection time that
  * proceeding data samples should be truncated to.
  */
-static constexpr float postping_truncate_s = 0.06;
+static constexpr float postping_truncate_s = ping_duration_s +
+        preping_truncate_s + geometric_constraint_s;
 
 /**
  * Specifies the period between the start of two pings in seconds.
