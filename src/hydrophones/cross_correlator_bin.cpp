@@ -6,6 +6,7 @@
 
 #include <ros/ros.h>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -16,6 +17,19 @@ ros::Publisher delta_pub;
  * two hydrophones in seconds.
  */
 static constexpr float geometric_constraint_s = 0.001;
+
+void csvwrite(vector<float> &convolution, string filename)
+{
+    fstream out_file;
+    out_file.open(filename.c_str(), fstream::out);
+    out_file.precision(15);
+    out_file << fixed;
+    out_file << "Convolution" << endl;
+    for (size_t i = 0; i < convolution.size(); ++i)
+    {
+        out_file << convolution[i] << endl;
+    }
+}
 
 /**
  * Calculates the average delta between vector arguments.
@@ -57,7 +71,7 @@ double get_average(vector<T> &data)
 }
 
 /**
- * Computes the (constrained) convolution of two signals.
+ * Computes the (constrained) cross-correlation of two signals.
  *
  * result = f(t) * g(t);
  *
@@ -65,14 +79,19 @@ double get_average(vector<T> &data)
  * @param[in] g The rhs input signal. Constant sampling frequency is assumed.
  * @param[out] result The result of the convolution of f and g.
  * @param max_lag The maximum number of sample delayss after the beginning to
- *        compute the convolution for (essentially, this allows the
+ *        compute the cross-correlation for (essentially, this allows the
  *        implementation to restrict the convolution result to physically
  *        possible values.)
  *
  * @return None.
  */
-void conv(vector<float> &f, vector<float> &g, vector<float> &result, size_t max_lag)
+void xcorr(vector<float> &f, vector<float> &g, vector<float> &result, int max_lag)
 {
+    /*
+     * Reverse g then convolve.
+     */
+    std::reverse(g.begin(), g.end());
+
     size_t result_size = f.size() + g.size() - 1;
 
     result.clear();
@@ -84,7 +103,7 @@ void conv(vector<float> &f, vector<float> &g, vector<float> &result, size_t max_
          * In order to reduce the computation of the convolution, restrict
          * the bounds of it to be in line with geometric constraints.
          */
-        if (abs(f.size() - i) < max_lag)
+        if (abs(static_cast<int>(f.size()) - static_cast<int>(i)) < max_lag)
         {
             const size_t start_index = (i > g.size() - 1)? i - (g.size() - 1) : 0;
             const size_t end_index = (i < f.size() - 1)? i : f.size() - 1;
@@ -95,7 +114,7 @@ void conv(vector<float> &f, vector<float> &g, vector<float> &result, size_t max_
         }
         else
         {
-            result[i] = FLT_MIN;
+            result[i] = 0;
         }
     }
 }
@@ -109,6 +128,8 @@ void conv(vector<float> &f, vector<float> &g, vector<float> &result, size_t max_
  */
 void handle_samples(const robosub::HydrophonePingStamped::ConstPtr &msg)
 {
+    ROS_INFO("Got message");
+
     /*
      * Normalize all readings by subtracting the average.
      */
@@ -138,8 +159,11 @@ void handle_samples(const robosub::HydrophonePingStamped::ConstPtr &msg)
     vector<float> result[3];
     for (int i = 0; i < 3; ++i)
     {
-        conv(channel[0], channel[i + 1], result[i], geometric_constraint_s / sample_period);
+        xcorr(channel[0], channel[i + 1], result[i], geometric_constraint_s / sample_period);
     }
+
+    //csvwrite(result[0], "convolution1.csv");
+    ROS_INFO("Finished convolution.");
 
     /*
      * Find the maximum location in the result vectors. Calculate the time of
@@ -164,7 +188,7 @@ void handle_samples(const robosub::HydrophonePingStamped::ConstPtr &msg)
         int sample_count_delta = static_cast<int32_t>(max_index) -
                 (channel[i].size() - 1);
 
-        flight_difference[i] = sample_count_delta * sample_period;
+        flight_difference[i] = sample_count_delta * sample_period * -1;
     }
 
     /*

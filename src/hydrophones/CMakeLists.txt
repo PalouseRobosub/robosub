@@ -9,3 +9,6 @@ target_link_libraries(hydrophone_logger ${catkin_LIBRARIES})
 
 add_ros_node(hydrophone_correlator cross_correlator_bin.cpp)
 target_link_libraries(hydrophone_correlator ${catkin_LIBRARIES})
+
+add_ros_node(scrappy scrappy_publisher.cpp)
+target_link_libraries(scrappy ${catkin_LIBRARIES})
