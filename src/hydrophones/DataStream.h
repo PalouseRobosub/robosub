@@ -43,6 +43,8 @@ public:
 
     void window(double start_time, double end_time);
 
+    int filter(vector<double> coefficients);
+
     void clear();
 
     void get_measurements(vector<uint16_t> &samples, vector<float> &timestamps);

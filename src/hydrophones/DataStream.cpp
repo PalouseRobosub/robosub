@@ -114,6 +114,59 @@ void DataStream::window(double start_time, double end_time)
 }
 
 /**
+ * Filters the data contained in the stream through an IIR filter.
+ *
+ * @param coefficients The IIR filter coefficients. They should be in the order
+ *        [b0, b1, b2, a0, a1, a2] such that aN is the
+ *        denominator of the transfer function.
+ *
+ * @return Zero upon success.
+ */
+int DataStream::filter(vector<double> coefficients)
+{
+    /*
+     * There should be 6 different coefficients.
+     */
+    if (coefficients.size() != 6)
+    {
+        return -1;
+    }
+
+    /*
+     * First, normalize the coefficients by referencing coefficient a0.
+     */
+    const double reference_coefficient = coefficients[3];
+    for (size_t i = 0; i < coefficients.size(); ++i)
+    {
+        coefficients[i] = coefficients[i] / reference_coefficient;
+    }
+
+    /*
+     * Next, loop through all data points in the stream and apply the IIR
+     * filter.
+     */
+    double z1 = 0, z2 = 0;
+    for (size_t i = 0; i < data.size(); ++i)
+    {
+        const double old_value = data[i].sample;
+        const double new_value = coefficients[0] * old_value + z1;
+
+        /*
+         * Update the internal IIR state variables.
+         */
+        z1 = coefficients[1] * old_value + z2 - coefficients[4] * new_value;
+        z2 = coefficients[2] * old_value - coefficients[5] * new_value;
+
+        /*
+         * Update the data stream with the filtered data point.
+         */
+        data[i].sample = new_value;
+    }
+
+    return 0;
+}
+
+/**
  * Gets the start of ping timestamp.
  *
  * @param[out] start_time The detected start time if a ping was detected.

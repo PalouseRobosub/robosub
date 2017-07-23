@@ -90,6 +90,9 @@ int main(int argc, char **argv)
     ros::NodeHandle np("~");
     ros::NodeHandle nh;
 
+    /*
+     * Load the port number to use.
+     */
     int port_number;
     if (np.getParam("tcp_port", port_number) == false)
     {
@@ -97,6 +100,66 @@ int main(int argc, char **argv)
         port_number = 8080;
     }
 
+    bool filter = true;
+
+    /*
+     * Load the IIR filter coefficients.
+     */
+    vector<double> all_coefficients;
+    vector<vector<double>> coefficients;
+    if (np.getParam("iir_coefficients", all_coefficients) == false)
+    {
+        ROS_WARN("Did not load IIR coefficients! Filtering will not be done.");
+        filter = false;
+    }
+    else
+    {
+        if (all_coefficients.size() % 6)
+        {
+            ROS_FATAL("Coefficients must be a multiple of 6!");
+            return -1;
+        }
+
+        /*
+         * Split apart the coefficients into each filter order coefficients.
+         */
+        for (size_t i = 0; i < all_coefficients.size() / 6; ++i)
+        {
+            vector<double> current_coefficients;
+            for (size_t j = 0; j < 6; ++j)
+            {
+                current_coefficients.push_back(all_coefficients[i * 6 + j]);
+            }
+
+            coefficients.push_back(current_coefficients);
+        }
+    }
+
+    /*
+     * Check to see if we should write out the time-synchronization data to
+     * a file and exit. This mode is used for debugging signals provided by
+     * the sampling hardware.
+     */
+    bool log_long_data = false;
+    if (np.getParam("log_data", log_long_data))
+    {
+        ROS_INFO("Logging long data sample and exitting.");
+        log_long_data = true;
+    }
+
+    /*
+     * Check to see if the IIR filter should be applied.
+     */
+    bool do_not_filter;
+    if (np.getParam("no_filter", do_not_filter))
+    {
+        ROS_INFO("No filter flag found. Will not filter.");
+        filter = false;
+    }
+
+    /*
+     * Verify the port parameter.
+     */
     ROS_FATAL_COND(port_number > UINT16_MAX, "Port number too large.");
     ROS_FATAL_COND(port_number < 1024, "Port number too small.");
 
@@ -215,6 +278,30 @@ int main(int argc, char **argv)
         ROS_INFO("Got all packets.");
 
         /*
+         * If we haven't yet acquired sync, we need to filter out the 3
+         * hydrophone frequencies from different quandrants. This is done by
+         * applying a bandpass IIR filter centered arouned the target
+         * frequency.
+         *
+         * TODO: Should we always filter the data anyways to ensure we didn't
+         *       lock onto a bad signal?
+         */
+        if (!synchronization_acquired && filter)
+        {
+            for (size_t i = 0; i < 4; ++i)
+            {
+                for (size_t order = 0; order < coefficients.size(); ++order)
+                {
+                    if (channel[i].filter(coefficients[order]))
+                    {
+                        ROS_FATAL("Failed to filter.");
+                        return -1;
+                    }
+                }
+            }
+        }
+
+        /*
          * Parse data for the start of the ping.
          */
         double ping_start_time;
@@ -243,8 +330,44 @@ int main(int argc, char **argv)
          * not evenly spaced. Only publish messages during data captures of
          * synchronized data.
          */
-        if (ping_detected && synchronization_acquired)
+        if ((ping_detected && synchronization_acquired) ||
+                (log_long_data && !synchronization_acquired))
         {
+            /*
+             * If we're logging a synchronization point, just write it to
+             * a file and exit.
+             */
+            if (log_long_data)
+            {
+                fstream output_file;
+                output_file.open("long_output.csv", fstream::out);
+
+                vector<float> time;
+                vector<uint16_t> data[4];
+                for (size_t i = 0; i < 4; ++i)
+                {
+                    channel[i].get_measurements(data[i], time);
+                }
+
+                output_file << fixed;
+                output_file.precision(15);
+                output_file << "time, ref, d1, d2, d3" << endl;
+                for (size_t i = 0; i < time.size(); ++i)
+                {
+                    output_file << time[i];
+                    for (size_t j = 0; j < 4; ++j)
+                    {
+                        output_file << ", " << data[j][i];
+                    }
+                    output_file << endl;
+                }
+
+                output_file.close();
+
+                ROS_INFO("Logged long data to long_output.csv");
+                return 0;
+            }
+
             /*
              * Otherwise, we need to truncate the channels and transmit the
              * data.
