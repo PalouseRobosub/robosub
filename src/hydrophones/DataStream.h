@@ -45,9 +45,11 @@ public:
 
     int filter(vector<double> coefficients);
 
+    void overwrite(vector<AnalogMeasurement::SampleType> &data, size_t right_shift = 0, AnalogMeasurement::SampleType fill = 8096);
+
     void clear();
 
-    void get_measurements(vector<uint16_t> &samples, vector<float> &timestamps);
+    void get_measurements(vector<AnalogMeasurement::SampleType> &samples, vector<float> &timestamps);
 
     bool get_ping_start_time(double &start_time);
 

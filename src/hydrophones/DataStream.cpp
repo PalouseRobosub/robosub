@@ -26,7 +26,7 @@ DataStream::DataStream() :
  *
  * @return None.
  */
-void DataStream::get_measurements(vector<uint16_t> &samples,
+void DataStream::get_measurements(vector<AnalogMeasurement::SampleType> &samples,
                                  vector<float> &timestamps)
 {
     /*
@@ -232,4 +232,22 @@ bool DataStream::get_ping_start_time(double &start_time)
     }
 
     return start_detected;
+}
+
+void DataStream::overwrite(vector<AnalogMeasurement::SampleType> &simulation_data, size_t right_shift, AnalogMeasurement::SampleType fill)
+{
+    for (size_t i = 0; i < right_shift && i < data.size(); ++i)
+    {
+        data[i].sample = fill;
+    }
+
+    for (size_t i = 0; i < simulation_data.size() && i + right_shift < data.size(); ++i)
+    {
+        data[i + right_shift].sample = simulation_data[i];
+    }
+
+    for (size_t i = simulation_data.size(); i < data.size(); ++i)
+    {
+        data[i].sample = fill;
+    }
 }

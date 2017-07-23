@@ -1,2 +1,2 @@
-uint16[] data
+int16[] data
 float32[] time

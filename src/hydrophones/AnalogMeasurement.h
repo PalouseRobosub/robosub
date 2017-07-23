@@ -5,6 +5,8 @@
 
 struct AnalogMeasurement
 {
+    typedef int16_t SampleType;
+
     /*
      * Specifies the time at which the sample was taken in seconds. This is a
      * relative time from the start of sampling.
@@ -14,7 +16,7 @@ struct AnalogMeasurement
     /*
      * The actual analog sample measurement.
      */
-    uint16_t sample;
+    SampleType sample;
 };
 
 #endif

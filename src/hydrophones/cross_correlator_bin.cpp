@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "robosub/HydrophonePingStamped.h"
 #include "robosub/HydrophoneDeltas.h"
+#include "AnalogMeasurement.h"
 
 #include <ros/ros.h>
 #include <vector>
@@ -136,7 +137,7 @@ void handle_samples(const robosub::HydrophonePingStamped::ConstPtr &msg)
     vector<float> channel[4];
     for (size_t i = 0; i < 4; ++i)
     {
-        vector<uint16_t> data = msg->channel[i].data;
+        vector<AnalogMeasurement::SampleType> data = msg->channel[i].data;
         const float average = get_average(data);
 
         for (size_t j = 0; j < msg->channel[i].data.size(); ++j)

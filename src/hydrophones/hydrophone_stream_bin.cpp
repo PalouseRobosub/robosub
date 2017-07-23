@@ -79,6 +79,32 @@ static constexpr uint32_t time_sync_samples = time_sync_sample_duration_s /
 static constexpr uint32_t correlation_samples = correlation_sample_duration_s /
         (1.0 / sampling_frequency);
 
+void load_simulation_data(string filename, vector<AnalogMeasurement::SampleType> &simulation_samples)
+{
+    simulation_samples.clear();
+
+    ifstream input_file(filename);
+
+    string line;
+    while (input_file.good())
+    {
+        getline(input_file, line);
+        stringstream ss(line);
+        int data;
+        ss >> data;
+        simulation_samples.push_back(data);
+    }
+
+    fstream output_file;
+    output_file.open("wtf.csv", fstream::out);
+    for (size_t i = 0; i < simulation_samples.size(); ++i)
+    {
+        output_file << simulation_samples[i] << endl;
+    }
+
+    output_file.close();
+}
+
 /**
  * Main entry point to application.
  *
@@ -143,18 +169,33 @@ int main(int argc, char **argv)
     bool log_long_data = false;
     if (np.getParam("log_data", log_long_data))
     {
-        ROS_INFO("Logging long data sample and exitting.");
-        log_long_data = true;
+        if (log_long_data)
+        {
+            ROS_INFO("Logging long data sample and exitting.");
+        }
     }
 
     /*
      * Check to see if the IIR filter should be applied.
      */
-    bool do_not_filter;
+    bool do_not_filter = false;
     if (np.getParam("no_filter", do_not_filter))
     {
-        ROS_INFO("No filter flag found. Will not filter.");
-        filter = false;
+        if (do_not_filter)
+        {
+            ROS_INFO("DoNotFilter flag found. Will not filter.");
+            filter = false;
+        }
+    }
+
+    string simulation_filename;
+    bool simulating_data = false;
+    vector<AnalogMeasurement::SampleType> simulation_data;
+    if (np.getParam("simulation_file", simulation_filename))
+    {
+        ROS_INFO("Loading simulation file.");
+        simulating_data = true;
+        load_simulation_data(simulation_filename, simulation_data);
     }
 
     /*
@@ -278,6 +319,17 @@ int main(int argc, char **argv)
         ROS_INFO("Got all packets.");
 
         /*
+         * If we're simulating data, we don't care what the raspberry pi sent.
+         */
+        if (simulating_data)
+        {
+            for (size_t i = 0; i < 4; i++)
+            {
+                channel[i].overwrite(simulation_data, 0, 4096);
+            }
+        }
+
+        /*
          * If we haven't yet acquired sync, we need to filter out the 3
          * hydrophone frequencies from different quandrants. This is done by
          * applying a bandpass IIR filter centered arouned the target
@@ -340,10 +392,10 @@ int main(int argc, char **argv)
             if (log_long_data)
             {
                 fstream output_file;
-                output_file.open("long_output.csv", fstream::out);
+                output_file.open("long_output2.csv", fstream::out);
 
                 vector<float> time;
-                vector<uint16_t> data[4];
+                vector<int16_t> data[4];
                 for (size_t i = 0; i < 4; ++i)
                 {
                     channel[i].get_measurements(data[i], time);

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+
+<launch>
+    <!--  launch a node -->
+    <node pkg="robosub" type="hydrophone_stream" name="hydrophone_stream" required="false" output="screen">
+        <!-- load a settings file -->
+        <rosparam command="load" file="$(find robosub)/param/hydrophones.yaml" />
+
+        <param name="simulation_file" value="/home/ryan/simulation.data" />
+        <param name="log_data" value="true"/>
+    </node>
+</launch>
