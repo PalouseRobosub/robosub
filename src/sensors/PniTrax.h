@@ -86,6 +86,7 @@ public:
 
     enum class Mounting : uint8_t
     {
+        std_0 = 1,
         x_up_270 = 10
     };
 
