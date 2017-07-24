@@ -1,0 +1,11 @@
+<launch>
+    <node name="depth" pkg="rosserial_python" type="serial_node.py" args="/dev/depth"/>
+    <node name="bno055_left" pkg="robosub" type="bno055_sensor"/>
+    <node name="bno055_right" pkg="robosub" type="bno055_sensor"/>
+    <node name="trax" pkg="robosub" type="trax_sensor"/>
+
+    <!-- robosub -->
+    <node name="imu" pkg="robosub" type="imu">
+        <param name="active_imu" value="bno055_left"/>
+    </node>
+</launch>
