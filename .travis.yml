@@ -1,6 +1,7 @@
 language: generic
 sudo: required
 dist: trusty
+group: deprecated-2017Q2
 
 #slack integration
 notifications:
