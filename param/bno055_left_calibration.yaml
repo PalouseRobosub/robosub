@@ -1,0 +1,18 @@
+bno055_left:
+    accelerometer:      
+        offset:            
+            x: -2             
+            y: -1            
+            z: 32           
+        radius: 1000    
+    magnetometer:
+        offset:     
+            x: -608    
+            y: 334  
+            z: 119   
+        radius: 681 
+    gyroscope:
+        offset:  
+            x: -1   
+            y: 1   
+            z: 1 
