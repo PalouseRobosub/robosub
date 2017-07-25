@@ -20,6 +20,7 @@ using std::to_string;
 ros::Publisher euler_publisher;
 ros::Publisher quaternion_publisher;
 ros::Publisher linear_acceleration_publisher;
+ros::Publisher magnetometer_publisher;
 ros::Publisher info_publisher;
 
 Bno055 sensor;
@@ -161,6 +162,7 @@ int main(int argc, char **argv)
     linear_acceleration_publisher =
         np.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
     euler_publisher = np.advertise<robosub::Euler>("pretty/orientation", 1);
+    magnetometer_publisher = np.advertise<geometry_msgs::Vector3Stamped>("magnetometer/raw", 1);
     info_publisher = np.advertise<std_msgs::String>("info", 1);
     ros::ServiceServer trim_service = np.advertiseService("trim", trim);
     ros::ServiceServer mode_service = np.advertiseService("set_mode", set_mode);
@@ -311,6 +313,7 @@ int main(int argc, char **argv)
         geometry_msgs::QuaternionStamped quaternion_message;
         robosub::Euler euler_message;
         geometry_msgs::Vector3Stamped linear_acceleration_message;
+        geometry_msgs::Vector3Stamped magnetometer_message;
 
         /*
          * Read a quaternion from the sensor, take the current time, and
@@ -363,6 +366,17 @@ int main(int argc, char **argv)
         linear_acceleration_message.vector.y = y;
         linear_acceleration_message.vector.z = z;
         linear_acceleration_publisher.publish(linear_acceleration_message);
+
+        /*
+         * Read and publish the magnetometer from the Bno055.
+         */
+        FatalAbortIf(sensor.readMagnetometer(x, y, z) != 0,
+                "Bno055 failed to read magnetometer");
+	magnetometer_message.header.stamp = ros::Time::now();
+        magnetometer_message.vector.x = x;
+        magnetometer_message.vector.y = y;
+        magnetometer_message.vector.z = z;
+        magnetometer_publisher.publish(magnetometer_message);
 
         /*
          * Publish the BNO055 status. Confidence ranges from [0,3].

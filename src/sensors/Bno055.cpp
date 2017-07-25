@@ -170,6 +170,36 @@ namespace rs
     }
 
     /**
+     * Read the magnetometer information.
+     *
+     * @note This data is represented in micro tesla
+     *
+     * @param x The magnetometer data along the X axis.
+     * @param y The magnetometer data along the Y axis.
+     * @param z The magnetometer data along the Z axis.
+     *
+     * @return Zero upon success or a non-zero error code.
+     */
+    int Bno055::readMagnetometer(double &x, double &y, double &z)
+    {
+        vector<uint8_t> data;
+
+        /*
+         * Read magnetometer values for the X, Y, and Z axis.
+         */
+        AbortIf(read_register(Bno055::Register::MAG_DATA_X_LSB, data, 6));
+
+        x = static_cast<int16_t>(data[0] |
+                static_cast<uint16_t>(data[1]) << 8);
+        y = static_cast<int16_t>(data[2] |
+                static_cast<uint16_t>(data[3]) << 8);
+        z = static_cast<int16_t>(data[4] |
+                static_cast<uint16_t>(data[5]) << 8);
+
+        return 0;
+    }
+
+    /**
      * Read the quaternion orientation information.
      *
      * @param[out] w Location to store w reading.

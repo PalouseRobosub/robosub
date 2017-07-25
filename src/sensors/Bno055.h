@@ -277,6 +277,8 @@ public:
 
     int readLinearAcceleration(double &x, double &y, double &z);
 
+    int readMagnetometer(double &x, double &y, double &z);
+
     int readTemperature(uint16_t &temp);
 
     int remapAxes(Axis x, Axis y, Axis z);
