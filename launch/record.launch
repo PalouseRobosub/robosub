@@ -15,7 +15,9 @@
                  /trax/(.*)
                  /depth
                  /power/ups
-                 /(.*)/temperatures"/>
+                 /(.*)/temperatures
+                 /orientation
+                 /pretty/orientation"/>
 
 
     <!-- record all control system info -->
