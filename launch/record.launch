@@ -5,25 +5,25 @@
     <arg name="outdir" default="$(env PWD)" />
 
     <!-- record all cameras -->
-    <node pkg="rosbag" type="record" name="camera_bag"
+    <node pkg="rosbag" type="record" name="camera_bag" output="screen"
         args="-o $(arg outdir)/cameras -e /camera/(.*)/image_raw" />
 
     <!-- record all sensors -->
-    <node pkg="rosbag" type="record" name="sensor_bag"
+    <node pkg="rosbag" type="record" name="sensor_bag" output="screen"
         args="-o $(arg outdir)/sensor
               -e /bno055_(.*)/(.*)
                  /trax/(.*)
                  /depth
                  /power/ups
-                 /(.*)/temps"/>
+                 /(.*)/temperatures"/>
 
 
     <!-- record all control system info -->
-    <node pkg="rosbag" type="record" name="control_bag"
+    <node pkg="rosbag" type="record" name="control_bag" output="screen"
         args="-o $(arg outdir)/control /control /control_status" />
 
     <!-- record darknet vision processing -->
-    <node pkg="rosbag" type="record" name="darknet_bag"
+    <node pkg="rosbag" type="record" name="darknet_bag" output="screen"
         args="-o $(arg outdir)/darknet /vision" />
 
 </launch>
