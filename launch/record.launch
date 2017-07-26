@@ -15,7 +15,7 @@
                  /trax/(.*)
                  /depth
                  /power/ups
-                 /(.*)/temperatures
+                 /diagnostics
                  /orientation
                  /pretty/orientation"/>
 
