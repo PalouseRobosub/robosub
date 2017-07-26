@@ -11,9 +11,10 @@
 #include <opencv2/calib3d.hpp>
 #include <string>
 
-#include <cv.h>
 #include <opencv2/opencv.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -88,12 +89,23 @@ int main (int argc, char** argv)
     ROS_INFO_STREAM("Completed initialization");
 
     // directories
-    const string output_dir = "/media/sean/Deep Dark Storage/Robosub/orig/images";
+    const string bagPath = "/media/sean/Deep_Dark_Storage/Robosub/orig/tuesday_run_1/cameras_2017-07-25-11-31-43.bag";
+    const string output_dir = bagPath.substr(0, bagPath.find(".", 1));
+
+    if(mkdir(output_dir.c_str(), 0x775))
+    {
+        ROS_ERROR_STREAM("Failed to create path: " << output_dir);
+    
+        exit(1);
+    }
+
+    ROS_INFO_STREAM("Reading: " << bagPath);
+    ROS_INFO_STREAM("Saving in: " << output_dir);
 
 
     // load up the ros bag
     rosbag::Bag bag;
-    bag.open("/media/sean/Deep Dark Storage/Robosub/orig/tuesday_run_1/cameras_2017-07-25-11-22-18.bag", rosbag::bagmode::Read);
+    bag.open(bagPath, rosbag::bagmode::Read);
 
     std::vector<string> topics;
     topics.push_back("/camera/left/image_raw");
@@ -147,7 +159,7 @@ int main (int argc, char** argv)
             string message_name = std::to_string(secs);
 
             string output_file = output_dir + "/" + prefix + "_" + message_name + ".png";
-            ROS_INFO_STREAM("writing to: " << output_file);
+            ROS_DEBUG_STREAM("writing to: " << output_file);
             imwrite(output_file, image_ptr->image);
         }
     }
