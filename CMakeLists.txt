@@ -16,6 +16,7 @@ if ("$ENV{ROS_DISTRO}" STRGREATER "indigo")
   #Running Kinetic
   find_package(catkin REQUIRED COMPONENTS
     roscpp
+    rosbag
     rospy
     dynamic_reconfigure
     std_msgs
@@ -33,6 +34,7 @@ else ()
   #Running Indigo
   find_package(catkin REQUIRED COMPONENTS
     roscpp
+    rosbag
     rospy
     dynamic_reconfigure
     std_msgs
@@ -178,8 +180,8 @@ generate_dynamic_reconfigure_options(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS src
- LIBRARIES test_tools serial bno055
-  CATKIN_DEPENDS roscpp rospy dynamic_reconfigure std_msgs message_runtime
+ LIBRARIES test_tools serial ftdi_serial bno055
+  CATKIN_DEPENDS roscpp rospy dynamic_reconfigure std_msgs message_runtime rosbag
   DEPENDS OpenCV
 )
 
