@@ -28,7 +28,7 @@ class BuoyTask():
     def callback(self, detections):
         msg = control()
 
-        vision_result = getMostProbable(detections.detections, self.label_name, thresh=0.5)
+        vision_result = getMostProbable(detections.detections, thresh=0.5)
 
         normalize(vision_result)
 

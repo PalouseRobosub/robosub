@@ -181,7 +181,7 @@ class GateTask():
         # Construct the control message
         msg = control()
 
-        vision_result = getNMostProbable(detection.detections, "start_gate", 2, thresh=0.5)
+        vision_result = getNMostProbable(detection.detections, 2, thresh=0.5)
 
         normalize(vision_result)
 
