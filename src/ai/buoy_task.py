@@ -25,10 +25,12 @@ class BuoyTask():
 
         self.label_name = label_name
 
-    def callback(self, detections):
+    def callback(self, detection):
         msg = control()
 
-        vision_result = getMostProbable(detections.detections, thresh=0.5)
+        detections = filterByLabel(detection, self.label_name)
+
+        vision_result = getMostProbable(detections, thresh=0.5)
 
         normalize(vision_result)
 
@@ -96,7 +98,7 @@ class BuoyTask():
             # area of the object to the area of the image. This will need to be
             # updated when the magnitude calculation is replaced by stereo
             # disparity calculations.
-            if vision_result.width * vision_result.height < self.distGoal: # !TODO!: Determine what to replace this with
+            if vision_result.width * vision_result.height < self.distGoal: 
                 msg.forward = 10
                 self.state = "RAMMING"
                 rospy.loginfo("{} from goal".format(self.distGoal -
