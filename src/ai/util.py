@@ -1,5 +1,6 @@
 def getNMostProbable(detection_array, n, thresh=0.1):
-    sorted_list = sorted(detection_array, key=lambda x: x.probability, reverse=True)
+    sorted_list = sorted(detection_array, key=lambda x: x.probability,
+                         reverse=True)
     return sorted_list[:n]
 
 def getMostProbable(detection_array, thresh=0.1):

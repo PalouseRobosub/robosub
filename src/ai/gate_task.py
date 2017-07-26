@@ -149,7 +149,7 @@ class GateTask():
         else:
             # We are centered on the gate
             if ((vision[0].width * vision[0].height) +
-                (vision[1].width * vision[1].height)) > 0.012:
+               (vision[1].width * vision[1].height)) > 0.012:
                 # We are within a good distance from the gate.
                 # The value of 0.012 was determined through testing and needs
                 # to be updated when stereo vision is implemented
@@ -182,7 +182,7 @@ class GateTask():
         msg = control()
 
         detections = filterByLabel(detection.detections, "start_gate")
-        
+
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
         normalize(vision_result)

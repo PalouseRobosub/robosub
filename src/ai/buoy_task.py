@@ -98,7 +98,7 @@ class BuoyTask():
             # area of the object to the area of the image. This will need to be
             # updated when the magnitude calculation is replaced by stereo
             # disparity calculations.
-            if vision_result.width * vision_result.height < self.distGoal: 
+            if vision_result.width * vision_result.height < self.distGoal:
                 msg.forward = 10
                 self.state = "RAMMING"
                 rospy.loginfo("{} from goal".format(self.distGoal -
