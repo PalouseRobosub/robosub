@@ -1,21 +1,11 @@
 tasks:
+  -  name: "Forward"
+     node: "forward_task.py"
+     args: ""
+     remap_args: []
+     timeout_secs: 5
   -  name: "Gate"
      node: "gate_task.py"
      args: "-d 5"
      remap_args: []
      timeout_secs: 60
-  -  name: "Buoy_Red"
-     node: "buoy_task.py"
-     args: "red_buoy"
-     remap_args: []
-     timeout_secs: 30
-  -  name: "Buoy_Green"
-     node: "buoy_task.py"
-     args: "green_buoy"
-     remap_args: []
-     timeout_secs: 30
-  -  name: "Buoy_Yellow"
-     node: "buoy_task.py"
-     args: "yellow_buoy"
-     remap_args: []
-     timeout_secs: 30
