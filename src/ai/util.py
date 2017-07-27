@@ -1,13 +1,19 @@
 def getNMostProbable(detection_array, n, thresh=0.1):
+    if detection_array is None:
+        return None
+
     sorted_list = sorted(detection_array, key=lambda x: x.probability,
                          reverse=True)
     return sorted_list[:n]
 
 def getMostProbable(detection_array, thresh=0.1):
-    return getNMostProbable(detection_array, 1, thresh)[0]
+    results = getNMostProbable(detection_array, 1, thresh)
+    return results[0] if len(results) != 0 else None
 
 def normalize(detection_array):
-    if type(detection_array) is list:
+    if detection_array is None:
+        return
+    elif type(detection_array) is list:
         for detection in detection_array:
             detection.x = (detection.x - 0.5) * 2
             detection.y = (detection.y - 0.5) * 2
