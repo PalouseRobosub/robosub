@@ -52,6 +52,6 @@ class ForwardUntilTask():
         
 
 if __name__ == "__main__":
-    rospy.init_node('buoy_task')
+    rospy.init_node('forward_until_task')
     node = ForwardUntilTask(sys.argv[1])
     rospy.spin()
