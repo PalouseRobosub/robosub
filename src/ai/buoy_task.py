@@ -17,11 +17,13 @@ class BuoyTask():
         self.state = "SEARCHING"
         self.hitTime = None
         # How long the sub moves backward for
-        self.duration = 2
+        self.duration = 5
         # How close to center the buoy needs to be (abs)
         self.errorGoal = 0.1
         # How close the sub has to get before reversing
-        self.distGoal = 0.01
+        self.distGoal = 0.06
+
+        self.blindRamTime = 2
 
         self.label_name = label_name
 
@@ -59,7 +61,7 @@ class BuoyTask():
             # Otherwise continue to reverse
             else:
                 rospy.loginfo("Reversing from buoy")
-                msg.forward = -10
+                msg.forward = -0.5
 
             # Both instances should maintain yaw and dive
             msg.yaw_state = control.STATE_RELATIVE
@@ -99,7 +101,7 @@ class BuoyTask():
             # updated when the magnitude calculation is replaced by stereo
             # disparity calculations.
             if vision_result.width * vision_result.height < self.distGoal:
-                msg.forward = 10
+                msg.forward = 0.5
                 self.state = "RAMMING"
                 rospy.loginfo("{} from goal".format(self.distGoal -
                               vision_result.width * vision_result.height))
@@ -121,7 +123,7 @@ class BuoyTask():
                 msg.yaw_left = (vision_result.x *
                                 (1 - (vision_result.width *
                                       vision_result.height * 10)) *
-                                (-50))
+                                (-50))/2
                 rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
                 # Maintain depth
                 msg.dive_state = control.STATE_RELATIVE
@@ -135,7 +137,7 @@ class BuoyTask():
                 # changes.
                 msg.dive = (vision_result.y *
                             ((1 - (vision_result.width * vision_result.height *
-                                   10)) * -5))
+                                   10)) * -5))/5
                 rospy.loginfo("Dive error: {}".format(msg.dive))
 
         self.pub.publish(msg)
