@@ -3,6 +3,8 @@
 import rospy
 import roslaunch
 
+from robosub.msg import control
+
 # Uses the roslaunch API to spin up nodes in sequence
 class AiManager():
 
@@ -30,7 +32,7 @@ class AiManager():
                                        remap_args=remap_arguments,
                                        output="screen")
             try:
-                process = self.launcher.launch(node)
+                self.process = self.launcher.launch(node)
             except roslaunch.RLException as e:
                 rospy.logerr(e.message)
                 break
@@ -39,16 +41,33 @@ class AiManager():
             launch_time = rospy.get_rostime()
 
             # Wait for either the process to die or for its timeout to expire
-            while (process.is_alive() and
+            while (self.process.is_alive() and
                    rospy.get_rostime() - launch_time <
                    rospy.Duration(task["timeout_secs"])):
                 pass
 
             # Kill the process if it has timed out.
-            process.stop()
+            self.process.stop()
+
+    def shutdown_hook(self):
+        rospy.logwarn("AI Manager killed! Shutting down...")
+        self.process.stop()
+        self.tasks = []
+        publisher = rospy.Publisher('control', control, queue_size=1)
+        msg = control()
+
+        msg.forward_state = control.STATE_ERROR
+        msg.strafe_state = control.STATE_ERROR
+        msg.dive_state = control.STATE_ERROR
+        msg.yaw_state = control.STATE_ERROR
+        msg.pitch_state = control.STATE_ERROR
+        msg.roll_state = control.STATE_ERROR
+
+        publisher.publish(msg)
 
 if __name__ == "__main__":
     rospy.init_node('aiManager')
     manager = AiManager()
+    rospy.on_shutdown(manager.shutdown_hook)
     manager.begin()
     rospy.spin()

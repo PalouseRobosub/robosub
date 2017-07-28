@@ -11,7 +11,7 @@ tasks:
      timeout_secs: 60
   -  name: "Forward_Buoys"
      node: "forward_until.py"
-     args: "red_buoy"
+     args: "red_buoy yellow_buoy green_bouy"
      remap_args: []
      timeout_secs: 20
   -  name: "Red Buoy"
