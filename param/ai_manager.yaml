@@ -1,7 +1,7 @@
 tasks:
   -  name: "Forward_Gate"
      node: "forward_until.py"
-     args: "start_gate_post"
+     args: "-45 start_gate_post"
      remap_args: []
      timeout_secs: 20
   -  name: "Gate"
@@ -11,7 +11,7 @@ tasks:
      timeout_secs: 60
   -  name: "Forward_Buoys"
      node: "forward_until.py"
-     args: "red_buoy yellow_buoy green_bouy"
+     args: "-10 red_buoy yellow_buoy green_bouy"
      remap_args: []
      timeout_secs: 20
   -  name: "Red Buoy"
