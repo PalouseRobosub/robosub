@@ -81,7 +81,7 @@ class GateTask():
         elif self.state is STATES.SEARCHING_RIGHT:
             # We had one post and lost it, go back left to find it again
             self.state = STATES.SEARCHING_LEFT
-            msg.yaw_left = self.yaw_speed`
+            msg.yaw_left = self.yaw_speed
         elif self.state is STATES.TRACKING:
             # We were seeing both posts and lost them both at once!
             # What happened!?
