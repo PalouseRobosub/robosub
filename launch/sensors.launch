@@ -8,6 +8,8 @@
     </node>
     <node name="trax" pkg="robosub" type="trax_sensor" output="screen"/>
 
+    <node name="ups" pkg="robosub" type="upsNode.py"/>
+
     <!-- robosub -->
     <node name="imu" pkg="robosub" type="imu" output="screen">
         <param name="active_imu" value="bno055_left"/>
