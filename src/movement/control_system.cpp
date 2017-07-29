@@ -145,6 +145,14 @@ namespace robosub
     }
 
     /*
+       Enables/disables the control system.
+    */
+    void ControlSystem::setEnabled(bool enable)
+    {
+        enabled = enable;
+    }
+
+    /*
        Checks if the control system has received a control system recently, if
        it hasen't then the control system should be disabled.
     */

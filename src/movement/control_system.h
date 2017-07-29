@@ -52,6 +52,7 @@ public:
     robosub::thruster GetZeroThrusterMessage();
     robosub::control_status GetControlStatus();
     bool isEnabled();
+    void setEnabled(bool enable);
 
 private:
     bool enabled;
