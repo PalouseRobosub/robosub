@@ -645,7 +645,7 @@ namespace robosub
 
         for (int i = 0; i < num_thrusters; ++i)
         {
-            thruster_message.data.push_back(total_control[i]);
+            thruster_message.data.push_back(0);
         }
 
         return thruster_message;

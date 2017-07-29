@@ -61,7 +61,7 @@ int main(int argc, char **argv)
             &ControlSystem::CheckTimeout, control_system);
 
     ros::ServiceServer disableService =
-        nh.advertiseService("control/toggleEnabled", disable);
+        nh.advertiseService("control/disable", disable);
 
     int rate;
     nh.getParam("rate/control", rate);
