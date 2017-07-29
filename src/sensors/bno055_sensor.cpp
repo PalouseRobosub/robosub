@@ -85,6 +85,8 @@ bool trim(std_srvs::Empty::Request &req,
     trim_roll = last_roll;
     trim_pitch = last_pitch;
 
+    np.setParam("trim/roll", trim_roll);
+    np.setParam("trim/pitch", trim_pitch);
     return true;
 }
 
@@ -184,9 +186,11 @@ int main(int argc, char **argv)
             gyroscope_offset[3] = {-1, -1, -1};
 
     /*
-     * Initialize trim variables
+     * Initialize trim variables. Load from parameter server if they exist.
      */
     last_roll = trim_roll = last_pitch = trim_pitch = 0.0;
+    np.getParam("trim/roll", trim_roll);
+    np.getParam("trim/pitch", trim_pitch);
 
     /*
      * Use explicit short-circuiting to guarentee that flags are only set when

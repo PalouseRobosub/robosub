@@ -31,6 +31,8 @@ bool trim(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
     trim_roll = last_roll;
     trim_pitch = last_pitch;
 
+    np.setParam("trim/roll", trim_roll);
+    np.setParam("trim/pitch", trim_pitch);
     return true;
 }
 
@@ -59,6 +61,14 @@ int main(int argc, char *argv[])
         ROS_FATAL("Failed to initialize TRAX.");
         return 1;
     }
+
+    /*
+     * Initialize trim variables. Load from parameter server if they exist.
+     */
+    last_roll = trim_roll = last_pitch = trim_pitch = 0.0;
+    np.getParam("trim/roll", trim_roll);
+    np.getParam("trim/pitch", trim_pitch);
+
 
     /*
      * Set up the trim service and data publisher.
