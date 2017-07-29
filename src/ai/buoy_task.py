@@ -168,11 +168,12 @@ class BuoyTask():
                             ((1 - (vision_result.width * vision_result.height *
                                    10)) * self.dive_speed_factor))
                 rospy.loginfo("Dive relative: {}".format(msg.dive))
->>>>>>> Stashed changes
 
         self.pub.publish(msg)
 
 if __name__ == "__main__":
     rospy.init_node('buoy_task')
-    node = BuoyTask(sys.argv[1])
+
+    args = rospy.myargv()
+    node = BuoyTask(args[1])
     rospy.spin()
