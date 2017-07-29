@@ -144,6 +144,24 @@ namespace robosub
         return enabled;
     }
 
+    /*
+       Checks if the control system has received a control system recently, if
+       it hasen't then the control system should be disabled.
+    */
+    void ControlSystem::CheckTimeout(const ros::TimerEvent& timer_event)
+    {
+        float param_duration = 2.0;
+        ros::param::getCached("control/timeout", param_duration);
+        ros::Duration timeout_duration(param_duration);
+
+        if (ros::Time::now() > last_msg_time + timeout_duration)
+        {
+            ROS_WARN_COND(this->enabled == true,
+                    "control system has timed out.");
+            this->enabled = false;
+        }
+    }
+
     /**
      * Reload PID parameters from the ROS parameter server.
      *
@@ -202,6 +220,8 @@ namespace robosub
             robosub::control::ConstPtr& msg)
     {
         enabled = true;
+        last_msg_time = ros::Time::now();
+
         std::vector<double> control_values(6);
         std::vector<uint8_t> control_states(6);
 
@@ -596,6 +616,23 @@ namespace robosub
          * Create a new thruster control message based upon the newly
          * calculated total_control vector.
          */
+        robosub::thruster thruster_message;
+
+        for (int i = 0; i < num_thrusters; ++i)
+        {
+            thruster_message.data.push_back(total_control[i]);
+        }
+
+        return thruster_message;
+    }
+
+    /**
+     * Creates a thruster message that is all zeros
+     *
+     * @return A thruster message to be published.
+     */
+    robosub::thruster ControlSystem::GetZeroThrusterMessage()
+    {
         robosub::thruster thruster_message;
 
         for (int i = 0; i < num_thrusters; ++i)

@@ -46,8 +46,10 @@ public:
     void InputLocalizationMessage(
             const geometry_msgs::Vector3::ConstPtr& vector_msg);
     void InputDepthMessage(const robosub::Float32Stamped::ConstPtr& depth_msg);
+    void CheckTimeout(const ros::TimerEvent& timer_event);
     void ReloadPIDParams();
     robosub::thruster CalculateThrusterMessage();
+    robosub::thruster GetZeroThrusterMessage();
     robosub::control_status GetControlStatus();
     bool isEnabled();
 
@@ -56,6 +58,7 @@ private:
     void calculate_motor_control();
     double wraparound(double x, double min, double max);
     std::string state_to_string(uint8_t state);
+    ros::Time last_msg_time;
 
     /*
      * Defines the current goals of the submarine in the order of X, Y, PSI,

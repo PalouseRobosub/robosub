@@ -46,6 +46,9 @@ int main(int argc, char **argv)
     rs::ThrottledPublisher<robosub::control_status>
             control_state_pub(std::string("control_status"), 1, 5);
 
+    ros::Timer timer = nh.createTimer(ros::Duration(0.1),
+            &ControlSystem::CheckTimeout, control_system);
+
     int rate;
     nh.getParam("rate/control", rate);
     ros::Rate r(rate);
@@ -56,6 +59,10 @@ int main(int argc, char **argv)
         if(control_system->isEnabled())
         {
             pub.publish(control_system->CalculateThrusterMessage());
+        }
+        else
+        {
+            pub.publish(control_system->GetZeroThrusterMessage());
         }
         ros::spinOnce();
         r.sleep();
