@@ -33,7 +33,8 @@ class ForwardUntilTask():
 
         self.pub.publish(msg)
 
-        rospy.loginfo("Proceeding forward until {} label(s) are found".format(self.labels))
+        rospy.loginfo("Proceeding forward until {}".format(self.labels) +
+                      " label(s) are found")
 
     def callback(self, detection):
         detections = []
@@ -41,7 +42,8 @@ class ForwardUntilTask():
             detections[-1:] = filterByLabel(detection.detections,
                                             label_name)
 
-        rospy.loginfo("Found: {}".format([detection.label + "\n" for detection in detections]))
+        rospy.loginfo("Found: {}".format([detection.label + "\n"
+                                          for detection in detections]))
 
         vision_result = getMostProbable(detections, thresh=0.5)
 
@@ -79,7 +81,7 @@ class ForwardUntilTask():
 
 if __name__ == "__main__":
     rospy.init_node('forward_until_task')
-   
+
     args = rospy.myargv()
 
     node = ForwardUntilTask(args[2:], args[1])

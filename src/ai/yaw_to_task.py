@@ -29,7 +29,7 @@ class YawToTask():
 
         msg.yaw_state = control.STATE_RELATIVE
         msg.yaw_left = yaw_val
-        
+
         self.pub.publish(msg)
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@ class GateTask():
         # The depth value to send
         self.depth = -2
 
-        ####### Speeds #######
+        # Speeds #######
         self.yaw_speed = 10
 
         self.dive_factor = -25
@@ -78,7 +78,7 @@ class GateTask():
         elif self.state is "SEARCHING RIGHT":
             # We had one post and lost it, go back left to find it again
             self.state = "SEARCHING LEFT"
-            msg.yaw_left = self.yaw_speed`
+            msg.yaw_left = self.yaw_speed
         elif self.state is "TRACKING":
             # We were seeing both posts and lost them both at once!
             # What happened!?
@@ -152,7 +152,7 @@ class GateTask():
             msg.yaw_state = control.STATE_RELATIVE
             # The scalar of 50 was determined through testing and will need to
             # change when stereo vision is implemented
-            msg.yaw_left = gateXPos * self.yaw_factor 
+            msg.yaw_left = gateXPos * self.yaw_factor
             rospy.loginfo("Yaw output: {}".format(msg.yaw_left))
         elif abs(gateYPos) > self.errorGoal:
             # Center Y (dive) second

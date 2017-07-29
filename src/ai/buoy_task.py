@@ -30,14 +30,13 @@ class BuoyTask():
 
         self.blindRamTime = None
 
-        
-        ######## Speed settings #######
+        # Speed settings #######
         # The speed to send to ram the buoys
         self.ram_speed = 0.5
         # The factor to multiply the error in the image by to get a resulting
         # speed (yaw and dive)
         self.yaw_speed_factor = -25
-        self.dive_speed_factor = -1 
+        self.dive_speed_factor = -1
 
         self.yaw_search_speed = 5
 

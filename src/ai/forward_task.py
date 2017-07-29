@@ -26,7 +26,7 @@ class ForwardTask():
 
         msg.yaw_state = control.STATE_RELATIVE
         msg.yaw_left = 0
-        
+
         self.pub.publish(msg)
 
     def send(self):
@@ -43,7 +43,7 @@ class ForwardTask():
 
         msg.dive_state = control.STATE_ABSOLUTE
         msg.dive = -1
-        
+
         self.pub.publish(msg)
 
 if __name__ == "__main__":
