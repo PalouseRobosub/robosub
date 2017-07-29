@@ -1,10 +1,15 @@
 <?xml version="1.0"?>
 
 <launch>
-    <node pkg="libsensors_monitor" type="libsensors_monitor" name="cobalt_monitor" required="false"/>
+    <node pkg="libsensors_monitor" type="libsensors_monitor" 
+        name="cobalt_monitor" required="false"/>
 
-    <machine name="jetson" address="jetson" default="false" user="nvidia" password="nvidia" timeout="5.0" env-loader="/opt/ros/indigo/setup.sh"/>
+    <!-- <machine name="jetson" address="jetson" default="false"
+            user="nvidia" password="nvidia" timeout="5.0"
+            env-loader="/opt/ros/indigo/setup.sh"/> -->
 
-    <node machine="jetson" pkg="libsensors_monitor" type="libsensors_monitor" name="jetson_monitor" required="false"/>
+    <!-- <node machine="jetson" pkg="libsensors_monitor" 
+            type="libsensors_monitor" name="jetson_monitor"
+            required="false"/> -->
 
 </launch>
