@@ -32,7 +32,7 @@ class ForwardUntilTask():
 
         msg.yaw_state = control.STATE_ABSOLUTE
         msg.yaw_left = self.yaw_value
-        
+
         self.pub.publish(msg)
 
         rospy.loginfo("Proceeding forward until {} label(s) are found".format(self.labels))
@@ -47,8 +47,8 @@ class ForwardUntilTask():
 
         vision_result = getMostProbable(detections, thresh=0.5)
 
-	if vision_result is not None:
-        	rospy.loginfo("Seeing: {}".format(vision_result.label))
+        if vision_result is not None:
+            rospy.loginfo("Seeing: {}".format(vision_result.label))
 
         msg = control()
 
@@ -64,7 +64,7 @@ class ForwardUntilTask():
             msg.roll_right = 0
             msg.pitch_state = control.STATE_ABSOLUTE
             msg.pitch_down = 0
-            
+
             # Don't move forward
             msg.forward_state = control.STATE_ERROR
             msg.forward = 1
@@ -74,14 +74,14 @@ class ForwardUntilTask():
 
             msg.yaw_state = control.STATE_ABSOLUTE
             msg.yaw_left = self.yaw_value
-        
+
         self.pub.publish(msg)
-            
-        
+
+
 
 if __name__ == "__main__":
     rospy.init_node('forward_until_task')
-    
+
     label_list = []
     for string in sys.argv[2:]:
         if string[0] is not '_':
