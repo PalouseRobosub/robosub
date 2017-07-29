@@ -4,8 +4,11 @@ import rospy
 from rs_yolo.msg import DetectionArray as detection_array
 from robosub.msg import control
 from util import *
+from enum import Enum
 
 import sys
+
+STATES = Enum(["SEARCHING", "TRACKING", "HIT", "RAMMING"])
 
 class BuoyTask():
 
@@ -14,17 +17,15 @@ class BuoyTask():
         self.pub = rospy.Publisher('control', control, queue_size=1)
         self.sub = rospy.Subscriber('vision', detection_array,
                                     self.callback)
-        self.state = "SEARCHING"
+        self.state = STATES.SEARCHING
         self.hitTime = None
         # How long the sub moves backward for
         self.duration = 5
         # How close to center the buoy needs to be (abs)
         self.errorGoal = 0.1
+
         # How close the sub has to get before reversing
         self.distGoal = 0.06
-
-        # How close the sub has to get before blindly ramming
-        self.distGoal = 0.01
         # How long the sub should blindly ram for before reversing
         self.blindRamDuration = 2
 
@@ -66,7 +67,7 @@ class BuoyTask():
         rospy.loginfo("state: {}".format(self.state))
 
         # When we've hit the buoy, prepare to reset for the next task
-        if self.state is "HIT" and self.hitTime is not None:
+        if self.state is STATES.HIT and self.hitTime is not None:
             msg.forward_state = control.STATE_ERROR
             # TODO: Improve logic for after hitting buoy to be more useful
             # If we have moved for long enough, end task
@@ -89,11 +90,11 @@ class BuoyTask():
 
         # Check for empty message, we can't see a buoy
         elif vision_result is None:
-            if self.state is "TRACKING":
+            if self.state is STATES.TRACKING:
                 # We were tracking the buoy, but we've lost it now...
                 # TODO: Decide what to do when this happens
                 rospy.logerr("Lost buoy...")
-            self.state = "SEARCHING"
+            self.state = STATES.SEARCHING
             # Spin 10 degrees
             msg.yaw_state = control.STATE_RELATIVE
             msg.yaw_left = self.yaw_search_speed
@@ -120,7 +121,7 @@ class BuoyTask():
             # disparity calculations.
             if vision_result.width * vision_result.height < self.distGoal:
                 msg.forward = self.ram_speed
-                self.state = "RAMMING"
+                self.state = STATES.RAMMING
                 rospy.loginfo("{} from goal".format(self.distGoal -
                               vision_result.width * vision_result.height))
             else:
@@ -130,19 +131,19 @@ class BuoyTask():
                      < rospy.get_rostime():
                     # We need to blindly ram
                     msg.forward = self.ram_speed
-                    self.state = "RAMMING"
+                    self.state = STATES.RAMMING
                     rospy.loginfo("Ramming blindly...")
 
                 else:
                     # Since the buoy has been rammed, begin end procedure
                     msg.forward = 0
-                    self.state = "HIT"
+                    self.state = STATES.HIT
                     self.hitTime = rospy.get_rostime()
                     rospy.loginfo("Hit time: {}".format(self.hitTime))
 
         else:
             # We see a buoy, but it is not centered.
-            self.state = "TRACKING"
+            self.state = STATES.TRACKING
             if abs(vision_result.x) > self.errorGoal:
                 # Center X (yaw) first
                 msg.yaw_state = control.STATE_RELATIVE

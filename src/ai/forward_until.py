@@ -21,7 +21,7 @@ class ForwardUntilTask():
         msg.roll_right = 0
         msg.pitch_state = control.STATE_ABSOLUTE
         msg.pitch_down = 0
-        # Don't move forward
+        # Move forward
         msg.forward_state = control.STATE_ERROR
         msg.forward = 1
 
@@ -65,7 +65,7 @@ class ForwardUntilTask():
             msg.pitch_state = control.STATE_ABSOLUTE
             msg.pitch_down = 0
 
-            # Don't move forward
+            # Move forward
             msg.forward_state = control.STATE_ERROR
             msg.forward = 1
 
