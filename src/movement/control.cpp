@@ -4,6 +4,7 @@
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
 #include <utility/ThrottledPublisher.hpp>
+#include "std_srvs/Empty.h"
 
 #include <string>
 
@@ -13,6 +14,16 @@ using namespace robosub;
  * The control system object.
  */
 ControlSystem *control_system;
+
+/*
+ * Function to deal with Enable/Disable service call.
+ */
+bool disable(std_srvs::Empty::Request& req,
+                   std_srvs::Empty::Response& res)
+{
+    control_system->setEnabled(false);
+    return true;
+}
 
 /**
  * Main entry point.
@@ -48,6 +59,9 @@ int main(int argc, char **argv)
 
     ros::Timer timer = nh.createTimer(ros::Duration(0.1),
             &ControlSystem::CheckTimeout, control_system);
+
+    ros::ServiceServer disableService =
+        nh.advertiseService("control/toggleEnabled", disable);
 
     int rate;
     nh.getParam("rate/control", rate);
