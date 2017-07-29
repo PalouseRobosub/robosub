@@ -19,7 +19,7 @@ from python_qt_binding.QtCore import QTimer
 # Import Messages
 from robosub.msg import thruster
 from robosub.msg import Float32Stamped
-from geometry_msgs.msg import QuaternionStamped
+from robosub.msg import Euler
 
 class SysCheck(Plugin):
 
@@ -45,8 +45,8 @@ class SysCheck(Plugin):
         # Subscribe to the depth and orientation topics
         self.depth_sub = rospy.Subscriber('depth', Float32Stamped,
                                           self.depthSubCallback, queue_size=1)
-        self.imu_sub = rospy.Subscriber('orientation',
-                                        QuaternionStamped,
+        self.imu_sub = rospy.Subscriber('pretty/orientation',
+                                        Euler,
                                         self.imuSubCallback, queue_size=1)
 
         # Initialize the timers
@@ -209,6 +209,10 @@ class SysCheck(Plugin):
         if not self._widget.imuActive.isVisible():
             self._widget.imuActive.show()
 
+        self._widget.currentRoll.setText(str(m.roll));
+        self._widget.currentPitch.setText(str(m.pitch));
+        self._widget.currentYaw.setText(str(m.yaw));
+
         # Restart the timer
         self.imuTimer.start(1000)
 
@@ -229,6 +233,8 @@ class SysCheck(Plugin):
             self._widget.depthStale.hide()
         if not self._widget.depthActive.isVisible():
             self._widget.depthActive.show()
+
+        self._widget.currentDepth.setText(str(m.data));
 
         # Restart the timer
         self.depthTimer.start(1000)
