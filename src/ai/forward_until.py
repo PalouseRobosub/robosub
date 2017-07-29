@@ -5,8 +5,6 @@ from rs_yolo.msg import DetectionArray as detection_array
 from robosub.msg import control
 from util import *
 
-import sys
-
 class ForwardUntilTask():
 
     def __init__(self, label_list, yaw_value):
@@ -81,10 +79,8 @@ class ForwardUntilTask():
 
 if __name__ == "__main__":
     rospy.init_node('forward_until_task')
+   
+    args = rospy.myargv()
 
-    label_list = []
-    for string in sys.argv[2:]:
-        if string[0] is not '_':
-            label_list.append(string)
-    node = ForwardUntilTask(label_list, sys.argv[1])
+    node = ForwardUntilTask(args[2:], args[1])
     rospy.spin()

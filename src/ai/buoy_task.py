@@ -23,7 +23,26 @@ class BuoyTask():
         # How close the sub has to get before reversing
         self.distGoal = 0.06
 
-        self.blindRamTime = 2
+        # How close the sub has to get before blindly ramming
+        self.distGoal = 0.01
+        # How long the sub should blindly ram for before reversing
+        self.blindRamDuration = 2
+
+        self.blindRamTime = None
+
+        
+        ######## Speed settings #######
+        # The speed to send to ram the buoys
+        self.ram_speed = 0.5
+        # The factor to multiply the error in the image by to get a resulting
+        # speed (yaw and dive)
+        self.yaw_speed_factor = -25
+        self.dive_speed_factor = -1 
+
+        self.yaw_search_speed = 5
+
+        # The absolute value speed to use when backing
+        self.reverse_speed = 0.5
 
         self.label_name = label_name
 
@@ -61,7 +80,7 @@ class BuoyTask():
             # Otherwise continue to reverse
             else:
                 rospy.loginfo("Reversing from buoy")
-                msg.forward = -0.5
+                msg.forward = -self.reverse_speed
 
             # Both instances should maintain yaw and dive
             msg.yaw_state = control.STATE_RELATIVE
@@ -78,7 +97,7 @@ class BuoyTask():
             self.state = "SEARCHING"
             # Spin 10 degrees
             msg.yaw_state = control.STATE_RELATIVE
-            msg.yaw_left = 10
+            msg.yaw_left = self.yaw_search_speed
             # Don't move forward and maintain depth
             msg.forward_state = control.STATE_ERROR
             msg.forward = 0
@@ -101,16 +120,26 @@ class BuoyTask():
             # updated when the magnitude calculation is replaced by stereo
             # disparity calculations.
             if vision_result.width * vision_result.height < self.distGoal:
-                msg.forward = 0.5
+                msg.forward = self.ram_speed
                 self.state = "RAMMING"
                 rospy.loginfo("{} from goal".format(self.distGoal -
                               vision_result.width * vision_result.height))
             else:
-                # Since the buoy has been rammed, begin end procedure
-                msg.forward = 0
-                self.state = "HIT"
-                self.hitTime = rospy.get_rostime()
-                rospy.loginfo("Hit time: {}".format(self.hitTime))
+                if self.blindRamTime is None:
+                    self.blindRamTime = rospy.get_rostime()
+                elif self.blindRamTime + rospy.Duration(self.blindRamDuration)\
+                     < rospy.get_rostime():
+                    # We need to blindly ram
+                    msg.forward = self.ram_speed
+                    self.state = "RAMMING"
+                    rospy.loginfo("Ramming blindly...")
+
+                else:
+                    # Since the buoy has been rammed, begin end procedure
+                    msg.forward = 0
+                    self.state = "HIT"
+                    self.hitTime = rospy.get_rostime()
+                    rospy.loginfo("Hit time: {}".format(self.hitTime))
 
         else:
             # We see a buoy, but it is not centered.
@@ -123,8 +152,8 @@ class BuoyTask():
                 msg.yaw_left = (vision_result.x *
                                 (1 - (vision_result.width *
                                       vision_result.height * 10)) *
-                                (-50))/2
-                rospy.loginfo("Yaw error: {}".format(msg.yaw_left))
+                                self.yaw_speed_factor)
+                rospy.loginfo("Yaw relative: {}".format(msg.yaw_left))
                 # Maintain depth
                 msg.dive_state = control.STATE_RELATIVE
                 msg.dive = 0
@@ -137,8 +166,9 @@ class BuoyTask():
                 # changes.
                 msg.dive = (vision_result.y *
                             ((1 - (vision_result.width * vision_result.height *
-                                   10)) * -5))/5
-                rospy.loginfo("Dive error: {}".format(msg.dive))
+                                   10)) * self.dive_speed_factor))
+                rospy.loginfo("Dive relative: {}".format(msg.dive))
+>>>>>>> Stashed changes
 
         self.pub.publish(msg)
 

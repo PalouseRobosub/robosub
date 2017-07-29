@@ -40,9 +40,24 @@ class GateTask():
         self.state = "LOST"
         # How far off center the gate should be
         self.errorGoal = 0.1
+
+        # How "far" from the gate we should be in order to decide to go through
+        self.distanceGoal = 0.012
+
         # Used to determine if moving we were moving left or right last
         self.prev_yaw = 0
         self.throughTime = None
+
+        # The depth value to send
+        self.depth = -2
+
+        ####### Speeds #######
+        self.yaw_speed = 10
+
+        self.dive_factor = -25
+        self.yaw_factor = -2.5
+
+        self.forward_speed = 10
 
     # Called when there are no gate posts found by the vision
     def noneFound(self, msg, vision):
@@ -51,19 +66,19 @@ class GateTask():
         msg.forward_state = control.STATE_ERROR
         msg.forward = 0
         msg.dive_state = control.STATE_ABSOLUTE
-        msg.dive = -2
+        msg.dive = self.depth
 
         if self.state is "LOST":
             # Rotate left by default if no data
-            msg.yaw_left = 10
+            msg.yaw_left = self.yaw_speed
         elif self.state is "SEARCHING LEFT":
             # We had one post and lost it, go back right to find it again
             self.state = "SEARCHING RIGHT"
-            msg.yaw_left = -10
+            msg.yaw_left = -self.yaw_speed
         elif self.state is "SEARCHING RIGHT":
             # We had one post and lost it, go back left to find it again
             self.state = "SEARCHING LEFT"
-            msg.yaw_left = 10
+            msg.yaw_left = self.yaw_speed`
         elif self.state is "TRACKING":
             # We were seeing both posts and lost them both at once!
             # What happened!?
@@ -81,12 +96,12 @@ class GateTask():
                 # If the post is on the left of the image, search right for the
                 # other one.
                 self.state = "SEARCHING_RIGHT"
-                msg.yaw_left = -10
+                msg.yaw_left = -self.yaw_speed
             else:
                 # If the post is on the right of the image, search left for the
                 # other one.
                 self.state = "SEARCHING_LEFT"
-                msg.yaw_left = 10
+                msg.yaw_left = self.yaw_speed
         elif self.state is "SEARCHING_LEFT" or self.state is "SEARCHING_RIGHT":
             # If we were searching one way or another, there is no new info
             # to make decisions on. Just keep going.
@@ -113,12 +128,12 @@ class GateTask():
                     # The post is on the left of the image, so yaw right to
                     # find the other post
                     self.state = "SEARCHING_RIGHT"
-                    msg.yaw_left = 10
+                    msg.yaw_left = self.yaw_speed
                 else:
                     # The post is on the right of the image, so yaw left to
                     # find the other post
                     self.state = "SEARCHING_LEFT"
-                    msg.yaw_left = -10
+                    msg.yaw_left = -self.yaw_speed
 
     # Called when we see both posts
     def twoFound(self, msg, vision):
@@ -137,19 +152,19 @@ class GateTask():
             msg.yaw_state = control.STATE_RELATIVE
             # The scalar of 50 was determined through testing and will need to
             # change when stereo vision is implemented
-            msg.yaw_left = gateXPos * -50
+            msg.yaw_left = gateXPos * self.yaw_factor 
             rospy.loginfo("Yaw output: {}".format(msg.yaw_left))
         elif abs(gateYPos) > self.errorGoal:
             # Center Y (dive) second
             msg.dive_state = control.STATE_RELATIVE
             # The scalar of 50 was determined through testing and will need to
             # change when stereo vision is implemented
-            msg.dive = gateYPos * -50
+            msg.dive = gateYPos * self.dive_factor
             rospy.loginfo("Dive output: {}".format(msg.dive))
         else:
             # We are centered on the gate
             if ((vision[0].width * vision[0].height) +
-               (vision[1].width * vision[1].height)) > 0.012:
+               (vision[1].width * vision[1].height)) > self.distanceGoal:
                 # We are within a good distance from the gate.
                 # The value of 0.012 was determined through testing and needs
                 # to be updated when stereo vision is implemented
@@ -165,7 +180,7 @@ class GateTask():
                 msg.dive = 0
                 # Move forward
                 msg.forward_state = control.STATE_ERROR
-                msg.forward = 10
+                msg.forward = self.forward_speed
 
     # Called when a vision input is received.
     # Perhaps adding some safeguard timeouts so if a message isn't recieved
@@ -210,10 +225,10 @@ class GateTask():
         msg.pitch_state = control.STATE_ABSOLUTE
         msg.pitch_down = 0
 
-        # always maintain depth at 1 meter by default (Perhaps this could be
+        # always maintain a depth by default (Perhaps this could be
         # made into a parameter)
         msg.dive_state = control.STATE_ABSOLUTE
-        msg.dive = -1
+        msg.dive = self.depth
 
         if self.state is "THROUGH" and self.throughTime is not None:
             # We have completed our distance goal and have a completion time,
@@ -231,7 +246,7 @@ class GateTask():
                 # We have not reached the desired blind movement time
                 # and should be moving forward
                 rospy.loginfo("Moving through gate")
-                msg.forward = 10
+                msg.forward = self.forward_speed
 
             # Maintain our centered yaw and dive
             msg.yaw_state = control.STATE_RELATIVE
