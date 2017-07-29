@@ -5,6 +5,8 @@ import roslaunch
 
 from robosub.msg import control
 
+from std_srvs.srv import Empty
+
 # Uses the roslaunch API to spin up nodes in sequence
 class AiManager():
 
@@ -53,17 +55,12 @@ class AiManager():
         rospy.logwarn("AI Manager killed! Shutting down...")
         self.process.stop()
         self.tasks = []
-        publisher = rospy.Publisher('control', control, queue_size=1)
-        msg = control()
-
-        msg.forward_state = control.STATE_ERROR
-        msg.strafe_state = control.STATE_ERROR
-        msg.dive_state = control.STATE_ERROR
-        msg.yaw_state = control.STATE_ERROR
-        msg.pitch_state = control.STATE_ERROR
-        msg.roll_state = control.STATE_ERROR
-
-        publisher.publish(msg)
+        rospy.wait_for_service('control/disable')
+        try:
+            srv = rospy.ServiceProxy('control/disable', Empty)
+            srv()
+        except rospy.ServiceException, e:
+            rospy.logerr("Control system disable call failed!")
 
 if __name__ == "__main__":
     rospy.init_node('aiManager')
