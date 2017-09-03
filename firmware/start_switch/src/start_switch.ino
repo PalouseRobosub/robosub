@@ -2,6 +2,7 @@
  * Author: Zachary Pratt
  * Version: 0.1
 */
+
 #include <ros.h>
 #include <std_msgs/Bool.h>
 
@@ -14,7 +15,7 @@ ros::Publisher start_switch_pub("start_switch", &start_switch_msg);
 
 void setup()
 {
-    pinMode(start_switch_pin, INPUT);
+    pinMode(start_switch_pin, INPUT_PULLUP);
     n.initNode();
     n.advertise(start_switch_pub);
 }
