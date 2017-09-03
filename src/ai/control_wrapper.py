@@ -30,8 +30,8 @@ class control_wrapper():
 
     # Set the yaw and pitch to absolute 0
     def levelOut(self):
-        self.rollAbsolute(0)
-        self.pitchAbsolute(0)
+        self.rollRightAbsolute(0)
+        self.pitchDownAbsolute(0)
 
     # ---------------Yaw Methods--------------------
 
