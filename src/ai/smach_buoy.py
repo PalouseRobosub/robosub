@@ -6,23 +6,21 @@ class start_switch(smach.State):
         smach.State.__init__(self, outcomes=['success'])
         self.sub = rospy.Subscriber("start_swith", Bool, self.switch_callback)
         self.start_counter = 0
-        self.msg_list = list()
+        self.done = False
 
     def switch_callback(self, msg):
-        self.msg_list.append(msg.data)
+        if i == True:
+            self.start_counter += 1
+            if self.start_counter >= 3:
+                self.done = True
+        else: # i == False
+            self.start_counter = 0
 
     def execute(self, userdata):
         rospy.loginfo('waiting for start switch')
-
         while not rospy.is_shutdown():
-            for i in self.msg_list:
-                if i == True:
-                    self.start_counter += 1
-                    if self.start_counter >= 3:
-                        return 'success'
-                else: # i == False
-                    self.start_counter = 0
-            self.msg_list = list()
+            if self.done == True:
+                return 'success'
             rospy.sleep(0.1)
 
 
