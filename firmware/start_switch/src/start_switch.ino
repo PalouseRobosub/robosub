@@ -1,12 +1,12 @@
 /*
  * Author: Zachary Pratt
- * Version: 0.1
+ * Version: 0.1.1
 */
 
 #include <ros.h>
 #include <std_msgs/Bool.h>
 
-static constexpr int start_switch_pin = 13;
+static constexpr int start_switch_pin = 2;
 
 ros::NodeHandle n;
 
