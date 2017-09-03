@@ -1,5 +1,9 @@
 #!/usr/bin/python
+import rospy
 from std_msgs.msg import Bool
+from rs_yolo.msg import DetectionArray as detection_array
+from util import *
+import control_wrapper
 
 class start_switch(smach.State):
     def __init__(self):
@@ -23,6 +27,63 @@ class start_switch(smach.State):
                 return 'success'
             rospy.sleep(0.1)
 
+class track_buoy(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success'])
+        self.sub = rospy.Subscriber("vision", detection_array, self.callback)
+        self.done = False
+
+        # How close to center the buoy needs to be (abs)
+        self.errorGoal = 0.1
+
+        # How close the sub has to get before reversing
+        self.distGoal = 0.06
+
+        self.yaw_speed_factor = -25
+        self.dive_speed_factor = -1
+
+    def callback(self, msg):
+        c = control_wrapper()
+        c.levelOut()
+
+        detections = filterByLabel(detection.detections, self.label_name)
+
+        vision_result = getMostProbable(detections, thresh=0.5)
+
+        normalize(vision_result)
+
+        if abs(vision_result.x) > self.errorGoal:
+                # Center X (yaw) first
+                msg.yaw_state = control.STATE_RELATIVE
+                # Calculation found by testing, will be updated with magnitude
+                # changes.
+                yaw_left = (vision_result.x *
+                                (1 - (vision_result.width *
+                                      vision_result.height * 10)) *
+                                self.yaw_speed_factor)
+                c.yawLeftRelative(yaw_left)
+                rospy.loginfo("Yaw relative: {}".format(yaw_left))
+                # Maintain depth
+                c.diveRelative(0)
+            else:
+                # Now center Y (Dive) and maintain yaw
+                c.yawLeftRelative(0)
+                # Calculation found by testing, will be updated with magnitude
+                # changes.
+                dive = (vision_result.y *
+                            ((1 - (vision_result.width * vision_result.height *
+                                   10)) * self.dive_speed_factor))
+                c.diveRelative(dive)
+                #also move slowly forward
+                c.ForwardError(0.5)
+
+        c.publish()
+
+    def execute(self.userdata):
+        while not rospy.is_shutdown():
+            if self.done == True:
+                return 'success'
+            rospy.sleep(0.1)
 
 
 
