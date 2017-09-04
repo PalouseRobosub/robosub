@@ -35,7 +35,7 @@ class track_buoy(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'])
         self.done = False
-        self.label_name = 'green_buoy'
+        self.label_name = 'red_buoy'
 
         # How close to center the buoy needs to be (abs)
         self.errorGoal = 0.1
@@ -43,12 +43,13 @@ class track_buoy(smach.State):
         # How close the sub has to get before reversing
         self.distGoal = 0.06
 
-        self.yaw_speed_factor = -25
+        self.yaw_speed_factor = -50
         self.dive_speed_factor = -1
 
     def callback(self, msg):
         c = control_wrapper()
         c.levelOut()
+        c.forwardError(0.0)
 
         detections = filterByLabel(msg.detections, self.label_name)
 
@@ -79,9 +80,11 @@ class track_buoy(smach.State):
                                    10)) * self.dive_speed_factor))
                 c.diveRelative(dive)
                 #also move slowly forward
-                c.forwardError(0.5)
+                c.forwardError(0.2)
 
-            c.publish()
+        c.diveAbsolute(-0.4)
+
+        c.publish()
 
     def execute(self, userdata):
         self.sub = rospy.Subscriber("vision", detection_array, self.callback)
