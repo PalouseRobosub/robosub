@@ -28,4 +28,7 @@
     <node pkg="rosbag" type="record" name="darknet_bag" output="screen"
         args="-o $(arg outdir)/darknet /vision" />
 
+    <node pkg="rosbag" type="record" name="rosout_bag" output="screen"
+        args="-o $(arg outdir)/rosout /rosout_agg" />
+
 </launch>
