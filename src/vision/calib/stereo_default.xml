@@ -48,5 +48,8 @@
      <!-- If true (non-zero) distortion coefficient k5 will be equals to zero.-->
      <Fix_K5>true</Fix_K5>
 </Settings>
-<CropRadius>400</CropRadius>
+<!-- Left Camera calibration file -->
+<LeftCalib>"left_camera_out.xml"</LeftCalib>
+<!-- Right Camera calibration file -->
+<RightCalib>"right_camera_out.xml"</RightCalib>
 </opencv_storage>
