@@ -34,7 +34,7 @@ class start_switch(smach.State):
 
 class track_buoy(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success'])
+        smach.State.__init__(self, outcomes=['success', 'lost_buoy'])
         self.done = False
         self.label_name = 'red_buoy'
 
@@ -88,6 +88,8 @@ class track_buoy(smach.State):
         c.publish()
 
     def execute(self, userdata):
+        rospy.sleep(2)
+        return 'success'
         self.sub = rospy.Subscriber("vision", detection_array, self.callback)
         while not rospy.is_shutdown():
             if self.done == True:
@@ -101,43 +103,58 @@ class find_buoy(smach.State):
         smach.State.__init__(self, outcomes=['success'])
 
     def execute(self, userdata):
-        pass
+        rospy.sleep(2)
+        return 'success'
 
 class ram_buoy(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'])
 
     def execute(self, userdata):
-        pass
+        rospy.sleep(2)
+        return 'success'
 
-class hit_buoy(smach.State):
+class hit_buoy(smach.StateMachine):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success'])
+        smach.StateMachine.__init__(self, outcomes=['success'])
+        with self:
+            smach.StateMachine.add("FIND_BUOY", find_buoy(),
+                                   transitions={'success': 'TRACKING'})
+            smach.StateMachine.add("TRACKING", track_buoy(),
+                                   transitions={'success': 'RAM_BUOY',
+                                                'lost_buoy': 'FIND_BUOY'})
+            smach.StateMachine.add("RAM_BUOY", ram_buoy(),
+                                   transitions={'success': 'success'})
 
-    def execute(self, userdata):
-        pass
 
 class reset_position(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'])
 
     def execute(self, userdata):
-        pass
+        rospy.sleep(2)
+        return 'success'
 
 if __name__ == "__main__":
     rospy.init_node('buoy_ai', log_level=rospy.INFO)
 
-    sm = smach.StateMachine(outcomes=['success', 'failure'])
+    sm = smach.StateMachine(outcomes=['success'])
 
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
-                               transitions={'success':'TRACK_BUOY'})
-        smach.StateMachine.add('TRACK_BUOY', track_buoy(),
-                               transitions={'success':'success'
-                                            },
-                               )
+                               transitions={'success':'HIT_BUOY_RED'})
+        smach.StateMachine.add('HIT_BUOY_RED', hit_buoy(),
+                               transitions={'success':'RESET_FOR_GREEN'})
+        smach.StateMachine.add('RESET_FOR_GREEN', reset_position(),
+                               transitions={'success':'HIT_BUOY_GREEN'})
+        smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy(),
+                               transitions={'success':'RESET_FOR_YELLOW'})
+        smach.StateMachine.add('RESET_FOR_YELLOW', reset_position(),
+                               transitions={'success':'HIT_BUOY_YELLOW'})
+        smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy(),
+                               transitions={'success':'success'})
 
-    sis = smach_ros.IntrospectionServer('server_name', sm, '/SM_ROOT')
+    sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()
     outcome = sm.execute()
 
