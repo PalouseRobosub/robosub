@@ -31,6 +31,7 @@ class start_switch(smach.State):
             rospy.sleep(0.1)
         self.sub.unregister()
 
+
 class track_buoy(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'])
@@ -95,6 +96,33 @@ class track_buoy(smach.State):
 
         self.sub.unregister()
 
+class find_buoy(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success'])
+
+    def execute(self, userdata):
+        pass
+
+class ram_buoy(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success'])
+
+    def execute(self, userdata):
+        pass
+
+class hit_buoy(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success'])
+
+    def execute(self, userdata):
+        pass
+
+class reset_position(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success'])
+
+    def execute(self, userdata):
+        pass
 
 if __name__ == "__main__":
     rospy.init_node('buoy_ai', log_level=rospy.INFO)
