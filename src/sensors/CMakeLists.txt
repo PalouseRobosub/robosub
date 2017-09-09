@@ -22,3 +22,5 @@ add_ros_node(hydrophones trilateration.cpp)
 
 add_ros_node(trax_calibrate trax_calibration.cpp)
 target_link_libraries(trax_calibrate serial trax)
+
+add_ros_node(pinger_bearing pinger_bearing.cpp)
