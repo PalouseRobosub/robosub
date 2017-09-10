@@ -31,4 +31,7 @@
     <node pkg="rosbag" type="record" name="rosout_bag" output="screen"
         args="-o $(arg outdir)/rosout /rosout_agg" />
 
+    <node pkg="rosbag" type="record" name="smach_bag" output="screen"
+        args="-o $(arg outdir)/smach -e /smach_server/(.*)" />
+
 </launch>

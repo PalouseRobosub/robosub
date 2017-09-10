@@ -8,25 +8,26 @@ import smach
 import smach_ros
 
 class start_switch(smach.State):
-    def __init__(self):
+    def __init__(self, min_count=3):
         smach.State.__init__(self, outcomes=['success'])
         self.start_counter = 0
         self.done = False
+        self.min_count = min_count
 
     def switch_callback(self, msg):
         if msg.data is True:
             self.start_counter += 1
-            if self.start_counter >= 3:
+            if self.start_counter >= self.min_count:
                 self.done = True
-        else:  # i == False
+        else:
             self.start_counter = 0
 
     def execute(self, userdata):
+        self.done = False
         self.sub = rospy.Subscriber("start_switch", Bool, self.switch_callback)
         rospy.loginfo('waiting for start switch')
         while not rospy.is_shutdown():
             if self.done is True:
-                rospy.loginfo('got here')
                 return 'success'
             rospy.sleep(0.1)
         self.sub.unregister()
@@ -86,7 +87,6 @@ class track_buoy(smach.State):
             if (abs(vision_result.x) < self.errorGoal) and \
                  (abs(vision_result.y) < self.errorGoal):
 
-
                 # if we are close enough, transition to ram state
                 volume = abs(vision_result.width * vision_result.height)
                 rospy.loginfo("volume: {}".format(volume))
@@ -134,7 +134,7 @@ class find_buoy(smach.State):
         normalize(vision_result)
 
         if vision_result is None:
-            # if we can't see the object in question, yaw by 15 degrees
+            # if we can't see the object in question, yaw
             yaw_left = 5
             c.yawLeftRelative(yaw_left)
         else:  # we can see the object
@@ -152,7 +152,6 @@ class find_buoy(smach.State):
             else:  # object is close to center of screen, this state is done
                 self.done = True
 
-        rospy.loginfo("find buoy publishing")
         c.publish()
 
     def execute(self, userdata):
@@ -165,14 +164,15 @@ class find_buoy(smach.State):
             rospy.sleep(0.1)
 
 class ram_buoy(smach.State):
-    def __init__(self):
+    def __init__(self, time):
         smach.State.__init__(self, outcomes=['success'])
+        self.time = time
 
     def execute(self, userdata):
         c = control_wrapper()
         c.levelOut()
         c.forwardError(0.4)
-        exit_time = rospy.Time.now() + rospy.Duration(4)
+        exit_time = rospy.Time.now() + rospy.Duration(self.time)
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             rospy.sleep(0.1)
@@ -187,19 +187,20 @@ class hit_buoy(smach.StateMachine):
             smach.StateMachine.add("TRACKING", track_buoy(vision_label),
                                    transitions={'success': 'RAM_BUOY',
                                                 'lost_buoy': 'FIND_BUOY'})
-            smach.StateMachine.add("RAM_BUOY", ram_buoy(),
+            smach.StateMachine.add("RAM_BUOY", ram_buoy(4),
                                    transitions={'success': 'success'})
 
 
 class reset_position(smach.State):
-    def __init__(self):
+    def __init__(self, time):
         smach.State.__init__(self, outcomes=['success'])
+        self.time = time
 
     def execute(self, userdata):
         c = control_wrapper()
         c.levelOut()
         c.forwardError(-0.4)
-        exit_time = rospy.Time.now() + rospy.Duration(8)
+        exit_time = rospy.Time.now() + rospy.Duration(self.time)
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             rospy.sleep(0.1)
@@ -215,15 +216,15 @@ if __name__ == "__main__":
                                transitions={'success': 'HIT_BUOY_RED'})
         smach.StateMachine.add('HIT_BUOY_RED', hit_buoy('red_buoy'),
                                transitions={'success': 'RESET_FOR_GREEN'})
-        smach.StateMachine.add('RESET_FOR_GREEN', reset_position(),
+        smach.StateMachine.add('RESET_FOR_GREEN', reset_position(8),
                                transitions={'success': 'HIT_BUOY_GREEN'})
         smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy('green_buoy'),
                                transitions={'success': 'RESET_FOR_YELLOW'})
-        smach.StateMachine.add('RESET_FOR_YELLOW', reset_position(),
+        smach.StateMachine.add('RESET_FOR_YELLOW', reset_position(8),
                                transitions={'success': 'HIT_BUOY_YELLOW'})
         smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy('yellow_buoy'),
                                transitions={'success': 'BACKUP'})
-        smach.StateMachine.add('BACKUP', reset_position(),
+        smach.StateMachine.add('BACKUP', reset_position(8),
                                transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
