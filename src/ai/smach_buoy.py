@@ -44,9 +44,9 @@ class track_buoy(smach.State):
         self.errorGoal = 0.05
 
         # How close the sub has to get before reversing
-        self.distGoal = 0.005
+        self.distGoal = 0.050
 
-        self.yaw_speed_factor = -50
+        self.yaw_speed_factor = -35
         self.dive_speed_factor = -1
 
     def callback(self, msg):
@@ -60,7 +60,10 @@ class track_buoy(smach.State):
 
         normalize(vision_result)
 
+
         if vision_result is not None:
+            vision_result.x -= 0.25
+            self.lost_counter = 0
             if abs(vision_result.x) > self.errorGoal:
                     # Center X (yaw) first
                     # Calculation found by testing, will be updated with
@@ -81,10 +84,16 @@ class track_buoy(smach.State):
                 dive = (vision_result.y *
                             ((1 - (vision_result.width * vision_result.height *
                                    10)) * self.dive_speed_factor))
+                rospy.loginfo("Dive relative: {}".format(dive))
                 c.diveRelative(dive)
 
-            # if we are roughly centered on the buoy
-            if (abs(vision_result.x) < self.errorGoal) and \
+            volume = abs(vision_result.width * vision_result.height)
+
+            if (volume > self.distGoal*2):
+                self.done = True
+                return
+            # if we are far away and roughly centered on the buoy
+            elif (abs(vision_result.x) < self.errorGoal) and \
                  (abs(vision_result.y) < self.errorGoal):
 
                 # if we are close enough, transition to ram state
@@ -96,7 +105,9 @@ class track_buoy(smach.State):
                 else:  # move slowly forward
                     c.forwardError(0.2)
         else:  # we can't see the buoy
-            self.lost = True
+            self.lost_counter += 1
+            if self.lost_counter > self.lost_counter_max:
+                self.lost = True
             return
 
         c.publish()
@@ -104,6 +115,8 @@ class track_buoy(smach.State):
     def execute(self, userdata):
         self.done = False
         self.sub = rospy.Subscriber("vision", detection_array, self.callback)
+        self.lost_counter = 0
+        self.lost_counter_max = 5
         while not rospy.is_shutdown():
             if self.done is True:
                 self.sub.unregister()
@@ -120,7 +133,7 @@ class find_buoy(smach.State):
         self.done = False
         self.vision_label = vision_label
         self.errorGoal = 0.1
-        self.yaw_speed_factor = -50
+        self.yaw_speed_factor = -25
 
     def callback(self, msg):
         c = control_wrapper()
@@ -199,7 +212,7 @@ class reset_position(smach.State):
     def execute(self, userdata):
         c = control_wrapper()
         c.levelOut()
-        c.forwardError(-0.4)
+        c.forwardError(-0.8)
         exit_time = rospy.Time.now() + rospy.Duration(self.time)
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
@@ -216,15 +229,15 @@ if __name__ == "__main__":
                                transitions={'success': 'HIT_BUOY_RED'})
         smach.StateMachine.add('HIT_BUOY_RED', hit_buoy('red_buoy'),
                                transitions={'success': 'RESET_FOR_GREEN'})
-        smach.StateMachine.add('RESET_FOR_GREEN', reset_position(8),
+        smach.StateMachine.add('RESET_FOR_GREEN', reset_position(10),
                                transitions={'success': 'HIT_BUOY_GREEN'})
         smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy('green_buoy'),
                                transitions={'success': 'RESET_FOR_YELLOW'})
-        smach.StateMachine.add('RESET_FOR_YELLOW', reset_position(8),
+        smach.StateMachine.add('RESET_FOR_YELLOW', reset_position(10),
                                transitions={'success': 'HIT_BUOY_YELLOW'})
         smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy('yellow_buoy'),
                                transitions={'success': 'BACKUP'})
-        smach.StateMachine.add('BACKUP', reset_position(8),
+        smach.StateMachine.add('BACKUP', reset_position(10),
                                transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
