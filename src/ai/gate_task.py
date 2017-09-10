@@ -8,7 +8,8 @@ from robosub.msg import control
 from util import *
 from enum import Enum
 
-STATES = Enum(["SEARCHING_LEFT", "SEARCHING_RIGHT", "TRACKING", "LOST", "THROUGH"])
+STATES = Enum(["SEARCHING_LEFT", "SEARCHING_RIGHT", "TRACKING", "LOST",
+"THROUGH"])
 
 class GateTask():
     def __init__(self, commandArgs):
@@ -105,7 +106,8 @@ class GateTask():
                 # other one.
                 self.state = STATES.SEARCHING_LEFT
                 msg.yaw_left = self.yaw_speed
-        elif self.state is STATES.SEARCHING_LEFT or self.state is STATES.SEARCHING_RIGHT:
+        elif self.state is STATES.SEARCHING_LEFT or \
+             self.state is STATES.SEARCHING_RIGHT:
             # If we were searching one way or another, there is no new info
             # to make decisions on. Just keep going.
             pass
