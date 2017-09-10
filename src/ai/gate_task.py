@@ -8,7 +8,7 @@ from robosub.msg import control
 from util import *
 from enum import Enum
 
-STATES = Enum(["SEARCHING_LEFT", "SEARCHING_RIGHT", "TRACKING", "LOST", "THROUGH" ])
+STATES = Enum(["SEARCHING_LEFT", "SEARCHING_RIGHT", "TRACKING", "LOST", "THROUGH"])
 
 class GateTask():
     def __init__(self, commandArgs):

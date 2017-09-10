@@ -14,18 +14,18 @@ class start_switch(smach.State):
         self.done = False
 
     def switch_callback(self, msg):
-        if msg.data == True:
+        if msg.data is True:
             self.start_counter += 1
             if self.start_counter >= 3:
                 self.done = True
-        else: # i == False
+        else:  # i == False
             self.start_counter = 0
 
     def execute(self, userdata):
         self.sub = rospy.Subscriber("start_switch", Bool, self.switch_callback)
         rospy.loginfo('waiting for start switch')
         while not rospy.is_shutdown():
-            if self.done == True:
+            if self.done is True:
                 rospy.loginfo('got here')
                 return 'success'
             rospy.sleep(0.1)
@@ -62,8 +62,8 @@ class track_buoy(smach.State):
         if vision_result is not None:
             if abs(vision_result.x) > self.errorGoal:
                     # Center X (yaw) first
-                    # Calculation found by testing, will be updated with magnitude
-                    # changes.
+                    # Calculation found by testing, will be updated with
+                    # magnitude changes.
                     yaw_left = (vision_result.x *
                                     (1 - (vision_result.width *
                                           vision_result.height * 10)) *
@@ -90,12 +90,12 @@ class track_buoy(smach.State):
                 # if we are close enough, transition to ram state
                 volume = abs(vision_result.width * vision_result.height)
                 rospy.loginfo("volume: {}".format(volume))
-                if  volume > self.distGoal:
+                if volume > self.distGoal:
                     self.done = True
                     return
-                else: #move slowly forward
+                else:  # move slowly forward
                     c.forwardError(0.2)
-        else: # we can't see the buoy
+        else:  # we can't see the buoy
             self.lost = True
             return
 
@@ -105,10 +105,10 @@ class track_buoy(smach.State):
         self.done = False
         self.sub = rospy.Subscriber("vision", detection_array, self.callback)
         while not rospy.is_shutdown():
-            if self.done == True:
+            if self.done is True:
                 self.sub.unregister()
                 return 'success'
-            if self.lost == True:
+            if self.lost is True:
                 self.sub.unregister()
                 return 'lost_buoy'
             rospy.sleep(0.1)
@@ -126,7 +126,6 @@ class find_buoy(smach.State):
         c = control_wrapper()
         c.levelOut()
         c.forwardError(0.0)
-        #c.diveAbsolute(-0.4)
 
         detections = filterByLabel(msg.detections, self.vision_label)
 
@@ -138,18 +137,19 @@ class find_buoy(smach.State):
             # if we can't see the object in question, yaw by 15 degrees
             yaw_left = 5
             c.yawLeftRelative(yaw_left)
-        else: # we can see the object
-            if abs(vision_result.x) > self.errorGoal: # if we aren't close to center
+        else:  # we can see the object
+            # if we aren't close to center
+            if abs(vision_result.x) > self.errorGoal:
                     # Center X (yaw) first
-                    # Calculation found by testing, will be updated with magnitude
-                    # changes.
+                    # Calculation found by testing, will be updated with
+                    # magnitude changes.
                     yaw_left = (vision_result.x *
                                     (1 - (vision_result.width *
                                           vision_result.height * 10)) *
                                     self.yaw_speed_factor)
                     c.yawLeftRelative(yaw_left)
                     rospy.loginfo("Yaw relative: {}".format(yaw_left))
-            else: # object is close to center of screen, this state is done
+            else:  # object is close to center of screen, this state is done
                 self.done = True
 
         rospy.loginfo("find buoy publishing")
@@ -159,7 +159,7 @@ class find_buoy(smach.State):
         self.done = False
         self.sub = rospy.Subscriber("vision", detection_array, self.callback)
         while not rospy.is_shutdown():
-            if self.done == True:
+            if self.done is True:
                 self.sub.unregister()
                 return 'success'
             rospy.sleep(0.1)
@@ -212,19 +212,19 @@ if __name__ == "__main__":
 
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
-                               transitions={'success':'HIT_BUOY_RED'})
+                               transitions={'success': 'HIT_BUOY_RED'})
         smach.StateMachine.add('HIT_BUOY_RED', hit_buoy('red_buoy'),
-                               transitions={'success':'RESET_FOR_GREEN'})
+                               transitions={'success': 'RESET_FOR_GREEN'})
         smach.StateMachine.add('RESET_FOR_GREEN', reset_position(),
-                               transitions={'success':'HIT_BUOY_GREEN'})
+                               transitions={'success': 'HIT_BUOY_GREEN'})
         smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy('green_buoy'),
-                               transitions={'success':'RESET_FOR_YELLOW'})
+                               transitions={'success': 'RESET_FOR_YELLOW'})
         smach.StateMachine.add('RESET_FOR_YELLOW', reset_position(),
-                               transitions={'success':'HIT_BUOY_YELLOW'})
+                               transitions={'success': 'HIT_BUOY_YELLOW'})
         smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy('yellow_buoy'),
-                               transitions={'success':'BACKUP'})
+                               transitions={'success': 'BACKUP'})
         smach.StateMachine.add('BACKUP', reset_position(),
-                               transitions={'success':'success'})
+                               transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()
