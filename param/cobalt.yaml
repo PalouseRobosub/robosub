@@ -153,16 +153,7 @@ trax:
     port: "/dev/trax"
     rate: 20
 hydrophones:
-    pinger:
-        depth: -4.1
-    reference:
-        x: 0
-        y: 0
-        z: 0
     positions:
-        delta: 3
-        epsilon: 3
-        zeta: 3
         x: 3
         y: 3
         z: 3
