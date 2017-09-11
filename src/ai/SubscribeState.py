@@ -3,35 +3,48 @@ import rospy
 import smach
 import smach_ros
 
+"""
+This state class is designed for subscribing to a topic and performing
+operations when the subscribed topic callback is executed. The user must define
+outcomes, and optionally can set a timeout so the state returns the "timeout"
+outcome if the state does not transition out before the timeout occurs.
+"""
 class SubscribeState(smach.State):
     def __init__(self, topic, msg_type, sub_callback, outcomes, setup_callback=None, timeout=None):
-        if 'timeout' not in outcomes:
+        rospy.loginfo('base class "init" running')
+        if timeout is not None and 'timeout' not in outcomes:
             outcomes.append('timeout')
         smach.State.__init__(self, outcomes=outcomes)
         self._topic = topic
         self._msg_type = msg_type
-        self._sub_callback = callback
-        self._timeout = timeout
+        self._sub_callback = sub_callback
+        if timeout is not None:
+            self._timeout = rospy.Duration(timeout)
+        else:
+            self._timeout = None
         self._setup_callback = setup_callback
         self._rate = rospy.Rate(10)
+        self._outcome = None
+        self._done = False
 
-        # public variables
-        self.outcome = None
-        self.done = False
+    def exit(self, outcome):
+        self.done = True
+        self._outcome = outcome
 
     def execute(self, user_data):
+        rospy.loginfo('SubscribeState base class "execute" running')
         self.done = False
-        self.outcome = None
+        self._outcome = None
         self._sub = rospy.Subscriber(self._topic, self._msg_type,
                                      self._sub_callback)
         if self._setup_callback:
-            self.setup_callback()
+            self._setup_callback()
 
         start_time = rospy.Time.now()
 
         while not rospy.is_shutdown():
             if self._timeout and rospy.Time.now() - start_time > self._timeout:
-                self.outcome = 'timeout'
+                self._outcome = 'timeout'
                 break
             if self.done is True:
                 break
@@ -39,7 +52,7 @@ class SubscribeState(smach.State):
                 self._rate.sleep()
 
         self._sub.unregister()
-        return self.outcome
+        return self._outcome
 
 if __name__ == "__main__":
     pass
