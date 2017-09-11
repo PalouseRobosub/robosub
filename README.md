@@ -1,7 +1,6 @@
 # Robosub
 
-Master: [![Build Status](https://travis-ci.org/PalouseRobosub/robosub.svg?branch=master)](https://travis-ci.org/PalouseRobosub/robosub)
-Dev: [![Build Status](https://travis-ci.org/PalouseRobosub/robosub.svg?branch=dev)](https://travis-ci.org/PalouseRobosub/robosub)
+[![Build Status](https://travis-ci.org/PalouseRobosub/robosub.svg?branch=master)](https://travis-ci.org/PalouseRobosub/robosub)
 
 Robosub Club of The Palouse consists of students from Washington State University. This club is focused on building an Autonomous Unmanned Vehicle for the AUVSI competition in San Diego, CA.
 
