@@ -32,7 +32,7 @@ void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
 
     d = time_deltas * speed_sound_in_water;
 
-    bearing = C.cwiseQuotient(hydrophone_positions);
+    bearing = d.cwiseQuotient(hydrophone_positions);
 
     geometry_msgs::Vector3Stamped bearing_msg;
 
