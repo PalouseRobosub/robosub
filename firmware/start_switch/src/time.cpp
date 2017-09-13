@@ -36,8 +36,9 @@
 
 namespace ros
 {
-  void normalizeSecNSec(uint32_t& sec, uint32_t& nsec){
-    uint32_t nsec_part= nsec % 1000000000UL;
+  void normalizeSecNSec(uint32_t& sec, uint32_t& nsec)
+  {
+    uint32_t nsec_part = nsec % 1000000000UL;
     uint32_t sec_part = nsec / 1000000000UL;
     sec += sec_part;
     nsec = nsec_part;
@@ -59,7 +60,8 @@ namespace ros
     return *this;
   }
 
-  Time& Time::operator -=(const Duration &rhs){
+  Time& Time::operator -=(const Duration &rhs)
+  {
     sec += -rhs.sec;
     nsec += -rhs.nsec;
     normalizeSecNSec(sec, nsec);
