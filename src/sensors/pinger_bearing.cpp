@@ -20,15 +20,17 @@ static constexpr double speed_sound_in_water = 1484.0;
 
 // callback for incoming ping time deltas from the hydrophones
 // principle of operation: JFM
+// (see http://robosub.eecs.wsu.edu/wiki/cs/hydrophones/pinger_bearing/start
+// for details)
 void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
 {
-    Vector3d bearing, C, time_deltas;
+    Vector3d bearing, d, time_deltas;
 
     time_deltas[0] = msg->xDelta.toSec();
     time_deltas[1] = msg->yDelta.toSec();
     time_deltas[2] = msg->zDelta.toSec();
 
-    C = time_deltas * speed_sound_in_water * -1.0;
+    d = time_deltas * speed_sound_in_water;
 
     bearing = C.cwiseQuotient(hydrophone_positions);
 
