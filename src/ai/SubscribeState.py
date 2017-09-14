@@ -10,7 +10,8 @@ outcomes, and optionally can set a timeout so the state returns the "timeout"
 outcome if the state does not transition out before the timeout occurs.
 """
 class SubscribeState(smach.State):
-    def __init__(self, topic, msg_type, sub_callback, outcomes, setup_callback=None, timeout=None):
+    def __init__(self, topic, msg_type, sub_callback, outcomes,
+            setup_callback=None, timeout=None, poll_rate=10):
         rospy.loginfo('base class "init" running')
         if timeout is not None and 'timeout' not in outcomes:
             outcomes.append('timeout')
@@ -23,17 +24,17 @@ class SubscribeState(smach.State):
         else:
             self._timeout = None
         self._setup_callback = setup_callback
-        self._rate = rospy.Rate(10)
         self._outcome = None
         self._done = False
+        self._poll_rate = rospy.Rate(poll_rate)
 
     def exit(self, outcome):
-        self.done = True
+        self._done = True
         self._outcome = outcome
 
     def execute(self, user_data):
         rospy.loginfo('SubscribeState base class "execute" running')
-        self.done = False
+        self._done = False
         self._outcome = None
         self._sub = rospy.Subscriber(self._topic, self._msg_type,
                                      self._sub_callback)
@@ -46,10 +47,10 @@ class SubscribeState(smach.State):
             if self._timeout and rospy.Time.now() - start_time > self._timeout:
                 self._outcome = 'timeout'
                 break
-            if self.done is True:
+            if self._done is True:
                 break
             else:
-                self._rate.sleep()
+                self._poll_rate.sleep()
 
         self._sub.unregister()
         return self._outcome

@@ -11,7 +11,8 @@ class start_switch(SubscribeState):
         # parameters:
         # (topic_name, msg_type, subscriber_callback, list_of_outcomes,
         # setup_function)
-        SubscribeState.__init__(self, "start_switch", Bool, self.callback, ["success"], self.setup)
+        SubscribeState.__init__(self, "start_switch", Bool, self.callback,
+            ["success"], self.setup)
         self.min_count = min_count
 
     # define a setup function to be run every time we enter the state
@@ -39,7 +40,7 @@ class start_switch(SubscribeState):
         rospy.logdebug("start switch counter: {}".format(self.start_counter))
 
 if __name__ == "__main__":
-    rospy.init_node('smach_test', log_level=rospy.DEBUG)
+    rospy.init_node('start_switch_test', log_level=rospy.DEBUG)
 
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
@@ -47,3 +48,4 @@ if __name__ == "__main__":
                                transitions={'success': 'success'})
 
     outcome = sm.execute()
+
