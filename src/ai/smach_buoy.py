@@ -5,16 +5,16 @@ from rs_yolo.msg import DetectionArray
 from util import *
 from control_wrapper import control_wrapper
 from start_switch import start_switch
-from SubscriberState import SubscriberState
-import blind_movement
+from SubscribeState import SubscribeState
+from blind_movement import move_forward
 import smach
 import smach_ros
 
 
-class track_buoy(SubscriberState):
+class track_buoy(SubscribeState):
     def __init__(self, vision_label):
-        smach.State.__init__(self, "vision", DetectionArray, self.callback,
-            outcomes=['success', 'lost_buoy'], self.setup)
+        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
+            outcomes=['success', 'lost_buoy'], setup_callback=self.setup)
         self.vision_label = vision_label
 
         # How close to center the buoy needs to be (abs)
@@ -93,9 +93,9 @@ class track_buoy(SubscriberState):
 
         c.publish()
 
-class find_buoy(smach.State):
+class find_buoy(SubscribeState):
     def __init__(self, vision_label):
-        smach.State.__init__(self, "vision", DetectionArray, self.callback,
+        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
             outcomes=['success'])
         self.vision_label = vision_label
         self.errorGoal = 0.1
@@ -145,7 +145,7 @@ class hit_buoy(smach.StateMachine):
                 'lost_buoy': 'FIND_BUOY'})
 
             smach.StateMachine.add("RAM_BUOY",
-                blind_movement.move_forward(time=4, value=0.4),
+                move_forward(time=4, value=0.4),
                 transitions={'success': 'success'})
 
 
