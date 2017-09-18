@@ -48,4 +48,3 @@ if __name__ == "__main__":
                                transitions={'success': 'success'})
 
     outcome = sm.execute()
-
