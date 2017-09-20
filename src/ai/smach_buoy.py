@@ -18,13 +18,18 @@ class track_buoy(SubscribeState):
         self.vision_label = vision_label
 
         # How close to center the buoy needs to be (abs)
-        self.errorGoal = 0.05
+        self.errorGoal = rospy.get_param("ai/hit_buoy/track_buoy/errorGoal")
 
         # How close the sub has to get before reversing
-        self.distGoal = 0.050
+        self.distGoal = rospy.get_param("ai/hit_buoy/track_buoy/distGoal")
 
-        self.yaw_speed_factor = -35
-        self.dive_speed_factor = -1
+        self.yaw_speed_factor = \
+            rospy.get_param("ai/hit_buoy/track_buoy/yaw_speed_factor")
+        self.dive_speed_factor = \
+            rospy.get_param("ai/hit_buoy/track_buoy/dive_speed_factor")
+
+        self.center_offset = \
+            rospy.get_param("ai/hit_buoy/track_buoy/center_offset")
 
     def setup(self):
         self.lost_counter = 0
@@ -43,7 +48,7 @@ class track_buoy(SubscribeState):
 
 
         if vision_result is not None:
-            vision_result.x -= 0.25
+            vision_result.x -= self.center_offset
             self.lost_counter = 0
             if abs(vision_result.x) > self.errorGoal:
                     # Center X (yaw) first
@@ -98,8 +103,8 @@ class find_buoy(SubscribeState):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
             outcomes=['success'])
         self.vision_label = vision_label
-        self.errorGoal = 0.1
-        self.yaw_speed_factor = -25
+        self.errorGoal = rospy.get_param("ai/find_buoy/errorGoal")
+        self.yaw_speed_factor = rospy.get_param("ai/find_buoy/yaw_speed_factor")
 
     def callback(self, msg):
         c = control_wrapper()
@@ -144,8 +149,10 @@ class hit_buoy(smach.StateMachine):
                 transitions={'success': 'RAM_BUOY',
                 'lost_buoy': 'FIND_BUOY'})
 
+            ram_time = rospy.get_param("ai/hit_buoy/ram_time")
+            ram_speed = rospy.get_param("ai/hit_buoy/ram_speed")
             smach.StateMachine.add("RAM_BUOY",
-                move_forward(time=4, value=0.4),
+                move_forward(time=ram_time, value=ram_speed),
                 transitions={'success': 'success'})
 
 
@@ -155,6 +162,8 @@ if __name__ == "__main__":
     sm = smach.StateMachine(outcomes=['success'])
 
     with sm:
+        reset_time = rospy.get_param("ai/hit_buoy/reset_time")
+        reset_speed = rospy.get_param("ai/hit_buoy/reset_speed")
         smach.StateMachine.add('START_SWITCH', start_switch(),
                                transitions={'success': 'HIT_BUOY_RED'})
 
@@ -162,21 +171,21 @@ if __name__ == "__main__":
                                transitions={'success': 'RESET_FOR_GREEN'})
 
         smach.StateMachine.add('RESET_FOR_GREEN',
-                               move_forward(time=10, value=-0.8),
+                               move_forward(time=reset_time, value=reset_speed),
                                transitions={'success': 'HIT_BUOY_GREEN'})
 
         smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy('green_buoy'),
                                transitions={'success': 'RESET_FOR_YELLOW'})
 
         smach.StateMachine.add('RESET_FOR_YELLOW',
-                               move_forward(time=10, value=-0.8),
+                               move_forward(time=reset_time, value=reset_speed),
                                transitions={'success': 'HIT_BUOY_YELLOW'})
 
         smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy('yellow_buoy'),
                                transitions={'success': 'BACKUP'})
 
         smach.StateMachine.add('BACKUP',
-                               move_forward(time=10, value=-0.8),
+                               move_forward(time=reset_time, value=reset_speed),
                                transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
