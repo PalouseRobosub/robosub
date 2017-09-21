@@ -155,39 +155,40 @@ class hit_buoy(smach.StateMachine):
                 move_forward(time=ram_time, value=ram_speed),
                 transitions={'success': 'success'})
 
-
-if __name__ == "__main__":
-    rospy.init_node('buoy_ai', log_level=rospy.INFO)
-
-    sm = smach.StateMachine(outcomes=['success'])
-
-    with sm:
+class buoy_task(smach.StateMachine):
+    def __init__(self):
+        smach.StateMachine.__init__(self, outcomes=['success'])
         reset_time = rospy.get_param("ai/hit_buoy/reset_time")
         reset_speed = rospy.get_param("ai/hit_buoy/reset_speed")
-        smach.StateMachine.add('START_SWITCH', start_switch(),
-                               transitions={'success': 'HIT_BUOY_RED'})
+        with self:
+            smach.StateMachine.add('START_SWITCH', start_switch(),
+                transitions={'success': 'HIT_BUOY_RED'})
 
-        smach.StateMachine.add('HIT_BUOY_RED', hit_buoy('red_buoy'),
-                               transitions={'success': 'RESET_FOR_GREEN'})
+            smach.StateMachine.add('HIT_BUOY_RED', hit_buoy('red_buoy'),
+                transitions={'success': 'RESET_FOR_GREEN'})
 
-        smach.StateMachine.add('RESET_FOR_GREEN',
-                               move_forward(time=reset_time, value=reset_speed),
-                               transitions={'success': 'HIT_BUOY_GREEN'})
+            smach.StateMachine.add('RESET_FOR_GREEN',
+                move_forward(time=reset_time, value=reset_speed),
+                transitions={'success': 'HIT_BUOY_GREEN'})
 
-        smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy('green_buoy'),
-                               transitions={'success': 'RESET_FOR_YELLOW'})
+            smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy('green_buoy'),
+                transitions={'success': 'RESET_FOR_YELLOW'})
 
-        smach.StateMachine.add('RESET_FOR_YELLOW',
-                               move_forward(time=reset_time, value=reset_speed),
-                               transitions={'success': 'HIT_BUOY_YELLOW'})
+            smach.StateMachine.add('RESET_FOR_YELLOW',
+                move_forward(time=reset_time, value=reset_speed),
+                transitions={'success': 'HIT_BUOY_YELLOW'})
 
-        smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy('yellow_buoy'),
-                               transitions={'success': 'BACKUP'})
+            smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy('yellow_buoy'),
+                transitions={'success': 'BACKUP'})
 
-        smach.StateMachine.add('BACKUP',
-                               move_forward(time=reset_time, value=reset_speed),
-                               transitions={'success': 'success'})
+            smach.StateMachine.add('BACKUP',
+                move_forward(time=reset_time, value=reset_speed),
+                transitions={'success': 'success'})
 
+if __name__ == "__main__":
+    rospy.init_node('ai', log_level=rospy.INFO)
+
+    sm = buoy_task()
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()
     outcome = sm.execute()
