@@ -3,4 +3,18 @@
 <!--This launchfile should contain important nodes that we should always have
 running, such as the UPS power monitor. This launchfile will be run as a system
 service during computer startup via the ROS robot_upstart package -->
+    <node pkg="robosub" type="thruster_maestro" name="thruster" required="true"/>
+    <node pkg="robosub" type="control" name="control" required="true"/>
+
+
+    <include file="$(find robosub)/launch/sensors.launch"/> 
+    <include file="$(find robosub)/launch/cameras.launch"/> 
+   <!-- <include file="$(find robosub)/launch/vision.launch"/> --!> 
+    <include file="$(find robosub)/launch/"/> 
+    <include file="$(find robosub)/launch/"/> 
+    <include file="$(find robosub)/launch/"/> 
+    <include file="$(find robosub)/launch/"/> 
+    <include file="$(find robosub)/launch/"/> 
+    <include file="$(find robosub)/launch/"/> 
+    <include file="$(find robosub)/launch/"/> 
 </launch>
