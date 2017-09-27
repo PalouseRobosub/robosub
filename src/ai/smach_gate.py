@@ -28,7 +28,7 @@ class move_to_gate(SubscribeState):
 
         normalize(vision_result)
         #move while forward until we see a gate post
-        while vision_result is None:
+        if vision_result is None:
             c.publish()
             self._poll_rate.sleep()
         return 'success'
@@ -39,7 +39,7 @@ class gate_task(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
         with self:
-            smach.StateMachine.add('FORWARD UNTIL FOUN GATE', move_to_gate('start_gate'),
+            smach.StateMachine.add('FORWARD UNTIL FOUND GATE', move_to_gate('start_gate'),
                                     transitions={'success': 'success'})
 
 if __name__ == '__main__':
