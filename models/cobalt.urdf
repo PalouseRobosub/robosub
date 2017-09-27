@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <robot name="robosub_cobalt">
 
-  <link name="base_link"/>
+  <link name="cobalt"/>
   <joint name="frame_base" type="fixed">
-    <parent link="base_link"/>
+    <parent link="cobalt"/>
     <child link="frame"/>
   </joint>
 
@@ -85,7 +85,7 @@
   </joint>
   <joint name="left_camera_frame" type="fixed">
     <parent link="frame"/>
-    <child link="left_camera"/>
+    <child link="left_cam"/>
     <origin rpy="0       1.57079  0" xyz="0.37  0.2   0.04"/>
     <axis xyz="0  0  0"/>
     <limit effort="0" lower="0" upper="0" velocity="0"/>
@@ -430,7 +430,8 @@
       <material name="blue"/>
     </visual>
   </link>
-  <link name="left_camera">
+  <link name="left_cam">
+    <pose rpy="1.57097 0 0" xyz="0 0 0"/>
     <inertial>
       <mass value="0.73"/>
       <origin rpy="0  0  0" xyz="0  0  0"/>
