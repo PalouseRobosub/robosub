@@ -12,7 +12,8 @@ import smach_ros
 class move_to_gate(SubscribeState):
     #not sure what poll_rate is for
     def __init__(self, vision_label, poll_rate=10):
-        SubscribeState.__init__(self, "vision", DetectionArray, self.callback, outcomes=['success'])
+        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
+            outcomes=['success'])
         self.vision_label = vision_label
         self._poll_rate = rospy.Rate(poll_rate)
 
@@ -39,8 +40,8 @@ class gate_task(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
         with self:
-            smach.StateMachine.add('FORWARD UNTIL FOUND GATE', move_to_gate('start_gate'),
-                                    transitions={'success': 'success'})
+            smach.StateMachine.add('FORWARD UNTIL FOUND GATE', 
+                move_to_gate('start_gate'), transitions={'success': 'success'})
 
 if __name__ == '__main__':
     rospy.init_node('gate_task')
