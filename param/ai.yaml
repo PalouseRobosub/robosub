@@ -15,4 +15,10 @@ ai:
         yaw_speed_factor: -25.0
     move_to_gate:
 	forward_error: 10.0
-	yaw_speed_factor: 35.0
+    search_gate:
+    	yaw_speed_factor: 35.0
+    center:
+	errorGoal: 0.01
+	yaw_factor: -2.5
+	dive_factor: -25.0
+

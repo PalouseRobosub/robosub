@@ -65,15 +65,73 @@ class lost(SubscribeState):
 class search(SubscribeState):
     def __init__(self, vision_label, direction):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-            outcomes=['see 2 posts', 'see nothing', 'see 1 post'])
+            outcomes=['2 posts', 'nothing', '1 post'])
             self.vision_label = vision_label
             self.direction = direction
+            self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
+            self._poll_rate = rospy.Rate(poll_rate)
 
     def callback(self, detectionArray):
+        c = control_wrapper()
+        c.levelOut()
+        c.forwardError(0.0)
+
         detections = filterByLabel(detectionArray.detections,
             self.vision_label)
         vision_result = detection.getNMostProbable(detections, 2, thresh=0.5)
 
+        if self.direction == 'right':
+            self.yaw = -self.yaw
+
+        c.yawLeftRelative(self.yaw)
+        while len(vision_result) != 2 || len(vision_result) != 0:
+            c.publish()
+            self._poll_rate.sleep()
+
+        if len(vision_result) == 0:
+            return 'see nothing'
+        elif len(vision_result) == 2:
+            return '2 posts'
+
+#TODO State for centering between gate posts or moving while being centered
+class move_center(SubscribeState):
+    def __init__(self, vision_label):
+        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
+            outcomes=['centered', 'lost'])
+            self.vision_label = vision_label
+            self.errorGoal = rospy.get_param("ai/center/errorGoal")
+            self.center_offset = rospy.get_param("ai/center/center_offset")
+            self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
+            self.dive_factor = rospy.get_param("ai/center/dive_factor")
+
+
+    def callback(self, detectionArray):
+        c = control_wrapper()
+        c.levelOut()
+        c.forwardError(0.0)
+
+        detections = filterByLabel(detectionArray.detections,
+            self.vision_label)
+        vision_result = detections.getNMostProbable(detections, 2, thresh=0.5)
+
+        gateXPos = (vision[0].x + vision[1].x) / 2
+        gateYPos = (vision[0].y + vision[1].y) / 2
+
+        if abs(gateXPos) > self.errorGoal:
+            # If we are not centered by yaw
+            yaw_left = gateXPos * self.yaw_factor
+            c.yawLeftRelative(yaw_left)
+        elif abs(gateYPos) > self.errorGoal:
+            # If our depth is not enough for centering
+            dive = gateYPos * self.dive_factor
+            #TODO pushing dive using control wrapper
+        elif (((vision[0].width * vision[0].height) +
+            (vision[1].width * vision[1].height)) > self.distanceGoal):
+            return 'centered'
+
+        if len(vision_result) < 2:
+            return 'lost'
+        c.publish()
 
 # TODO High state machine of gate task
 class gate_task(smach.StateMachine):
@@ -81,8 +139,8 @@ class gate_task(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
         with self:
-            smach.StateMachine.add('FORWARD UNTIL FOUND GATE',
-                move_to_gate('start_gate'), transitions={'success': 'success'})
+            smach.StateMachine.add('FORWARD_UNTIL_FOUND_GATE',
+                move_to_gate('start_gate'), transitions={'success': 'CENTER'})
 
 if __name__ == '__main__':
     rospy.init_node('gate_task')
