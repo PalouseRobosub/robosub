@@ -13,3 +13,6 @@ ai:
     find_buoy:
         errorGoal: 0.1
         yaw_speed_factor: -25.0
+    move_to_gate:
+	forward_error: 10.0
+	yaw_speed_factor: 35.0

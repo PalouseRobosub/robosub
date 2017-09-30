@@ -15,15 +15,17 @@ class move_to_gate(SubscribeState):
             outcomes=['success'])
         self.vision_label = vision_label
         self._poll_rate = rospy.Rate(poll_rate)
+        self.forward_error = rospy.get_param("ai/move_to_gate/forward_error")
 
     def callback(self, detectionArray):
         c = control_wrapper()
         c.levelOut()
-        #10 is an arbirtary number
-        c.forwardError(10)
+        # forward_error is a parameter
+        c.forwardError(forward_error)
 
-        detections = filterByLabel(detectionArray.detections, self.vision_label)
-        vision_result = getMostProbable(detections, thresh=0.5)
+        detections = filterByLabel(detectionArray.detections,
+            self.vision_label)
+        vision_result = getNMostProbable(detections, 2, thresh=0.5)
         normalize(vision_result)
 
         #move while forward until we see a gate post
@@ -37,29 +39,41 @@ class lost(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
             outcomes=['2 posts', '1 post', '1 post + marker', 'none'])
+            self.vision_label = vision_label
 
     def callback(self, detectionArray):
 
         detections_gate = filterByLabel(detectionArray.detections,
             self.vision_label)
-        detections_path = filterByLabel(detectionArray.detections, 'path_marker')
+        detections_path = filterByLabel(detectionArray.detections,
+            'path_marker')
 
-        if len(detections_gate) == 2:
+        vision_result_gate = getNMostProbable(detections_gate, 2, thresh=0.5)
+        vision_result_path = getNMostProbable(detections_gate, 2, thresh=0.5)
+
+
+        if len(vision_result_gate) == 2:
             return '2 posts'
-        elif len(detections_gate) == 1:
+        elif len(vision_result_gate) == 1:
             return '1 post'
-        elif len(detections_gate) == 0:
+        elif len(vision_result_gate) == 0:
             'none'
-        elif len(detections_gate) == 1 && len(detections_path) != 0:
+        elif len(vision_result_gate) == 1 && len(vision_result_path) != 0:
             '1 post + marker'
 
 # TODO State for searching gate posts
 class search(SubscribeState):
-    def __init__(self, direction):
+    def __init__(self, vision_label, direction):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-            outcomes=['marker'])
+            outcomes=['see 2 posts', 'see nothing', 'see 1 post'])
+            self.vision_label = vision_label
+            self.direction = direction
 
-    def callback(self, detectionArray)
+    def callback(self, detectionArray):
+        detections = filterByLabel(detectionArray.detections,
+            self.vision_label)
+        vision_result = detection.getNMostProbable(detections, 2, thresh=0.5)
+
 
 # TODO High state machine of gate task
 class gate_task(smach.StateMachine):
