@@ -234,9 +234,9 @@ class gate_task(smach.StateMachine):
 
             smach.StateMachine.add('CENTER', center('gate_post'),
                                   transitions={'centered': 'FORWARD',
-                                  'lost': 'SEARCH_MACHINE'})
+                                  'lost': 'SEARCH_FOR_GATES'})
 
-            smach.StateMachine.add('SEARCH_MACHINE', Search_for_gates(),
+            smach.StateMachine.add('SEARCH_FOR_GATES', Search_for_gates(),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
@@ -251,7 +251,7 @@ class gate_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    rospy.init_node('gate task')
+    rospy.init_node('gate_task')
     sm = gate_task()
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
