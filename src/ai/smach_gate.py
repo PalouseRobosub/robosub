@@ -10,7 +10,7 @@ import smach
 import smach_ros
 
 search_direction = 'right'
-#Based on move_forward from forward_until.py with tweaks for vision
+# Based on move_forward from forward_until.py with tweaks for vision
 class move_to_gate(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
@@ -29,7 +29,7 @@ class move_to_gate(SubscribeState):
             self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
         normalize(vision_result)
-        #move forward until we see a gate task post
+        # move forward until we see a gate task post
         if len(vision_result) == 0:
             c.publish()
             self._poll_rate.sleep()
@@ -73,7 +73,7 @@ class lost(SubscribeState):
         elif len(vision_result) == 2:
             self.exit('2 posts')
 
-#Flips direction of search
+# Flips direction of search
 class flip(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'])
@@ -93,14 +93,14 @@ class Search_for_gates(smach.StateMachine):
 
         with self:
             smach.StateMachine.add("LOST", lost('gate_post'),
-                transitions={'1 post': 'SEARCH', 'none':'LOST',
+                transitions={'1 post': 'SEARCH', 'none': 'LOST',
                 '2 posts': 'SEARCH'})
 
             smach.StateMachine.add("FLIP", flip(),
                                   transitions={'success': 'LOST'})
 
             smach.StateMachine.add("SEARCH", search('gate_post'),
-                transitions={'2 posts': 'success', 'none':'FLIP',
+                transitions={'2 posts': 'success', 'none': 'FLIP',
                 '1 post': 'SEARCH'})
 
 #  State for searching gate posts. Comes after state Lost, so it searches,
@@ -209,8 +209,8 @@ class move_forward_centered(SubscribeState):
         gateYPos = (vision_result[0].y + vision_result[1].y) / 2
 
         if (((vision_result[0].width * vision_result[0].height) +
-           (vision_result[1].width * vision_result[1].height))
-           > self.distanceGoal):
+           (vision_result[1].width *
+           vision_result[1].height)) > self.distanceGoal):
             self.exit('ready')
             return 'ready'
         if abs(gateXPos) > self.errorGoal or abs(gateYPos) > self.errorGoal:
