@@ -29,7 +29,7 @@ class move_to_gate(SubscribeState):
             self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
         normalize(vision_result)
-        #move forward until we see a gate task post
+        #move forward until we see a nav channel post
         if len(vision_result) == 0:
             c.publish()
             self._poll_rate.sleep()
@@ -37,7 +37,7 @@ class move_to_gate(SubscribeState):
         return 'success'
 
 # Lost state for when AI feels lost
-# When we do not see any of gate posts at all
+# When we do not see any nav channel posts at all
 class lost(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
@@ -86,23 +86,23 @@ class flip(smach.State):
             search_direction = 'right'
         return 'success'
 
-# High level state machine for searching gate posts
+# High level state machine for searching nav channel posts
 class Search(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
         with self:
-            smach.StateMachine.add("LOST", lost('gate_post'),
+            smach.StateMachine.add("LOST", lost('nav_channel_post'),
                 transitions={'1 post': 'SEARCH', 'none':'LOST',
                 '2 posts': 'SEARCH'})
 
             smach.StateMachine.add("FLIP", flip(), transitions={'success': 'LOST'})
 
-            smach.StateMachine.add("SEARCH", search('gate_post'),
+            smach.StateMachine.add("SEARCH", search('nav_channel_post'),
                 transitions={'2 posts': 'success', 'none':'FLIP',
                 '1 post': 'SEARCH'})
 
-#  State for searching gate posts. Comes after state Lost, so it searches, and yaws same direction as it was in Lost state
+#  State for searching nav channel posts. Comes after state lost, so it searches in yaws same direction as it was in Lost state
 # By default yaws to the right until it either loses all of posts or finds second.
 class search(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
@@ -140,7 +140,7 @@ class search(SubscribeState):
             rospy.loginfo("search direction {}".format(search_direction))
             self.exit('none')
 
-# State for centering between gate posts or moving while being centered
+# State for centering between nav channel posts or moving while being centered
 class center(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
@@ -216,8 +216,8 @@ class move_forward_centered(SubscribeState):
         c.publish()
 
 
-# High level state machine of gate task
-class gate_task(smach.StateMachine):
+# High level state machine of navigation channel
+class nav_channel(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
         self.time = rospy.get_param("ai/gate_task/forward_time")
@@ -225,10 +225,10 @@ class gate_task(smach.StateMachine):
 
         with self:
             smach.StateMachine.add('FORWARD_UNTIL_FOUND_GATE',
-                                  move_to_gate('gate_post'),
+                                  move_to_gate('nav_channel_post'),
                                   transitions={'success': 'CENTER'})
 
-            smach.StateMachine.add('CENTER', center('gate_post'),
+            smach.StateMachine.add('CENTER', center('nav_channel_post'),
                                   transitions={'centered': 'FORWARD',
                                   'lost': 'SEARCH_MACHINE'})
 
@@ -236,7 +236,7 @@ class gate_task(smach.StateMachine):
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
-                                  move_forward_centered('gate_post'),
+                                  move_forward_centered('nav_channel_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
                                   'not centered': 'CENTER',
                                   'lost': 'SEARCH_MACHINE'})
@@ -247,8 +247,8 @@ class gate_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    rospy.init_node('gate task')
-    sm = gate_task()
+    rospy.init_node('nav channel')
+    sm = nav_channel()
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()
