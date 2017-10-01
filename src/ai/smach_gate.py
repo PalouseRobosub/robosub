@@ -14,7 +14,7 @@ search_direction = 'right'
 class move_to_gate(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-            outcomes=['success'])
+                               outcomes=['success'])
         self.vision_label = vision_label
         self._poll_rate = rospy.Rate(poll_rate)
         self.forward_error = rospy.get_param("ai/move_to_gate/forward_error")
@@ -41,7 +41,7 @@ class move_to_gate(SubscribeState):
 class lost(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-            outcomes=['1 post', 'none', '2 posts'])
+                               outcomes=['1 post', 'none', '2 posts'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
@@ -87,7 +87,7 @@ class flip(smach.State):
         return 'success'
 
 # High level state machine for searching gate posts
-class Search(smach.StateMachine):
+class Search_for_gates(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
@@ -96,18 +96,21 @@ class Search(smach.StateMachine):
                 transitions={'1 post': 'SEARCH', 'none':'LOST',
                 '2 posts': 'SEARCH'})
 
-            smach.StateMachine.add("FLIP", flip(), transitions={'success': 'LOST'})
+            smach.StateMachine.add("FLIP", flip(),
+                                  transitions={'success': 'LOST'})
 
             smach.StateMachine.add("SEARCH", search('gate_post'),
                 transitions={'2 posts': 'success', 'none':'FLIP',
                 '1 post': 'SEARCH'})
 
-#  State for searching gate posts. Comes after state Lost, so it searches, and yaws same direction as it was in Lost state
-# By default yaws to the right until it either loses all of posts or finds second.
+#  State for searching gate posts. Comes after state Lost, so it searches,
+# and yaws same direction as it was in Lost state
+# By default yaws to the right until
+# it either loses all of posts or finds second.
 class search(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-            outcomes=['2 posts', 'none', '1 post'])
+                               outcomes=['2 posts', 'none', '1 post'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
@@ -144,7 +147,7 @@ class search(SubscribeState):
 class center(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-            outcomes=['centered', 'lost'])
+                               outcomes=['centered', 'lost'])
         self.vision_label = vision_label
         self.errorGoal = rospy.get_param("ai/center/errorGoal")
         self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
@@ -166,7 +169,7 @@ class center(SubscribeState):
         gateXPos = (vision_result[0].x + vision_result[1].x) / 2
         gateYPos = (vision_result[0].y + vision_result[1].y) / 2
 
-        rospy.loginfo(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos))
+        rospy.loginfo(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
 
         if abs(gateXPos-0.5) > self.errorGoal:
             # If we are not centered by yaw
@@ -187,7 +190,7 @@ class center(SubscribeState):
 class move_forward_centered(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-        outcomes=['ready', 'not centered', 'lost'])
+                               outcomes=['ready', 'not centered', 'lost'])
         self.vision_label = vision_label
         self.distanceGoal = rospy.get_param("ai/move_forward/distanceGoal")
         self.errorGoal = rospy.get_param("ai/move_forward/errorGoal")
@@ -206,7 +209,8 @@ class move_forward_centered(SubscribeState):
         gateYPos = (vision_result[0].y + vision_result[1].y) / 2
 
         if (((vision_result[0].width * vision_result[0].height) +
-           (vision_result[1].width * vision_result[1].height)) > self.distanceGoal):
+           (vision_result[1].width * vision_result[1].height))
+           > self.distanceGoal):
             self.exit('ready')
             return 'ready'
         if abs(gateXPos) > self.errorGoal or abs(gateYPos) > self.errorGoal:
@@ -232,7 +236,7 @@ class gate_task(smach.StateMachine):
                                   transitions={'centered': 'FORWARD',
                                   'lost': 'SEARCH_MACHINE'})
 
-            smach.StateMachine.add('SEARCH_MACHINE', Search(),
+            smach.StateMachine.add('SEARCH_MACHINE', Search_for_gates(),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
