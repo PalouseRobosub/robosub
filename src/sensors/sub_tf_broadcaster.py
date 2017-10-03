@@ -33,7 +33,7 @@ class Node():
 
 
 if __name__ == "__main__":
-    rospy.init_node('example_broadcaster')
+    rospy.init_node('sub_tf_broadcaster')
     child = rospy.get_param("~child_frame", "base_link")
     node = Node(child)
     rospy.spin()
