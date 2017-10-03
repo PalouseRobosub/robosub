@@ -12,6 +12,10 @@ class move_forward(smach.State):
         self.value = value
         self._poll_rate = rospy.Rate(poll_rate)
 
+        # wait for time to be non-zero
+        while(rospy.Time.now() == rospy.Time(0)):
+            rospy.sleep(1.0/self.poll_rate)
+
     def execute(self, userdata):
         c = control_wrapper()
         c.levelOut()
