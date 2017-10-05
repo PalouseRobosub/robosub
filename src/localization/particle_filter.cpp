@@ -1,5 +1,6 @@
 #include "localization/particle_filter.h"
 #include <vector>
+#include <tf/tf.h>
 
 ParticleFilter::ParticleFilter(ros::NodeHandle &_nh):
     nh(_nh)
@@ -62,6 +63,11 @@ void ParticleFilter::InputAbsLinVel(const tf::Vector3 lin_vel, const double dt)
     control_update_model(2, 2) = dt;
 
     predict();
+}
+
+void ParticleFilter::InputOrientation(const tf::Quaternion orientation)
+{
+    current_orientation = orientation;
 }
 
 void ParticleFilter::Reset()
@@ -240,23 +246,29 @@ void ParticleFilter::publish_point_cloud()
 Vector4d ParticleFilter::state_to_observation(Vector3d state)
 {
     Vector4d obs;
+    tf::Vector3 bearing;
 
-    // Convert the state coordinates to have the pinger as origin.
-    double hx = state(0, 0) - pinger_position[0];
-    double hy = state(1, 0) - pinger_position[1];
-    double hz = state(2, 0) - pinger_position[2];
+    // create a vector pointing from the pinger to the particle
+    bearing.setX(state(0, 0) - pinger_position[0]);
+    bearing.setY(state(1, 0) - pinger_position[1]);
+    bearing.setZ(state(2, 0) - pinger_position[2]);
 
-    // Calculate the magnitude of the bearing from the pinger to the particle
-    double magnitude = std::sqrt(std::pow(hx, 2) +
-                                 std::pow(hy, 2) +
-                                 std::pow(hz, 2));
+    // normalize the vector to be a unit vector
+    bearing.normalize();
 
-    // compute i,j,k values of the bearing
-    obs(0, 0) = hx/magnitude;
-    obs(1, 0) = hy/magnitude;
-    obs(2, 0) = hz/magnitude;
+    // invert the vector so it points from the particle to the pinger
+    bearing *= -1;
 
-    // depth observation
+    // rotate the bearing so that it is relative to the sub's current
+    // orientation
+    bearing = tf::Transform(current_orientation).inverse()(bearing);
+
+    // fill out bearing observation
+    obs(0, 0) = bearing.getX();
+    obs(1, 0) = bearing.getY();
+    obs(2, 0) = bearing.getZ();
+
+    // fill out depth observation
     obs(3, 0) = state(2, 0);
 
     return obs;

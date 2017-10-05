@@ -59,6 +59,11 @@ geometry_msgs::PoseStamped LocalizationSystem::GetPoseMessage()
 void LocalizationSystem::Update()
 {
     // Handle input to filters
+    if(sensors.NewOrientation())
+    {
+        particle_filter.InputOrientation(sensors.GetOrientation());
+    }
+
     if(sensors.NewDepth())
     {
         particle_filter.InputDepth(sensors.GetDepth());

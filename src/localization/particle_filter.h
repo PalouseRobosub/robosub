@@ -30,6 +30,7 @@ public:
     void InputDepth(const double depth);
     void InputHydrophones(const tf::Vector3 position, const double dt);
     void InputAbsLinVel(const tf::Vector3 lin_vel, const double dt);
+    void InputOrientation(const tf::Quaternion orientation);
     void Reset();
 
 private:
@@ -114,5 +115,10 @@ private:
 
     // This stores the inputted linear velocity.
     Vector3d control_input;
+
+    // This stores our current orientation based on what the IMU says. Used for
+    // transforming the pinger bearing from the global frame to the sub's
+    // frame.
+    tf::Quaternion current_orientation;
 };
 #endif //PARTICLE_FILTER_H
