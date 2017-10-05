@@ -1,4 +1,5 @@
 #include "localization/robosub_sensors.h"
+#include <tf/transform_datatypes.h>
 
 RobosubSensors::RobosubSensors() :
     new_rel_lin_acl(false),
@@ -49,21 +50,12 @@ void RobosubSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
 }
 
 void RobosubSensors::InputHydrophones(const
-        robosub::PositionArrayStamped::ConstPtr &msg)
+        geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
-    if(msg->positions.size())
-    {
-        hydrophones = tf::Vector3(msg->positions[0].position.x,
-                msg->positions[0].position.y, msg->positions[0].position.z);
-        hydrophones_dt = (msg->header.stamp - last_hydrophones_time).toSec();
-        new_hydrophones = true;
-        last_hydrophones_time = msg->header.stamp;
-    }
-    else
-    {
-        ROS_WARN("Received hydrophone message with empty list (this usually"
-            "indicates invalid hydrophone data).");
-    }
+    tf::vector3MsgToTF(msg->vector, hydrophones);
+    hydrophones_dt = (msg->header.stamp - last_hydrophones_time).toSec();
+    new_hydrophones = true;
+    last_hydrophones_time = msg->header.stamp;
 }
 
 void RobosubSensors::InputOrientation(const

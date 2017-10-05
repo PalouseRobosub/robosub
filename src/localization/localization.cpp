@@ -33,8 +33,8 @@ int main(int argc, char **argv)
     // RobosubSensors class handles all sensor callbacks
     ros::Subscriber depth_sub = nh.subscribe("depth", 1,
             &RobosubSensors::InputDepth, &sensors);
-    ros::Subscriber hydrophones_position_sub =
-        nh.subscribe("hydrophones/position", 1,
+    ros::Subscriber hydrophones_bearing_sub =
+        nh.subscribe("hydrophones/bearing", 1,
                 &RobosubSensors::InputHydrophones, &sensors);
     ros::Subscriber accel_sub = nh.subscribe("acceleration/linear", 1,
             &RobosubSensors::InputRelLinAcl, &sensors);

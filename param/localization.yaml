@@ -10,9 +10,9 @@ localization:
             z_stddev: 5.0
         stddev:
             # measurement covariance matrix
-            azimuth: 0.05
-            inclination: 0.05
-            range: 0.05
+            i: 0.001
+            j: 0.001
+            k: 0.001
             depth: 0.05
 
             # state update covariance matrix

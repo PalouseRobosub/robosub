@@ -38,34 +38,13 @@ void ParticleFilter::InputDepth(const double depth)
     observation(3, 0) = depth;
 }
 
-void ParticleFilter::InputHydrophones(const tf::Vector3 position, const double
+void ParticleFilter::InputHydrophones(const tf::Vector3 bearing, const double
         dt)
 {
-    // Convert the cartesian [x, y, z] offset from the pingers as calculated by
-    // the hydrophones node into polar [azimuth, inclination, range]
-    // coordinates originating from the pinger.
-    // This is done since polar coords better describe the distributions of the
-    // hydrophone error.
-
-    // Azimuth is the angle between the x axis and the subs xy position
-    // relative to the pinger.
-    // Inclination is the angle between the xy plane and the subs z position
-    // relative to the pinger.
-    // Range is the distance from the pinger to the sub.
-
-    // The following formulas are used:
-    // azimuth = atan2(y, x)
-    // inclination = atan2(z, sqrt(x^2 + y^2))
-    // range = sqrt(x^2 + y^2 + z^2)
-    double azimuth = std::atan2(position[1], position[0]);
-    double inclination = std::atan2(position[2],
-            std::sqrt(std::pow(position[0], 2) + std::pow(position[1], 2)));
-    double range = std::sqrt(std::pow(position[0], 2) + std::pow(position[1],
-                2) + std::pow(position[2], 2));
-
-    observation(0, 0) = azimuth;
-    observation(1, 0) = inclination;
-    observation(2, 0) = range;
+    // bearing towards the pinger is represented in i,j,k vector notation
+    observation(0, 0) = bearing[0];
+    observation(1, 0) = bearing[1];
+    observation(2, 0) = bearing[2];
 
     update();
 }
@@ -214,26 +193,21 @@ void ParticleFilter::reload_params()
             " load");
 
     ROS_FATAL_COND(!ros::param::getCached(
-            "localization/particle_filter/stddev/azimuth",
+            "localization/particle_filter/stddev/i",
             observation_stddev(0, 0)),
-            "localization/particle_filter/stddev/azimuth failed to load");
+            "localization/particle_filter/stddev/i failed to load");
     ROS_FATAL_COND(!ros::param::getCached(
-            "localization/particle_filter/stddev/inclination",
+            "localization/particle_filter/stddev/j",
             observation_stddev(1, 1)),
-            "localization/particle_filter/stddev/inclination failed to load");
+            "localization/particle_filter/stddev/j failed to load");
     ROS_FATAL_COND(!ros::param::getCached(
-            "localization/particle_filter/stddev/range",
+            "localization/particle_filter/stddev/k",
             observation_stddev(2, 2)),
-            "localization/particle_filter/stddev/range failed to load");
+            "localization/particle_filter/stddev/k failed to load");
     ROS_FATAL_COND(!ros::param::getCached(
             "localization/particle_filter/stddev/depth",
             observation_stddev(3, 3)),
             "localization/particle_filter/stddev/depth failed to load");
-
-    // The params for azimuth and inclination are in degrees but internally
-    // azimuth and inclination are in radians.
-    observation_stddev(0, 0) *= DEG_TO_RAD;
-    observation_stddev(1, 1) *= DEG_TO_RAD;
 }
 
 void ParticleFilter::publish_point_cloud()
@@ -272,17 +246,17 @@ Vector4d ParticleFilter::state_to_observation(Vector3d state)
     double hy = state(1, 0) - pinger_position[1];
     double hz = state(2, 0) - pinger_position[2];
 
-    // Calculate azimuth, inclination, and range as in the InputHydrophones
-    // method.
-    double azimuth = std::atan2(hy, hx);
-    double inclination = std::atan2(hz, std::sqrt(std::pow(hx, 2) +
-                std::pow(hy, 2)));
-    double range = std::sqrt(std::pow(hx, 2) + std::pow(hy, 2) + std::pow(hz,
-                2));
+    // Calculate the magnitude of the bearing from the pinger to the particle
+    double magnitude = std::sqrt(std::pow(hx, 2) +
+                                 std::pow(hy, 2) +
+                                 std::pow(hz, 2));
 
-    obs(0, 0) = azimuth;
-    obs(1, 0) = inclination;
-    obs(2, 0) = range;
+    // compute i,j,k values of the bearing
+    obs(0, 0) = hx/magnitude;
+    obs(1, 0) = hy/magnitude;
+    obs(2, 0) = hz/magnitude;
+
+    // depth observation
     obs(3, 0) = state(2, 0);
 
     return obs;

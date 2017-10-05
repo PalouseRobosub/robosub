@@ -86,10 +86,10 @@ private:
 
     // This stores the current hydrophone and depth observations as a column
     // vector as follows:
-    // | azimuth     |
-    // | inclination |
-    // | range       |
-    // | depth       |
+    // | i component of pinger bearing |
+    // | j component of pinger bearing |
+    // | k component of pinger bearing |
+    // | depth                         |
     Vector4d observation;
 
     // Stores the initial state of the sub. Loaded from params.

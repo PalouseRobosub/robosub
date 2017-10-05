@@ -7,7 +7,6 @@
 
 #include "geometry_msgs/QuaternionStamped.h"
 #include "robosub/Float32Stamped.h"
-#include "robosub/PositionArrayStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 
 // RobosubSensors is responsible for storing and handling all sensor input
@@ -31,7 +30,7 @@ public:
     // DT is calculated using the msg stamp and last receive time
     void InputRelLinAcl(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputDepth(const robosub::Float32Stamped::ConstPtr &msg);
-    void InputHydrophones(const robosub::PositionArrayStamped::ConstPtr &msg);
+    void InputHydrophones(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputOrientation(const geometry_msgs::QuaternionStamped::ConstPtr
                           &msg);
 
