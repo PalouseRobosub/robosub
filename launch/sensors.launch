@@ -1,3 +1,4 @@
+<?xml version="1.0"?>:
 <launch>
     <node name="depth" pkg="rosserial_python" type="serial_node.py" args="/dev/depth" output="screen"/>
     <node name="bno055_left" pkg="robosub" type="bno055_sensor" output="screen">
