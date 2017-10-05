@@ -1,4 +1,5 @@
 #include "geometry_msgs/QuaternionStamped.h"
+#include "geometry_msgs/Vector3Stamped.h"
 #include "robosub/Euler.h"
 #include "ros/ros.h"
 #include <string>
@@ -8,6 +9,7 @@
 
 ros::Publisher quaternion_publisher;
 ros::Publisher euler_publisher;
+ros::Publisher acceleration_publisher;
 
 robosub::Euler quaternion_to_euler(
                          const geometry_msgs::QuaternionStamped::ConstPtr &msg)
@@ -34,6 +36,11 @@ void orientation_callback(const geometry_msgs::QuaternionStamped::ConstPtr &msg)
     euler_publisher.publish(quaternion_to_euler(msg));
 }
 
+void acceleration_callback(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
+{
+    acceleration_publisher.publish(msg);
+}
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "imu");
@@ -48,11 +55,17 @@ int main(int argc, char **argv)
     }
 
     quaternion_publisher =
-            n.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
+        n.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
     euler_publisher = n.advertise<robosub::Euler>("pretty/orientation", 1);
+    acceleration_publisher =
+        n.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
 
-    ros::Subscriber sub = n.subscribe(active_imu + "/orientation", 1,
-                                      orientation_callback);
+    ros::Subscriber orientation_sub =
+        n.subscribe(active_imu + "/orientation", 1, orientation_callback);
+
+    ros::Subscriber acceleration_sub =
+        n.subscribe(active_imu + "/acceleration/linear", 1,
+        acceleration_callback);
 
     ros::spin();
 
