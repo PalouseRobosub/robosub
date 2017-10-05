@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!-- This launch file is used to start the thruster and control nodes -->
+<launch>
+    <node name="thruster" pkg="robosub" type="thruster_maestro"/>
+    <node name="control" pkg="robosub" type="control"/>
+    <rosparam command="load" file="$(find robosub)/param/movement.yaml"/>
+</launch>
