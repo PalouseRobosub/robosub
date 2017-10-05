@@ -1,4 +1,6 @@
 localization:
+    pinger:
+        depth: -4.1
     particle_filter:
         num_particles: 2000
         initial:

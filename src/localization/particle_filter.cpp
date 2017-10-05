@@ -150,8 +150,8 @@ void ParticleFilter::reload_params()
     // Load pinger_depth and set pinger position. Currently the pinger is the
     // origin so the x and y of the pinger position is just 0.
     double pinger_depth = 0.0;
-    ROS_FATAL_COND(!ros::param::getCached("hydrophones/pinger/depth",
-                pinger_depth), "hydrophones/pinger/depth failed to load");
+    ROS_FATAL_COND(!ros::param::getCached("localization/pinger/depth",
+                pinger_depth), "localization/pinger/depth failed to load");
     pinger_position[0] = 0.0;
     pinger_position[1] = 0.0;
     pinger_position[2] = pinger_depth;
