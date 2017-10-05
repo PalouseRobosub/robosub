@@ -7,7 +7,5 @@ service during computer startup via the ROS robot_upstart package -->
     <include file="$(find robosub)/launch/movement.launch"/> 
     <include file="$(find robosub)/launch/sensors.launch"/> 
     <include file="$(find robosub)/launch/cameras.launch"/> 
-    <node pkg="robosub" name="undistortion" type="undistortion" output="screen"/>
-   <!-- <include file="$(find robosub)/launch/vision.launch"/> --> 
-   <!--  <node pkg="robosub" name="keyboard_control" type="keyboard_control" output="screen"/> -->
+    <include file="$(find robosub)/launch/vision.launch"/> 
 </launch>
