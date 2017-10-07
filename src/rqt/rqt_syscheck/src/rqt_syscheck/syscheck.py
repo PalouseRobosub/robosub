@@ -209,9 +209,9 @@ class SysCheck(Plugin):
         if not self._widget.imuActive.isVisible():
             self._widget.imuActive.show()
 
-        self._widget.currentRoll.setText(str(m.roll));
-        self._widget.currentPitch.setText(str(m.pitch));
-        self._widget.currentYaw.setText(str(m.yaw));
+        self._widget.currentRoll.setText(str(m.roll))
+        self._widget.currentPitch.setText(str(m.pitch))
+        self._widget.currentYaw.setText(str(m.yaw))
 
         # Restart the timer
         self.imuTimer.start(1000)
@@ -234,7 +234,7 @@ class SysCheck(Plugin):
         if not self._widget.depthActive.isVisible():
             self._widget.depthActive.show()
 
-        self._widget.currentDepth.setText(str(m.data));
+        self._widget.currentDepth.setText(str(m.data))
 
         # Restart the timer
         self.depthTimer.start(1000)
