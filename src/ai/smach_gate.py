@@ -243,7 +243,7 @@ class gate_task(smach.StateMachine):
                                   move_forward_centered('gate_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
                                   'not centered': 'CENTER',
-                                  'lost': 'SEARCH_MACHINE'})
+                                  'lost': 'SEARCH_FOR_GATES'})
 
 
             smach.StateMachine.add('BLIND_FORWARD',
