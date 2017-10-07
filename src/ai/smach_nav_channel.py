@@ -5,7 +5,7 @@ from rs_yolo.msg import DetectionArray
 from robosub.msg import control
 from SubscribeState import SubscribeState
 from control_wrapper import control_wrapper
-from smach_gate import *
+from util_state.py import *
 from blind_movement import move_forward
 import smach
 import smach_ros
