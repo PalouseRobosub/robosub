@@ -1,12 +1,7 @@
 #!/usr/bin/python
 import rospy
-from util import *
-from rs_yolo.msg import DetectionArray
-from robosub.msg import control
-from SubscribeState import SubscribeState
-from control_wrapper import control_wrapper
-from util_state.py import *
 from blind_movement import move_forward
+from util_states import *
 import smach
 import smach_ros
 
@@ -43,14 +38,14 @@ class nav_channel(smach.StateMachine):
                                   transitions={'centered': 'FORWARD',
                                   'lost': 'SEARCH_FOR_GATES'})
 
-            smach.StateMachine.add('SEARCH_FOR_GATES', Search_for_posts(),
+            smach.StateMachine.add('SEARCH_FOR_POSTS', Search_for_posts(),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
                                   move_forward_centered('nav_channel_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
                                   'not centered': 'CENTER',
-                                  'lost': 'SEARCH_FOR_GATES'})
+                                  'lost': 'SEARCH_FOR_POSTS'})
 
 
             smach.StateMachine.add('BLIND_FORWARD',
