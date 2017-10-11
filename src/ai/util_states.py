@@ -8,7 +8,6 @@ from control_wrapper import control_wrapper
 import smach
 import smach_ros
 
-search_direction = 'right'
 # Based on move_forward from forward_until.py with tweaks for vision
 class move_to_gate(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
@@ -40,13 +39,14 @@ class move_to_gate(SubscribeState):
 class lost(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-                               outcomes=['1 post', 'none', '2 posts'])
+                               outcomes=['1 post', 'none', '2 posts'],
+                               input_keys=['direction'],
+                               output_keys=['direction'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
 
     def callback(self, detectionArray):
-        global search_direction
         c = control_wrapper()
         c.forwardError(0.0)
         detections = filterByLabel(detectionArray.detections,
@@ -55,14 +55,14 @@ class lost(SubscribeState):
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
         currentYaw = 0
-        if search_direction == 'right':
+        if self._user_data.direction == 'right':
             currentYaw = -self.yaw
         else:
             currentYaw = self.yaw
         c.yawLeftRelative(currentYaw)
 
         if len(vision_result) == 0:
-            rospy.loginfo("search direction {}".format(search_direction))
+            rospy.loginfo("search direction {}".format(self._user_data.direction))
             rospy.loginfo("yaw: {}".format(currentYaw))
             c.publish()
             self._poll_rate.sleep()
@@ -75,32 +75,16 @@ class lost(SubscribeState):
 # Flips direction of search
 class flip(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success'])
+        smach.State.__init__(self, outcomes=['success'],
+                            input_keys=['direction'],
+                            output_keys=['direction'])
 
     def execute(self, userdata):
-        global search_direction
-        if search_direction == 'right':
-            search_direction = 'left'
+        if userdata.direction == 'right':
+            userdata.direction = 'left'
         else:
-            search_direction = 'right'
+            userdata.direction = 'right'
         return 'success'
-
-# High level state machine for searching gate posts
-class Search_for_gates(smach.StateMachine):
-    def __init__(self):
-        smach.StateMachine.__init__(self, outcomes=['success'])
-
-        with self:
-            smach.StateMachine.add("LOST", lost('gate_post'),
-                transitions={'1 post': 'SEARCH', 'none': 'LOST',
-                '2 posts': 'SEARCH'})
-
-            smach.StateMachine.add("FLIP", flip(),
-                                  transitions={'success': 'LOST'})
-
-            smach.StateMachine.add("SEARCH", search('gate_post'),
-                transitions={'2 posts': 'success', 'none': 'FLIP',
-                '1 post': 'SEARCH'})
 
 # State for searching gate posts. Comes after state Lost, so it searches,
 # and yaws same direction as it was in Lost state
@@ -109,13 +93,14 @@ class Search_for_gates(smach.StateMachine):
 class search(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-                               outcomes=['2 posts', 'none', '1 post'])
+                               outcomes=['2 posts', 'none', '1 post'],
+                               input_keys=['direction'],
+                               output_keys=['direction'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
 
     def callback(self, detectionArray):
-        global search_direction
         c = control_wrapper()
         c.forwardError(0.0)
 
@@ -126,7 +111,7 @@ class search(SubscribeState):
         rospy.loginfo("results: {}".format(len(vision_result)))
 
         currentYaw = 0
-        if search_direction == 'right':
+        if self._user_data.direction == 'right':
             currentYaw = -self.yaw
         else:
             currentYaw = self.yaw
@@ -139,8 +124,30 @@ class search(SubscribeState):
         elif len(vision_result) == 2:
             self.exit('2 posts')
         else:
-            rospy.loginfo("search direction {}".format(search_direction))
+            rospy.loginfo("search direction {}".format(self._user_data.direction))
             self.exit('none')
+
+
+# High level state machine for searching gate posts
+class Search_for_gates(smach.StateMachine):
+    def __init__(self):
+        smach.StateMachine.__init__(self, outcomes=['success'])
+        self.userdata.direction = 'right'
+
+        with self:
+            smach.StateMachine.add("LOST", lost('gate_post'),
+                transitions={'1 post': 'SEARCH', 'none': 'LOST',
+                '2 posts': 'SEARCH'},
+                remapping={'direction':'direction'})
+
+            smach.StateMachine.add("FLIP", flip(),
+                                  transitions={'success': 'LOST'},
+                                  remapping={'direction':'direction'})
+
+            smach.StateMachine.add("SEARCH", search('gate_post'),
+                transitions={'2 posts': 'success', 'none': 'FLIP',
+                '1 post': 'SEARCH'},
+                remapping={'direction':'direction'})
 
 # State for centering between gate posts or moving while being centered
 class center(SubscribeState):
@@ -205,6 +212,10 @@ class move_forward_centered(SubscribeState):
         detections = filterByLabel(detectionArray.detections,
             self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
+
+        if len(vision_result) < 2:
+            self.exit('lost')
+            return 'lost'
 
         gateXPos = (vision_result[0].x + vision_result[1].x) / 2
         gateYPos = (vision_result[0].y + vision_result[1].y) / 2
