@@ -227,7 +227,8 @@ class move_forward_centered(SubscribeState):
            vision_result[1].height)) > self.distanceGoal):
             self.exit('ready')
             return 'ready'
-        if abs(gateXPos-0.5) > self.errorGoal or abs(gateYPos-0.5) > self.errorGoal:
+        if (abs(gateXPos-0.5) > self.errorGoal or
+           abs(gateYPos-0.5) > self.errorGoal):
             self.exit('not centered')
         if len(vision_result) < 2:
             self.exit('lost')

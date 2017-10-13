@@ -22,7 +22,8 @@ class nav_channel(smach.StateMachine):
                                   transitions={'centered': 'FORWARD',
                                   'lost': 'SEARCH_FOR_POSTS'})
 
-            smach.StateMachine.add('SEARCH_FOR_POSTS', Search_for_gates('nav_channel_post'),
+            smach.StateMachine.add('SEARCH_FOR_POSTS',
+                                  Search_for_gates('nav_channel_post'),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',

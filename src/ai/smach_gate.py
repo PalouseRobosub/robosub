@@ -22,7 +22,8 @@ class gate_task(smach.StateMachine):
                                   transitions={'centered': 'FORWARD',
                                   'lost': 'SEARCH_FOR_GATES'})
 
-            smach.StateMachine.add('SEARCH_FOR_GATES', Search_for_gates('gate_post'),
+            smach.StateMachine.add('SEARCH_FOR_GATES',
+                                  Search_for_gates('gate_post'),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',

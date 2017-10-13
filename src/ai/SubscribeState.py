@@ -39,7 +39,8 @@ class SubscribeState(smach.State):
         self._done = False
         self._outcome = None
         self._sub = rospy.Subscriber(self._topic, self._msg_type,
-                                     self._sub_callback, callback_args=user_data)
+                                    self._sub_callback,
+                                    callback_args=user_data)
         if self._setup_callback:
             self._setup_callback()
 
