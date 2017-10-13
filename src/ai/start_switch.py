@@ -40,7 +40,8 @@ class start_switch(SubscribeState):
         rospy.logdebug("start switch counter: {}".format(self.start_counter))
 
 if __name__ == "__main__":
-    rospy.init_node('start_switch_test', log_level=rospy.DEBUG)
+    # To see debug messages add log_level=rospy.DEBUG argument to init_node
+    rospy.init_node('start_switch_test')
 
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
