@@ -42,9 +42,9 @@ if __name__ == '__main__':
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
-            transitions={'success':'GATE_TASK'})
+            transitions={'success': 'GATE_TASK'})
         smach.StateMachine.add('GATE_TASK', gate_task(),
-            transitions={'success':'success'})
+            transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()

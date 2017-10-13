@@ -140,16 +140,16 @@ class Search_for_gates(smach.StateMachine):
             smach.StateMachine.add("LOST", lost(label),
                 transitions={'1 post': 'SEARCH', 'none': 'LOST',
                 '2 posts': 'SEARCH'},
-                remapping={'direction':'direction'})
+                remapping={'direction': 'direction'})
 
             smach.StateMachine.add("FLIP", flip(),
                                   transitions={'success': 'LOST'},
-                                  remapping={'direction':'direction'})
+                                  remapping={'direction': 'direction'})
 
             smach.StateMachine.add("SEARCH", search(label),
                 transitions={'2 posts': 'success', 'none': 'FLIP',
                 '1 post': 'SEARCH'},
-                remapping={'direction':'direction'})
+                remapping={'direction': 'direction'})
 
 # State for centering between gate posts or moving while being centered
 class center(SubscribeState):
