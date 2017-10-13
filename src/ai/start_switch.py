@@ -12,7 +12,7 @@ class start_switch(SubscribeState):
         # (topic_name, msg_type, subscriber_callback, list_of_outcomes,
         # setup_function)
         SubscribeState.__init__(self, "start_switch", Bool, self.callback,
-            ["success"], self.setup)
+            ["success"], setup_callback=self.setup)
         self.min_count = min_count
 
     # define a setup function to be run every time we enter the state
@@ -21,7 +21,7 @@ class start_switch(SubscribeState):
 
     # define the callback to be called when a message comes in on the
     # "start_switch" topic
-    def callback(self, msg):
+    def callback(self, msg, userdata):
         # If the switch is activated, increment the counter. If we have
         # received min_count number of positive activations in a row, we are
         # fairly confident the switch has actually been pressed, and can

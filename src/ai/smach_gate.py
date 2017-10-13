@@ -1,7 +1,8 @@
 #!/usr/bin/python
 import rospy
 from blind_movement import move_forward
-from util_states import *
+from gate_util import *
+from start_switch import start_switch
 import smach
 import smach_ros
 
@@ -21,7 +22,7 @@ class gate_task(smach.StateMachine):
                                   transitions={'centered': 'FORWARD',
                                   'lost': 'SEARCH_FOR_GATES'})
 
-            smach.StateMachine.add('SEARCH_FOR_GATES', Search_for_gates(),
+            smach.StateMachine.add('SEARCH_FOR_GATES', Search_for_gates('gate_post'),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
@@ -36,8 +37,14 @@ class gate_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    rospy.init_node('gate_task')
-    sm = gate_task()
+    rospy.init_node('ai', log_level=rospy.INFO)
+
+    sm = smach.StateMachine(outcomes=['success'])
+    with sm:
+        smach.StateMachine.add('START_SWITCH', start_switch(),
+            transitions={'success':'GATE_TASK'})
+        smach.StateMachine.add('GATE_TASK', gate_task(),
+            transitions={'success':'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()

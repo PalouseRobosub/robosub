@@ -35,7 +35,7 @@ class track_buoy(SubscribeState):
         self.lost_counter = 0
         self.lost_counter_max = 5
 
-    def callback(self, msg):
+    def callback(self, msg, userdata):
         c = control_wrapper()
         c.levelOut()
         c.forwardError(0.0)
@@ -106,7 +106,7 @@ class find_buoy(SubscribeState):
         self.errorGoal = rospy.get_param("ai/find_buoy/errorGoal")
         self.yaw_speed_factor = rospy.get_param("ai/find_buoy/yaw_speed_factor")
 
-    def callback(self, msg):
+    def callback(self, msg, userdata):
         c = control_wrapper()
         c.levelOut()
         c.forwardError(0.0)
@@ -161,8 +161,6 @@ class buoy_task(smach.StateMachine):
         reset_time = rospy.get_param("ai/hit_buoy/reset_time")
         reset_speed = rospy.get_param("ai/hit_buoy/reset_speed")
         with self:
-            smach.StateMachine.add('START_SWITCH', start_switch(),
-                transitions={'success': 'HIT_BUOY_RED'})
 
             smach.StateMachine.add('HIT_BUOY_RED', hit_buoy('red_buoy'),
                 transitions={'success': 'RESET_FOR_GREEN'})
@@ -188,7 +186,13 @@ class buoy_task(smach.StateMachine):
 if __name__ == "__main__":
     rospy.init_node('ai', log_level=rospy.INFO)
 
-    sm = buoy_task()
+    sm = smach.StateMachine(outcomes=['success'])
+    with sm:
+        smach.StateMachine.add('START_SWITCH', start_switch(),
+            transitions={'success':'BUOY_TASK'})
+        smach.StateMachine.add('BUOY_TASK', buoy_task(),
+            transitions={'success':'success'})
+
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()
     outcome = sm.execute()

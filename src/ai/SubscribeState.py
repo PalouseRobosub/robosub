@@ -36,11 +36,10 @@ class SubscribeState(smach.State):
 
     def execute(self, user_data):
         rospy.logdebug('SubscribeState base class "execute" running')
-        self._user_data = user_data
         self._done = False
         self._outcome = None
         self._sub = rospy.Subscriber(self._topic, self._msg_type,
-                                     self._sub_callback)
+                                     self._sub_callback, callback_args=user_data)
         if self._setup_callback:
             self._setup_callback()
 

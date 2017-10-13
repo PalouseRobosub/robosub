@@ -17,7 +17,7 @@ class move_to_gate(SubscribeState):
         self._poll_rate = rospy.Rate(poll_rate)
         self.forward_error = rospy.get_param("ai/move_to_gate/forward_error")
 
-    def callback(self, detectionArray):
+    def callback(self, detectionArray, userdata):
         c = control_wrapper()
         c.levelOut()
         # forward_error is a parameter
@@ -46,7 +46,7 @@ class lost(SubscribeState):
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
 
-    def callback(self, detectionArray):
+    def callback(self, detectionArray, userdata):
         c = control_wrapper()
         c.forwardError(0.0)
         detections = filterByLabel(detectionArray.detections,
@@ -55,14 +55,16 @@ class lost(SubscribeState):
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
         currentYaw = 0
-        if self._user_data.direction == 'right':
+        if userdata.direction == 'right':
             currentYaw = -self.yaw
         else:
             currentYaw = self.yaw
+
         c.yawLeftRelative(currentYaw)
+        rospy.loginfo("objects detected: {}".format(len(vision_result)))
 
         if len(vision_result) == 0:
-            rospy.loginfo("search direction {}".format(self._user_data.direction))
+            rospy.loginfo("search direction {}".format(userdata.direction))
             rospy.loginfo("yaw: {}".format(currentYaw))
             c.publish()
             self._poll_rate.sleep()
@@ -100,7 +102,7 @@ class search(SubscribeState):
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
 
-    def callback(self, detectionArray):
+    def callback(self, detectionArray, userdata):
         c = control_wrapper()
         c.forwardError(0.0)
 
@@ -108,10 +110,10 @@ class search(SubscribeState):
             self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
-        rospy.loginfo("results: {}".format(len(vision_result)))
+        rospy.loginfo("objects detected: {}".format(len(vision_result)))
 
         currentYaw = 0
-        if self._user_data.direction == 'right':
+        if userdata.direction == 'right':
             currentYaw = -self.yaw
         else:
             currentYaw = self.yaw
@@ -124,18 +126,18 @@ class search(SubscribeState):
         elif len(vision_result) == 2:
             self.exit('2 posts')
         else:
-            rospy.loginfo("search direction {}".format(self._user_data.direction))
+            rospy.loginfo("search direction {}".format(userdata.direction))
             self.exit('none')
 
 
 # High level state machine for searching gate posts
 class Search_for_gates(smach.StateMachine):
-    def __init__(self):
+    def __init__(self, label):
         smach.StateMachine.__init__(self, outcomes=['success'])
         self.userdata.direction = 'right'
 
         with self:
-            smach.StateMachine.add("LOST", lost('gate_post'),
+            smach.StateMachine.add("LOST", lost(label),
                 transitions={'1 post': 'SEARCH', 'none': 'LOST',
                 '2 posts': 'SEARCH'},
                 remapping={'direction':'direction'})
@@ -144,7 +146,7 @@ class Search_for_gates(smach.StateMachine):
                                   transitions={'success': 'LOST'},
                                   remapping={'direction':'direction'})
 
-            smach.StateMachine.add("SEARCH", search('gate_post'),
+            smach.StateMachine.add("SEARCH", search(label),
                 transitions={'2 posts': 'success', 'none': 'FLIP',
                 '1 post': 'SEARCH'},
                 remapping={'direction':'direction'})
@@ -160,7 +162,7 @@ class center(SubscribeState):
         self.dive_factor = rospy.get_param("ai/center/dive_factor")
 
 
-    def callback(self, detectionArray):
+    def callback(self, detectionArray, userdata):
         c = control_wrapper()
         c.levelOut()
 
@@ -204,7 +206,7 @@ class move_forward_centered(SubscribeState):
         self.errorGoal = rospy.get_param("ai/move_forward/errorGoal")
         self.forward_speed = rospy.get_param("ai/move_forward/forward_speed")
 
-    def callback(self, detectionArray):
+    def callback(self, detectionArray, userdata):
         c = control_wrapper()
         c.levelOut()
         c.forwardError(self.forward_speed)
