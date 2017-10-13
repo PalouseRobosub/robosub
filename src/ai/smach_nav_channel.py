@@ -32,19 +32,18 @@ class nav_channel(smach.StateMachine):
                                   'not centered': 'CENTER',
                                   'lost': 'SEARCH_FOR_POSTS'})
 
-
             smach.StateMachine.add('BLIND_FORWARD',
                                   move_forward(self.time, self.speed),
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    rospy.init_node('ai', log_level=rospy.INFO)
+    rospy.init_node('ai', log_level=rospy.DEBUG)
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
-            transitions={'success': 'NAV_TASK'})
+                              transitions={'success': 'NAV_TASK'})
         smach.StateMachine.add('NAV_TASK', nav_channel(),
-            transitions={'success': 'success'})
+                              transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()

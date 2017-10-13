@@ -12,7 +12,7 @@ class start_switch(SubscribeState):
         # (topic_name, msg_type, subscriber_callback, list_of_outcomes,
         # setup_function)
         SubscribeState.__init__(self, "start_switch", Bool, self.callback,
-            ["success"], setup_callback=self.setup)
+                               ["success"], setup_callback=self.setup)
         self.min_count = min_count
 
     # define a setup function to be run every time we enter the state

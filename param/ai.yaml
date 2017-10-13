@@ -13,12 +13,12 @@ ai:
     find_buoy:
         errorGoal: 0.1
         yaw_speed_factor: -25.0
-# contains variables for blind_movement.py
+# variables below contains values for gate/nav_channel tasks
     gate_task:
         forward_time: 9.5 # how many seconds to move forward
         forward_speed: 6.0 # how fast to move forward
     move_to_gate:
-        forward_error: 10.0 # how fast to move forward
+        forward_speed: 10.0 # how fast to move forward
     search_gate:
         yaw_speed_factor: 2.0 # how fast to yaw while searching gate
     center:

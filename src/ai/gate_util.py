@@ -10,29 +10,26 @@ import smach_ros
 
 # Based on move_forward from forward_until.py with tweaks for vision
 class move_to_gate(SubscribeState):
-    def __init__(self, vision_label, poll_rate=10):
+    def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['success'])
         self.vision_label = vision_label
-        self._poll_rate = rospy.Rate(poll_rate)
-        self.forward_error = rospy.get_param("ai/move_to_gate/forward_error")
+        self.forward_speed = rospy.get_param("ai/move_to_gate/forward_speed")
 
     def callback(self, detectionArray, userdata):
         c = control_wrapper()
         c.levelOut()
-        # forward_error is a parameter
-        c.forwardError(self.forward_error)
+        c.forwardError(self.forward_speed)
 
         detections = filterByLabel(detectionArray.detections,
-            self.vision_label)
+                                  self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
         normalize(vision_result)
         # move forward until we see a gate task post
         if len(vision_result) == 0:
             c.publish()
-            self._poll_rate.sleep()
-        self.exit("success")
-        return 'success'
+        else:
+            self.exit("success")
 
 # Lost state for when AI feels lost
 # When we do not see any of gate posts at all
@@ -50,7 +47,7 @@ class lost(SubscribeState):
         c = control_wrapper()
         c.forwardError(0.0)
         detections = filterByLabel(detectionArray.detections,
-            self.vision_label)
+                                  self.vision_label)
 
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
@@ -61,17 +58,17 @@ class lost(SubscribeState):
             currentYaw = self.yaw
 
         c.yawLeftRelative(currentYaw)
-        rospy.loginfo("objects detected: {}".format(len(vision_result)))
+        rospy.logdebug("objects detected: {}".format(len(vision_result)))
 
         if len(vision_result) == 0:
-            rospy.loginfo("search direction {}".format(userdata.direction))
-            rospy.loginfo("yaw: {}".format(currentYaw))
+            rospy.logdebug("search direction {}".format(userdata.direction))
+            rospy.logdebug("yaw: {}".format(currentYaw))
             c.publish()
             self._poll_rate.sleep()
             self.exit('none')
         elif len(vision_result) == 1:
             self.exit('1 post')
-        elif len(vision_result) == 2:
+        else:
             self.exit('2 posts')
 
 # Flips direction of search
@@ -107,10 +104,10 @@ class search(SubscribeState):
         c.forwardError(0.0)
 
         detections = filterByLabel(detectionArray.detections,
-            self.vision_label)
+                                  self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
-        rospy.loginfo("objects detected: {}".format(len(vision_result)))
+        rospy.logdebug("objects detected: {}".format(len(vision_result)))
 
         currentYaw = 0
         if userdata.direction == 'right':
@@ -126,7 +123,7 @@ class search(SubscribeState):
         elif len(vision_result) == 2:
             self.exit('2 posts')
         else:
-            rospy.loginfo("search direction {}".format(userdata.direction))
+            rospy.logdebug("search direction {}".format(userdata.direction))
             self.exit('none')
 
 
@@ -138,18 +135,18 @@ class Search_for_gates(smach.StateMachine):
 
         with self:
             smach.StateMachine.add("LOST", lost(label),
-                transitions={'1 post': 'SEARCH', 'none': 'LOST',
-                '2 posts': 'SEARCH'},
-                remapping={'direction': 'direction'})
+                                  transitions={'1 post': 'SEARCH',
+                                  'none': 'LOST', '2 posts': 'SEARCH'},
+                                  remapping={'direction': 'direction'})
 
             smach.StateMachine.add("FLIP", flip(),
                                   transitions={'success': 'LOST'},
                                   remapping={'direction': 'direction'})
 
             smach.StateMachine.add("SEARCH", search(label),
-                transitions={'2 posts': 'success', 'none': 'FLIP',
-                '1 post': 'SEARCH'},
-                remapping={'direction': 'direction'})
+                                  transitions={'2 posts': 'success',
+                                  'none': 'FLIP', '1 post': 'SEARCH'},
+                                  remapping={'direction': 'direction'})
 
 # State for centering between gate posts or moving while being centered
 class center(SubscribeState):
@@ -167,7 +164,7 @@ class center(SubscribeState):
         c.levelOut()
 
         detections = filterByLabel(detectionArray.detections,
-            self.vision_label)
+                                  self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
         if len(vision_result) < 2:
@@ -177,17 +174,17 @@ class center(SubscribeState):
         gateXPos = (vision_result[0].x + vision_result[1].x) / 2
         gateYPos = (vision_result[0].y + vision_result[1].y) / 2
 
-        rospy.loginfo(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
+        rospy.logdebug(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
 
         if abs(gateXPos-0.5) > self.errorGoal:
             # If we are not centered by yaw
             yaw_left = (gateXPos-0.5) * self.yaw_factor
             c.yawLeftRelative(yaw_left * 60)
-            rospy.loginfo("trying to yaw: {}".format(yaw_left * 60))
+            rospy.logdebug("trying to yaw: {}".format(yaw_left * 60))
         elif abs(gateYPos-0.5) > self.errorGoal:
             # If our depth is not enough for centering
             dive = (gateYPos-0.5) * self.dive_factor
-            rospy.loginfo("trying to dive: {}".format(dive))
+            rospy.logdebug("trying to dive: {}".format(dive))
             c.diveRelative(dive)
         else:
             self.exit('centered')
@@ -212,7 +209,7 @@ class move_forward_centered(SubscribeState):
         c.forwardError(self.forward_speed)
 
         detections = filterByLabel(detectionArray.detections,
-            self.vision_label)
+                                  self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
         if len(vision_result) < 2:
@@ -233,6 +230,3 @@ class move_forward_centered(SubscribeState):
         if len(vision_result) < 2:
             self.exit('lost')
         c.publish()
-
-if __name__ == "__main__":
-    pass
