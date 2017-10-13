@@ -148,7 +148,7 @@ class hit_buoy(smach.StateMachine):
 
             smach.StateMachine.add("TRACKING", track_buoy(vision_label),
                                   transitions={'success': 'RAM_BUOY',
-                                  'lost_buoy': 'FIND_BUOY'})
+                                              'lost_buoy': 'FIND_BUOY'})
 
             ram_time = rospy.get_param("ai/hit_buoy/ram_time")
             ram_speed = rospy.get_param("ai/hit_buoy/ram_speed")
@@ -188,8 +188,8 @@ class buoy_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == "__main__":
-    rospy.init_node('ai', log_level=rospy.DEBUG)
-
+    # To see debug messages add log_level=rospy.DEBUG argument to init_node
+    rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),

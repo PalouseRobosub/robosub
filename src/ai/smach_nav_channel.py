@@ -20,7 +20,7 @@ class nav_channel(smach.StateMachine):
 
             smach.StateMachine.add('CENTER', center('nav_channel_post'),
                                   transitions={'centered': 'FORWARD',
-                                  'lost': 'SEARCH_FOR_POSTS'})
+                                              'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('SEARCH_FOR_POSTS',
                                   Search_for_gates('nav_channel_post'),
@@ -29,15 +29,16 @@ class nav_channel(smach.StateMachine):
             smach.StateMachine.add('FORWARD',
                                   move_forward_centered('nav_channel_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
-                                  'not centered': 'CENTER',
-                                  'lost': 'SEARCH_FOR_POSTS'})
+                                              'not centered': 'CENTER',
+                                              'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('BLIND_FORWARD',
                                   move_forward(self.time, self.speed),
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    rospy.init_node('ai', log_level=rospy.DEBUG)
+    # To see debug messages add log_level=rospy.DEBUG argument to init_node
+    rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),

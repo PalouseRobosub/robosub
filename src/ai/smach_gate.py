@@ -20,7 +20,7 @@ class gate_task(smach.StateMachine):
 
             smach.StateMachine.add('CENTER', center('gate_post'),
                                   transitions={'centered': 'FORWARD',
-                                  'lost': 'SEARCH_FOR_GATES'})
+                                              'lost': 'SEARCH_FOR_GATES'})
 
             smach.StateMachine.add('SEARCH_FOR_GATES',
                                   Search_for_gates('gate_post'),
@@ -29,8 +29,8 @@ class gate_task(smach.StateMachine):
             smach.StateMachine.add('FORWARD',
                                   move_forward_centered('gate_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
-                                  'not centered': 'CENTER',
-                                  'lost': 'SEARCH_FOR_GATES'})
+                                              'not centered': 'CENTER',
+                                              'lost': 'SEARCH_FOR_GATES'})
 
 
             smach.StateMachine.add('BLIND_FORWARD',
@@ -38,8 +38,8 @@ class gate_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    rospy.init_node('ai', log_level=rospy.DEBUG)
-
+    # To see debug messages add log_level=rospy.DEBUG argument to init_node
+    rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),

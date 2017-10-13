@@ -127,7 +127,7 @@ class search(SubscribeState):
             self.exit('none')
 
 
-# High level state machine for searching gate posts
+# State machine for searching gate posts
 class Search_for_gates(smach.StateMachine):
     def __init__(self, label):
         smach.StateMachine.__init__(self, outcomes=['success'])
@@ -136,7 +136,8 @@ class Search_for_gates(smach.StateMachine):
         with self:
             smach.StateMachine.add("LOST", lost(label),
                                   transitions={'1 post': 'SEARCH',
-                                  'none': 'LOST', '2 posts': 'SEARCH'},
+                                              'none': 'LOST',
+                                              '2 posts': 'SEARCH'},
                                   remapping={'direction': 'direction'})
 
             smach.StateMachine.add("FLIP", flip(),
@@ -145,7 +146,8 @@ class Search_for_gates(smach.StateMachine):
 
             smach.StateMachine.add("SEARCH", search(label),
                                   transitions={'2 posts': 'success',
-                                  'none': 'FLIP', '1 post': 'SEARCH'},
+                                              'none': 'FLIP',
+                                              '1 post': 'SEARCH'},
                                   remapping={'direction': 'direction'})
 
 # State for centering between gate posts or moving while being centered
