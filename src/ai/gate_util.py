@@ -156,7 +156,7 @@ class center(SubscribeState):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['centered', 'lost'])
         self.vision_label = vision_label
-        self.errorGoal = rospy.get_param("ai/center/errorGoal")
+        self.error_goal = rospy.get_param("ai/center/error_goal")
         self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
         self.dive_factor = rospy.get_param("ai/center/dive_factor")
 
@@ -178,12 +178,12 @@ class center(SubscribeState):
 
         rospy.logdebug(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
 
-        if abs(gateXPos-0.5) > self.errorGoal:
+        if abs(gateXPos-0.5) > self.error_goal:
             # If we are not centered by yaw
             yaw_left = (gateXPos-0.5) * self.yaw_factor
             c.yawLeftRelative(yaw_left * 60)
             rospy.logdebug("trying to yaw: {}".format(yaw_left * 60))
-        elif abs(gateYPos-0.5) > self.errorGoal:
+        elif abs(gateYPos-0.5) > self.error_goal:
             # If our depth is not enough for centering
             dive = (gateYPos-0.5) * self.dive_factor
             rospy.logdebug("trying to dive: {}".format(dive))
@@ -202,7 +202,7 @@ class move_forward_centered(SubscribeState):
                                outcomes=['ready', 'not centered', 'lost'])
         self.vision_label = vision_label
         self.distanceGoal = rospy.get_param("ai/move_forward/distanceGoal")
-        self.errorGoal = rospy.get_param("ai/move_forward/errorGoal")
+        self.error_goal = rospy.get_param("ai/move_forward/error_goal")
         self.forward_speed = rospy.get_param("ai/move_forward/forward_speed")
 
     def callback(self, detectionArray, userdata):
@@ -226,8 +226,8 @@ class move_forward_centered(SubscribeState):
            vision_result[1].height)) > self.distanceGoal):
             self.exit('ready')
             return 'ready'
-        if (abs(gateXPos-0.5) > self.errorGoal or
-           abs(gateYPos-0.5) > self.errorGoal):
+        if (abs(gateXPos-0.5) > self.error_goal or
+           abs(gateYPos-0.5) > self.error_goal):
             self.exit('not centered')
         if len(vision_result) < 2:
             self.exit('lost')
