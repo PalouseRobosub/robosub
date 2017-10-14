@@ -101,7 +101,7 @@ void ParticleFilter::initialize()
         ros::shutdown();
     }
 
-    if(!ros::param::has("hydrophones/pinger/depth"))
+    if(!ros::param::has("localization/pinger/depth"))
     {
         ROS_FATAL("pinger depth failed to load");
         ros::shutdown();
