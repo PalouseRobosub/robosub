@@ -47,9 +47,10 @@ int main(int argc, char **argv)
             rate), "Failed to load localization rate.");
     ros::Rate r(rate);
 
+    //this loop calls localization_system to run the code
     while(ros::ok())
     {
-        ros::spinOnce();
+        ros::spinOnce(); //what does this do?
 
         // Run localization system update. This will input sensor data and run
         // the filters.
