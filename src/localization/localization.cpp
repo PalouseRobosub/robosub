@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 
     //set up a regular position publisher as a point
     ros::Publisher loc_point_pub =
-	nh.advertise<geometry_msgs::PointStamped>("position/point", 1);
+    nh.advertise<geometry_msgs::PointStamped>("position/point", 1);
 
     // Set up pose publisher. This is necessary for visualizing in rviz.
     ros::Publisher pose_pub =
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
         loc_vector_pub.publish(loc_system.GetLocalizationMessage());
         pose_pub.publish(loc_system.GetPoseMessage());
-	loc_point_pub.publish(loc_system.GetLocalizationPoint());
+        loc_point_pub.publish(loc_system.GetLocalizationPoint());
 
         r.sleep();
     }
