@@ -128,7 +128,7 @@ void LocalizationSystem::Update()
     //comment this out for the time being so the kalman filter
     //  doesn't affect the particle filter
     //UPDATE: Taking this line out actually makes things worse.
-    sensors.InputAbsLinVel(kalman_filter.GetAbsLinVel());
+        sensors.InputAbsLinVel(kalman_filter.GetAbsLinVel());
     }
 
     if(particle_filter.NewPosition())
