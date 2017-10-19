@@ -25,6 +25,8 @@ ai:
         error_goal: 0.02 # what is the error Goal, in precentage so 0.1 is 10%
         yaw_factor: -2.5 # yaw factor for centering. Negative is to the right
         dive_factor: -2.0 # dive factor for centering. Negative is to dive
+        strafe_factor: -2.0 # strafe factor for centering. Negative is right
+        forward_factor: -2.0 # forward factor for centering. Negative is backwards
     move_forward:
         error_goal: 0.03 #What is the error Goal in moving forward
         distanceGoal: 0.01 # What is the distanceGoal, teremined from testing
