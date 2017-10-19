@@ -9,9 +9,13 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    // Set up regular position publisher
-    ros::Publisher loc_pub =
-        nh.advertise<geometry_msgs::Vector3Stamped>("position", 1);
+    // Set up regular position publisher as a vector
+    ros::Publisher loc_vector_pub =
+        nh.advertise<geometry_msgs::Vector3Stamped>("position/vector", 1);
+
+    //set up a regular position publisher as a point
+    ros::Publisher loc_point_pub =
+	nh.advertise<geometry_msgs::PointStamped>("position/point", 1);
 
     // Set up pose publisher. This is necessary for visualizing in rviz.
     ros::Publisher pose_pub =
@@ -56,8 +60,9 @@ int main(int argc, char **argv)
         // the filters.
         loc_system.Update();
 
-        loc_pub.publish(loc_system.GetLocalizationMessage());
+        loc_vector_pub.publish(loc_system.GetLocalizationMessage());
         pose_pub.publish(loc_system.GetPoseMessage());
+	loc_point_pub.publish(loc_system.GetLocalizationPoint());
 
         r.sleep();
     }

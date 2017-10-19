@@ -34,6 +34,19 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
     return msg;
 }
 
+geometry_msgs::PointStamped LocalizationSystem::GetLocalizationPoint()
+{
+    geometry_msgs::PointStamped msg;
+    tf::Vector3 pos = particle_filter.GetPosition();
+
+    msg.point.x = pos[0];
+    msg.point.y = pos[1];
+    msg.point.z = pos[2];
+    msg.header.stamp = ros::Time::now();
+
+    return msg;
+}
+
 geometry_msgs::PoseStamped LocalizationSystem::GetPoseMessage()
 {
     geometry_msgs::PoseStamped msg;

@@ -32,7 +32,8 @@ public:
 
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
     geometry_msgs::PoseStamped GetPoseMessage();
-
+    geometry_msgs::PointStamped GetLocalizationPoint();
+ 
     void Update();
 
 private:
