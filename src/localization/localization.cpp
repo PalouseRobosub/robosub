@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     //this loop calls localization_system to run the code
     while(ros::ok())
     {
-        ros::spinOnce(); //what does this do?
+        ros::spinOnce();
 
         // Run localization system update. This will input sensor data and run
         // the filters.
