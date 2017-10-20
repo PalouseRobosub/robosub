@@ -14,7 +14,7 @@ class move_forward(smach.State):
 
         # wait for time to be non-zero
         while(rospy.Time.now() == rospy.Time(0)):
-            rospy.sleep(1.0/self.poll_rate)
+            rospy.sleep(1.0/self._poll_rate)
 
     def execute(self, userdata):
         c = control_wrapper()
