@@ -8,11 +8,20 @@ def getPathMarkerAngle(msg, box_x, box_y, box_width, box_height):
     orange = ([14, 25, 180], [35, 45, 255])
 
     br = CvBridge()
-    dtype, n_channels = br.encoding_as_cvtype2('8UC3')
+    #dtype, n_channels = br.encoding_as_cvtype2('8UC3')
     im = np.ndarray(shape=(1384, 1032, n_channels), dtype=dtype)
     img = br.imgmsg_to_cv2(msg)
 
-    box = ([box_x, box_y], [box_x*box_width, box_y*box_height])
+    box_x *= 1384
+    box_y *= 1032
+    box_width *= 1384
+    box_height *= 1032
+    left = int(box_x - (box_width / 2))
+    right = int(box_x + (box_width / 2))
+    top = int(box_y - (box_height / 2))
+    bottom = int(box_y + (box_height / 2))
+
+    box = ([left, top], [right, bottom])
 
     height, width = img.shape[:2]
 
@@ -21,8 +30,6 @@ def getPathMarkerAngle(msg, box_x, box_y, box_width, box_height):
 
     mask = cv2.inRange(img, lower, upper)
     output = cv2.bitwise_and(img, img, mask = mask)
-
-    longside = abs(box[0][1] - box[1][1]) > abs(box[0][0] - box[1][0])
 
     box_height = box[1][1] - box[0][1]
     p1_start = (int(box[1][0]*width), int(((0.33333*box_height)+box[0][1])*height))
