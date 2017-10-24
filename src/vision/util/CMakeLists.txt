@@ -1,2 +1,2 @@
-add_ros_node(undisbagtion Undisbagtion.cpp)
-target_link_libraries(undisbagtion ${OpenCV_Libraries})
+add_ros_node(unbag_and_undistort UnbagAndUndistort.cpp)
+target_link_libraries(unbag_and_undistort ${OpenCV_Libraries})
