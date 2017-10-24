@@ -95,7 +95,9 @@ int main (int argc, char** argv)
 
         ROS_INFO_STREAM("Completed initialization");
 
-        // directories
+        // paths
+        const string bagPath;
+        const string output_dir;
         
         if (!ros::param::get("~bagPath", bagPath))
         {
@@ -110,8 +112,6 @@ int main (int argc, char** argv)
             return 1;
         }
 
-        //const string bagPath = argv[2];
-        //const string output_dir = argv[3];
         // mkdir returns a 0 on success and -1 on faliure
         
         if(!mkdir(output_dir.c_str(), 0755))
