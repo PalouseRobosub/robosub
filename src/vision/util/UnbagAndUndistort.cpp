@@ -96,9 +96,9 @@ int main (int argc, char** argv)
         ROS_INFO_STREAM("Completed initialization");
 
         // paths
-        const string bagPath;
-        const string output_dir;
-        
+        string bagPath;
+        string output_dir;
+
         if (!ros::param::get("~bagPath", bagPath))
         {
             ROS_FATAL("could not load \"~bagPath\" parameter");
@@ -113,7 +113,7 @@ int main (int argc, char** argv)
         }
 
         // mkdir returns a 0 on success and -1 on faliure
-        
+
         if(!mkdir(output_dir.c_str(), 0755))
         {
             ROS_ERROR_STREAM("Failed to create path: " << output_dir);
