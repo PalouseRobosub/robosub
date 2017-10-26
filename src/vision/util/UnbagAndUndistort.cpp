@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include <ros/ros.h>
 // The following #if is to use the correct version of the cv_bridge
 // Kinetic by default uses OpenCV3 so we don't need the custom build
@@ -114,13 +116,15 @@ int main (int argc, char** argv)
 
         // mkdir returns a 0 on success and -1 on faliure
 
-        if(!mkdir(output_dir.c_str(), 0755))
+        if(mkdir(output_dir.c_str(), 0755))
         {
-            ROS_ERROR_STREAM("Failed to create path: " << output_dir);
+            int error = errno;
+            ROS_ERROR_STREAM("Failed to create path: " << output_dir << 
+                    "\nreason: " << strerror(error));
 
             exit(1);
         }
-
+        
         ROS_INFO_STREAM("Reading: " << bagPath);
         ROS_INFO_STREAM("Saving in: " << output_dir);
 
