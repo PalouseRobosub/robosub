@@ -132,29 +132,4 @@ void LocalizationSystem::Update()
     {
         sensors.InputPosition(particle_filter.GetPosition());
     }
-
-    tf::Vector3 pos = particle_filter.GetPosition();
-    publish_tf_message(pos);
-}
-
-void LocalizationSystem::publish_tf_message(tf::Vector3 pos)
-{
-    tf2_msgs::TFMessage tm;
-
-    geometry_msgs::TransformStamped robosub_transform;
-
-    robosub_transform.header.frame_id = "world";
-    robosub_transform.header.stamp = ros::Time::now();
-    robosub_transform.child_frame_id = "cobalt";
-
-    robosub_transform.transform.translation.x = pos[0];
-    robosub_transform.transform.translation.y = pos[1];
-    robosub_transform.transform.translation.z = pos[2];
-    robosub_transform.transform.rotation.x = 0.0;
-    robosub_transform.transform.rotation.y = 0.0;
-    robosub_transform.transform.rotation.z = 0.0;
-    robosub_transform.transform.rotation.w = 1.0;
-
-    tm.transforms.push_back(robosub_transform);
-    transform_pub.publish(tm);
 }
