@@ -9,9 +9,10 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
+    //RETAINED PUBLISHER STUB: uncomment if we want to re-publish this type.
     // Set up regular position publisher as a vector
-    ros::Publisher loc_vector_pub =
-        nh.advertise<geometry_msgs::Vector3Stamped>("position/vector", 1);
+    //ros::Publisher loc_vector_pub =
+    //    nh.advertise<geometry_msgs::Vector3Stamped>("position/vector", 1);
 
     //set up a regular position publisher as a point
     ros::Publisher loc_point_pub =
@@ -60,7 +61,8 @@ int main(int argc, char **argv)
         // the filters.
         loc_system.Update();
 
-        loc_vector_pub.publish(loc_system.GetLocalizationMessage());
+        //RETAINED METHOD: Uncomment to re-publish vector position.
+        //loc_vector_pub.publish(loc_system.GetLocalizationMessage());
         pose_pub.publish(loc_system.GetPoseMessage());
         loc_point_pub.publish(loc_system.GetLocalizationPoint());
 
