@@ -13,22 +13,16 @@ import smach_ros
 
 # Move to marker and center
 class center_on_marker(SubscribeState):
-    def __init__(self, vision_label, poll_rate=10):
+    def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray,
                                 self.callback, outcomes=['success', 'nothing'])
         self.vision_label = vision_label
         self.errorGoal = rospy.get_param("ai/center/errorGoal")
-        self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
         self.strafe_factor = rospy.get_param("ai/center/strafe_factor")
         self.forward_factor = rospy.get_param("ai/center/forward_factor")
 
-    def callback(self, detectionArray):
-        print ("detectionArray: {}".format(detectionArray.detections))
+    def callback_vision(self, detectionArray):
         self.detectionArray = detectionArray
-        self.image = rospy.Subscriber("/camera/right/image_raw", Image,
-                                      self.callback_vision)
-
-    def callback_vision(self, Image):
         c = control_wrapper()
         c.levelOut()
         # forward_factor is a parameter
@@ -43,21 +37,17 @@ class center_on_marker(SubscribeState):
 
 
         vision_result = getMostProbable(detections, thresh=0.5)
-        print ("vision_result_x: {}".format(vision_result.x))
         normalize(vision_result)
-        print ("vision_result_x: {}".format(vision_result.x))
 
         if (len(detections) < 1):
             self.exit("nothing")
 
         markerXPos = (vision_result.x + vision_result.width) / 2
         markerYPos = (vision_result.y + vision_result.height) / 2
-        
-        marker_angle = getPathMarkerAngle(Image, vision_result.x,
-                                         vision_result.y, vision_result.width,
-                                         vision_result.height)
 
-        rospy.loginfo(("Marker X: {}\tMarker Y:{}".format(markerXPos, markerYPos)))
+
+        rospy.loginfo(("Marker X: {}\tMarker Y:{}".format(markerXPos,
+                                                          markerYPos)))
 
         if abs(markerXPos+0.5) > self.errorGoal:
             # If we are not centered by width
@@ -69,15 +59,25 @@ class center_on_marker(SubscribeState):
             forward = (markerYPos+0.5) * self.forward_factor
             rospy.loginfo("Trying to center Y: {}".format(forward))
             c.forwardRelative(forward)
-        elif abs(marker_angle) > self.errorGoal:
-            # If we are not centered by yaw
-            yaw_left = (marker_angle+0.5) * self.yaw_factor
-            rospy.loginfo("Trying to yaw: {}".format(yaw_left))
-            c.yawLeftRelative(yaw_left * 2)
         else:
             self.exit('centred')
 
         c.publish()
+# Used if angle topic is created
+    #def yaw_to_angle(SubscribeState):
+    #    SubscribeState.__init__(self, '[angle_topic]', [angle], self.callback,
+    #                            outcomes=['success'])
+    #    self.path_angle = [angle];
+    #    self.errorGoal = rospy.get_param("ai/center/errorGoal")
+    #    self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
+    #    c = control_wrapper();
+    #    c.levelOut()
+    #    if self.path_angle > self.errorGoal:
+    #        c.yawLeftRelative(self, yaw_factor)
+    #    else:
+    #        self.exit('success')
+
+    #    c.publish()
 
 class marker_task(smach.StateMachine):
     def __init__(self):
@@ -87,8 +87,13 @@ class marker_task(smach.StateMachine):
         with self:
             smach.StateMachine.add('CENTER_ON_MARKER',
                 center_on_marker('path_marker'),
-                transitions={'success': 'BLIND_FORWARD',
-                             'nothing': 'CENTER_ON_MARKER'})
+                transitions={'nothing': 'CENTER_ON_MARKER',
+                            # 'success': 'YAW_TO_ANGLE',
+                             'success': 'BLIND_FORWARD'})
+
+            # Will be used if angle topic is created
+            #smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle('angle'),
+            #    transitions={'success': 'BLIND_FORWARD'})
 
             smach.StateMachine.add('BLIND_FORWARD',
                 move_forward(self.time, self.speed),
