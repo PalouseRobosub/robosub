@@ -3,7 +3,7 @@
 import rospy
 import tf
 import tf2_ros
-from geometry_msgs.msg import (QuaternionStamped, TransformStamped, 
+from geometry_msgs.msg import (QuaternionStamped, TransformStamped,
     Quaternion, PointStamped, Point)
 from robosub.msg import Float32Stamped
 
