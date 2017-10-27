@@ -1,8 +1,6 @@
 #!/usr/bin/python
 import rospy
-from get_path_marker_angle import *
 from util import *
-from sensor_msgs.msg import Image
 from robosub.msg import control
 from rs_yolo.msg import DetectionArray
 from SubscribeState import SubscribeState
@@ -100,8 +98,13 @@ class marker_task(smach.StateMachine):
                 transitions={'success':'success'})
 
 if __name__ == '__main__':
-    rospy.init_node('marker_task')
+    rospy.init_node('ai')
     sm = marker_task()
+    with sm:
+        smach.StateMachine.add('START_SWITCH', start_switch(),
+                               transitions={'success': 'PATH_TASK'})
+        smach.StateMachine.add('PATH_TASK', marker_task(),
+                               transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()
