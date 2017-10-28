@@ -61,8 +61,7 @@ int main(int argc, char **argv)
         // the filters.
         loc_system.Update();
 
-        //RETAINED METHOD: Uncomment to re-publish vector position.
-        //loc_vector_pub.publish(loc_system.GetLocalizationMessage());
+        // Finally, publish our data - both as a pose and the point itself.
         pose_pub.publish(loc_system.GetPoseMessage());
         loc_point_pub.publish(loc_system.GetLocalizationPoint());
 
