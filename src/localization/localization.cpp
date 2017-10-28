@@ -9,11 +9,6 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    //RETAINED PUBLISHER STUB: uncomment if we want to re-publish this type.
-    // Set up regular position publisher as a vector
-    //ros::Publisher loc_vector_pub =
-    //    nh.advertise<geometry_msgs::Vector3Stamped>("position/vector", 1);
-
     //set up a regular position publisher as a point
     ros::Publisher loc_point_pub =
     nh.advertise<geometry_msgs::PointStamped>("position/point", 1);
