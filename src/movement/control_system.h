@@ -44,7 +44,7 @@ public:
     void InputOrientationMessage(
             const geometry_msgs::QuaternionStamped::ConstPtr& quat_msg);
     void InputLocalizationMessage(
-            const geometry_msgs::Vector3::ConstPtr& vector_msg);
+            const geometry_msgs::PointStamped::ConstPtr& point_msg);
     void InputDepthMessage(const robosub::Float32Stamped::ConstPtr& depth_msg);
     void CheckTimeout(const ros::TimerEvent& timer_event);
     void ReloadPIDParams();

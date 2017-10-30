@@ -365,16 +365,16 @@ namespace robosub
      * @brief Updates the current state vector of the submarine given an
      *        input localization message
      *
-     * @param vector_msg The input ROS Vector3 geometry message that defines
+     * @param point_msg The input ROS PointStamped geometry message that defines
      *        position
      *
      * @return None.
      */
     void ControlSystem::InputLocalizationMessage(
-            const geometry_msgs::Vector3::ConstPtr &vector_msg)
+            const geometry_msgs::PointStamped::ConstPtr &point_msg)
     {
-        state_vector[0] = vector_msg->x;
-        state_vector[1] = vector_msg->y;
+        state_vector[0] = point_msg->point.x;
+        state_vector[1] = point_msg->point.y;
     }
 
     /**

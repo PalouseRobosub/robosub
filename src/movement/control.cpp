@@ -46,8 +46,8 @@ int main(int argc, char **argv)
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
             &ControlSystem::InputOrientationMessage, control_system);
 
-    ros::Subscriber localization_sub = nh.subscribe("real/position", 1,
-            &ControlSystem::InputLocalizationMessage, control_system);
+    ros::Subscriber localization_sub = nh.subscribe("simulator/cobalt/position",
+            1, &ControlSystem::InputLocalizationMessage, control_system);
 
     ros::Subscriber control_sub = nh.subscribe("control", 1,
             &ControlSystem::InputControlMessage, control_system);
