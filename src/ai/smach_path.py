@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import rospy
 from util import *
+from start_switch import start_switch
 from robosub.msg import control
 from rs_yolo.msg import DetectionArray
 from SubscribeState import SubscribeState
@@ -40,8 +41,8 @@ class center_on_marker(SubscribeState):
         if (len(detections) < 1):
             self.exit("nothing")
 
-        markerXPos = (vision_result.x + vision_result.width) / 2
-        markerYPos = (vision_result.y + vision_result.height) / 2
+        markerXPos = vision_result.x
+        markerYPos = vision_result.y
 
 
         rospy.loginfo(("Marker X: {}\tMarker Y:{}".format(markerXPos,
