@@ -14,29 +14,24 @@ import smach_ros
 class center_on_marker(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray,
-                                self.callback, outcomes=['success', 'nothing'])
+                                self.callback_vision, outcomes=['success', 'nothing'])
         self.vision_label = vision_label
-        self.errorGoal = rospy.get_param("ai/center/errorGoal")
+        self.errorGoal = rospy.get_param("ai/center/error_goal")
         self.strafe_factor = rospy.get_param("ai/center/strafe_factor")
         self.forward_factor = rospy.get_param("ai/center/forward_factor")
 
-    def callback_vision(self, detectionArray):
+    def callback_vision(self, detectionArray, userdata):
         self.detectionArray = detectionArray
         c = control_wrapper()
         c.levelOut()
         # forward_factor is a parameter
         c.forwardError(self.forward_factor)
 
-        print ("detectionArray: {}".format(self.detectionArray.detections))
-
         detections = filterByLabel(self.detectionArray.detections,
                                   self.vision_label)
 
-        print ("detections: {}".format(detections))
-
 
         vision_result = getMostProbable(detections, thresh=0.5)
-        normalize(vision_result)
 
         if (len(detections) < 1):
             self.exit("nothing")
@@ -48,18 +43,18 @@ class center_on_marker(SubscribeState):
         rospy.loginfo(("Marker X: {}\tMarker Y:{}".format(markerXPos,
                                                           markerYPos)))
 
-        if abs(markerXPos+0.5) > self.errorGoal:
+        if abs(markerXPos-0.5) > self.errorGoal:
             # If we are not centered by width
-            strafe_left = (markerXPos+0.5) * self.strafe_factor
+            strafe_left = (markerXPos-0.5) * self.strafe_factor
             rospy.loginfo("Trying to strafe: {}".format(strafe_left))
-            c.strafeLeftRelative(strafe_left * 2)
-        elif abs(markerYPos+0.5) > self.errorGoal:
+            c.strafeLeftRelative(strafe_left)
+        elif abs(markerYPos-0.5) > self.errorGoal:
             # If we are not centered by height
-            forward = (markerYPos+0.5) * self.forward_factor
+            forward = (markerYPos-0.5) * self.forward_factor
             rospy.loginfo("Trying to center Y: {}".format(forward))
             c.forwardRelative(forward)
         else:
-            self.exit('centred')
+            self.exit('success')
 
         c.publish()
 # Used if angle topic is created
