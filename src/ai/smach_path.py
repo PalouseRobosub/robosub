@@ -16,9 +16,9 @@ class center_on_marker(SubscribeState):
         SubscribeState.__init__(self, "vision", DetectionArray,
                                 self.callback_vision, outcomes=['success', 'nothing'])
         self.vision_label = vision_label
-        self.errorGoal = rospy.get_param("ai/center/error_goal")
-        self.strafe_factor = rospy.get_param("ai/center/strafe_factor")
-        self.forward_factor = rospy.get_param("ai/center/forward_factor")
+        self.errorGoal = rospy.get_param("ai/center_path/error_goal")
+        self.strafe_factor = rospy.get_param("ai/center_path/strafe_factor")
+        self.forward_factor = rospy.get_param("ai/center_path/forward_factor")
 
     def callback_vision(self, detectionArray, userdata):
         self.detectionArray = detectionArray
@@ -62,8 +62,8 @@ class center_on_marker(SubscribeState):
     #    SubscribeState.__init__(self, '[angle_topic]', [angle], self.callback,
     #                            outcomes=['success'])
     #    self.path_angle = [angle];
-    #    self.errorGoal = rospy.get_param("ai/center/errorGoal")
-    #    self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
+    #    self.errorGoal = rospy.get_param("ai/center_path/errorGoal")
+    #    self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
     #    c = control_wrapper();
     #    c.levelOut()
     #    if self.path_angle > self.errorGoal:
