@@ -19,7 +19,7 @@ class Node():
         self.child_frame = child_frame
         self.depth = 0.0
         self.point = Point()
-        self.quaternion = Quaternion()
+        self.quaternion = Quaternion(0, 0, 0, 1)
         self.update_tf_tree()
 
     def depth_callback(self, msg):
