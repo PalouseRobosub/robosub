@@ -3,4 +3,7 @@
 <launch>
     <rosparam command="load" file="$(find robosub)/param/localization.yaml"/>
     <node pkg="robosub" type="localization" name="localization" output="screen"/>
+    <node name="sub_tf_broadcaster" pkg="robosub" type="sub_tf_broadcaster.py" required="true">
+        <param name="child_frame" value="cobalt"/>
+    </node>
 </launch>
