@@ -132,7 +132,7 @@ control:
     limits:
         rotation: 0.5
         translation: 0.5
-    buoyancy_offset: -32.0
+    buoyancy_offset: -2.0
 depth:
     offset: 0.75
 bno055_left:
