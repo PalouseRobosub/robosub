@@ -111,6 +111,7 @@ class find_buoy(SubscribeState):
         c = control_wrapper()
         c.levelOut()
         c.forwardError(0.0)
+        c.diveAbsolute(-1)
 
         detections = filterByLabel(msg.detections, self.vision_label)
 
