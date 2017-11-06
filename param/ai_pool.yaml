@@ -1,11 +1,11 @@
 ai:
     hit_buoy:
         track_buoy:
-            errorGoal: 0.05
+            errorGoal: 0.1
             distGoal: 0.05
-            yaw_speed_factor: -35.0
+            yaw_speed_factor: -20.0
             dive_speed_factor: -1.0
-            center_offset: -0.25
+            center_offset: 0.25
         ram_speed: 0.4
         ram_time: 4.0
         reset_speed: -0.8
