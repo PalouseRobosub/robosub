@@ -111,6 +111,7 @@ add_service_files(
   FILES
   pneumatic_status.srv
   SetInt.srv
+  get_path_angle.srv
 )
 
 ## Generate actions in the 'action' folder
