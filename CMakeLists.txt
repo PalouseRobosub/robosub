@@ -126,6 +126,7 @@ add_service_files(
   FILES
   bno_mode.srv
   pneumatic_status.srv
+  get_path_angle.srv
 )
 
 ## Generate actions in the 'action' folder
