@@ -2,35 +2,25 @@
 import numpy as np
 import math
 import cv2
-from robosub.srv import get_path_angle
+from get_path_angle.srv import *
 from rs_yolo.msg import DetectionArray
 from cv_bridge import CvBridge
-from sensor_msgs.msg import Image
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 import rospy
-from util import *
 
-class MarkerTask():
+class getPathMarkerAngle:
 
-    def __init__(self):
-        self.s = rospy.Service('path_angle', get_path_angle,
-                                self.getPathMarkerAngle)
+    def getPathMarkerAngle(vision_label):
 
-        ts = ApproximateTimeSynchronizer([Subscriber("/camera/right/image_raw",
-                                 Image),
-                                 Subscriber("/vision", DetectionArray)], 1,
-                                 0.33)
-        ts.registerCallback(self.callback)
-        self.angle = 0
-        self.vision_label = 'path_marker'
-    def getPathMarkerAngle(self, vision_label):
-        return self.angle
+        self.vision_label = vision_label
 
+        ts = ApproximateTimeSynchronizer(Subscriber("/camera/image/raw_image",
+                                         sensor_msgs/Image),
+                                         Subscriber("/vision", DetectionArray),
+                                         0.33)
+        ts.registerCallback(callback)
 
-
-    def callback(self, image, detectionArray):
-
-
+    def callback(image, detectionArray):
 
         detections = filterByLabel(detectionArray.detections,
                                    self.vision_label)
@@ -38,9 +28,10 @@ class MarkerTask():
 
         orange = ([14, 25, 180], [35, 45, 255])
 
-        br = CvBridge()
-        img = br.imgmsg_to_cv2(image, desired_encoding="8UC3")
-
+        #br = CvBridge()
+        #dtype, n_channels = br.encoding_as_cvtype2('8UC3')
+        im = np.ndarray(shape=(1384, 1032, n_channels), dtype=dtype)
+        img = image
 
         box_x = vision_result.x * 1384
         box_y = vision_result.y * 1032
@@ -62,16 +53,13 @@ class MarkerTask():
         output = cv2.bitwise_and(img, img, mask = mask)
 
         box_height = box[1][1] - box[0][1]
-
-        p1_start = (int(box[1][0]),
-                    int(((0.33333*box_height)+box_height)))
+        p1_start = (int(box[1][0]*width),
+                    int(((0.33333*box_height)+box[0][1])*height))
         p2_start = (int(p1_start[0]),
-                    int(((0.66667*box_height)+box_height)))
+                    int(((0.66667*box_height)+box[0][1])*height))
 
         x = p1_start[0]
         y = p1_start[1]
-        print (p1_start)
-
         pixel = output[y, x]
         black = np.zeros((1, 3), dtype=np.int)
         while np.array_equal(pixel, black[0]):
@@ -80,11 +68,9 @@ class MarkerTask():
             x -= 1
             pixel = output[y, x]
         p1 = (x, y)
-        print(p1)
+
         x = p2_start[0]
         y = p2_start[1]
-
-
         pixel = output[y, x]
         while np.array_equal(pixel, black[0]):
             output[y,x] = np.ndarray((1, 3), buffer=np.array([255, 0, 0]),
@@ -92,7 +78,7 @@ class MarkerTask():
             x -= 1
             pixel = output[y, x]
         p2 = (x, y)
-        print(p2)
+
         dx = abs(p1[0] - p2[0])
         dy = abs(p1[1] - p2[1])
 
@@ -110,9 +96,13 @@ class MarkerTask():
 
         angle *= -1.0
 
-        self.angle = angle
+        return angle
+
+def path_angle_server():
+    rospy.init_node('path_angle')
+    s = rospy.Service('path_angle', get_path_angle, getPathMarkerAngle)
+    print "Ready to calculate angle"
+    rospy.spin()
 
 if __name__ == "__main__":
-    rospy.init_node('path_angle')
-    node = MarkerTask()
-    rospy.spin()
+    path_angle_server()
