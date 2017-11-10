@@ -7,6 +7,7 @@ from rs_yolo.msg import DetectionArray
 from SubscribeState import SubscribeState
 from control_wrapper import control_wrapper
 from blind_movement import move_forward
+from get_path_angle.srv import *
 import smach
 import smach_ros
 
@@ -58,10 +59,17 @@ class center_on_marker(SubscribeState):
 
         c.publish()
 # Used if angle topic is created
-    #def yaw_to_angle(SubscribeState):
-    #    SubscribeState.__init__(self, '[angle_topic]', [angle], self.callback,
-    #                            outcomes=['success'])
-    #    self.path_angle = [angle];
+#class yaw_to_angle():
+    #def __init__(self):
+    #    rospy.wait_for_service('path_angle')
+    #    try:
+    #       self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
+    #       response = path_angle()
+    #       angle = response.angle
+    #    except:
+    #       rospy.ServiceException, e:
+    #       print "Service call failed: %s"%e
+    #
     #    self.errorGoal = rospy.get_param("ai/center_path/errorGoal")
     #    self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
     #    c = control_wrapper();
@@ -86,7 +94,7 @@ class marker_task(smach.StateMachine):
                              'success': 'BLIND_FORWARD'})
 
             # Will be used if angle topic is created
-            #smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle('angle'),
+            #smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle(),
             #    transitions={'success': 'BLIND_FORWARD'})
 
             smach.StateMachine.add('BLIND_FORWARD',
