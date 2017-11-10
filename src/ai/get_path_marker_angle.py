@@ -16,7 +16,7 @@ class MarkerTask():
         self.s = rospy.Service('path_angle', get_path_angle,
                                 self.getPathMarkerAngle)
 
-        ts = ApproximateTimeSynchronizer([Subscriber("/camera/right/image_raw",
+        ts = ApproximateTimeSynchronizer([Subscriber("/camera/right/undistorted",
                                  Image),
                                  Subscriber("/vision", DetectionArray)], 1,
                                  0.33)
@@ -30,17 +30,13 @@ class MarkerTask():
 
     def callback(self, image, detectionArray):
 
-
-
         detections = filterByLabel(detectionArray.detections,
                                    self.vision_label)
         vision_result = getMostProbable(detections, thresh=0.5)
 
-        orange = ([14, 25, 180], [35, 45, 255])
-
         br = CvBridge()
-        img = br.imgmsg_to_cv2(image, desired_encoding="8UC3")
-
+        img = br.imgmsg_to_cv2(image, desired_encoding="bgr8")
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         box_x = vision_result.x * 1384
         box_y = vision_result.y * 1032
@@ -55,22 +51,22 @@ class MarkerTask():
 
         height, width = img.shape[:2]
 
-        lower = np.array(orange[0], dtype = "uint8")
-        upper = np.array(orange[1], dtype = "uint8")
+        lower_red = np.array([0,100,100])
+        upper_red = np.array([20,255,255])
 
-        mask = cv2.inRange(img, lower, upper)
-        output = cv2.bitwise_and(img, img, mask = mask)
+        mask = cv2.inRange(hsv, lower_red, upper_red)
+        output = cv2.bitwise_and(hsv, hsv, mask = mask)
 
         box_height = box[1][1] - box[0][1]
 
         p1_start = (int(box[1][0]),
-                    int(((0.33333*box_height)+box_height)))
+                    int(((0.33333*box_height)+box[0][1])))
         p2_start = (int(p1_start[0]),
-                    int(((0.66667*box_height)+box_height)))
+                    int(((0.66667*box_height)+box[0][1])))
 
         x = p1_start[0]
         y = p1_start[1]
-        print (p1_start)
+
 
         pixel = output[y, x]
         black = np.zeros((1, 3), dtype=np.int)
@@ -80,7 +76,7 @@ class MarkerTask():
             x -= 1
             pixel = output[y, x]
         p1 = (x, y)
-        print(p1)
+
         x = p2_start[0]
         y = p2_start[1]
 
@@ -92,7 +88,6 @@ class MarkerTask():
             x -= 1
             pixel = output[y, x]
         p2 = (x, y)
-        print(p2)
         dx = abs(p1[0] - p2[0])
         dy = abs(p1[1] - p2[1])
 
