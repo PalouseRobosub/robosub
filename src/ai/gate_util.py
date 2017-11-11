@@ -232,3 +232,69 @@ class move_forward_centered(SubscribeState):
         if len(vision_result) < 2:
             self.exit('lost')
         c.publish()
+
+# Class for strafing around post, based on blind_movement
+class strafe(smach.State):
+    def __init__(self, poll_rate=10):
+        smach.State.__init__(self, outcomes=["success"])
+        self.time = rospy.get_param("ai/strafe/time")
+        self.value = rospy.get_param("ai/strafe/speed")
+        self._poll_rate = rospy.Rate(poll_rate)
+
+        # wait for time to be non-zero
+        while(rospy.Time.now() == rospy.Time(0)):
+            rospy.sleep(1.0/poll_rate)
+
+    def execute(self, userdata):
+        c = control_wrapper()
+        c.levelOut()
+        c.strafeLeftRelative(self.value)
+        exit_time = rospy.Time.now() + rospy.Duration(self.time)
+        while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
+            c.publish()
+            self._poll_rate.sleep()
+        return 'success'
+
+# Class for turning around post, based on blind_movement
+class turn(smach.State):
+    def __init__(self, poll_rate=10):
+        smach.State.__init__(self, outcomes=["success"])
+        self.time = rospy.get_param("ai/turn/time")
+        self.value = rospy.get_param("ai/turn/speed")
+        self._poll_rate = rospy.Rate(poll_rate)
+
+        # wait for time to be non-zero
+        while(rospy.Time.now() == rospy.Time(0)):
+            rospy.sleep(1.0/poll_rate)
+
+    def execute(self, userdata):
+        c = control_wrapper()
+        c.levelOut()
+        c.strafeLeftRelative(self.value)
+        exit_time = rospy.Time.now() + rospy.Duration(self.time)
+        while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
+            c.publish()
+            self._poll_rate.sleep()
+        return 'success'
+
+# Class for turning around post, based on blind_movement
+class experiment(smach.State):
+    def __init__(self, poll_rate=10):
+        smach.State.__init__(self, outcomes=["success"])
+        self.time = 5.5
+        self._poll_rate = rospy.Rate(poll_rate)
+
+        # wait for time to be non-zero
+        while(rospy.Time.now() == rospy.Time(0)):
+            rospy.sleep(1.0/poll_rate)
+
+    def execute(self, userdata):
+        c = control_wrapper()
+        c.levelOut()
+        c.yawLeftRelative(60)
+        c.forwardError(4)
+        exit_time = rospy.Time.now() + rospy.Duration(self.time)
+        while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
+            c.publish()
+            self._poll_rate.sleep()
+        return 'success'
