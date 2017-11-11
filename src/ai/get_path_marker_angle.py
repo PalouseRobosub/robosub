@@ -69,9 +69,6 @@ class MarkerTask():
         x = p1_start[0]
         y = p1_start[1]
 
-        cv2.imshow('output', output)
-        cv2.waitKey()
-
 
         pixel = output[y, x]
         black = np.zeros((1, 3), dtype=np.int)
@@ -99,23 +96,28 @@ class MarkerTask():
         dx = abs(p1[0] - p2[0])
         dy = abs(p1[1] - p2[1])
 
-        if p1[0] == p2[0]:
-            self.angle=0.0
-            return
+        #if p1[0] == p2[0]:
+        #    self.angle=0.0
+        #    return
 
-        dxdy = float(dx)/dy
-        dydx = 1.0/dxdy
+        angle = 90 - math.degrees(math.atan2(dy, dx))
 
-        while dxdy > 1.0:
-            dxdy = abs(dxdy - 2.0)
-        while dydx > 1.0:
-            dydx = abs(dydx - 2.0)
-        if p1[0] < p2[0]:
-            angle = -1.0 * math.degrees(math.atan(dxdy))
-        else:
-            angle = 90.0 - math.degrees(math.atan(dydx))
+        if p1[0] - p2[0] > 0:
+            angle *= -1.0
 
-        angle *= -1.0
+        #dxdy = float(dx)/dy
+        #dydx = 1.0/dxdy
+
+        #while dxdy > 1.0:
+        #    dxdy = abs(dxdy - 2.0)
+        #while dydx > 1.0:
+        #    dydx = abs(dydx - 2.0)
+        #if p1[0] < p2[0]:
+        #    angle = -1.0 * math.degrees(math.atan(dxdy))
+        #else:
+        #    angle = 90.0 - math.degrees(math.atan(dydx))
+
+        #angle *= -1.0
 
         self.angle = angle
 
