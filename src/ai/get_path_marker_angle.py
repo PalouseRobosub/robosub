@@ -19,7 +19,7 @@ class MarkerTask():
         ts = ApproximateTimeSynchronizer([Subscriber("/camera/right/undistorted",
                                  Image),
                                  Subscriber("/vision", DetectionArray)], 1,
-                                 0.33)
+                                 0.1)
         ts.registerCallback(self.callback)
         self.angle = 0
         self.vision_label = 'path_marker'
@@ -33,6 +33,8 @@ class MarkerTask():
         detections = filterByLabel(detectionArray.detections,
                                    self.vision_label)
         vision_result = getMostProbable(detections, thresh=0.5)
+        if vision_result == None:
+            return
 
         br = CvBridge()
         img = br.imgmsg_to_cv2(image, desired_encoding="bgr8")
@@ -67,6 +69,9 @@ class MarkerTask():
         x = p1_start[0]
         y = p1_start[1]
 
+        cv2.imshow('output', output)
+        cv2.waitKey()
+
 
         pixel = output[y, x]
         black = np.zeros((1, 3), dtype=np.int)
@@ -75,6 +80,7 @@ class MarkerTask():
                                              dtype=np.int)
             x -= 1
             pixel = output[y, x]
+        print (x,y)
         p1 = (x, y)
 
         x = p2_start[0]
@@ -87,9 +93,15 @@ class MarkerTask():
                                              dtype=np.int)
             x -= 1
             pixel = output[y, x]
+        print(x, y)
+        print "-------------"
         p2 = (x, y)
         dx = abs(p1[0] - p2[0])
         dy = abs(p1[1] - p2[1])
+
+        if p1[0] == p2[0]:
+            self.angle=0.0
+            return
 
         dxdy = float(dx)/dy
         dydx = 1.0/dxdy
