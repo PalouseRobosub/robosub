@@ -48,12 +48,12 @@ class center_on_marker(SubscribeState):
             # If we are not centered by width
             strafe_left = (markerXPos-0.5) * self.strafe_factor
             rospy.loginfo("Trying to strafe: {}".format(strafe_left))
-            c.strafeLeftRelative(strafe_left)
+            c.strafeLeftAbsolute(strafe_left)
         elif abs(markerYPos-0.5) > self.errorGoal:
             # If we are not centered by height
             forward = (markerYPos-0.5) * self.forward_factor
             rospy.loginfo("Trying to center Y: {}".format(forward))
-            c.forwardRelative(forward)
+            c.forwardAbsolute(forward)
         else:
             self.exit('success')
 
@@ -64,7 +64,8 @@ class yaw_to_angle(smach.State):
         rospy.wait_for_service('path_angle')
         self.errorGoal = rospy.get_param("ai/center_path/error_goal")
         self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
-        self._outcomes = None
+        self._outcomes = outcomes
+        self._input_keys = None
         try:
            self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
            response = self.path_angle('path_marker')

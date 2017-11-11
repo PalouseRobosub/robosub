@@ -19,7 +19,7 @@ class MarkerTask():
         ts = ApproximateTimeSynchronizer([Subscriber("/camera/right/undistorted",
                                  Image),
                                  Subscriber("/vision", DetectionArray)], 1,
-                                 0.1)
+                                 1)
         ts.registerCallback(self.callback)
         self.angle = 0
         self.vision_label = 'path_marker'
@@ -124,4 +124,5 @@ class MarkerTask():
 if __name__ == "__main__":
     rospy.init_node('path_angle')
     node = MarkerTask()
+    print "Hello"
     rospy.spin()
