@@ -58,28 +58,31 @@ class center_on_marker(SubscribeState):
             self.exit('success')
 
         c.publish()
-# Used if angle topic is created
-#class yaw_to_angle():
-    #def __init__(self):
-    #    rospy.wait_for_service('path_angle')
-    #    try:
-    #       self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
-    #       response = path_angle()
-    #       angle = response.angle
-    #    except:
-    #       rospy.ServiceException, e:
-    #       print "Service call failed: %s"%e
-    #
-    #    self.errorGoal = rospy.get_param("ai/center_path/errorGoal")
-    #    self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
-    #    c = control_wrapper();
-    #    c.levelOut()
-    #    if self.path_angle > self.errorGoal:
-    #        c.yawLeftRelative(self, yaw_factor)
-    #    else:
-    #        self.exit('success')
+# rotate to center
+class yaw_to_angle(smach.State):
+    def __init__(self, outcomes=['success']):
+        rospy.wait_for_service('path_angle')
+        self.errorGoal = rospy.get_param("ai/center_path/errorGoal")
+        self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
+        try:
+           self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
+           response = path_angle()
+           self.angle = response.angle
+        except:
+           rospy.ServiceException, e:
+           print "Service call failed: %s"%e
 
-    #    c.publish()
+    def execute(self, userdata)
+        c = control_wrapper();
+        c.levelOut()
+        if abs(self.angle) > 1:
+            yaw_amount = (self.angle - 5) * yaw_factor
+            rospy.loginfo("Trying to center yaw: {}".format(yaw_amount))
+            c.yawLeftRelative(yaw_amount)
+        else:
+            return 'success'
+
+        c.publish()
 
 class marker_task(smach.StateMachine):
     def __init__(self):
@@ -90,12 +93,10 @@ class marker_task(smach.StateMachine):
             smach.StateMachine.add('CENTER_ON_MARKER',
                 center_on_marker('path_marker'),
                 transitions={'nothing': 'CENTER_ON_MARKER',
-                            # 'success': 'YAW_TO_ANGLE',
-                             'success': 'BLIND_FORWARD'})
+                             'success': 'YAW_TO_ANGLE'})
 
-            # Will be used if angle topic is created
-            #smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle(),
-            #    transitions={'success': 'BLIND_FORWARD'})
+            smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle(),
+                transitions={'success': 'BLIND_FORWARD'})
 
             smach.StateMachine.add('BLIND_FORWARD',
                 move_forward(self.time, self.speed),
