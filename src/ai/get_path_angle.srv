@@ -1,5 +1,0 @@
-#request
-string vision_label
----
-#response
-float32 angle
