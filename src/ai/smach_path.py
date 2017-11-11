@@ -7,7 +7,7 @@ from rs_yolo.msg import DetectionArray
 from SubscribeState import SubscribeState
 from control_wrapper import control_wrapper
 from blind_movement import move_forward
-from get_path_angle.srv import *
+from robosub.srv import get_path_angle
 import smach
 import smach_ros
 
@@ -62,17 +62,17 @@ class center_on_marker(SubscribeState):
 class yaw_to_angle(smach.State):
     def __init__(self, outcomes=['success']):
         rospy.wait_for_service('path_angle')
-        self.errorGoal = rospy.get_param("ai/center_path/errorGoal")
+        self.errorGoal = rospy.get_param("ai/center_path/error_goal")
         self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
+        self._outcomes = None
         try:
            self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
-           response = path_angle()
+           response = self.path_angle('path_marker')
            self.angle = response.angle
-        except:
-           rospy.ServiceException, e:
+        except rospy.ServiceException, e:
            print "Service call failed: %s"%e
 
-    def execute(self, userdata)
+    def execute(self, userdata):
         c = control_wrapper();
         c.levelOut()
         if abs(self.angle) > 1:
