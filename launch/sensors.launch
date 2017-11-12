@@ -10,6 +10,6 @@
 
     <!-- robosub -->
     <node name="imu" pkg="robosub" type="imu" output="screen">
-        <param name="active_imu" value="bno055_left"/>
+        <param name="active_imu" value="trax"/>
     </node>
 </launch>
