@@ -19,6 +19,7 @@ if ("$ENV{ROS_DISTRO}" STRGREATER "indigo")
     rospy
     dynamic_reconfigure
     std_msgs
+    rs_shared_msgs
     message_generation
     roslint
     rostest
@@ -36,6 +37,7 @@ else ()
     rospy
     dynamic_reconfigure
     std_msgs
+    rs_shared_msgs
     message_generation
     roslint
     rostest

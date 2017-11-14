@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from rs_yolo.msg import DetectionArray as detection_array
+from rs_shared_msgs.msg import DetectionArray as detection_array
 from robosub.msg import control
 from util import *
 class ForwardTask():
