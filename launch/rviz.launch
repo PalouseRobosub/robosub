@@ -5,8 +5,5 @@
         <remap from="robot_description" to="cobalt_description"/>
         <remap from="base_link" to="cobalt"/>
     </node>
-    <node name="sub_tf_broadcaster" pkg="robosub" type="sub_tf_broadcaster.py">
-        <param name="child_frame" value="cobalt"/>
-    </node>
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robosub)/rviz/basic.rviz" required="true" />
 </launch>
