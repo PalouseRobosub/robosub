@@ -215,8 +215,10 @@ Visualization Manager:
       Color Transformer: Intensity
       Queue Size: 10
       Channel Name: weight
-      Use rainbow: true
+      Use rainbow: false
       Invert Rainbow: false
+      Min Color: 255; 0; 0
+      Max Color: 0; 255; 0
       Autocompute Intensity: true
   Enabled: true
   Global Options:
