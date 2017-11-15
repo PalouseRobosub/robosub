@@ -202,6 +202,22 @@ Visualization Manager:
         TF: true
         Value: true
       Zoom Factor: 1
+    - Class: rviz/PointCloud
+      Enabled: true
+      Topic: /localization/particles
+      Unreliable: false
+      Selectable: true
+      Style: Flat Squares
+      Size (m): 0.01
+      Alpha: 1
+      Decay Time: 0
+      Position Transformer: XYZ
+      Color Transformer: Intensity
+      Queue Size: 10
+      Channel Name: weight
+      Use rainbow: true
+      Invert Rainbow: false
+      Autocompute Intensity: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
