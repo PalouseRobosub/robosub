@@ -1,0 +1,27 @@
+<launch>
+ 
+  <include file="$(find robosub_simulator)/launch/gazebo.launch"/>
+  <include file="$(find robosub)/launch/localization.launch"/>
+  
+  <test test-name="localization_hz_test_position" pkg="rostest" type="hztest" name="position_hz" >
+    <param name="topic" value="position/point" />  
+    <param name="hz" value="30" />
+    <param name="hzerror" value="1" />
+    <param name="test_duration" value="10.0" />
+  </test>
+  
+  <test test-name="localization_hz_test_rviz_pose" pkg="rostest" type="hztest" name="rviz_hz" >
+    <param name="topic" value="rviz/cobalt/pose" />  
+    <param name="hz" value="30" />
+    <param name="hzerror" value="1" />
+    <param name="test_duration" value="10.0" />
+  </test>
+  
+  <test test-name="localization_hz_test_particles" pkg="rostest" type="hztest" name="particles_hz" >
+    <param name="topic" value="localization/particles" />  
+    <param name="hz" value="30" />
+    <param name="hzerror" value="1" />
+    <param name="test_duration" value="10.0" />
+  </test>
+  
+</launch>
