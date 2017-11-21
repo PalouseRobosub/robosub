@@ -233,7 +233,7 @@ class move_forward_centered(SubscribeState):
             self.exit('lost')
         c.publish()
 
-# Class for strafing around post, based on blind_movement
+# Class for strafing, based on blind_movement
 class strafe(smach.State):
     def __init__(self, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
@@ -255,7 +255,7 @@ class strafe(smach.State):
             self._poll_rate.sleep()
         return 'success'
 
-# Class for turning around post, based on blind_movement
+# Class for turning around, based on blind_movement
 class turn(smach.State):
     def __init__(self, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
@@ -281,7 +281,9 @@ class turn(smach.State):
 class experiment(smach.State):
     def __init__(self, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
-        self.time = 5.5
+        self.time = rospy.get_param("ai/experiment/time")
+        self.yawRelative = rospy.get_param("ai/experiment/yaw_relative")
+        self.forward_speed = rospy.get_param("ai/experiment/forward_speed")
         self._poll_rate = rospy.Rate(poll_rate)
 
         # wait for time to be non-zero
@@ -291,8 +293,8 @@ class experiment(smach.State):
     def execute(self, userdata):
         c = control_wrapper()
         c.levelOut()
-        c.yawLeftRelative(60)
-        c.forwardError(4)
+        c.yawLeftRelative(self.yawRelative)
+        c.forwardError(self.forward_speed)
         exit_time = rospy.Time.now() + rospy.Duration(self.time)
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()

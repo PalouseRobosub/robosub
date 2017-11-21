@@ -35,3 +35,16 @@ ai:
         yaw_factor: -2.5 # yaw factor for centering. Negative is to the right
         strafe_factor: 0.5
         forward_factor: 1.5
+    preq_forward:
+        forward_time: 20 # requires testing
+        forward_speed: 10.0 # requires testing
+    strafe: # values for strafe state
+        time: 4
+        speed: 4
+    turn: # values for turn state
+        time: 10
+        speed: 4
+    experiment: # values for experimental state that 'drifts' around boy
+        time: 5.5
+        yaw_relative: 60
+        forward_speed: 4
