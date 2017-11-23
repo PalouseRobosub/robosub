@@ -44,7 +44,8 @@ if __name__ == '__main__':
         if sys.argv[1] == "debug" or sys.argv[1] == "--debug":
             rospy.init_node('ai', log_level=rospy.DEBUG)
         else:
-            print("usage:\nrosrun smach_gate.py\nrosrun smach_gate.py --debug for debug mode")
+            print("usage:\nrosrun smach_gate.py")
+            print("rosrun smach_gate.py --debug for debug mode")
             exit(1)
     else:
         rospy.init_node('ai')
