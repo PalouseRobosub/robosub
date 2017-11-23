@@ -37,8 +37,16 @@ class nav_channel(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    # To see debug messages add log_level=rospy.DEBUG argument to init_node
-    rospy.init_node('ai')
+    # To see debug messages use --debug flag
+    print len(sys.argv)
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "debug" or sys.argv[1] == "--debug":
+            rospy.init_node('ai', log_level=rospy.DEBUG)
+        else:
+            print("usage:\nrosrun smach_nav_channel.py\nrosrun smach_nav_channel.py --debug for debug mode")
+            exit(1)
+    else:
+        rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
