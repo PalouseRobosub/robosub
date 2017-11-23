@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import sys
 import rospy
 from std_msgs.msg import Bool
 from rs_yolo.msg import DetectionArray

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import sys
 import rospy
 from blind_movement import move_forward
 from gate_util import *
