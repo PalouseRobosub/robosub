@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import rospy
+import sys
 from blind_movement import move_forward
 from gate_util import *
 from smach_gate import gate_task
@@ -28,12 +29,20 @@ class PreQual_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    # To see debug messages add log_level=rospy.DEBUG argument to init_node
-    rospy.init_node('ai')
+    # To see debug messages use --debug flag
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "debug" or sys.argv[1] == "--debug":
+            rospy.init_node('ai', log_level=rospy.DEBUG)
+        else:
+            print("usage:\nrosrun smach_QualGate.py")
+            print("rosrun smach_QualGate.py --debug for debug mode")
+            exit(1)
+    else:
+       rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
-                              transitions={'success': 'GATE_TASK'})
+                              transitions={'success': 'PREQUAL_TASK'})
         smach.StateMachine.add('PREQUAL_TASK', PreQual_task(),
                               transitions={'success': 'success'})
 
