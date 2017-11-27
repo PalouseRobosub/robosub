@@ -231,6 +231,7 @@ class move_forward_centered(SubscribeState):
             self.exit('not centered')
         if len(vision_result) < 2:
             self.exit('lost')
+        rospy.logdebug("trying to move forward: {}".format(self.forward_speed))
         c.publish()
 
 # Class for strafing, based on blind_movement
@@ -253,6 +254,8 @@ class strafe(smach.State):
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             self._poll_rate.sleep()
+        c.strafeLeftNone()
+        c.publish()
         return 'success'
 
 # Class for turning around, based on blind_movement
@@ -270,11 +273,13 @@ class turn(smach.State):
     def execute(self, userdata):
         c = control_wrapper()
         c.levelOut()
-        c.strafeLeftRelative(self.value)
+        c.yawLeftRelative(self.value)
         exit_time = rospy.Time.now() + rospy.Duration(self.time)
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             self._poll_rate.sleep()
+        c.yawLeftNone()
+        c.publish()
         return 'success'
 
 # Class for turning around post, based on blind_movement
@@ -299,4 +304,7 @@ class experiment(smach.State):
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             self._poll_rate.sleep()
+        c.yawLeftNone()
+        c.forwardNone()
+        c.publish()
         return 'success'
