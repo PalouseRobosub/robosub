@@ -85,7 +85,7 @@ class control_wrapper():
 
     # Set the pitch state to none and clear out the value
     def pitchDownNone(self):
-        self.setPitchLeft(control.STATE_NONE, 0)
+        self.setPitchDown(control.STATE_NONE, 0)
 
     # Allow the user to get the current pitch value from the class
     def getCurrentPitchValue(self):
@@ -116,7 +116,7 @@ class control_wrapper():
 
     # Set the roll state to none and clear out the value
     def rollRightNone(self):
-        self.setRollLeft(control.STATE_NONE, 0)
+        self.setRollRight(control.STATE_NONE, 0)
 
     # Allow the user to get the current roll value from the class
     def getCurrentRollValue(self):
@@ -147,7 +147,7 @@ class control_wrapper():
 
     # Set the dive state to none and clear out the value
     def diveNone(self):
-        self.setDiveLeft(control.STATE_NONE, 0)
+        self.setDive(control.STATE_NONE, 0)
 
     # Allow the user to get the current dive value from the class
     def getCurrentDiveValue(self):
