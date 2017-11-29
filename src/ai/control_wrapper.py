@@ -178,7 +178,7 @@ class control_wrapper():
 
     # Set the forward state to none and clear out the value
     def forwardNone(self):
-        self.setForwardLeft(control.STATE_NONE, 0)
+        self.setForward(control.STATE_NONE, 0)
 
     # Allow the user to get the current forward value from the class
     def getCurrentForwardValue(self):
