@@ -20,6 +20,9 @@ class move_forward(smach.State):
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             self._poll_rate.sleep()
+        c.forwardError(0)
+        c.publish()
+        self._poll_rate.sleep()
         return 'success'
 
 if __name__ == "__main__":
