@@ -19,8 +19,8 @@ class PreQual_task(smach.StateMachine):
             smach.StateMachine.add('GATE_TASK', gate_task(),
                                   transitions={'success': 'STRAFE'})
             smach.StateMachine.add('STRAFE', strafe(),
-                                  transitions={'success': 'BLIND_FORWARD'})
-            smach.StateMachine.add('BLIND_FORWARD',
+                                  transitions={'success': 'BLIND_FORWARD_POST'})
+            smach.StateMachine.add('BLIND_FORWARD_POST',
                                   move_forward(self.time, self.speed),
                                   transitions={'success': 'EXPERIMENT'})
             smach.StateMachine.add('EXPERIMENT', experiment(),

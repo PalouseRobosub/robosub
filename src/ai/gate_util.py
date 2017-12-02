@@ -249,13 +249,14 @@ class strafe(smach.State):
     def execute(self, userdata):
         c = control_wrapper()
         c.levelOut()
-        c.strafeLeftRelative(self.value)
+        c.strafeLeftError(self.value)
         exit_time = rospy.Time.now() + rospy.Duration(self.time)
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             self._poll_rate.sleep()
-        c.strafeLeftNone()
+        c.strafeLeftError(0)
         c.publish()
+        self._poll_rate.sleep()
         return 'success'
 
 # Class for turning around, based on blind_movement
@@ -278,8 +279,9 @@ class turn(smach.State):
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             self._poll_rate.sleep()
-        c.yawLeftNone()
+        c.yawLeftRelative(0)
         c.publish()
+        self._poll_rate.sleep()
         return 'success'
 
 # Class for turning around post, based on blind_movement
@@ -304,7 +306,8 @@ class experiment(smach.State):
         while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
             c.publish()
             self._poll_rate.sleep()
-        c.yawLeftNone()
-        c.forwardNone()
+        c.yawLeftRelative(0)
+        c.forwardError(0)
         c.publish()
+        self._poll_rate.sleep()
         return 'success'
