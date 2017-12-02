@@ -38,7 +38,7 @@ if __name__ == '__main__':
             print("rosrun smach_QualGate.py --debug for debug mode")
             exit(1)
     else:
-       rospy.init_node('ai')
+        rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
