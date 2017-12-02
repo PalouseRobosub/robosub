@@ -33,10 +33,10 @@ ai:
         forward_time: 20 # requires testing
         forward_speed: 10.0 # requires testing
     strafe: # values for strafe state
-        time: 4
-        speed: 4
+        time: 3
+        speed: -4.0
     turn: # values for turn state
-        time: 10
+        time: 8
         speed: 4
     experiment: # values for experimental state that 'drifts' around boy
         time: 5.5
