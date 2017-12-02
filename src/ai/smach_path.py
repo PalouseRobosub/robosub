@@ -15,7 +15,8 @@ import smach_ros
 class center_on_marker(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray,
-                                self.callback_vision, outcomes=['success', 'nothing'])
+                                self.callback_vision, outcomes=['success',
+                                                                'nothing'])
         self.vision_label = vision_label
         self.errorGoal = rospy.get_param("ai/center_path/error_goal")
         self.strafe_factor = rospy.get_param("ai/center_path/strafe_factor")
@@ -36,7 +37,6 @@ class center_on_marker(SubscribeState):
 
         if (len(detections) < 1):
             self.exit("nothing")
-
         markerXPos = vision_result.x
         markerYPos = vision_result.y
 
@@ -60,28 +60,29 @@ class center_on_marker(SubscribeState):
         c.publish()
 # rotate to center
 class yaw_to_angle(smach.State):
-    def __init__(self, outcomes=['success']):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['success', 'None'])
         rospy.wait_for_service('path_angle')
         self.errorGoal = rospy.get_param("ai/center_path/error_goal")
         self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
-        self._outcomes = outcomes
-        self._input_keys = None
         try:
            self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
            response = self.path_angle('path_marker')
            self.angle = response.angle
         except rospy.ServiceException, e:
            print "Service call failed: %s"%e
+        if self.angle == None:
+            return 'None'
 
     def execute(self, userdata):
         c = control_wrapper();
         c.levelOut()
         if abs(self.angle) > 1:
-            yaw_amount = (self.angle - 5) * yaw_factor
+            yaw_amount = (self.angle) * self.yaw_factor
             rospy.loginfo("Trying to center yaw: {}".format(yaw_amount))
             c.yawLeftRelative(yaw_amount)
         else:
-            return 'success'
+            outcome = 'success'
 
         c.publish()
 
@@ -93,11 +94,11 @@ class marker_task(smach.StateMachine):
         with self:
             smach.StateMachine.add('CENTER_ON_MARKER',
                 center_on_marker('path_marker'),
-                transitions={'nothing': 'CENTER_ON_MARKER',
-                             'success': 'YAW_TO_ANGLE'})
+                transitions={'nothing': 'CENTER_ON_MARKER'})
 
             smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle(),
-                transitions={'success': 'BLIND_FORWARD'})
+                transitions={'success': 'BLIND_FORWARD',
+                             'None': 'YAW_TO_ANGLE'})
 
             smach.StateMachine.add('BLIND_FORWARD',
                 move_forward(self.time, self.speed),
