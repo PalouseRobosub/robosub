@@ -47,6 +47,6 @@ ai:
 # viables for path_marker task
     center_path:
         error_goal: 0.05 # what is the error Goal, in precentage so 0.1 is 10%
-        yaw_factor: -2.5 # yaw factor for centering. Negative is to the right
-        strafe_factor: 0.5
-        forward_factor: 1.5
+        yaw_factor: 2.5 # yaw factor for centering. Negative is to the right
+        strafe_factor: -2.5
+        forward_factor: -2.5

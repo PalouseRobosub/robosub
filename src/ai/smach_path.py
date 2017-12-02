@@ -26,8 +26,6 @@ class center_on_marker(SubscribeState):
         self.detectionArray = detectionArray
         c = control_wrapper()
         c.levelOut()
-        # forward_factor is a parameter
-        c.forwardError(self.forward_factor)
 
         detections = filterByLabel(self.detectionArray.detections,
                                   self.vision_label)
@@ -48,12 +46,12 @@ class center_on_marker(SubscribeState):
             # If we are not centered by width
             strafe_left = (markerXPos-0.5) * self.strafe_factor
             rospy.loginfo("Trying to strafe: {}".format(strafe_left))
-            c.strafeLeftAbsolute(strafe_left)
+            c.strafeLeftRelative(strafe_left)
         elif abs(markerYPos-0.5) > self.errorGoal:
             # If we are not centered by height
             forward = (markerYPos-0.5) * self.forward_factor
             rospy.loginfo("Trying to center Y: {}".format(forward))
-            c.forwardAbsolute(forward)
+            c.forwardRelative(forward)
         else:
             self.exit('success')
 
@@ -61,30 +59,29 @@ class center_on_marker(SubscribeState):
 # rotate to center
 class yaw_to_angle(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['success', 'None'])
-        rospy.wait_for_service('path_angle')
+        smach.State.__init__(self, outcomes=['success', 'trying'])
         self.errorGoal = rospy.get_param("ai/center_path/error_goal")
         self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
+
+    def execute(self, userdata):
+        rospy.wait_for_service('path_angle')
         try:
            self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
            response = self.path_angle('path_marker')
            self.angle = response.angle
         except rospy.ServiceException, e:
            print "Service call failed: %s"%e
-        if self.angle == None:
-            return 'None'
 
-    def execute(self, userdata):
         c = control_wrapper();
         c.levelOut()
-        if abs(self.angle) > 1:
+        if abs(self.angle) > 5:
             yaw_amount = (self.angle) * self.yaw_factor
             rospy.loginfo("Trying to center yaw: {}".format(yaw_amount))
             c.yawLeftRelative(yaw_amount)
+            c.publish()
+            return 'trying'
         else:
-            outcome = 'success'
-
-        c.publish()
+            return 'success'
 
 class marker_task(smach.StateMachine):
     def __init__(self):
@@ -94,11 +91,12 @@ class marker_task(smach.StateMachine):
         with self:
             smach.StateMachine.add('CENTER_ON_MARKER',
                 center_on_marker('path_marker'),
-                transitions={'nothing': 'CENTER_ON_MARKER'})
+                transitions={'success': 'YAW_TO_ANGLE',
+                             'nothing': 'CENTER_ON_MARKER'})
 
             smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle(),
                 transitions={'success': 'BLIND_FORWARD',
-                             'None': 'YAW_TO_ANGLE'})
+                             'trying': 'YAW_TO_ANGLE'})
 
             smach.StateMachine.add('BLIND_FORWARD',
                 move_forward(self.time, self.speed),
