@@ -17,14 +17,26 @@ class PreQual_task(smach.StateMachine):
 
         with self:
             smach.StateMachine.add('GATE_TASK', gate_task(),
-                                  transitions={'success': 'STRAFE'})
+                                  transitions={'success': 'FORWARD_UNTIL_SEE'})
             smach.StateMachine.add('STRAFE', strafe(),
-                                  transitions={'success': 'BLIND_FORWARD_POST'})
-            smach.StateMachine.add('BLIND_FORWARD_POST',
-                                  move_forward(self.time, self.speed),
-                                  transitions={'success': 'EXPERIMENT'})
+                                  transitions={'success': 'BLIND_FORWARD_SINGLE'})
+            smach.StateMachine.add('FORWARD_UNTIL_SEE',
+                                  move_to_gate('gate_post'),
+                                  transitions={'success': 'CENTER_SINGLE'})
             smach.StateMachine.add('EXPERIMENT', experiment(),
                                   transitions={'success': 'GATE_TASK_BACK'})
+
+            smach.StateMachine.add('CENTER_SINGLE', center_single('gate_post'),
+                                  transitions={'centered': 'FORWARD_SINGLE',
+                                              'lost': 'FORWARD_UNTIL_SEE', 'ready': 'STRAFE'})
+            smach.StateMachine.add('FORWARD_SINGLE',
+                                  move_forward_centered_single('gate_post'),
+                                  transitions={'ready': 'STRAFE',
+                                              'not centered': 'CENTER_SINGLE',
+                                              'lost': 'FORWARD_UNTIL_SEE'})
+            smach.StateMachine.add('BLIND_FORWARD_SINGLE',
+                                  move_forward(self.time, self.speed),
+                                  transitions={'success': 'EXPERIMENT'})
             smach.StateMachine.add('GATE_TASK_BACK', gate_task(),
                                   transitions={'success': 'success'})
 

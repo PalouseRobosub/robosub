@@ -311,3 +311,89 @@ class experiment(smach.State):
         c.publish()
         self._poll_rate.sleep()
         return 'success'
+
+class center_single(SubscribeState):
+    def __init__(self, vision_label):
+        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
+                               outcomes=['centered', 'lost', 'ready'])
+        self.vision_label = vision_label
+        self.error_goal = rospy.get_param("ai/center/error_goal")
+        self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
+        self.dive_factor = rospy.get_param("ai/center/dive_factor")
+        self.distanceGoal = rospy.get_param("ai/move_forward_single/distanceGoal")
+
+    def callback(self, detectionArray, userdata):
+        c = control_wrapper()
+        c.levelOut()
+
+        detections = filterByLabel(detectionArray.detections,
+                                  self.vision_label)
+        vision_result = getNMostProbable(detections, 1, thresh=0.5)
+
+        if len(vision_result) < 1:
+            self.exit('lost')
+            return 'lost'
+
+        gateXPos = vision_result[0].x
+        gateYPos = vision_result[0].y
+
+        rospy.logdebug(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
+
+        print(vision_result[0].width * vision_result[0].height)
+        if ((vision_result[0].width * vision_result[0].height)
+	    > self.distanceGoal):
+            self.exit('ready')
+            return 'ready'
+        if abs(gateXPos-0.5) > self.error_goal:
+            # If we are not centered by yaw
+            yaw_left = (gateXPos-0.5) * self.yaw_factor
+            c.yawLeftRelative(yaw_left * 60)
+            rospy.logdebug("trying to yaw: {}".format(yaw_left * 60))
+        elif abs(gateYPos-0.5) > self.error_goal:
+            # If our depth is not enough for centering
+            dive = (gateYPos-0.5) * self.dive_factor
+            rospy.logdebug("trying to dive: {}".format(dive))
+            c.diveRelative(dive)
+        else:
+            self.exit('centered')
+
+        c.publish()
+
+
+class move_forward_centered_single(SubscribeState):
+    def __init__(self, vision_label):
+        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
+                               outcomes=['ready', 'not centered', 'lost'])
+        self.vision_label = vision_label
+        self.distanceGoal = rospy.get_param("ai/move_forward_single/distanceGoal")
+        self.error_goal = rospy.get_param("ai/move_forward/error_goal")
+        self.forward_speed = rospy.get_param("ai/move_forward/forward_speed")
+
+    def callback(self, detectionArray, userdata):
+        c = control_wrapper()
+        c.levelOut()
+        c.forwardError(self.forward_speed)
+
+        detections = filterByLabel(detectionArray.detections,
+                                  self.vision_label)
+        vision_result = getNMostProbable(detections, 1, thresh=0.5)
+
+        if len(vision_result) < 1:
+            self.exit('lost')
+            return 'lost'
+
+        gateXPos = vision_result[0].x
+        gateYPos = vision_result[0].y
+
+        print(vision_result[0].width * vision_result[0].height)
+        if ((vision_result[0].width * vision_result[0].height)
+	    > self.distanceGoal):
+            self.exit('ready')
+            return 'ready'
+        if (abs(gateXPos-0.5) > self.error_goal or
+           abs(gateYPos-0.5) > self.error_goal):
+            self.exit('not centered')
+        if len(vision_result) < 1:
+            self.exit('lost')
+        rospy.logdebug("trying to move forward: {}".format(self.forward_speed))
+        c.publish()
