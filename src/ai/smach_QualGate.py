@@ -19,7 +19,8 @@ class PreQual_task(smach.StateMachine):
             smach.StateMachine.add('GATE_TASK', gate_task(),
                                   transitions={'success': 'FORWARD_UNTIL_SEE'})
             smach.StateMachine.add('STRAFE', strafe(),
-                                  transitions={'success': 'BLIND_FORWARD_SINGLE'})
+                                  transitions={'success':
+                                  'BLIND_FORWARD_SINGLE'})
             smach.StateMachine.add('FORWARD_UNTIL_SEE',
                                   move_to_gate('gate_post'),
                                   transitions={'success': 'CENTER_SINGLE'})
@@ -28,7 +29,8 @@ class PreQual_task(smach.StateMachine):
 
             smach.StateMachine.add('CENTER_SINGLE', center_single('gate_post'),
                                   transitions={'centered': 'FORWARD_SINGLE',
-                                              'lost': 'FORWARD_UNTIL_SEE', 'ready': 'STRAFE'})
+                                              'lost': 'FORWARD_UNTIL_SEE',
+                                              'ready': 'STRAFE'})
             smach.StateMachine.add('FORWARD_SINGLE',
                                   move_forward_centered_single('gate_post'),
                                   transitions={'ready': 'STRAFE',

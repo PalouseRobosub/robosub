@@ -320,7 +320,8 @@ class center_single(SubscribeState):
         self.error_goal = rospy.get_param("ai/center/error_goal")
         self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
         self.dive_factor = rospy.get_param("ai/center/dive_factor")
-        self.distanceGoal = rospy.get_param("ai/move_forward_single/distanceGoal")
+        self.distanceGoal =
+        rospy.get_param("ai/move_forward_single/distanceGoal")
 
     def callback(self, detectionArray, userdata):
         c = control_wrapper()
@@ -340,8 +341,8 @@ class center_single(SubscribeState):
         rospy.logdebug(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
 
         print(vision_result[0].width * vision_result[0].height)
-        if ((vision_result[0].width * vision_result[0].height)
-	    > self.distanceGoal):
+        if ((vision_result[0].width * vision_result[0].height) >
+           self.distanceGoal):
             self.exit('ready')
             return 'ready'
         if abs(gateXPos-0.5) > self.error_goal:
@@ -365,7 +366,8 @@ class move_forward_centered_single(SubscribeState):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['ready', 'not centered', 'lost'])
         self.vision_label = vision_label
-        self.distanceGoal = rospy.get_param("ai/move_forward_single/distanceGoal")
+        self.distanceGoal =
+        rospy.get_param("ai/move_forward_single/distanceGoal")
         self.error_goal = rospy.get_param("ai/move_forward/error_goal")
         self.forward_speed = rospy.get_param("ai/move_forward/forward_speed")
 
@@ -386,8 +388,8 @@ class move_forward_centered_single(SubscribeState):
         gateYPos = vision_result[0].y
 
         print(vision_result[0].width * vision_result[0].height)
-        if ((vision_result[0].width * vision_result[0].height)
-	    > self.distanceGoal):
+        if ((vision_result[0].width * vision_result[0].height) >
+           self.distanceGoal):
             self.exit('ready')
             return 'ready'
         if (abs(gateXPos-0.5) > self.error_goal or
