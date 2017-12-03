@@ -340,7 +340,8 @@ class center_single(SubscribeState):
 
         rospy.logdebug(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
 
-        print(vision_result[0].width * vision_result[0].height)
+        rospy.logdebug("distanceGoal is: {}".format(
+                      vision_result[0].width * vision_result[0].height))
         if ((vision_result[0].width * vision_result[0].height) >
            self.distanceGoal):
             self.exit('ready')
@@ -387,7 +388,8 @@ class move_forward_centered_single(SubscribeState):
         gateXPos = vision_result[0].x
         gateYPos = vision_result[0].y
 
-        print(vision_result[0].width * vision_result[0].height)
+        rospy.logdebug("distanceGoal is: {}".format(
+                      vision_result[0].width * vision_result[0].height))
         if ((vision_result[0].width * vision_result[0].height) >
            self.distanceGoal):
             self.exit('ready')
