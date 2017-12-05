@@ -46,12 +46,12 @@ class center_on_marker(SubscribeState):
             # If we are not centered by width
             strafe_left = (markerXPos-0.5) * self.strafe_factor
             rospy.loginfo("Trying to strafe: {}".format(strafe_left))
-            c.strafeLeftRelative(strafe_left)
+            c.strafeLeftError(strafe_left)
         elif abs(markerYPos-0.5) > self.errorGoal:
             # If we are not centered by height
             forward = (markerYPos-0.5) * self.forward_factor
             rospy.loginfo("Trying to center Y: {}".format(forward))
-            c.forwardRelative(forward)
+            c.forwardError(forward)
         else:
             self.exit('success')
 
