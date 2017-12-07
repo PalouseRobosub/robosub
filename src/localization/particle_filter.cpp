@@ -221,8 +221,10 @@ void ParticleFilter::publish_point_cloud()
     // Set up pointcloud message with each point cooresponding to a particle
     // plus an additional weights channel.
     sensor_msgs::PointCloud point_cloud;
-    sensor_msgs::ChannelFloat32 chan;
-    chan.name = "weight";
+    sensor_msgs::ChannelFloat32 WeightChan;
+    sensor_msgs::ChannelFloat32 IndexChan;
+    WeightChan.name = "weight";
+    IndexChan.name = "index";
 
     for(int i = 0; i < num_particles; i++)
     {
@@ -233,11 +235,13 @@ void ParticleFilter::publish_point_cloud()
 
         point_cloud.points.push_back(p);
 
-        chan.values.push_back(particle_weights[i]);
+        WeightChan.values.push_back(particle_weights[i]);
+        IndexChan.values.push_back(i);
     }
 
     point_cloud.header.frame_id = "world";
-    point_cloud.channels.push_back(chan);
+    point_cloud.channels.push_back(WeightChan);
+    point_cloud.channels.push_back(IndexChan);
     point_cloud.header.stamp = ros::Time::now();
 
     particle_cloud_pub.publish(point_cloud);
@@ -279,16 +283,25 @@ void ParticleFilter::update_particle_states()
     // Update each particle state from the previous state based on the system
     // update model, control model, and system update noise. This pushes the
     // particles based on inputted linear velocity and adds some noise.
+
+    MatrixXd noise;
+
     for(int n = 0; n < num_particles; n++)
     {
+        noise = randn_mat(3, 1);
+
+        ROS_DEBUG_STREAM("PF State noise update for particle " << n << ": " <<
+                        noise);
+
         particle_states[n] = system_update_model * last_particle_states[n] +
             control_update_model * control_input +
-            system_update_stddev * randn_mat(3, 1);
+            system_update_stddev * noise;
     }
 }
 
 void ParticleFilter::update_particle_weights()
 {
+    // TODO: Change to use unit-vector scalar angle as primary measurement
     // Sets weights for all particles based on the hydrophone and depth
     // observation. Also normalizes the weights afterward.
     double particle_weights_sum = 0.0;
@@ -299,10 +312,12 @@ void ParticleFilter::update_particle_weights()
         // Obtain a predicted observation based on a particles state.
         particle_obs = state_to_observation(particle_states[n]);
 
+        /*
         // Add noise to predicted observation.
         particle_obs += (observation_stddev *
-                randn_mat(particle_obs.rows(), 1));
+               randn_mat(particle_obs.rows(), 1));
 
+        */
         // Calculate particle weights using the gaussian probability
         // distribution function for each observation.
         // TODO: Convert range to use rayleigh distribution per Brians
@@ -343,6 +358,8 @@ void ParticleFilter::resample_particles()
     // the goal of this step is to concentrate particles in the most likely
     // locations for the sub to be in the iteration, increasing the accuracy of
     // the filter.
+
+    // TODO: Make understandable
 
     std::vector<Vector3d> selected_particles;
 
@@ -403,12 +420,12 @@ void ParticleFilter::estimate_state()
 void ParticleFilter::predict()
 {
     update_particle_states();
-
+    
     last_particle_states = particle_states;
 
     estimate_state();
 
-    publish_point_cloud();
+    // publish_point_cloud();
 
     num_iterations++;
 }
@@ -425,11 +442,13 @@ void ParticleFilter::update()
 
     update_particle_weights();
 
+    publish_point_cloud();
+
     resample_particles();
 
     estimate_state();
 
-    publish_point_cloud();
+    // publish_point_cloud();
 
     num_iterations++;
 }
