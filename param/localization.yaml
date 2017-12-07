@@ -12,9 +12,9 @@ localization:
             z_stddev: 5.0
         stddev:
             # measurement covariance matrix
-            i: 0.001
-            j: 0.001
-            k: 0.001
+            i: 0.01
+            j: 0.01
+            k: 0.01
             depth: 0.05
 
             # state update covariance matrix
