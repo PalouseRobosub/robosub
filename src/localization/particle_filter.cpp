@@ -221,10 +221,8 @@ void ParticleFilter::publish_point_cloud()
     // Set up pointcloud message with each point cooresponding to a particle
     // plus an additional weights channel.
     sensor_msgs::PointCloud point_cloud;
-    sensor_msgs::ChannelFloat32 WeightChan;
-    sensor_msgs::ChannelFloat32 IndexChan;
-    WeightChan.name = "weight";
-    IndexChan.name = "index";
+    sensor_msgs::ChannelFloat32 chan;
+    chan.name = "weight";
 
     for(int i = 0; i < num_particles; i++)
     {
@@ -235,13 +233,11 @@ void ParticleFilter::publish_point_cloud()
 
         point_cloud.points.push_back(p);
 
-        WeightChan.values.push_back(particle_weights[i]);
-        IndexChan.values.push_back(i);
+        chan.values.push_back(particle_weights[i]);
     }
 
     point_cloud.header.frame_id = "world";
-    point_cloud.channels.push_back(WeightChan);
-    point_cloud.channels.push_back(IndexChan);
+    point_cloud.channels.push_back(chan);
     point_cloud.header.stamp = ros::Time::now();
 
     particle_cloud_pub.publish(point_cloud);
@@ -359,8 +355,6 @@ void ParticleFilter::resample_particles()
     // locations for the sub to be in the iteration, increasing the accuracy of
     // the filter.
 
-    // TODO: Make understandable
-
     std::vector<Vector3d> selected_particles;
 
     int index = static_cast<int>(rand_uniform() * num_particles);
@@ -420,12 +414,14 @@ void ParticleFilter::estimate_state()
 void ParticleFilter::predict()
 {
     update_particle_states();
+
+    update_particle_weights();
     
     last_particle_states = particle_states;
 
     estimate_state();
 
-    // publish_point_cloud();
+    publish_point_cloud();
 
     num_iterations++;
 }
