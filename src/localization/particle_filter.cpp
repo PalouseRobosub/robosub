@@ -410,7 +410,7 @@ void ParticleFilter::predict()
     update_particle_states();
 
     update_particle_weights();
-    
+
     last_particle_states = particle_states;
 
     estimate_state();
