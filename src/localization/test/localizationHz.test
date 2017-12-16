@@ -19,7 +19,7 @@
   
   <test test-name="localization_hz_test_particles" pkg="rostest" type="hztest" name="particles_hz" >
     <param name="topic" value="localization/particles" />  
-    <param name="hz" value="30" />
+    <param name="hz" value=".5" />
     <param name="hzerror" value="1" />
     <param name="test_duration" value="10.0" />
   </test>
