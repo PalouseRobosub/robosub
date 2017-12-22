@@ -37,8 +37,8 @@ class lost(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['1 post', 'none', '2 posts'],
-                               input_keys=['direction'],
-                               output_keys=['direction'])
+                               input_keys=['direction', 'detectionsArray'],
+                               output_keys=['direction', 'detectionsArray'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
@@ -69,14 +69,15 @@ class lost(SubscribeState):
         elif len(vision_result) == 1:
             self.exit('1 post')
         else:
+            userdata.detectionsArray = vision_result;
             self.exit('2 posts')
 
 # Flips direction of search
 class flip(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'],
-                            input_keys=['direction'],
-                            output_keys=['direction'])
+                            input_keys=['direction', 'detectionsArray'],
+                            output_keys=['direction', 'detectionsArray'])
 
     def execute(self, userdata):
         if userdata.direction == 'right':
@@ -93,8 +94,8 @@ class search(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['2 posts', 'none', '1 post'],
-                               input_keys=['direction'],
-                               output_keys=['direction'])
+                               input_keys=['direction', 'detectionsArray'],
+                               output_keys=['direction', 'detectionsArray'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
@@ -121,6 +122,7 @@ class search(SubscribeState):
             self._poll_rate.sleep()
             self.exit('1 post')
         elif len(vision_result) == 2:
+            userdata.detectionsArray = vision_result;
             self.exit('2 posts')
         else:
             rospy.logdebug("search direction {}".format(userdata.direction))
@@ -138,23 +140,30 @@ class Search_for_gates(smach.StateMachine):
                                   transitions={'1 post': 'SEARCH',
                                               'none': 'LOST',
                                               '2 posts': 'SEARCH'},
-                                  remapping={'direction': 'direction'})
+                                  remapping={'direction': 'direction',
+                                             'detectionsArray':
+                                             'detectionsArray'})
 
             smach.StateMachine.add("FLIP", flip(),
                                   transitions={'success': 'LOST'},
-                                  remapping={'direction': 'direction'})
+                                  remapping={'direction': 'direction',
+                                  'detectionsArray': 'detectionsArray'})
 
             smach.StateMachine.add("SEARCH", search(label),
                                   transitions={'2 posts': 'success',
                                               'none': 'FLIP',
                                               '1 post': 'SEARCH'},
-                                  remapping={'direction': 'direction'})
+                                  remapping={'direction': 'direction',
+                                             'detectionsArray':
+                                             'detectionsArray'})
 
 # State for centering between gate posts or moving while being centered
 class center(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-                               outcomes=['centered', 'lost'])
+                               outcomes=['centered', 'lost'],
+                               input_keys=['detectionsArray'],
+                               output_keys=['detectionsArray'])
         self.vision_label = vision_label
         self.error_goal = rospy.get_param("ai/center/error_goal")
         self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
@@ -178,6 +187,9 @@ class center(SubscribeState):
 
         rospy.logdebug(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
 
+        # Saving detection Array for next state, in case we loose post.
+        userdata.detectionsArray = vision_result;
+
         if abs(gateXPos-0.5) > self.error_goal:
             # If we are not centered by yaw
             yaw_left = (gateXPos-0.5) * self.yaw_factor
@@ -199,7 +211,9 @@ class center(SubscribeState):
 class move_forward_centered(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
-                               outcomes=['ready', 'not centered', 'lost'])
+                               outcomes=['ready', 'not centered', 'lost'],
+                               input_keys=['detectionsArray'],
+                               output_keys=['detectionsArray'])
         self.vision_label = vision_label
         self.distanceGoal = rospy.get_param("ai/move_forward/distanceGoal")
         self.error_goal = rospy.get_param("ai/move_forward/error_goal")
@@ -217,6 +231,9 @@ class move_forward_centered(SubscribeState):
         if len(vision_result) < 2:
             self.exit('lost')
             return 'lost'
+
+        # Saving detection Array for next state, in case we loose post.
+        userdata.detectionsArray = vision_result;
 
         gateXPos = (vision_result[0].x + vision_result[1].x) / 2
         gateYPos = (vision_result[0].y + vision_result[1].y) / 2
