@@ -16,27 +16,29 @@ class gate_task(smach.StateMachine):
         with self:
             smach.StateMachine.add('FORWARD_UNTIL_FOUND_GATE',
                                   move_to_gate('gate_post'),
-                                  transitions={'success': 'CENTER'})
+                                  transitions={'success': 'CENTER'},
+                                  remapping={'direction':
+                                             'direction'})
 
             smach.StateMachine.add('CENTER', center('gate_post'),
                                   transitions={'centered': 'FORWARD',
                                               'lost': 'SEARCH_FOR_GATES'},
-                                  remapping={'detectionsArray':
-                                             'detectionsArray'})
+                                  remapping={'direction':
+                                             'direction'})
 
             smach.StateMachine.add('SEARCH_FOR_GATES',
                                   Search_for_gates('gate_post'),
                                   transitions={'success': 'CENTER'},
-                                  remapping={'detectionsArray':
-                                             'detectionsArray'})
+                                  remapping={'direction':
+                                             'direction'})
 
             smach.StateMachine.add('FORWARD',
                                   move_forward_centered('gate_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
                                               'not centered': 'CENTER',
                                               'lost': 'SEARCH_FOR_GATES'},
-                                              remapping={'detectionsArray':
-                                                         'detectionsArray'})
+                                              remapping={'direction':
+                                                         'direction'})
 
 
             smach.StateMachine.add('BLIND_FORWARD',
