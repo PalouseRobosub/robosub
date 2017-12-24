@@ -3,6 +3,7 @@ import rospy
 from util import *
 from rs_yolo.msg import DetectionArray
 from robosub.msg import control
+from robosub.msg import Euler
 from SubscribeState import SubscribeState
 from control_wrapper import control_wrapper
 import smach
@@ -37,8 +38,8 @@ class lost(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['1 post', 'none', '2 posts'],
-                               input_keys=['direction', 'detectionsArray'],
-                               output_keys=['direction', 'detectionsArray'])
+                               input_keys=['direction'],
+                               output_keys=['direction'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
@@ -69,15 +70,14 @@ class lost(SubscribeState):
         elif len(vision_result) == 1:
             self.exit('1 post')
         else:
-            userdata.detectionsArray = vision_result;
             self.exit('2 posts')
 
 # Flips direction of search
 class flip(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'],
-                            input_keys=['direction', 'detectionsArray'],
-                            output_keys=['direction', 'detectionsArray'])
+                            input_keys=['direction'],
+                            output_keys=['direction'])
 
     def execute(self, userdata):
         if userdata.direction == 'right':
@@ -85,6 +85,17 @@ class flip(smach.State):
         else:
             userdata.direction = 'right'
         return 'success'
+
+# This state is designed to record orientation from topic /pretty/orientation
+class take_orientation(SubscribeState):
+    def __init__(self):
+        SubscribeState.__init__(self, "/pretty/orientation", Euler,
+                               self.callback, outcomes=['success'],
+                               input_keys=['direction'],
+                               output_keys=['direction'])
+    def callback(self, direction, userdata):
+        userdata.direction = direction
+        self.exit('success')
 
 # State for searching gate posts. Comes after state Lost, so it searches,
 # and yaws same direction as it was in Lost state
@@ -94,8 +105,8 @@ class search(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['2 posts', 'none', '1 post'],
-                               input_keys=['direction', 'detectionsArray'],
-                               output_keys=['direction', 'detectionsArray'])
+                               input_keys=['direction'],
+                               output_keys=['direction'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
         self._poll_rate = rospy.Rate(poll_rate)
@@ -122,7 +133,6 @@ class search(SubscribeState):
             self._poll_rate.sleep()
             self.exit('1 post')
         elif len(vision_result) == 2:
-            userdata.detectionsArray = vision_result;
             self.exit('2 posts')
         else:
             rospy.logdebug("search direction {}".format(userdata.direction))
@@ -140,30 +150,25 @@ class Search_for_gates(smach.StateMachine):
                                   transitions={'1 post': 'SEARCH',
                                               'none': 'LOST',
                                               '2 posts': 'SEARCH'},
-                                  remapping={'direction': 'direction',
-                                             'detectionsArray':
-                                             'detectionsArray'})
+                                  remapping={'direction': 'direction'})
 
             smach.StateMachine.add("FLIP", flip(),
                                   transitions={'success': 'LOST'},
-                                  remapping={'direction': 'direction',
-                                  'detectionsArray': 'detectionsArray'})
+                                  remapping={'direction': 'direction'})
 
             smach.StateMachine.add("SEARCH", search(label),
                                   transitions={'2 posts': 'success',
                                               'none': 'FLIP',
                                               '1 post': 'SEARCH'},
-                                  remapping={'direction': 'direction',
-                                             'detectionsArray':
-                                             'detectionsArray'})
+                                  remapping={'direction': 'direction'})
 
 # State for centering between gate posts or moving while being centered
 class center(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['centered', 'lost'],
-                               input_keys=['detectionsArray'],
-                               output_keys=['detectionsArray'])
+                               input_keys=['direction'],
+                               output_keys=['direction'])
         self.vision_label = vision_label
         self.error_goal = rospy.get_param("ai/center/error_goal")
         self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
@@ -212,8 +217,8 @@ class move_forward_centered(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['ready', 'not centered', 'lost'],
-                               input_keys=['detectionsArray'],
-                               output_keys=['detectionsArray'])
+                               input_keys=['direction'],
+                               output_keys=['direction'])
         self.vision_label = vision_label
         self.distanceGoal = rospy.get_param("ai/move_forward/distanceGoal")
         self.error_goal = rospy.get_param("ai/move_forward/error_goal")
@@ -221,11 +226,6 @@ class move_forward_centered(SubscribeState):
 
     def callback(self, detectionArray, userdata):
         c = control_wrapper()
-        c.levelOut()
-        c.forwardError(self.forward_speed)
-
-        detections = filterByLabel(detectionArray.detections,
-                                  self.vision_label)
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
         if len(vision_result) < 2:
@@ -249,3 +249,41 @@ class move_forward_centered(SubscribeState):
         if len(vision_result) < 2:
             self.exit('lost')
         c.publish()
+
+# State that turns to the yaw that is being passed.
+# Requires direction to contain something to turn.
+class turn_to_yaw(smach.State):
+    def __init__(self, value, poll_rate=10):
+        smach.State.__init__(self, outcomes=["success", "continue"],
+                            input_keys=['direction'],
+                            output_keys=['direction'])
+        self.value = value
+        self._poll_rate = rospy.Rate(poll_rate)
+
+        # wait for time to be non-zero
+        while(rospy.Time.now() == rospy.Time(0)):
+            rospy.sleep(1.0/poll_rate)
+
+    def execute(self, userdata):
+        c = control_wrapper()
+        c.levelOut()
+        print(type(userdata.direction.yaw))
+        c.yawLeftRelative(self.value - userdata.direction.yaw)
+        if (abs(self.value - userdata.direction.yaw) < 0.05):
+            c.publish()
+            self._poll_rate.sleep()
+            return 'continue'
+        return 'success'
+
+# State Machine that can turn to desired bearing that is being passed as an arg
+class turn_to_bearing(smach.StateMachine):
+    def __init__(self, value):
+        smach.StateMachine.__init__(self, outcomes=['success'])
+        with self:
+            smach.StateMachine.add("ORIENTATION", take_orientation(),
+                                  transitions={'success': 'TURN_TO_BEARING'},
+                                  remapping={'direction': 'direction'})
+            smach.StateMachine.add("TURN_TO_BEARING", turn_to_yaw(value),
+                                  transitions={'continue': 'ORIENTATION',
+                                  'success': 'success'},
+                                  remapping={'direction': 'direction'})
