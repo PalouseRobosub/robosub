@@ -259,7 +259,7 @@ class turn_to_yaw(smach.State):
                             output_keys=['direction'])
         self.value = value
         self._poll_rate = rospy.Rate(poll_rate)
-
+        self.bearing_error = rospy.get_param("ai/bearing_error")
         # wait for time to be non-zero
         while(rospy.Time.now() == rospy.Time(0)):
             rospy.sleep(1.0/poll_rate)
@@ -269,7 +269,7 @@ class turn_to_yaw(smach.State):
         c.levelOut()
         print(type(userdata.direction.yaw))
         c.yawLeftRelative(self.value - userdata.direction.yaw)
-        if (abs(self.value - userdata.direction.yaw) < 0.05):
+        if (abs(self.value - userdata.direction.yaw) < self.bearing_error):
             c.publish()
             self._poll_rate.sleep()
             return 'continue'
