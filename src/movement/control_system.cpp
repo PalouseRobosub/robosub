@@ -42,25 +42,20 @@ namespace robosub
         for(int i = 0; i < 6; ++i)
         {
             goal_types[i] = robosub::control::STATE_ERROR;
+
+            /*
+             * Set the previous message queues to empty.
+             */
+            previous_error[i].clear();
         }
-
-        /*
-         * Set the previous message queues to empty.
-         */
-        previous_error.clear();
-        previous_error_times.clear();
-
-        /*
-         * Ensure that the previous error time is initialized to the current
-         * time so the first integral calculation is valid.
-         */
-        previous_error_times.push_back(ros::Time::now());
 
         /*
          * Ensure that the commands and states are all set to zero initially.
          */
         state_vector = Vector6d::Zero();
+        current_error = Vector6d::Zero();
         current_integral = Vector6d::Zero();
+        current_derivative = Vector6d::Zero();
         goals = Vector6d::Zero();
 
         /*
@@ -357,6 +352,13 @@ namespace robosub
         state_vector[3] *= _180_OVER_PI;
         state_vector[4] *= _180_OVER_PI;
         state_vector[5] *= _180_OVER_PI;
+
+        /*
+         * Indicate that new rotation state measurements are available.
+         */
+        new_measurement_available[3] = true;
+        new_measurement_available[4] = true;
+        new_measurement_available[5] = true;
     }
 
     /**
@@ -375,6 +377,12 @@ namespace robosub
     {
         state_vector[0] = point_msg->point.x;
         state_vector[1] = point_msg->point.y;
+
+        /*
+         * Indicate that new state measurements are available for X and Y.
+         */
+        new_measurement_available[0] = true;
+        new_measurement_available[1] = true;
     }
 
     /**
@@ -388,6 +396,11 @@ namespace robosub
             robosub::Float32Stamped::ConstPtr& depth_msg)
     {
         state_vector[2] = depth_msg->data;
+
+        /*
+         * Indicate that a new Z position measurement has been received.
+         */
+        new_measurement_available[2] = true;
     }
 
     /**
@@ -473,6 +486,7 @@ namespace robosub
         rotation_error(1, 0) *= cos(rotation_error(2, 0) * 3.1415 / 180);
 
         rotation_error(0, 0) *= cos(rotation_error(2, 0) * 3.1415 / 180);
+
         /*
          * Update the current error vector with the calculated errors.
          */
@@ -482,8 +496,16 @@ namespace robosub
         /*
          * Update and bound-check the integral terms.
          */
-        current_integral += current_error * (ros::Time::now() -
-                previous_error_times[0]).toSec();
+        const ros::Time now = ros::Time::now();
+        for (int i = 0; i < 6; ++i)
+        {
+            if (new_measurement_available[i] && previous_error[i].size() >= 1)
+            {
+                current_integral[i] += current_error[i] *
+                    (now - previous_error[i][0].time).toSec();
+            }
+        }
+
         for (int i = 0; i < 6; ++i)
         {
             if(fabs(current_integral[i]) > fabs(windup[i]))
@@ -502,13 +524,27 @@ namespace robosub
                 hysteresis.array()).cast<double>();
         Vector6d m_accel = Vector6d::Zero();
 
-        previous_error.push_front(current_error);
-        previous_error_times.push_front(ros::Time::now());
-
-        if (previous_error.size() > 5)
+        /*
+         * If a new measurement came in during the update cycle, update the
+         * previous error states. This prevents issues that occur when the
+         * control update loop runs faster than a sensor is
+         * reporting and prevents the miscalculation of the error
+         * derivative.
+         */
+        for (int i = 0; i < 6; ++i)
         {
-            previous_error.pop_back();
-            previous_error_times.pop_back();
+            if (new_measurement_available[i])
+            {
+                previous_error[i].push_front(
+                        StateMeasurement(now, current_error[i]));
+
+                if (previous_error[i].size() > 5)
+                {
+                    previous_error[i].pop_back();
+                }
+            }
+
+            new_measurement_available[i] = false;
         }
 
         /*
@@ -518,28 +554,37 @@ namespace robosub
          *     Slope = (n(Sum(x*y)) - Sum(x)*Sum(y)) / (n(Sum(x^2) - Sum(x)^2))
          * Where y is the error and x is the time.
          */
-        Vector6d sum_error = Vector6d::Zero(),
-                 sum_error_time = Vector6d::Zero();
-        double sum_time = 0, sum_time_sq = 0;
-        int number_elements = previous_error.size();
-        for (int i = 0; i < number_elements; ++i)
+        for (int j = 0; j < 6; ++j)
         {
-            double current_time = (previous_error_times[i] -
-                    previous_error_times[number_elements - 1]).toSec();
-            sum_time += current_time;
-            sum_time_sq += current_time * current_time;
-            sum_error += previous_error[i];
-            sum_error_time += current_time * previous_error[i];
-        }
+            std::deque<StateMeasurement> &measurements = previous_error[j];
 
-        current_derivative = (number_elements * sum_error_time - sum_time *
-                sum_error) / (number_elements * sum_time_sq - sum_time *
-                sum_time);
+            const int number_elements = measurements.size();
+            if (number_elements <= 1)
+            {
+                continue;
+            }
+
+            double sum_time = 0, sum_time_sq = 0;
+            double sum_error = 0;
+            double sum_error_time = 0;
+            for (int i = 0; i < number_elements; ++i)
+            {
+                double current_time = (measurements[i].time -
+                        measurements[number_elements - 1].time).toSec();
+                sum_time += current_time;
+                sum_time_sq += current_time * current_time;
+                sum_error += measurements[i].val;
+                sum_error_time += current_time * measurements[i].val;
+            }
+
+            current_derivative[j] = (number_elements * sum_error_time -
+                    sum_time * sum_error) / (number_elements * sum_time_sq -
+                    sum_time * sum_time);
+        }
 
         m_accel += P.cwiseProduct(current_error).cwiseProduct(hist);
         m_accel += I.cwiseProduct(current_integral);
         m_accel += D.cwiseProduct(current_derivative);
-
 
         /*
          * Convert accelerations to force by multipling by masses.
@@ -578,6 +623,7 @@ namespace robosub
             // state is absolute.
             current_orientation[2] = 0;
         }
+
         /*
          * Normalize the translational forces based on the current orientation
          * of the submarine and calculate the translation control for each

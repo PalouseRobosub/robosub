@@ -36,7 +36,30 @@ class ControlSystem
      * Defines conversion scale for converting between radians and degrees.
      */
     static constexpr double _PI_OVER_180 = (3.1415 / 180.0);
+
     static constexpr double _180_OVER_PI = (180.0 / 3.14159);
+
+    /*
+     * Define a custom type for storing a state measurement
+     */
+    struct StateMeasurement
+    {
+        StateMeasurement(const ros::Time _time, const double _val) :
+            time(_time),
+            val(_val)
+        {
+        }
+
+        /*
+         * The time at which the measurement was taken.
+         */
+        const ros::Time time;
+
+        /*
+         * The value of the measurement
+         */
+        const double val;
+    };
 
 public:
     ControlSystem();
@@ -141,10 +164,14 @@ private:
     int num_thrusters;
 
     /*
+     * Boolean vector indicating that new state measurements are available.
+     */
+    Matrix<bool, 6, 1> new_measurement_available;
+
+    /*
      * The previous errors calculated.
      */
-    std::deque<Vector6d> previous_error;
-    std::deque<ros::Time> previous_error_times;
+    Matrix<std::deque<StateMeasurement>, 6, 1> previous_error;
 };
 }
 #endif // CONTROL_SYSTEM_H
