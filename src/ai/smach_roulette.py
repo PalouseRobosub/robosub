@@ -219,7 +219,7 @@ class TargetColor(SubscribeState):
                                 outcomes=['success', 'fail'],
                                 timeout=max_duration)
         self.color = color
-        self.speed = 1
+        self.speed = 1.3
         self.center_percentage = 5
         self.bridge = cv_bridge.CvBridge()
 

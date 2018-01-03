@@ -140,7 +140,7 @@ class RouletteWheel:
 
         # Dilate and close holes within the detected red portions.
         red_closed = cv2.morphologyEx(red_filtered, cv2.MORPH_CLOSE, (9, 9))
-        red_mask = cv2.dilate(red_closed, (13,, 13), iterations=6)
+        red_mask = cv2.dilate(red_closed, (13, 13), iterations=6)
 
         # Construct the bounding circle of the entire roulette wheel from the
         # detected red portions of the image.
