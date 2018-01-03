@@ -1,4 +1,11 @@
 #!/usr/bin/python
+"""
+Author: Ryan Summers
+Date: 1-2-2018
+
+Description: A ROS SMACH implementation for the roulette wheel task.
+"""
+
 from operator import add, sub
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Vector3Stamped
@@ -27,9 +34,6 @@ class MoveToPinger(SubscribeState):
         forward_speed: The speed at which to move towards the pinger.
         downward_angle_success: The angle of the downward cone that the pinger
             must lie in to denote success.
-        search_duration: The maximum length (in seconds) that the state may run
-            for.
-        timeout: The ROS time at which the task will exit.
     """
 
     def __init__(self, max_duration=120, forward_speed=3, successful_angle=15):
@@ -46,16 +50,9 @@ class MoveToPinger(SubscribeState):
                                 Vector3Stamped,
                                 self.pinger_callback,
                                 outcomes=['success', 'fail'],
-                                setup_callback=self.setup)
+                                timeout=max_duration)
         self.forward_speed = forward_speed
         self.downward_angle_success = successful_angle
-        self.search_duration = max_duration
-        self.timeout = 0
-
-
-    def setup(self):
-        """Sets up the state timeout."""
-        self.timeout = rospy.get_time() + self.search_duration
 
 
     def pinger_callback(self, bearing_stamped, user_data):
@@ -92,99 +89,133 @@ class MoveToPinger(SubscribeState):
                 c.forwardError(0)
             c.publish()
 
-        # Check the timeout of the state.
-        if rospy.get_time() > self.timeout:
-            rospy.loginfo('Failing due to state timeout')
-            self.exit('fail')
 
+class CenterDownward(SubscribeState):
+    """Centers the downward camera on the roulette wheel.
 
-class center_downward(SubscribeState):
-    def __init__(self, label):
-        SubscribeState.__init__(self, 'camera/bottom/undistorted', Image, self.camera_callback, outcomes=['success', 'fail'], setup_callback=self.setup)
-        self.label = label
+    Attributes:
+        speed: The speed factor to use for movement.
+        bridge: A CvBridge object for converting from ROS images to OpenCV.
+        center_percentage: The percentage of the image that the center of the
+            roulette wheel must lie in.
+    """
+
+    def __init__(self, center_percentage=20, max_duration=50):
+        """Initializes the state.
+
+        Args:
+            center_percentage: The percentage of the image that the center of
+                the roulette wheel must lie on.
+            max_duration: The max duration of the state in seconds.
+        """
+        SubscribeState.__init__(self,
+                                'camera/bottom/undistorted',
+                                Image,
+                                self.camera_callback,
+                                outcomes=['success', 'fail'],
+                                timeout=max_duration)
         self.speed = 1
         self.bridge = cv_bridge.CvBridge()
-        self.center_percentage = 20
-
-
-    def setup(self):
-        self.timeout = rospy.get_time() + 5
+        self.center_percentage = center_percentage
 
 
     def camera_callback(self, image_msg, user_data):
+        """ROS callback for bottom camera image messages."""
         img = self.bridge.imgmsg_to_cv2(image_msg, 'bgr8')
         img = cv2.resize(img, (0, 0), fx=0.3, fy=0.3)
 
+        # Parse the image for the roulette wheel.
         wheel = RouletteWheel(img)
         if len(wheel.slices) == 0:
             self.exit('fail')
-
-#        cv2.imshow('Target', wheel.image)
-#        cv2.waitKey(1)
 
         detection = Detection()
         detection.x = float(wheel.origin[0]) / img.shape[1]
         detection.y = float(wheel.origin[1]) / img.shape[0]
 
-        if detection is None:
-            if self.timeout < rospy.get_time():
-                self.exit('fail')
+        x_error = (detection.x - 0.5) / 0.5
+        y_error = (detection.y - 0.5) / 0.5
+        c = control_wrapper.control_wrapper()
+        c.levelOut()
+
+        # Check to see if the image is centered for the X and Y axes.
+        x_good = abs(x_error) * 100 < self.center_percentage / 2
+        y_good = abs(y_error) * 100 < self.center_percentage / 2
+
+        if not x_good:
+            c.strafeLeftError(-1 * x_error * self.speed)
+            rospy.loginfo('Centering X by strafing left {}'.format(-1 * \
+                        self.speed * x_error))
         else:
-            x_good = False
-            y_good = False
-            x_error = (detection.x - 0.5) / 0.5
-            y_error = (detection.y - 0.5) / 0.5
-            c = control_wrapper.control_wrapper()
-            c.levelOut()
-            if 100 * abs(x_error) > self.center_percentage / 2:
-                c.strafeLeftError(-1 * x_error * self.speed)
-                rospy.loginfo('Centering X by strafing left {}'.format(-1 * self.speed * x_error))
-            else:
-                c.strafeLeftError(0)
-                x_good = True
-                rospy.loginfo('X centered')
+            c.strafeLeftError(0)
+            rospy.loginfo('X centered')
 
-            if 100 * abs(y_error) > self.center_percentage / 2:
-                c.forwardError(-1 * y_error * self.speed)
-                rospy.loginfo('Centering Y by going forward {}'.format(-1 *self.speed * y_error))
-            else:
-                c.strafeLeftError(0)
-                y_good = True
-                rospy.loginfo('Y centered')
+        if not y_good:
+            c.forwardError(-1 * y_error * self.speed)
+            rospy.loginfo('Centering Y by going forward {}'.format(-1 * \
+                        self.speed * y_error))
+        else:
+            c.forwardError(0)
+            rospy.loginfo('Y centered')
 
-            c.publish()
+        c.publish()
 
-            if x_good and y_good:
-                self.exit('success')
+        print x_good, y_good
+        if x_good and y_good:
+            print 'Exiting'
+            self.exit('success')
 
 
-class center_above(smach.StateMachine):
-    def __init__(self, label):
+class CenterAbove(smach.StateMachine):
+    """Centers the submarine above the roulette wheel."""
+
+    def __init__(self):
+        """Initializes the state."""
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
 
         with self:
-#            smach.StateMachine.add('LOCATE_OBJECT', locate_object(label), \
-#                    transitions={'success': 'CENTER', \
-#                                 'fail': 'fail'})
-
-#            smach.StateMachine.add('MOVE_TO', move_to(label), \
-#                    transitions={'success': 'CENTER', \
-#                                 'fail': 'CENTER'})
-
+            # First, dive down to see the wheel.
             smach.StateMachine.add('DIVE_ROULETTE', basic_states.GoToDepth(2.5),
-                    transitions={'success': 'STABILIZE', 'fail': 'fail'})
+                    transitions={'success': 'STABILIZE', 'fail': 'fail', 'timeout': 'STABILIZE'})
 
+            # Next, ensure there is not too much tilting.
             smach.StateMachine.add('STABILIZE', basic_states.Stabilize(),
-                    transitions={'success': 'CENTER', 'fail': 'fail'})
+                    transitions={'success': 'CENTER',
+                                 'fail': 'fail',
+                                 'timeout': 'fail'})
 
-            smach.StateMachine.add('CENTER', center_downward(label), \
+            # Finally, center the submarine above the roulette wheel.
+            smach.StateMachine.add('CENTER', CenterDownward(), \
                     transitions={'success': 'success', \
-                                 'fail': 'fail'})
+                                 'fail': 'fail',
+                                 'timeout': 'fail'})
 
 
-class target_color(SubscribeState):
-    def __init__(self, color):
-        SubscribeState.__init__(self, 'camera/bottom/undistorted', Image, self.camera_callback, outcomes=['success', 'fail'])
+class TargetColor(SubscribeState):
+    """Centers above the nearest colored slice of the roulette wheel.
+
+    Attributes:
+        color: The RouletteWheel.Color type to center above.
+        speed: The speed factor for translating the submarine to the color
+            slice.
+        center_percentage: The percentage of the image that the slice must
+            reside in for success.
+        bridge: A CvBridge object for converting ROS Image messages to OpenCV.
+    """
+
+    def __init__(self, color, max_duration=45):
+        """Initializes the state.
+
+        Args:
+            color: The RouletteWheel.Color type to search for.
+            max_duration: The max duration of the state in seconds.
+        """
+        SubscribeState.__init__(self,
+                                'camera/bottom/undistorted',
+                                Image,
+                                self.camera_callback,
+                                outcomes=['success', 'fail'],
+                                timeout=max_duration)
         self.color = color
         self.speed = 1
         self.center_percentage = 5
@@ -202,13 +233,15 @@ class target_color(SubscribeState):
         cv2.imshow('Target', wheel.image)
         cv2.waitKey(1)
 
+        # Filter the slices to the color of interest.
         color_slices = []
         for color_slice in wheel.slices:
             if color_slice.color == self.color:
                 color_slices.append(color_slice)
 
         if len(color_slices) != 2:
-            rospy.loginfo('Did not find two slices with color {}'.format(self.color))
+            rospy.loginfo('Did not find two slices with color '
+                    '{}'.format(self.color))
             self.exit('fail')
 
         # Find the slice that is closest to the center.
@@ -227,61 +260,77 @@ class target_color(SubscribeState):
         detection.x = float(left_slice_center[0]) / img.shape[1]
         detection.y = float(left_slice_center[1]) / img.shape[0]
 
-        x_error = detection.x - 0.5
-        y_error = detection.y - 0.5
-        x_good = False
-        y_good = False
+        x_error = float(detection.x - 0.5) / 0.5
+        y_error = float(detection.y - 0.5) / 0.5
+        x_good = 100 * abs(x_error) < self.center_percentage / 2
+        y_good = 100 * abs(y_error) < self.center_percentage / 2
+
         c = control_wrapper.control_wrapper()
         c.levelOut()
 
-        if 100 * abs(x_error) > self.center_percentage / 2:
+        if not x_good:
             c.strafeLeftError(-1 * x_error * self.speed)
-            rospy.loginfo('Centering X by strafing left {}'.format(-1 * self.speed * x_error))
+            rospy.loginfo('Centering X by strafing left {}'.format(-1 * \
+                        self.speed * x_error))
         else:
             c.strafeLeftError(0)
-            x_good = True
             rospy.loginfo('X centered')
 
-        if 100 * abs(y_error) > self.center_percentage / 2:
+        if not y_good:
             c.forwardError(-1 * y_error * self.speed)
-            rospy.loginfo('Centering Y by going forward {}'.format(-1 *self.speed * y_error))
+            rospy.loginfo('Centering Y by going forward {}'.format(-1 * \
+                        self.speed * y_error))
         else:
             c.forwardError(0)
-            y_good = True
             rospy.loginfo('Y centered')
 
         c.publish()
+
         if x_good and y_good:
             self.exit('success')
 
 
 class RouletteTask(smach.StateMachine):
+    """Main roulette state task."""
+
     def __init__(self):
+        """Initializes the roulette task."""
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
 
         with self:
+            # First, dive to a certain depth and search for the pinger.
             smach.StateMachine.add('DIVE_PINGER', basic_states.GoToDepth(1.5),
-                    transitions={'success': 'FIND_PINGER', 'fail': 'fail'})
+                    transitions={'success': 'FIND_PINGER',
+                                 'fail': 'fail',
+                                 'timeout': 'fail'})
 
             smach.StateMachine.add('FIND_PINGER', MoveToPinger(),
                     transitions={'success': 'STABILIZE',
-                                 'fail': 'fail'})
+                                 'fail': 'fail',
+                                 'timeout': 'fail'})
 
             smach.StateMachine.add('STABILIZE', basic_states.Stabilize(),
-                    transitions={'success': 'LOCATE_ROULETTE', 'fail': 'fail'})
+                    transitions={'success': 'LOCATE_ROULETTE',
+                                 'fail': 'fail',
+                                 'timeout': 'LOCATE_ROULETTE'})
 
-            smach.StateMachine.add('LOCATE_ROULETTE',
-                    center_above('roulette_wheel'),
+            # Next, locate the roulette wheel and center above it.
+            smach.StateMachine.add('LOCATE_ROULETTE', CenterAbove(),
                     transitions={'success': 'DIVE_TARGET',
                                  'fail': 'fail'})
 
+            # Now, dive lower and center above the desired color.
             smach.StateMachine.add('DIVE_TARGET', basic_states.GoToDepth(3),
-                    transitions={'success': 'CENTER_TARGET', 'fail': 'fail'})
+                    transitions={'success': 'CENTER_TARGET',
+                                 'fail': 'fail',
+                                 'timeout': 'fail'})
 
-            smach.StateMachine.add('CENTER_TARGET', target_color(Color.GREEN),
+            smach.StateMachine.add('CENTER_TARGET', TargetColor(Color.GREEN),
                     transitions={'success': 'DROP_TARGET',
-                                 'fail': 'fail'})
+                                 'fail': 'fail',
+                                 'timeout': 'DROP_TARGET'})
 
+            # Finally, drop the marker.
             smach.StateMachine.add('DROP_TARGET',
                     basic_states.DropMarker(outcomes=['success', 'fail']),
                     transitions={'success': 'success',

@@ -19,31 +19,34 @@ class Stabilize(SubscribeState):
     """Waits a specified timeout to check for stable tilt.
 
     attributes:
-        test_duration: The length (in seconds) that the state may run for.
         stable_duration: The length (in seconds) that the sub must remain stable
             for.
         max_tilt: The maximum angle (in degrees) that the sub may pitch or roll
             to during a stable period.
-        timeout: The ros time when the task will force quit
     """
 
-    def __init__(self):
-        """Initialization."""
+    def __init__(self, max_duration=15, max_tilt=5, stable_duration=2):
+        """Initialization.
+
+        Args:
+            max_duration: The maximum duration of the state in seconds.
+            max_tilt: The maximum roll or pitch allowed in degrees.
+            stable_duration: The duration of time that stability must be
+                maintained in seconds.
+            """
         SubscribeState.__init__(self,
                                 'orientation',
                                 QuaternionStamped,
                                 self.orientation_callback,
                                 outcomes=['success', 'fail'],
-                                setup_callback=self.setup)
-        self.timeout = 0
-        self.test_duration = 15
+                                setup_callback=self.setup,
+                                timeout=max_duration)
         self.stable_duration = 2
         self.max_tilt = 5
 
 
     def setup(self):
         """Initializes state timeouts."""
-        self.timeout = rospy.get_time() + self.test_duration
         self.stable_timeout = rospy.get_time() + self.stable_duration
 
 
@@ -66,16 +69,11 @@ class Stabilize(SubscribeState):
         c.forwardError(0)
         c.publish()
 
-        if rospy.get_time() > self.timeout:
-            self.exit('fail')
-
 
 class GoToDepth(SubscribeState):
     """State the goes to a specific depth.
 
     attributes:
-        timeout: The ros time at which the task will fail.
-        max_duration: The maximum length (in seconds) that the state may run.
         depth: The target depth (in meters) to dive to.
         max_error: The maximum error in depth that is acceptable (positive or
             negative).
@@ -94,16 +92,9 @@ class GoToDepth(SubscribeState):
                                 Float32Stamped,
                                 self.depth_callback,
                                 outcomes=['success', 'fail'],
-                                setup_callback=self.setup)
-        self.timeout = 0
-        self.max_duration = max_duration
+                                timeout=max_duration)
         self.depth = depth
         self.max_error = max_error
-
-
-    def setup(self):
-        """Initializes the state timeout timer when the state begins."""
-        self.timeout = rospy.get_time() + self.max_duration
 
 
     def depth_callback(self, depth_msg, user_data):
@@ -116,9 +107,6 @@ class GoToDepth(SubscribeState):
         if abs(abs(depth_msg.data) - abs(self.depth)) < self.max_error:
             self.exit('success')
 
-        if rospy.get_time() > self.timeout:
-            self.exit('fail')
-
 
 class LocateObject(SubscribeState):
     """Rotates the sub in a circle until an object is detected.
@@ -127,7 +115,6 @@ class LocateObject(SubscribeState):
         label: The label of the object that is being searched for.
         yaw_speed: The speed at which the submarine yaws to find objects.
         fov_scale: The angle (in degrees) that the front camera can see.
-        max_duration: The maximum duration in seconds for the state to execute.
     """
 
     def __init__(self, label, yaw_speed=20, fov_scale=90, max_duration=30):
@@ -144,16 +131,10 @@ class LocateObject(SubscribeState):
                                 DetectionArray,
                                 self.detection_callback,
                                 outcomes=['success', 'fail'],
-                                setup_callback=self.setup)
+                                timeout=max_duration)
         self.label = label
         self.yaw_speed = yaw_speed
         self.fov_scale = fov_scale
-        self.max_duration = max_duration
-
-
-    def setup(self):
-        """Sets up the state timeout."""
-        self.timeout = rospy.get_time() + self.max_duration
 
 
     def detection_callback(self, detections, user_data):
