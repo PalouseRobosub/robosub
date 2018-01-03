@@ -160,9 +160,7 @@ class CenterDownward(SubscribeState):
 
         c.publish()
 
-        print x_good, y_good
         if x_good and y_good:
-            print 'Exiting'
             self.exit('success')
 
 
@@ -231,9 +229,6 @@ class TargetColor(SubscribeState):
         wheel = RouletteWheel(img)
         if len(wheel.slices) == 0:
             self.exit('fail')
-
-        cv2.imshow('Target', wheel.image)
-        cv2.waitKey(1)
 
         # Filter the slices to the color of interest.
         color_slices = []
