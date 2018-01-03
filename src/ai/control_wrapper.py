@@ -131,7 +131,7 @@ class control_wrapper():
     # Dive state-value pair setter
     def setDive(self, state, value):
         self._control_msg.dive_state = state
-        self._control_msg.dive = -1 * abs(value)
+        self._control_msg.dive = value
 
     # Absolute Dive method
     def diveAbsolute(self, value):

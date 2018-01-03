@@ -83,6 +83,7 @@ class GoToDepth(SubscribeState):
         """Initializes the state.
 
         Args:
+            depth: The absolute depth (below water) to dive to.
             max_duration: The max duration (in seconds) that the state may run
                 for.
             max_error: The maximum depth error (in meters) that denotes success.
@@ -93,7 +94,7 @@ class GoToDepth(SubscribeState):
                                 self.depth_callback,
                                 outcomes=['success', 'fail'],
                                 timeout=max_duration)
-        self.depth = depth
+        self.depth = -1 * abs(depth)
         self.max_error = max_error
 
 
