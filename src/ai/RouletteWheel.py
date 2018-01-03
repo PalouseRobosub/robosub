@@ -139,8 +139,8 @@ class RouletteWheel:
         red_filtered = cv2.addWeighted(red_high_hues, 1.0, red_low_hues, 1.0, 0)
 
         # Dilate and close holes within the detected red portions.
-        red_closed = cv2.morphologyEx(red_filtered, cv2.MORPH_CLOSE, (9,9))
-        red_mask = cv2.dilate(red_closed, (13,13), iterations=6)
+        red_closed = cv2.morphologyEx(red_filtered, cv2.MORPH_CLOSE, (9, 9))
+        red_mask = cv2.dilate(red_closed, (13,, 13), iterations=6)
 
         # Construct the bounding circle of the entire roulette wheel from the
         # detected red portions of the image.
@@ -181,18 +181,19 @@ class RouletteWheel:
 
         # Remove the center from the green mask and grab slices from it.
         green_hues = cv2.bitwise_and(mask_inv, green_hues)
-        green_mask = cv2.morphologyEx(green_hues, cv2.MORPH_CLOSE, (9,9))
+        green_mask = cv2.morphologyEx(green_hues, cv2.MORPH_CLOSE, (9, 9))
         green_slices = self.get_slice_moments(green_mask, Color.GREEN)
         if len(green_slices) != 2:
             return []
 
         # Subtract the green slices from the binary wheel
-        binary_wheel = cv2.bitwise_and(binary_wheel, cv2.bitwise_not(green_mask))
+        binary_wheel = cv2.bitwise_and(binary_wheel,
+                                       cv2.bitwise_not(green_mask))
 
         # Finally, close the black sections and remove the center to grab the
         # necessary slices.
         binary_wheel = cv2.bitwise_and(binary_wheel, mask_inv)
-        black_mask = cv2.morphologyEx(binary_wheel, cv2.MORPH_CLOSE, (9,9))
+        black_mask = cv2.morphologyEx(binary_wheel, cv2.MORPH_CLOSE, (9, 9))
 
         black_slices = self.get_slice_moments(black_mask, Color.BLACK)
         if len(black_slices) != 2:
