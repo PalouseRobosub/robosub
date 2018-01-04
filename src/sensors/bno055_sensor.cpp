@@ -301,13 +301,14 @@ int main(int argc, char **argv)
         ROS_WARN("Failed to load rate. Falling back to 20Hz.");
         rate = 20;
     }
+    ROS_INFO_STREAM("rate: " << rate);
     ros::Rate r(rate);
     ROS_INFO("BNO055 is now running in Ndof mode.");
 
     while (ros::ok())
     {
         double x, y, z, w, roll, pitch, yaw;
-        uint8_t confidence_level = 0;
+        /* uint8_t confidence_level = 0; */
         geometry_msgs::QuaternionStamped quaternion_message;
         robosub::Euler euler_message;
         geometry_msgs::Vector3Stamped linear_acceleration_message;
@@ -317,6 +318,7 @@ int main(int argc, char **argv)
          * publish the sensor data. Also read the sensor confidence level in
          * the measurement.
          */
+        ros::Time start = ros::Time::now();
         FatalAbortIf(sensor.readQuaternion(w, x, y, z) != 0,
                 "Bno055 failed to read Quaternion");
 
@@ -356,8 +358,11 @@ int main(int argc, char **argv)
         /*
          * Read and publish the linear acceleration from the Bno055.
          */
-        FatalAbortIf(sensor.readLinearAcceleration(x, y, z),
-                "Failed to read linear acceleration.");
+        /* FatalAbortIf(sensor.readLinearAcceleration(x, y, z), */
+        /*        "Failed to read linear acceleration."); */
+
+
+
         linear_acceleration_message.header.stamp = ros::Time::now();
         linear_acceleration_message.vector.x = x;
         linear_acceleration_message.vector.y = y;
@@ -367,24 +372,27 @@ int main(int argc, char **argv)
         /*
          * Publish the BNO055 status. Confidence ranges from [0,3].
          */
-        uint8_t mag_calib_status, acc_calib_status, gyro_calib_status;
-        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Accelerometer,
-                acc_calib_status),
-                "Failed to read accelerometer calibration status.");
-        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Gyroscope,
-                gyro_calib_status),
-                "Failed to read magnetometercalibration status.");
-        FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Magnetometer,
-                mag_calib_status),
-                "Failed to read magnetometercalibration status.");
-        FatalAbortIf(sensor.getSystemCalibration(confidence_level) != 0,
-                "Bno055 failed to read system calibration status.");
+        //uint8_t mag_calib_status, acc_calib_status, gyro_calib_status;
+        /* uint8_t  acc_calib_status; */
+        /* FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Accelerometer, */
+        /*         acc_calib_status), */
+        /*         "Failed to read accelerometer calibration status."); */
+        /* FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Gyroscope, */
+        /*         gyro_calib_status), */
+        /*         "Failed to read magnetometercalibration status."); */
+        /* FatalAbortIf(sensor.getSensorCalibration(Bno055::Sensor::Magnetometer, */
+        /*         mag_calib_status), */
+        /*         "Failed to read magnetometercalibration status."); */
+        /* FatalAbortIf(sensor.getSystemCalibration(confidence_level) != 0, */
+        /*         "Bno055 failed to read system calibration status."); */
 
+        ros::Duration delta = ros::Time::now() - start;
+        ROS_INFO_STREAM("delta: " << delta.toSec());
         std_msgs::String info_msg;
-        info_msg.data = "Acc: " + to_string(acc_calib_status) + '\n' +
-                        "Gyro: " + to_string(acc_calib_status) + '\n' +
-                        "Mag: " + to_string(acc_calib_status) + '\n' +
-                        "Sys: " + to_string(confidence_level);
+        /* info_msg.data = "Acc: " + to_string(acc_calib_status) + '\n' + */
+        /*                 "Gyro: " + to_string(acc_calib_status) + '\n' + */
+        /*                 "Mag: " + to_string(acc_calib_status) + '\n' + */
+        /*                 "Sys: " + to_string(confidence_level); */
         info_publisher.publish(info_msg);
 
         ros::spinOnce();
