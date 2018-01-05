@@ -48,6 +48,8 @@ namespace robosub
              * Set the previous message queues to empty.
              */
             previous_error[i].clear();
+
+            new_measurement_available[i] = false;
         }
 
         /*
