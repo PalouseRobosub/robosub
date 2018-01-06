@@ -45,8 +45,8 @@ if __name__ == '__main__':
     _img_shape = None
 
     # Store the object and image points from each image for calibration.
-    objpoints = [] # 3d point in real world space
-    imgpoints = [] # 2d points in image plane.
+    objpoints = []
+    imgpoints = []
 
     bar = progressbar.ProgressBar(max_value=len(images))
 
