@@ -12,7 +12,7 @@ assert cv2.__version__[0] == '3', \
 
 
 # Define the internal dimensions of the checker board pattern.
-CHECKERBOARD = (7,7)
+CHECKERBOARD = (7, 7)
 
 # Pre-define criteria for OpenCV subpix function.
 subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
@@ -24,7 +24,7 @@ calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + \
 
 # Define an array for storing the locations of the checkerboard corners.
 objp = np.zeros((1, CHECKERBOARD[0]*CHECKERBOARD[1], 3), np.float32)
-objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
+objp[0, :, :2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
 
 
 if __name__ == '__main__':
@@ -54,14 +54,14 @@ if __name__ == '__main__':
         bar.update(count)
 
         img = cv2.imread(fname)
-        if _img_shape == None:
+        if _img_shape is None:
             _img_shape = img.shape[:2]
         else:
             assert _img_shape == img.shape[:2], \
                 "All images must share the same size."
 
         # Convert the image to grayscale.
-        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray,
@@ -71,9 +71,9 @@ if __name__ == '__main__':
                                                  cv2.CALIB_CB_NORMALIZE_IMAGE)
 
         # If found, add object points, image points (after refining them)
-        if ret == True:
+        if ret:
             objpoints.append(objp)
-            cv2.cornerSubPix(gray,corners,(3,3),(-1,-1),subpix_criteria)
+            cv2.cornerSubPix(gray, corners, (3, 3), (-1, -1), subpix_criteria)
             imgpoints.append(corners)
 
     # Construct the matrices needed for calibration
