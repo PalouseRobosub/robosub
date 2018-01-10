@@ -12,21 +12,18 @@ import smach_ros
 class PreQual_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
-        self.time = rospy.get_param("ai/preq_forward/forward_time")
-        self.speed = rospy.get_param("ai/preq_forward/forward_speed")
+        self.time_forward = rospy.get_param("ai/preq_forward/forward_time")
+        self.speed_forward = rospy.get_param("ai/preq_forward/forward_speed")
+
+        self.time_strafe = rospy.get_param("ai/strafe/time")
+        self.speed_strafe = rospy.get_param("ai/strafe/speed")
 
         with self:
             smach.StateMachine.add('GATE_TASK', gate_task(),
                                   transitions={'success': 'FORWARD_UNTIL_SEE'})
-            smach.StateMachine.add('STRAFE', strafe(),
-                                  transitions={'success':
-                                  'BLIND_FORWARD_SINGLE'})
             smach.StateMachine.add('FORWARD_UNTIL_SEE',
                                   move_to_gate('gate_post'),
                                   transitions={'success': 'CENTER_SINGLE'})
-            smach.StateMachine.add('EXPERIMENT', experiment(),
-                                  transitions={'success': 'GATE_TASK_BACK'})
-
             smach.StateMachine.add('CENTER_SINGLE', center_single('gate_post'),
                                   transitions={'centered': 'FORWARD_SINGLE',
                                               'lost': 'FORWARD_UNTIL_SEE',
@@ -36,9 +33,14 @@ class PreQual_task(smach.StateMachine):
                                   transitions={'ready': 'STRAFE',
                                               'not centered': 'CENTER_SINGLE',
                                               'lost': 'FORWARD_UNTIL_SEE'})
+            smach.StateMachine.add('STRAFE', strafe(self.time, self.speed),
+                                  transitions={'success':
+                                  'BLIND_FORWARD_SINGLE'})
             smach.StateMachine.add('BLIND_FORWARD_SINGLE',
                                   move_forward(self.time, self.speed),
-                                  transitions={'success': 'EXPERIMENT'})
+                                  transitions={'success': 'U_TURN'})
+            smach.StateMachine.add('U_TURN', u_turn(),
+                                  transitions={'success': 'GATE_TASK_BACK'})
             smach.StateMachine.add('GATE_TASK_BACK', gate_task(),
                                   transitions={'success': 'success'})
 

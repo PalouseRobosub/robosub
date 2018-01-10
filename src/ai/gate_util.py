@@ -236,10 +236,10 @@ class move_forward_centered(SubscribeState):
 
 # Class for strafing, based on blind_movement
 class strafe(smach.State):
-    def __init__(self, poll_rate=10):
+    def __init__(self, time, value, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
-        self.time = rospy.get_param("ai/strafe/time")
-        self.value = rospy.get_param("ai/strafe/speed")
+        self.time = time
+        self.value = value
         self._poll_rate = rospy.Rate(poll_rate)
 
         # wait for time to be non-zero
@@ -261,10 +261,10 @@ class strafe(smach.State):
 
 # Class for turning around, based on blind_movement
 class turn(smach.State):
-    def __init__(self, poll_rate=10):
+    def __init__(self, time, value, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
-        self.time = rospy.get_param("ai/turn/time")
-        self.value = rospy.get_param("ai/turn/speed")
+        self.time = time
+        self.value = value
         self._poll_rate = rospy.Rate(poll_rate)
 
         # wait for time to be non-zero
@@ -284,8 +284,8 @@ class turn(smach.State):
         self._poll_rate.sleep()
         return 'success'
 
-# Class for turning around post, based on blind_movement
-class experiment(smach.State):
+# Class for  making U turn around the post post, based on blind_movement
+class u_turn(smach.State):
     def __init__(self, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
         self.time = rospy.get_param("ai/experiment/time")
