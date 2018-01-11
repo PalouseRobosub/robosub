@@ -24,7 +24,7 @@ class PreQual_task(smach.StateMachine):
             smach.StateMachine.add('FORWARD_UNTIL_SEE',
                                   move_to_gate('gate_post'),
                                   transitions={'success': 'CENTER_SINGLE'})
-            smach.StateMachine.add('CENTER_SINGLE', center_single('gate_post'),
+            smach.StateMachine.add('CENTER_SINGLE', center_object('gate_post'),
                                   transitions={'centered': 'FORWARD_SINGLE',
                                               'lost': 'FORWARD_UNTIL_SEE',
                                               'ready': 'STRAFE'})

@@ -312,7 +312,7 @@ class u_turn(smach.State):
         self._poll_rate.sleep()
         return 'success'
 
-class center_single(SubscribeState):
+class center_object(SubscribeState):
     def __init__(self, vision_label):
         SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
                                outcomes=['centered', 'lost', 'ready'])
