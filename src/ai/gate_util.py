@@ -329,7 +329,7 @@ class center_single(SubscribeState):
 
         detections = filterByLabel(detectionArray.detections,
                                   self.vision_label)
-        vision_result = getNMostProbable(detections, 1, thresh=0.5)
+        vision_result = getMostProbable(detections, thresh=0.5)
 
         if len(vision_result) < 1:
             self.exit('lost')
@@ -379,7 +379,7 @@ class move_forward_centered_single(SubscribeState):
 
         detections = filterByLabel(detectionArray.detections,
                                   self.vision_label)
-        vision_result = getNMostProbable(detections, 1, thresh=0.5)
+        vision_result = getMostProbable(detections, thresh=0.5)
 
         if len(vision_result) < 1:
             self.exit('lost')
