@@ -38,12 +38,12 @@ class gate_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
+    # To see debug messages add log_level=rospy.DEBUG argument to init_node
+    rospy.init_node('ai')
 
     while rospy.get_time() == 0:
         continue
 
-    # To see debug messages add log_level=rospy.DEBUG argument to init_node
-    rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
         smach.StateMachine.add('START_SWITCH', start_switch(),
