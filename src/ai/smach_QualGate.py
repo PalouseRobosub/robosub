@@ -46,14 +46,10 @@ class PreQual_task(smach.StateMachine):
 
 if __name__ == '__main__':
     # To see debug messages use --debug flag
-    if len(sys.argv) > 1:
-        if sys.argv[1] == "debug" or sys.argv[1] == "--debug":
-            rospy.init_node('ai', log_level=rospy.DEBUG)
-        else:
-            print("usage:\nrosrun smach_QualGate.py")
-            print("rosrun smach_QualGate.py --debug for debug mode")
-            exit(1)
-    else:
+    degub = rospy.get_param('~debug', default=FALSE)
+    if(debug)
+        rospy.init_node('ai', log_level=rospy.DEBUG)
+    else
         rospy.init_node('ai')
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
