@@ -190,7 +190,7 @@ class buoy_task(smach.StateMachine):
 
 if __name__ == "__main__":
 
-    while rospy.get_time() == 0
+    while rospy.get_time() == 0:
         continue
 
     # To see debug messages add log_level=rospy.DEBUG argument to init_node
