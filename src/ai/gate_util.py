@@ -183,11 +183,11 @@ class center(SubscribeState):
             yaw_left = (gateXPos-0.5) * self.yaw_factor
             c.yawLeftRelative(yaw_left * 60)
             rospy.logdebug("trying to yaw: {}".format(yaw_left * 60))
-        elif abs(gateYPos-0.5) > self.error_goal:
+        if abs(gateYPos-0.5) > self.error_goal:
             # If our depth is not enough for centering
             dive = (gateYPos-0.5) * self.dive_factor
-            rospy.logdebug("trying to dive: {}".format(dive))
             c.diveRelative(dive)
+            rospy.logdebug("trying to dive: {}".format(dive))
         else:
             self.exit('centered')
 
@@ -235,16 +235,12 @@ class move_forward_centered(SubscribeState):
         c.publish()
 
 # Class for strafing, based on blind_movement
-class strafe(smach.State):
+class strafe_for_duration(smach.State):
     def __init__(self, time, value, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
         self.time = time
         self.value = value
         self._poll_rate = rospy.Rate(poll_rate)
-
-        # wait for time to be non-zero
-        while(rospy.Time.now() == rospy.Time(0)):
-            rospy.sleep(1.0/poll_rate)
 
     def execute(self, userdata):
         c = control_wrapper()
@@ -260,16 +256,12 @@ class strafe(smach.State):
         return 'success'
 
 # Class for turning around, based on blind_movement
-class turn(smach.State):
+class yaw_for_duration(smach.State):
     def __init__(self, time, value, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
         self.time = time
         self.value = value
         self._poll_rate = rospy.Rate(poll_rate)
-
-        # wait for time to be non-zero
-        while(rospy.Time.now() == rospy.Time(0)):
-            rospy.sleep(1.0/poll_rate)
 
     def execute(self, userdata):
         c = control_wrapper()
@@ -292,10 +284,6 @@ class u_turn(smach.State):
         self.yawRelative = rospy.get_param("ai/experiment/yaw_relative")
         self.forward_speed = rospy.get_param("ai/experiment/forward_speed")
         self._poll_rate = rospy.Rate(poll_rate)
-
-        # wait for time to be non-zero
-        while(rospy.Time.now() == rospy.Time(0)):
-            rospy.sleep(1.0/poll_rate)
 
     def execute(self, userdata):
         c = control_wrapper()
@@ -351,7 +339,7 @@ class center_object(SubscribeState):
             yaw_left = (gateXPos-0.5) * self.yaw_factor
             c.yawLeftRelative(yaw_left * 60)
             rospy.logdebug("trying to yaw: {}".format(yaw_left * 60))
-        elif abs(gateYPos-0.5) > self.error_goal:
+        if abs(gateYPos-0.5) > self.error_goal:
             # If our depth is not enough for centering
             dive = (gateYPos-0.5) * self.dive_factor
             rospy.logdebug("trying to dive: {}".format(dive))

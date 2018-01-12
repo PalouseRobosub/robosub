@@ -33,8 +33,8 @@ class PreQual_task(smach.StateMachine):
                                   transitions={'ready': 'STRAFE',
                                               'not centered': 'CENTER_SINGLE',
                                               'lost': 'FORWARD_UNTIL_SEE'})
-            smach.StateMachine.add('STRAFE', strafe(self.time, self.speed),
-                                  transitions={'success':
+            smach.StateMachine.add('STRAFE', strafe_for_duration(self.time,
+                                  self.speed),transitions={'success':
                                   'BLIND_FORWARD_SINGLE'})
             smach.StateMachine.add('BLIND_FORWARD_SINGLE',
                                   move_forward(self.time, self.speed),
@@ -45,7 +45,10 @@ class PreQual_task(smach.StateMachine):
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
-    # To see debug messages use --debug flag
+
+    while rospy.get_time() == 0:
+        continue
+    # To see debug messages use _debug=true flag
     degub = rospy.get_param('~debug', default=FALSE)
     if(debug)
         rospy.init_node('ai', log_level=rospy.DEBUG)
