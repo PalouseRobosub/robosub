@@ -5,7 +5,7 @@ ai:
             distGoal: 0.05
             yaw_speed_factor: -35.0
             dive_speed_factor: -1.0
-            center_offset: -0.25
+            center_offset: 0.25
         ram_speed: 0.4
         ram_time: 4.0
         reset_speed: -0.8
@@ -28,7 +28,7 @@ ai:
     move_forward:
         error_goal: 0.03 # What is the error Goal in moving forward
         distanceGoal: 0.01 # What is the distanceGoal, teremined from testing
-        forward_speed: 0.4 # Speed at which we move sub 
+        forward_speed: 0.4 # Speed at which we move sub
     preq_forward:
         forward_time: 20 # requires testing
         forward_speed: 10.0 # requires testing

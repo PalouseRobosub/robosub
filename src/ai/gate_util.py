@@ -28,6 +28,7 @@ class move_to_gate(SubscribeState):
         # move forward until we see a gate task post
         if len(vision_result) == 0:
             c.publish()
+            self._poll_rate.sleep()
         else:
             self.exit("success")
 
@@ -192,6 +193,7 @@ class center(SubscribeState):
             self.exit('centered')
 
         c.publish()
+        self._poll_rate.sleep()
 
 # State for moving forward while checking if we are centered
 # In future need to make this function to watch for bottom facing camera,
