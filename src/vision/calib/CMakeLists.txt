@@ -5,4 +5,4 @@ add_ros_node(stereo_calib StereoCalibration.cpp StereoCalibrator.cpp Calibration
 target_link_libraries(stereo_calib ${OpenCV_LIBRARIES})
 
 add_ros_node(undistortion Undistortion.cpp)
-target_link_libraries(undistortion ${OpenCV_Libraries})
+target_link_libraries(undistortion ${OpenCV_LIBRARIES})

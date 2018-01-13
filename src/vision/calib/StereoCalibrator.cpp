@@ -120,7 +120,6 @@ void StereoCalibrator::calibrate()
                         imagePoints1[i].size());
     }
     ROS_INFO_STREAM("Object points size: " << objectPoints.size());
-    ROS_INFO_STREAM("Object points type: " << Mat(objectPoints).type());
     ROS_INFO_STREAM("CV_64FC3: " << CV_64FC3);
     //ROS_INFO_STREAM("Object points total: " << objectPoints.total());
     for (unsigned int i = 0; i < objectPoints.size(); i++)
@@ -328,7 +327,6 @@ void StereoCalibrator::calibrate()
             Mat rimg, cimg;
 
             remap(img, rimg, rmap[k][0], rmap[k][1], INTER_LINEAR);
-            ROS_INFO_STREAM("Rimg type: " << rimg.type());
             cimg = rimg.clone();
             //cvtColor(rimg, cimg, COLOR_GRAY2BGR);
             Mat canvasPart = !isVerticalStereo ? canvas(Rect(w*k, 0, w, h)) :
