@@ -27,6 +27,7 @@ class move_to_gate(SubscribeState):
         normalize(vision_result)
         # move forward until we see a gate task post
         if len(vision_result) == 0:
+            c.diveAbsolute(-1.3)
             c.publish()
             self._poll_rate.sleep()
         else:
@@ -171,8 +172,8 @@ class center(SubscribeState):
         vision_result = getNMostProbable(detections, 2, thresh=0.5)
 
         if len(vision_result) < 2:
-            self.exit('lost')
-            return 'lost'
+            self.exit('centered')
+            return
 
         gateXPos = (vision_result[0].x + vision_result[1].x) / 2
         gateYPos = (vision_result[0].y + vision_result[1].y) / 2
@@ -193,7 +194,7 @@ class center(SubscribeState):
             self.exit('centered')
 
         c.publish()
-        self._poll_rate.sleep()
+
 
 # State for moving forward while checking if we are centered
 # In future need to make this function to watch for bottom facing camera,
@@ -321,18 +322,18 @@ class center_object(SubscribeState):
                                   self.vision_label)
         vision_result = getMostProbable(detections, thresh=0.5)
 
-        if len(vision_result) < 1:
+        if vision_result is None:
             self.exit('lost')
             return 'lost'
 
-        gateXPos = vision_result[0].x
-        gateYPos = vision_result[0].y
+        gateXPos = vision_result.x
+        gateYPos = vision_result.y
 
         rospy.logdebug(("Gate X: {}\tGate Y: {}".format(gateXPos, gateYPos)))
 
         rospy.logdebug("distanceGoal is: {}".format(
-                      vision_result[0].width * vision_result[0].height))
-        if ((vision_result[0].width * vision_result[0].height) >
+                      vision_result.width * vision_result.height))
+        if ((vision_result.width * vision_result.height) >
            self.distanceGoal):
             self.exit('ready')
             return 'ready'
@@ -341,11 +342,11 @@ class center_object(SubscribeState):
             yaw_left = (gateXPos-0.5) * self.yaw_factor
             c.yawLeftRelative(yaw_left * 60)
             rospy.logdebug("trying to yaw: {}".format(yaw_left * 60))
-        if abs(gateYPos-0.5) > self.error_goal:
+        #if abs(gateYPos-0.5) > self.error_goal:
             # If our depth is not enough for centering
-            dive = (gateYPos-0.5) * self.dive_factor
-            rospy.logdebug("trying to dive: {}".format(dive))
-            c.diveRelative(dive)
+            #dive = (gateYPos-0.5) * self.dive_factor
+            #rospy.logdebug("trying to dive: {}".format(dive))
+            #c.diveRelative(dive)
         else:
             self.exit('centered')
 
@@ -371,23 +372,22 @@ class move_forward_centered_single(SubscribeState):
                                   self.vision_label)
         vision_result = getMostProbable(detections, thresh=0.5)
 
-        if len(vision_result) < 1:
+        if vision_result is None:
             self.exit('lost')
             return 'lost'
 
-        gateXPos = vision_result[0].x
-        gateYPos = vision_result[0].y
+        gateXPos = vision_result.x
+        gateYPos = vision_result.y
 
         rospy.logdebug("distanceGoal is: {}".format(
-                      vision_result[0].width * vision_result[0].height))
-        if ((vision_result[0].width * vision_result[0].height) >
+                      vision_result.width * vision_result.height))
+        if ((vision_result.width * vision_result.height) >
            self.distanceGoal):
             self.exit('ready')
             return 'ready'
-        if (abs(gateXPos-0.5) > self.error_goal or
-           abs(gateYPos-0.5) > self.error_goal):
+        if (abs(gateXPos-0.5) > self.error_goal): #or
+          # abs(gateYPos-0.5) > self.error_goal):
             self.exit('not centered')
-        if len(vision_result) < 1:
-            self.exit('lost')
         rospy.logdebug("trying to move forward: {}".format(self.forward_speed))
+        c.diveAbsolute(-1.6)
         c.publish()

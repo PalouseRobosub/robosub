@@ -30,16 +30,16 @@ ai:
         distanceGoal: 0.03 # What is the distanceGoal, teremined from testing
         forward_speed: 0.7 # What is the speed with which we need to approach
     preq_forward:
-        forward_time: 4 # requires testing
+        forward_time: 3 # requires testing
         forward_speed: 8.0 # requires testing
     strafe: # values for strafe state
-        time: 4
+        time: 7
         speed: -4.0
     turn: # values for turn state
         time: 8
         speed: 4
     experiment: # values for experimental state that 'drifts' around boy
-        time: 5.5
+        time: 6.5
         yaw_relative: 60
         forward_speed: 5
     move_forward_single:
