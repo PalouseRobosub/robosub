@@ -12,7 +12,7 @@ from rs_yolo.msg import DetectionArray
 # The distance between the two cameras (in meters).
 camera_separation = 0.40
 
-# The focal distance of the camera.
+# The focal distance of the camera (in meters).
 camera_focal_distance = 442
 
 # The dimensions of the images in pixels.
