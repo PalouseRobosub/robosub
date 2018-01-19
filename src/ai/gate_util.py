@@ -342,11 +342,11 @@ class center_object(SubscribeState):
             yaw_left = (gateXPos-0.5) * self.yaw_factor
             c.yawLeftRelative(yaw_left * 60)
             rospy.logdebug("trying to yaw: {}".format(yaw_left * 60))
-        #if abs(gateYPos-0.5) > self.error_goal:
+        # if abs(gateYPos-0.5) > self.error_goal:
             # If our depth is not enough for centering
-            #dive = (gateYPos-0.5) * self.dive_factor
-            #rospy.logdebug("trying to dive: {}".format(dive))
-            #c.diveRelative(dive)
+            # dive = (gateYPos-0.5) * self.dive_factor
+            # rospy.logdebug("trying to dive: {}".format(dive))
+            # c.diveRelative(dive)
         else:
             self.exit('centered')
 
@@ -385,8 +385,8 @@ class move_forward_centered_single(SubscribeState):
            self.distanceGoal):
             self.exit('ready')
             return 'ready'
-        if (abs(gateXPos-0.5) > self.error_goal): #or
-          # abs(gateYPos-0.5) > self.error_goal):
+        if (abs(gateXPos-0.5) > self.error_goal):  # or
+            # abs(gateYPos-0.5) > self.error_goal):
             self.exit('not centered')
         rospy.logdebug("trying to move forward: {}".format(self.forward_speed))
         c.diveAbsolute(-1.6)
