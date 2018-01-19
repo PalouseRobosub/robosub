@@ -44,7 +44,7 @@ class PreQual_task(smach.StateMachine):
                                   transitions={'success': 'U_TURN'})
             smach.StateMachine.add('U_TURN', u_turn(),
                                   transitions={'success': 'BLIND_FORWARD_BACK'})
-            smach.StateMachine.add('BLIND_FORWARD_BACK', move_forward(8, 5), 
+            smach.StateMachine.add('BLIND_FORWARD_BACK', move_forward(8, 5),
                                   transitions={'success': 'GATE_TASK_BACK'})
             smach.StateMachine.add('GATE_TASK_BACK', gate_task(),
                                   transitions={'success': 'success'})
