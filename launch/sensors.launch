@@ -1,6 +1,8 @@
 <launch>
     <node name="depth" pkg="rosserial_python" type="serial_node.py" args="/dev/depth" output="screen"/>
 
+    <node name="temperature" pkg="rosserial_python" type="serial_node.py" args="/dev/teensy" output="screen"/>
+
     <node name="trax" pkg="robosub" type="trax_sensor" output="screen"/>
 
     <!-- robosub -->
