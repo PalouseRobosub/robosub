@@ -1,5 +1,5 @@
 #include <ros.h>
-#include <robosub/thruster.h>
+#include <std_msgs/Float32.h>
 
 /*
  * Defines the control pin for the transistor controlling LED ground. Logic
@@ -10,7 +10,7 @@
 /*
  * Forward declaration of the thruster callback function.
  */
-void thruster_callback(const robosub::thruster& msg);
+void led_callback(const std_msgs::Float32& msg);
 
 /*
  * Construct a node handle for communicating with the ROS framework to tie in
@@ -21,59 +21,51 @@ ros::NodeHandle n;
 /*
  * The subscriber to thruster messages.
  */
-ros::Subscriber<robosub::thruster> sub("/thrusters", &thruster_callback);
+ros::Subscriber<std_msgs::Float32> sub("/led", &led_callback);
 
 /*
- * Define the minimum percentage on. This means the LEDs will never fall below
- * min% of their intensity.
+ * Define the minimum PWM duty cycle. Due to the physics of the LED circuit,
+ * duty cycles below this value will result in the LEDs not being illuminated.
  */
-static constexpr int min = 10;
+static constexpr float min_duty_cycle = 0.1;
 
 /*
- * Calculates the current duty cycle associated with the minimum on-percentage.
+ * Global variable corresponding to the current duty cycle of the LEDs.
  */
-float current_duty = static_cast<float>(min) / 100.0;
-
-/*
- * Stores the current LED percentage. Initialized to min.
- */
-int current_percentage = min;
+float current_duty = min_duty_cycle;
 
 /**
- * Thruster message callback.
+ * LED message callback.
  *
- * @note This function updates the LED intensity based upon thruster power.
+ * @note This function updates the current_duty variable to set the LED duty
+ *       cycle.
  *
- * @param msg The thruster message.
+ * @param msg The LED PWM message.
  *
  * @return None.
  */
-void thruster_callback(const robosub::thruster& msg)
+void led_callback(const std_msgs::Float32& msg)
 {
-    float total = 0;
-    for (unsigned int i = 0; i < msg.data_length; ++i)
+    float percentage = msg.data;
+
+    /*
+     * Bounds checking (plus logic short-circuit for 0% duty cycle)
+     */
+    if (percentage <= 0.0)
     {
-        total += msg.data[i];
+        current_duty = 0.0;
+        return;
+    }
+    else if (percentage > 1.0)
+    {
+        percentage = 1.0;
     }
 
     /*
-     * Calculate the current percentage. Because thrusters never go to 100%
-     * due to software and hardware limits, weight the thruster power higher
-     * than 100%. 50% power will now correlate with LEDs at 100% intensity. As
-     * such, ensure that if the software sends invalid values that the
-     * percentage is capped at 100.
+     * Calculate the pwm duty cycle.
      */
-    current_percentage = total / msg.data_length * 180.0 + min;
-    if (current_percentage > 100)
-    {
-        current_percentage = 100;
-    }
 
-    current_duty = static_cast<float>(current_percentage) / 100.0;
-    if (current_duty > 1)
-    {
-        current_duty = 1.0;
-    }
+    current_duty = (percentage * (1.0 - min_duty_cycle)) + min_duty_cycle;
 }
 
 /**
@@ -154,10 +146,10 @@ void setup()
     delay(500);
 
     /*
-     * Follow a linear decrease in intensity until the current percentage of
-     * LED intensity is reached.
+     * Follow a linear decrease in intensity until the minimal LED intensity is
+     * reached.
      */
-    for (int i = 100; i > current_percentage; --i)
+    for (int i = 100; i > min_duty_cycle*100; --i)
     {
         const float duty = static_cast<float>(i) / 100.0;
         pwm(LED_PIN, duty);
