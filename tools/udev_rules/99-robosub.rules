@@ -1,0 +1,21 @@
+# These are udev rules are specific to the devices on the sub, if you don't
+# know what these are for, then you don't need them.
+# Place this file in /etc/udev/rules.d/
+
+# BNO055 IMU
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="6014", ATTRS{idVendor}=="0403", ATTRS{serial}=="2017-bno-2", SYMLINK+="bno055_left"
+
+# depth sensor
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="6014", ATTRS{idVendor}=="0403", ATTRS{serial}=="2017-depth", SYMLINK+="depth"
+
+# LED controller
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="6014", ATTRS{idVendor}=="0403", ATTRS{serial}=="2017-led", SYMLINK+="led"
+
+# Thruster controller
+SUBSYSTEMS=="usb", ATTRS{bInterfaceNumber}=="00", ATTRS{iad_bFunctionClass}=="02", ATTRS{iad_bInterfaceCount}=="02", SYMLINK+="maestro_control"
+
+# Teensy (currently temperature sensor)
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="0483", ATTRS{idVendor}=="16c0", ATTRS{serial}=="697880", SYMLINK+="teensy"
+
+# Trax IMU
+SUBSYSTEMS=="usb", ATTRS{idProduct}=="6001", ATTRS{idVendor}=="0403", ATTRS{serial}=="AK04X0ZS", SYMLINK+="trax"
