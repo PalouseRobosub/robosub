@@ -1,8 +1,6 @@
 add_library(serial serial.cpp)
 target_link_libraries(serial ${catkin_LIBRARIES})
 
-add_library(ftdi_serial ftdi_serial.cpp)
-
 add_library(test_tools
   test_tools.cpp
   serial_testbench.cpp
