@@ -1,17 +1,10 @@
 #!/usr/bin/env python
-import cv2
 import math
 import message_filters
-import numpy as np
 import rospy
-import tf
-import tf2_ros
 
 from robosub.msg import ObstaclePosArray, ObstaclePos
 from rs_yolo.msg import DetectionArray
-
-from geometry_msgs.msg import TransformStamped, QuaternionStamped, Quaternion, \
-                              Point, PointStamped
 
 
 class Pair:
