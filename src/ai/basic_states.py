@@ -9,8 +9,10 @@ import numpy as np
 import rospy
 import smach
 import tf
+import util
 
 from geometry_msgs.msg import QuaternionStamped
+from rs_yolo.msg import DetectionArray, Detection
 from robosub.msg import Float32Stamped
 from std_srvs.srv import Empty
 from SubscribeState import SubscribeState
@@ -69,6 +71,99 @@ class Stabilize(SubscribeState):
         c.strafeLeftError(0)
         c.forwardError(0)
         c.publish()
+
+
+class BlindRam(smach.State):
+    """ Blindly rams forward for a period of time.
+
+    Attributes:
+        speed: The ramming speed (forward error).
+        duration: The duration for the blind ram in seconds.
+    """
+
+    def __init__(self, duration, ramming_speed=1):
+        """Initializes the SMACH state.
+
+        Args:
+            duration: The duration of the ram in seconds.
+            ramming_speed: The ramming speed (forward error) to use.
+        """
+        smach.State.__init__(self,
+                             outcomes=['success'],
+                             input_keys=[],
+                             output_keys=[])
+        self.speed = ramming_speed
+        self.duration = duration
+
+
+    def execute(self, user_data):
+        """Executes the SMACH state."""
+        c = control_wrapper.control_wrapper()
+        c.levelOut()
+        c.forwardError(self.speed)
+
+        end_time = rospy.get_time() + self.duration
+        r = rospy.Rate(5)
+        while rospy.get_time() < end_time:
+            c.publish()
+            r.sleep()
+            continue
+
+        c.forwardError(0.0);
+
+        c.publish()
+        r.sleep()
+        c.publish()
+
+        return 'success'
+
+
+class YawRelative(SubscribeState):
+    """Yaws relative to the starting yaw and waits for stability.
+
+    Attributes:
+        target_yaw: The target yaw of the state.
+        max_error: The maximum allowed error in yaw for success (in degrees).
+
+    """
+    def __init__(self, max_duration=30, max_error=5):
+        """Initializes the SMACH state.
+
+        Args:
+            max_duration: The maximum duration of the state in seconds.
+            max_error: The maximum yaw error allowed in degrees.
+        """
+        SubscribeState.__init__(self,
+                                'orientation',
+                                QuaternionStamped,
+                                self.orientation_callback,
+                                outcomes=['success'],
+                                input_keys=['yaw_left'],
+                                timeout=max_duration)
+        self.target_yaw = None
+        self.max_error = max_error
+
+
+    def orientation_callback(self, orientation_msg, user_data):
+        q = orientation_msg.quaternion
+        euler = tf.transformations.euler_from_quaternion((q.x, q.y, q.z, q.w))
+        yaw = euler[2] * 180 / np.pi
+        rospy.logdebug('Yaw is {} -> Target: {}'.format(yaw, self.target_yaw))
+
+        if self.target_yaw is None:
+            self.target_yaw = util.wrap_yaw(yaw + user_data.yaw_left)
+            c = control_wrapper.control_wrapper()
+            c.levelOut()
+            c.yawLeftRelative(user_data.yaw_left)
+            c.forwardError(0)
+            c.strafeLeftError(0)
+            c.publish()
+            return
+
+        if abs(util.wrap_yaw(self.target_yaw - yaw)) < self.max_error:
+            self.exit('success')
+
+
 
 
 class GoToDepth(SubscribeState):
@@ -133,8 +228,8 @@ class LocateObject(SubscribeState):
             max_duration: The maximum length of the state in seconds.
         """
         SubscribeState.__init__(self,
-                                'vision/relative',
-                                ObstaclePosArray,
+                                'vision/left',
+                                DetectionArray,
                                 self.detection_callback,
                                 outcomes=['success', 'fail'],
                                 timeout=max_duration)
@@ -146,7 +241,7 @@ class LocateObject(SubscribeState):
     def detection_callback(self, detections, user_data):
         """Callback for detected objects."""
         relevent_detections = util.filterByLabel(detections.detections,
-                self.label, thresh=0.5)
+                self.label)
         detection = util.getMostProbable(relevent_detections)
 
         c = control_wrapper.control_wrapper()

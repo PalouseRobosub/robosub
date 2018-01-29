@@ -1,8 +1,9 @@
+#!/usr/bin/python
 """
- @author Ryan Summers
- @date 1-29-2018
+Author: Ryan Summers
+Date: 1-29-2018
 
- @brief Smach-based AI for going through the starting Casino gate.
+Description: Smach-based AI for going through the starting Casino gate.
 """
 import basic_states
 import control_wrapper
