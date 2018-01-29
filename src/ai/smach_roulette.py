@@ -42,8 +42,8 @@ class MoveToPinger(SubscribeState):
         Args:
             max_duration: The maximum length of the state in seconds.
             forward_speed: The speed at which to move forward.
-            successful_angle: The downward angle that the pinger must lie in for
-                success.
+            successful_angle: The downward angle in degrees that the pinger
+                must lie in for success.
         """
         SubscribeState.__init__(self,
                                 'hydrophones/bearing',
@@ -65,14 +65,14 @@ class MoveToPinger(SubscribeState):
         c.strafeLeftError(0.0)
         c.yawLeftRelative(relative_yaw)
 
-        rospy.loginfo('Turning {} degrees left to track pinger'.format(
+        rospy.logdebug('Turning {} degrees left to track pinger'.format(
                     relative_yaw))
 
         # Calculate the downward angle to the pinger.
         theta_z = 180 / np.pi * np.arctan2(np.sqrt(bearing.x**2 + bearing.y**2),
                                            abs(bearing.z))
 
-        rospy.loginfo('Pinger downward angle is {} degrees'.format(theta_z))
+        rospy.logdebug('Pinger downward angle is {} degrees'.format(theta_z))
 
         # Check the current downward angle against the successful angle
         # requirement.
@@ -90,7 +90,7 @@ class MoveToPinger(SubscribeState):
             c.publish()
 
 
-class CenterDownward(SubscribeState):
+class CenterDownwardCamera(SubscribeState):
     """Centers the downward camera on the roulette wheel.
 
     Attributes:
@@ -144,19 +144,19 @@ class CenterDownward(SubscribeState):
 
         if not x_good:
             c.strafeLeftError(-1 * x_error * self.speed)
-            rospy.loginfo('Centering X by strafing left {}'.format(-1 *
+            rospy.logdebug('Centering X by strafing left {}'.format(-1 *
                         self.speed * x_error))
         else:
             c.strafeLeftError(0)
-            rospy.loginfo('X centered')
+            rospy.logdebug('X centered')
 
         if not y_good:
             c.forwardError(-1 * y_error * self.speed)
-            rospy.loginfo('Centering Y by going forward {}'.format(-1 *
+            rospy.logdebug('Centering Y by going forward {}'.format(-1 *
                         self.speed * y_error))
         else:
             c.forwardError(0)
-            rospy.loginfo('Y centered')
+            rospy.logdebug('Y centered')
 
         c.publish()
 
@@ -185,7 +185,7 @@ class CenterAbove(smach.StateMachine):
                                  'timeout': 'fail'})
 
             # Finally, center the submarine above the roulette wheel.
-            smach.StateMachine.add('CENTER', CenterDownward(),
+            smach.StateMachine.add('CENTER', CenterDownwardCamera(),
                     transitions={'success': 'success',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
@@ -203,7 +203,7 @@ class TargetColor(SubscribeState):
         bridge: A CvBridge object for converting ROS Image messages to OpenCV.
     """
 
-    def __init__(self, color, max_duration=45):
+    def __init__(self, color, speed=1.3, max_duration=45):
         """Initializes the state.
 
         Args:
@@ -217,7 +217,7 @@ class TargetColor(SubscribeState):
                                 outcomes=['success', 'fail'],
                                 timeout=max_duration)
         self.color = color
-        self.speed = 1.3
+        self.speed = speed
         self.center_percentage = 5
         self.bridge = cv_bridge.CvBridge()
 
@@ -267,19 +267,19 @@ class TargetColor(SubscribeState):
 
         if not x_good:
             c.strafeLeftError(-1 * x_error * self.speed)
-            rospy.loginfo('Centering X by strafing left {}'.format(-1 *
+            rospy.logdebug('Centering X by strafing left {}'.format(-1 *
                         self.speed * x_error))
         else:
             c.strafeLeftError(0)
-            rospy.loginfo('X centered')
+            rospy.logdebug('X centered')
 
         if not y_good:
             c.forwardError(-1 * y_error * self.speed)
-            rospy.loginfo('Centering Y by going forward {}'.format(-1 *
+            rospy.logdebug('Centering Y by going forward {}'.format(-1 *
                         self.speed * y_error))
         else:
             c.forwardError(0)
-            rospy.loginfo('Y centered')
+            rospy.logdebug('Y centered')
 
         c.publish()
 

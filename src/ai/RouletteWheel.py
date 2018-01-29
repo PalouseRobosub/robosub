@@ -21,7 +21,8 @@ class Slice:
         """Initializes a slice.
 
         Args:
-            origin: The origin tuple point of the slice in (x, y) form.
+            origin: The origin tuple point of the slice in (x, y) form. Units
+                are in OpenCV pixel coordinates.
             color: The Color type of the slice.
         """
         self.color = color
