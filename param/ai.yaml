@@ -50,3 +50,4 @@ ai:
         yaw_factor: 2.5 # yaw factor for centering. Negative is to the right
         strafe_factor: -2.5
         forward_factor: -2.5
+        forward_error: -1

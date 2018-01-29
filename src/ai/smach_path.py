@@ -83,20 +83,56 @@ class yaw_to_angle(smach.State):
         else:
             return 'success'
 
+# Creep forward
+class creep_forward(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['creeping', 'waiting', 'ending'])
+        self.forward_error = rospy.get_param("ai/center_path/forward_error")
+
+    def execute(self, userdata):
+        rospy.wait_for_service('path_angle')
+        try:
+           self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
+           response = self.path_angle('path_marker')
+           self.angle = response.angle
+        except rospy.ServiceException, e:
+           print "Service call failed: %s"%e
+
+        c = control_wrapper();
+        c.levelOut()
+        if abs(self.angle) < 5:
+            rospy.loginfo("Creeping at: {}".format(forward_error))
+            c.forwardError(forward_error)
+            c.publish()
+            return 'creeping'
+        elif self.angle == None:
+            return 'ending'
+        else:
+            return 'waiting'
+
 class marker_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
         self.time = rospy.get_param("ai/gate_task/forward_time")
         self.speed = rospy.get_param("ai/gate_task/forward_speed")
+        smach.Concurrence(outcomes=['success','failure'],
+                          default_outcome='failure',
+                          outcome_map={'success':
+                          {'YAW_TO_ANGLE':'success',
+                           'CREEP_FORWARD':'ending'}})
         with self:
             smach.StateMachine.add('CENTER_ON_MARKER',
                 center_on_marker('path_marker'),
-                transitions={'success': 'YAW_TO_ANGLE',
+                transitions={'success': 'YAWANDCREEP',
                              'nothing': 'CENTER_ON_MARKER'})
 
-            smach.StateMachine.add('YAW_TO_ANGLE', yaw_to_angle(),
-                transitions={'success': 'BLIND_FORWARD',
-                             'trying': 'YAW_TO_ANGLE'})
+
+            smach.Concurrence.add('YAW_TO_ANGLE', yaw_to_angle())
+            smach.Concurrence.add('CREEP_FORWARD', creep_forward())
+
+            smach.StateMachine.add('YAWANDCREEP', yawandcreep,
+                                    transitions={'failure':'YAWANDCREEP',
+                                                 'success':'BLIND_FORWARD'})
 
             smach.StateMachine.add('BLIND_FORWARD',
                 move_forward(self.time, self.speed),

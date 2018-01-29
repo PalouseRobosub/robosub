@@ -17,10 +17,10 @@ class MarkerTask():
                                 self.getPathMarkerAngle)
 
         ts = ApproximateTimeSynchronizer(
-                                [Subscriber("/camera/right/undistorted",
-                                Image),
-                                Subscriber("/vision", DetectionArray)], 10,
-                                .180)
+                        [Subscriber("/camera/bottom/undistorted",
+                        Image),
+                        Subscriber("/vision/right", DetectionArray)], 10, .180)
+
         ts.registerCallback(self.callback)
         self.angle = 0
         self.vision_label = 'path_marker'
