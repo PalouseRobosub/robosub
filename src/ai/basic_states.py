@@ -15,6 +15,7 @@ from robosub.msg import Float32Stamped
 from std_srvs.srv import Empty
 from SubscribeState import SubscribeState
 
+
 class Stabilize(SubscribeState):
     """Waits a specified timeout to check for stable tilt.
 
@@ -118,7 +119,11 @@ class LocateObject(SubscribeState):
         fov_scale: The angle (in degrees) that the front camera can see.
     """
 
-    def __init__(self, label, yaw_speed=20, fov_scale=90, max_duration=30):
+    def __init__(self,
+                 label,
+                 yaw_speed=20,
+                 fov_scale=90,
+                 max_duration=30):
         """Initializes the state.
 
         Args:
@@ -128,8 +133,8 @@ class LocateObject(SubscribeState):
             max_duration: The maximum length of the state in seconds.
         """
         SubscribeState.__init__(self,
-                                'vision',
-                                DetectionArray,
+                                'vision/relative',
+                                ObstaclePosArray,
                                 self.detection_callback,
                                 outcomes=['success', 'fail'],
                                 timeout=max_duration)
@@ -147,21 +152,19 @@ class LocateObject(SubscribeState):
         c = control_wrapper.control_wrapper()
         c.levelOut()
         if detection is None:
-            rospy.loginfo('{} was not found. Searching left {} '
+            rospy.logdebug('{} was not found. Searching left {} '
                     'degrees.'.format(self.label, self.yaw_speed))
-            if rospy.get_time() > self.timeout:
-                self.exit('fail')
 
             c.yawLeftRelative(self.yaw_speed)
             c.publish()
         else:
-            rospy.loginfo('{} was found.'.format(self.label))
+            rospy.logdebug('{} was found.'.format(self.label))
             if 0.25 <= detection.x <= 0.75:
                 c.yawLeftRelative(0)
                 c.publish()
                 self.exit('success')
             else:
-                rospy.loginfo('Centering camera on {}'.format(self.label))
+                rospy.logdebug('Centering camera on {}'.format(self.label))
                 c.yawLeftRelative((0.5 - detection.x) / 0.5 *
                         (self.fov_scale / 2))
                 c.publish()
