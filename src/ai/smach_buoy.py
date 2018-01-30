@@ -6,7 +6,7 @@ from util import *
 from control_wrapper import control_wrapper
 from start_switch import start_switch
 from SubscribeState import SubscribeState
-from blind_movement import move_forward
+import basic_states
 import smach
 import smach_ros
 
@@ -154,7 +154,7 @@ class hit_buoy(smach.StateMachine):
             ram_time = rospy.get_param("ai/hit_buoy/ram_time")
             ram_speed = rospy.get_param("ai/hit_buoy/ram_speed")
             smach.StateMachine.add("RAM_BUOY",
-                                  move_forward(time=ram_time, value=ram_speed),
+                                  basic_states.BlindRam(ram_time, ram_speed),
                                   transitions={'success': 'success'})
 
 class buoy_task(smach.StateMachine):
@@ -168,24 +168,24 @@ class buoy_task(smach.StateMachine):
                                   transitions={'success': 'RESET_FOR_GREEN'})
 
             smach.StateMachine.add('RESET_FOR_GREEN',
-                                  move_forward(time=reset_time,
-                                  value=reset_speed),
+                                  basic_states.BlindRam(reset_time,
+                                  reset_speed),
                                   transitions={'success': 'HIT_BUOY_GREEN'})
 
             smach.StateMachine.add('HIT_BUOY_GREEN', hit_buoy('green_buoy'),
                                   transitions={'success': 'RESET_FOR_YELLOW'})
 
             smach.StateMachine.add('RESET_FOR_YELLOW',
-                                  move_forward(time=reset_time,
-                                  value=reset_speed),
+                                  basic_states.BlindRam(reset_time,
+                                  reset_speed),
                                   transitions={'success': 'HIT_BUOY_YELLOW'})
 
             smach.StateMachine.add('HIT_BUOY_YELLOW', hit_buoy('yellow_buoy'),
                                   transitions={'success': 'BACKUP'})
 
             smach.StateMachine.add('BACKUP',
-                                  move_forward(time=reset_time,
-                                  value=reset_speed),
+                                  basic_states.BlindRam(reset_time,
+                                  reset_speed),
                                   transitions={'success': 'success'})
 
 if __name__ == "__main__":

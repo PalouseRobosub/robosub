@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import rospy
-from blind_movement import move_forward
+import basic_states
 from gate_util import *
 from start_switch import start_switch
 import smach
@@ -33,7 +33,7 @@ class nav_channel(smach.StateMachine):
                                               'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('BLIND_FORWARD',
-                                  move_forward(self.time, self.speed),
+                                  basic_states.BlindRam(self.time, self.speed),
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':

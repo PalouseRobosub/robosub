@@ -1,10 +1,10 @@
 #!/usr/bin/python
 import rospy
 import sys
-from blind_movement import move_forward
 from gate_util import *
 from smach_gate import gate_task
 from start_switch import start_switch
+import basic_states
 import smach
 import smach_ros
 
@@ -39,12 +39,13 @@ class PreQual_task(smach.StateMachine):
                                   transitions={'success':
                                   'BLIND_FORWARD_SINGLE'})
             smach.StateMachine.add('BLIND_FORWARD_SINGLE',
-                                  move_forward(self.time_forward,
+                                  basic_states.BlindRam(self.time_forward,
                                   self.speed_forward),
                                   transitions={'success': 'U_TURN'})
             smach.StateMachine.add('U_TURN', u_turn(),
                                   transitions={'success': 'BLIND_FORWARD_BACK'})
-            smach.StateMachine.add('BLIND_FORWARD_BACK', move_forward(8, 5),
+            smach.StateMachine.add('BLIND_FORWARD_BACK',
+                                  basic_states.BlindRam(8, 5),
                                   transitions={'success': 'GATE_TASK_BACK'})
             smach.StateMachine.add('GATE_TASK_BACK', gate_task(),
                                   transitions={'success': 'success'})
