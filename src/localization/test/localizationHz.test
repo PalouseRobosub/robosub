@@ -2,7 +2,7 @@
  
   <include file="$(find robosub_simulator)/launch/gazebo.launch"/>
   <include file="$(find robosub)/launch/localization.launch"/>
-  
+
   <test test-name="localization_hz_test_position" pkg="rostest" type="hztest" name="position_hz" >
     <param name="topic" value="position/point" />  
     <param name="hz" value="30" />
