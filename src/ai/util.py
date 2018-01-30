@@ -29,3 +29,13 @@ def filterByLabel(detection_array, label_name, thresh=0.1):
             detections.append(detection)
 
     return detections
+
+def wrap_yaw(yaw):
+    while yaw >= 180:
+        yaw = yaw - 180
+
+    while yaw < -180:
+        yaw = yaw + 180
+
+    return yaw
+

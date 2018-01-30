@@ -73,6 +73,51 @@ class Stabilize(SubscribeState):
         c.publish()
 
 
+class BlindStrafe(smach.State):
+    """ Blindly strafes for a period of time.
+
+    Attributes:
+        speed: The strafing speed (strafe error).
+        duration: The duration for the blind strafe in seconds.
+    """
+
+    def __init__(self, duration, strafe_speed=1):
+        """Initializes the SMACH state.
+
+        Args:
+            duration: The duration of the ram in seconds.
+            strafe_speed: The strafing speed (strafe error) to use.
+        """
+        smach.State.__init__(self,
+                             outcomes=['success'],
+                             input_keys=[],
+                             output_keys=[])
+        self.speed = strafe_speed
+        self.duration = duration
+
+
+    def execute(self, user_data):
+        """Executes the SMACH state."""
+        c = control_wrapper.control_wrapper()
+        c.levelOut()
+        c.strafeLeftError(self.speed)
+
+        end_time = rospy.get_time() + self.duration
+        r = rospy.Rate(5)
+        while rospy.get_time() < end_time:
+            c.publish()
+            r.sleep()
+            continue
+
+        c.forwardError(0.0);
+
+        c.publish()
+        r.sleep()
+        c.publish()
+
+        return 'success'
+
+
 class BlindRam(smach.State):
     """ Blindly rams forward for a period of time.
 
@@ -139,9 +184,13 @@ class YawRelative(SubscribeState):
                                 self.orientation_callback,
                                 outcomes=['success'],
                                 input_keys=['yaw_left'],
-                                timeout=max_duration)
+                                timeout=max_duration,
+                                setup_callback=self.setup)
         self.target_yaw = None
         self.max_error = max_error
+
+    def setup(self):
+        self.target_yaw = None
 
 
     def orientation_callback(self, orientation_msg, user_data):

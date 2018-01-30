@@ -234,6 +234,7 @@ class SetDistance(SubscribeState):
                            if obstacle.name.endswith('_dice')]
 
         if len(dice_detections) == 0:
+            rospy.loginfo('No dice detected.')
             self.exit('fail')
             return
 
@@ -386,7 +387,7 @@ class RotateLeftAround(smach.StateMachine):
                     remapping={'yaw_left': 'yaw_angle'})
 
             smach.StateMachine.add('STRAFE',
-                    basic_states.Strafe(strafe_duration),
+                    basic_states.BlindStrafe(strafe_duration),
                     transitions={'success': 'SET_DISTANCE'},
                     remapping={'strafe_left': 'strafe'})
 
