@@ -109,7 +109,7 @@ class BlindStrafe(smach.State):
             r.sleep()
             continue
 
-        c.forwardError(0.0);
+        c.forwardError(0.0)
 
         c.publish()
         r.sleep()
@@ -154,7 +154,7 @@ class BlindRam(smach.State):
             r.sleep()
             continue
 
-        c.forwardError(0.0);
+        c.forwardError(0.0)
 
         c.publish()
         r.sleep()
@@ -189,7 +189,9 @@ class YawRelative(SubscribeState):
         self.target_yaw = None
         self.max_error = max_error
 
+
     def setup(self):
+        """Setup callback function for when the state begins execution."""
         self.target_yaw = None
 
 

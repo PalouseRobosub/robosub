@@ -38,4 +38,3 @@ def wrap_yaw(yaw):
         yaw = yaw + 180
 
     return yaw
-
