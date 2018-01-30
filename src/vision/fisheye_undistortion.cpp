@@ -133,7 +133,8 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < param.size(); ++i)
     {
-        distortion_coefficients.at<double>(0, i) = static_cast<double>(param[i]);
+        distortion_coefficients.at<double>(0, i) =
+            static_cast<double>(param[i]);
     }
 
     /*
