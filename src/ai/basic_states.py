@@ -171,19 +171,14 @@ class LocateObject(SubscribeState):
 
 
 class FireTorpedo(smach.State):
-    """Fires a single torpedo.
+    """Fires a single torpedo."""
 
-    Args:
-        outcomes: A list of 2 elements, where the first denotes a
-            successful outcome.
-    """
-
-    def __init__(self, outcomes, input_keys=[], output_keys=[]):
+    def __init__(self):
         """Initializes the state."""
         smach.State.__init__(self,
-                             outcomes=outcomes,
-                             input_keys=input_keys,
-                             output_keys=output_keys)
+                             outcomes=['success'],
+                             input_keys=[],
+                             output_keys=[])
         self.outcomes = outcomes
 
 
@@ -195,23 +190,18 @@ class FireTorpedo(smach.State):
 
         rospy.loginfo('Firing torpedo.')
         service()
-        return self.outcomes[0]
+        return 'success'
 
 
 class DropMarker(smach.State):
-    """Drops a single marker.
+    """Drops a single marker."""
 
-    Args:
-        outcomes: A list of 2 elements, where the first denotes a
-            successful outcome.
-    """
-
-    def __init__(self, outcomes, input_keys=[], output_keys=[]):
+    def __init__(self):
         """Initializes the state."""
         smach.State.__init__(self,
-                             outcomes=outcomes,
-                             input_keys=input_keys,
-                             output_keys=output_keys)
+                             outcomes=['success'],
+                             input_keys=[],
+                             output_keys=[])
         self.outcomes = outcomes
 
 
@@ -223,4 +213,4 @@ class DropMarker(smach.State):
 
         rospy.loginfo('Dropping marker.')
         service()
-        return self.outcomes[0]
+        return 'success'

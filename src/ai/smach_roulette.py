@@ -329,9 +329,8 @@ class RouletteTask(smach.StateMachine):
 
             # Finally, drop the marker.
             smach.StateMachine.add('DROP_TARGET',
-                    basic_states.DropMarker(outcomes=['success', 'fail']),
-                    transitions={'success': 'success',
-                                 'fail': 'fail'})
+                    basic_states.DropMarker(),
+                    transitions={'success': 'success'})
 
 if __name__ == '__main__':
     rospy.init_node('ai')
