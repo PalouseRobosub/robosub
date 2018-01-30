@@ -6,9 +6,11 @@ def getNMostProbable(detection_array, n, thresh=0.1):
                          reverse=True)
     return sorted_list[:n]
 
+
 def getMostProbable(detection_array, thresh=0.1):
     results = getNMostProbable(detection_array, 1, thresh)
     return results[0] if len(results) != 0 else None
+
 
 def normalize(detection_array):
     if detection_array is None:
@@ -21,6 +23,7 @@ def normalize(detection_array):
         detection_array.x = (detection_array.x - 0.5) * 2
         detection_array.y = (detection_array.y - 0.5) * 2
 
+
 def filterByLabel(detection_array, label_name, thresh=0.1):
     detections = []
 
@@ -30,7 +33,16 @@ def filterByLabel(detection_array, label_name, thresh=0.1):
 
     return detections
 
+
 def wrap_yaw(yaw):
+    """Wraps a yaw value into robosub-specific ranges.
+
+    Args:
+        yaw: The yaw to wrap (in degrees).
+
+    Returns:
+        The wrapped yaw (in degrees)
+    """
     while yaw >= 180:
         yaw = yaw - 180
 
@@ -38,4 +50,3 @@ def wrap_yaw(yaw):
         yaw = yaw + 180
 
     return yaw
-

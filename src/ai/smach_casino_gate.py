@@ -40,7 +40,7 @@ class YawToGate(SubscribeState):
                                 'vision/left',
                                 DetectionArray,
                                 self.detection_callback,
-                                outcomes=[ 'success', 'fail'],
+                                outcomes=['success', 'fail'],
                                 timeout=max_duration)
         self.yaw_speed = yaw_speed
         self.tries = 0

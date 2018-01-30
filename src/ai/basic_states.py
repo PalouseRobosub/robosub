@@ -109,7 +109,7 @@ class BlindRam(smach.State):
             r.sleep()
             continue
 
-        c.forwardError(0.0);
+        c.forwardError(0.0)
 
         c.publish()
         r.sleep()
@@ -139,9 +139,15 @@ class YawRelative(SubscribeState):
                                 self.orientation_callback,
                                 outcomes=['success'],
                                 input_keys=['yaw_left'],
-                                timeout=max_duration)
+                                timeout=max_duration,
+                                setup_callback=self.setup)
         self.target_yaw = None
         self.max_error = max_error
+
+
+    def setup(self):
+        """Setup function for the state."""
+        self.target_yaw = None
 
 
     def orientation_callback(self, orientation_msg, user_data):
