@@ -1,8 +1,14 @@
+/**
+ * @author Ryan Summers
+ * @date 1-29-2018
+ *
+ * @brief Applies fisheye undistortion to a warped image to rectify it.
+ */
+#include <image_transport/image_transport.h>
+#include <opencv2/calib3d.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/image_encodings.h>
-#include <image_transport/image_transport.h>
 #include <string>
-#include <opencv2/calib3d.hpp>
 #include <XmlRpcException.h>
 
 #if ROS_VERSION_MINIMUM(1, 12, 0)  // Running Kinetic
@@ -15,24 +21,51 @@ using namespace cv_bridge;
 using namespace cv;
 using std::string;
 
+/**
+ * The OpenCV camera matrix.
+ */
 Mat camera_matrix(Size(3, 3), CV_64FC1);
 
+/**
+ * The OpenCV distortion coefficients.
+ */
 Mat distortion_coefficients(Size(1, 4), CV_64FC1);
 
+/**
+ * The rectification maps used for remapping.
+ */
 Mat rectification_map[2];
 
+/**
+ * The undistorted image publisher.
+ */
 image_transport::Publisher undistorted_publisher;
 
+/**
+ * ROS image callback.
+ *
+ * @param msg A pointer to the image message.
+ *
+ * @return None.
+ */
 void image_callback(const sensor_msgs::Image::ConstPtr& msg)
 {
+    /*
+     * Convert the Image message into an OpenCV image.
+     */
     cv_bridge::CvImagePtr image_ptr =
             cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 
-    Mat undistorted = image_ptr->image.clone();
-
-    remap(undistorted, image_ptr->image, rectification_map[0],
+    /*
+     * Undistort the image by using the remap matrices.
+     */
+    Mat distorted = image_ptr->image.clone();
+    remap(distorted, image_ptr->image, rectification_map[0],
             rectification_map[1], INTER_LINEAR);
 
+    /*
+     * Publish the undistorted image.
+     */
     sensor_msgs::Image out_image;
     image_ptr->toImageMsg(out_image);
     out_image.header = msg->header;
@@ -40,6 +73,11 @@ void image_callback(const sensor_msgs::Image::ConstPtr& msg)
     undistorted_publisher.publish(out_image);
 }
 
+/**
+ * Main entry point.
+ *
+ * @return Exit status.
+ */
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "undistortion");
@@ -119,6 +157,9 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
+    /*
+     * Set up image publisher and subscriber.
+     */
     image_transport::ImageTransport it(n_public);
 
     image_transport::Subscriber sub = it.subscribe(
@@ -127,13 +168,13 @@ int main(int argc, char **argv)
     undistorted_publisher = it.advertise("camera/" + camera + "/undistorted",
             1);
 
+    /*
+     * Calculate the rectification matrices for unmapping fisheye distortion.
+     */
     fisheye::initUndistortRectifyMap(camera_matrix,
             distortion_coefficients, Mat::eye(3, 3, CV_32FC1),
             camera_matrix, Size(rows, cols), CV_16SC2,
             rectification_map[0], rectification_map[1]);
-
-    ROS_INFO_STREAM("Cam Mat:" << camera_matrix);
-    ROS_INFO_STREAM("Distortion Coefficients:" << distortion_coefficients);
 
     ros::spin();
 }
