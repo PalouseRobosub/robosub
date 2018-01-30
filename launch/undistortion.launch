@@ -1,14 +1,18 @@
 <?xml version="1.0"?>
 
 <launch>
-    <arg name="undist_stereo" default="true"/>
-    <!-- This is currently false as the bottom camera has no calibration data-->
-    <arg name="undist_bottom" default="false"/>
 
-    <param name="stereo_calib_file" value="$(find robosub)/src/vision/calib/stereo_out_camera_data.xml"/>
-    <param name="bottom_calib_file" value="$(find robosub)/src/vision/calib/out_camera_data.xml"/>
-    <param name="undistortion/doUndistStereo" value="$(arg undist_stereo)"/>
-    <param name="undistortion/doUndistBottom" value="$(arg undist_bottom)"/>
+    <arg name="simulated" default="false"/>
+    <rosparam param="/visualize_thrusters" subst_value="True" if="$(arg simulated)">false</rosparam>
 
-    <node pkg="robosub" type="undistortion" name="undistortion" required="True"/>
+    <node pkg="robosub" type="ryan_undistort" name="left_undistortion" output="screen">
+        <param name="camera" value="left" />
+        <rosparam command="load" file="$(find robosub)/param/left_camera.yaml" />
+    </node>
+
+    <node pkg="robosub" type="ryan_undistort" name="right_undistortion" output="screen">
+        <param name="camera" value="right" />
+        <rosparam command="load" file="$(find robosub)/param/right_camera.yaml" />
+    </node>
+
 </launch>

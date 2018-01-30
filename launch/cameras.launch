@@ -4,6 +4,8 @@
     <arg name="left_serial" default="14406634"/>
     <arg name="right_serial" default="14406637" />
 
+    <include file="$(find robosub)/launch/undistortion.launch" />
+
     <group ns="camera">
         <group ns="left">
             <node pkg="nodelet" type="nodelet" name="left_camera_manager" args="manager" />
