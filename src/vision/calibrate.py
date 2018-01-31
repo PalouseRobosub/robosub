@@ -14,9 +14,6 @@ assert cv2.__version__[0] == '3', \
 # Define the internal dimensions of the checker board pattern.
 CHECKERBOARD = (7, 7)
 
-# Pre-define criteria for OpenCV subpix function.
-subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
-
 # Pre-define OpenCV camera calibration flags.
 calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + \
                     cv2.fisheye.CALIB_CHECK_COND + \
