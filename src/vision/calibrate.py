@@ -2,7 +2,7 @@
 import argparse
 import cv2
 import glob
-import json
+import yaml
 import numpy as np
 import progressbar
 import os
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     parser.add_argument('input_dir', type=str, help='Directory containing '
             'training image files.')
-    parser.add_argument('--output', type=str, help='File to save the '
+    parser.add_argument('output', type=str, help='File to save the '
             'configuration to.')
 
     args = parser.parse_args()
@@ -73,7 +73,6 @@ if __name__ == '__main__':
         # If found, add object points, image points (after refining them)
         if ret:
             objpoints.append(objp)
-            cv2.cornerSubPix(gray, corners, (3, 3), (-1, -1), subpix_criteria)
             imgpoints.append(corners)
 
     # Construct the matrices needed for calibration
@@ -100,12 +99,16 @@ if __name__ == '__main__':
                                              cv2.TERM_CRITERIA_MAX_ITER,
                                              30, 1e-6))
 
-    # Write the calculated calibration to a JSON file.
-    with open('{}'.format(args.output), 'w') as f:
-        data = dict()
-        data['K'] = K.tolist()
-        data['D'] = D.tolist()
-        data['DIM'] = _img_shape[::-1]
-        json.dump(data, f, indent=2)
+    # Write the calculated calibration to a YAML file.
+    with open(args.output, 'w') as f:
+        data = dict(
+            camera_matrix = K.tolist(),
+            distortion_coefficients = D.reshape((4)).tolist(),
+            size = dict(
+                cols = _img_shape[0],
+                rows = _img_shape[1]
+            )
+        )
+        yaml.dump(data, f)
 
-    print 'Calibration was stored in {} as a JSON.'.format(args.output)
+    print 'Calibration was stored in {} as a YAML.'.format(args.output)
