@@ -5,12 +5,12 @@
     <arg name="simulated" default="false"/>
     <rosparam param="/visualize_thrusters" subst_value="True" if="$(arg simulated)">false</rosparam>
 
-    <node pkg="robosub" type="ryan_undistort" name="left_undistortion" output="screen">
+    <node pkg="robosub" type="undistortion" name="left_undistortion">
         <param name="camera" value="left" />
         <rosparam command="load" file="$(find robosub)/param/left_camera.yaml" />
     </node>
 
-    <node pkg="robosub" type="ryan_undistort" name="right_undistortion" output="screen">
+    <node pkg="robosub" type="undistortion" name="right_undistortion">
         <param name="camera" value="right" />
         <rosparam command="load" file="$(find robosub)/param/right_camera.yaml" />
     </node>
