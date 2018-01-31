@@ -102,11 +102,11 @@ if __name__ == '__main__':
     # Write the calculated calibration to a YAML file.
     with open(args.output, 'w') as f:
         data = dict(
-            camera_matrix = K.tolist(),
-            distortion_coefficients = D.reshape((4)).tolist(),
-            size = dict(
-                cols = _img_shape[0],
-                rows = _img_shape[1]
+            camera_matrix=K.tolist(),
+            distortion_coefficients=D.reshape((4)).tolist(),
+            size=dict(
+                cols=_img_shape[0],
+                rows=_img_shape[1]
             )
         )
         yaml.dump(data, f)
