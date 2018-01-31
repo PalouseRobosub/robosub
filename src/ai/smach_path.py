@@ -115,11 +115,6 @@ class marker_task(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success'])
         self.time = rospy.get_param("ai/gate_task/forward_time")
         self.speed = rospy.get_param("ai/gate_task/forward_speed")
-        smach.Concurrence(outcomes=['success','failure'],
-                          default_outcome='failure',
-                          outcome_map={'success':
-                          {'YAW_TO_ANGLE':'success',
-                           'CREEP_FORWARD':'ending'}})
         with self:
             smach.StateMachine.add('CENTER_ON_MARKER',
                 center_on_marker('path_marker'),
@@ -127,8 +122,15 @@ class marker_task(smach.StateMachine):
                              'nothing': 'CENTER_ON_MARKER'})
 
 
-            smach.Concurrence.add('YAW_TO_ANGLE', yaw_to_angle())
-            smach.Concurrence.add('CREEP_FORWARD', creep_forward())
+            yawandcreep = smach.Concurrence(outcomes=['success','failure'],
+                              default_outcome='failure',
+                              outcome_map={'success':
+                                          {'YAW_TO_ANGLE':'success',
+                                           'CREEP_FORWARD':'ending'}})
+            with yawandcreep:
+
+                smach.Concurrence.add('YAW_TO_ANGLE', yaw_to_angle())
+                smach.Concurrence.add('CREEP_FORWARD', creep_forward())
 
             smach.StateMachine.add('YAWANDCREEP', yawandcreep,
                                     transitions={'failure':'YAWANDCREEP',
