@@ -179,7 +179,6 @@ class FireTorpedo(smach.State):
                              outcomes=['success'],
                              input_keys=[],
                              output_keys=[])
-        self.outcomes = outcomes
 
 
     def execute(self, user_data):
@@ -202,7 +201,6 @@ class DropMarker(smach.State):
                              outcomes=['success'],
                              input_keys=[],
                              output_keys=[])
-        self.outcomes = outcomes
 
 
     def execute(self, user_data):
