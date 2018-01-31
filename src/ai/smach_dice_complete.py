@@ -45,7 +45,7 @@ class GetTargetAngle(SubscribeState):
     def vision_callback(self, obstacle_position_msg, user_data):
         """ROS callback for relative obstacle positions."""
         dice_detections = [obstacle for obstacle in obstacle_position_msg.data
-                           if obstacle.name.endswith('_dice')]
+                           if obstacle.name.startswith('die_')]
 
         distances = []
         for i, detection in enumerate(dice_detections):
@@ -183,18 +183,18 @@ class CenterTarget(SubscribeState):
         Returns:
             The name of the next dice target.
         """
-        if current_target is 'one_dice':
-            return ['six_dice']
-        elif current_target is 'two_dice':
-            return ['five_dice']
-        elif current_target is 'three_dice':
-            return ['four_dice']
-        elif current_target is 'four_dice':
-            return ['three_dice']
-        elif current_target is 'five_dice':
-            return ['two_dice', 'six_dice']
-        elif current_target is 'six_dice':
-            return ['one_dice', 'five_dice']
+        if current_target is 'die_one':
+            return ['die_six']
+        elif current_target is 'die_two':
+            return ['die_five']
+        elif current_target is 'die_three':
+            return ['die_four']
+        elif current_target is 'die_four':
+            return ['die_three']
+        elif current_target is 'die_five':
+            return ['die_two', 'die_six']
+        elif current_target is 'die_six':
+            return ['die_one', 'die_five']
 
         return ['']
 
@@ -231,7 +231,7 @@ class SetDistance(SubscribeState):
     def vision_callback(self, obstacle_position_msg, user_data):
         """ROS callback for relative obstacle positions."""
         dice_detections = [obstacle for obstacle in obstacle_position_msg.data
-                           if obstacle.name.endswith('_dice')]
+                           if obstacle.name.startswith('die_')]
 
         if len(dice_detections) == 0:
             rospy.loginfo('No dice detected.')
@@ -327,7 +327,7 @@ class CheckClosest(SubscribeState):
     def vision_callback(self, obstacle_position_msg, user_data):
         """ROS callback for relative obstacle positions."""
         dice_detections = [obstacle for obstacle in obstacle_position_msg.data
-                           if obstacle.name.endswith('_dice')]
+                           if obstacle.name.startswith('die_')]
 
         # Find the distances of all of the dice.
         distances = []
@@ -472,7 +472,7 @@ if __name__ == '__main__':
 
     # The five and six dice give us two potential other dice to add up to 7 or
     # 11.
-    sm.userdata.dice_options = ['five_dice', 'six_dice']
+    sm.userdata.dice_options = ['die_five', 'die_six']
 
     with sm:
         smach.StateMachine.add('DICE', DiceTask(),
