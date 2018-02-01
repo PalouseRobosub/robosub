@@ -23,7 +23,7 @@ class Histogram():
 
         n, bins, patches = plt.hist(msg.channels[0].values, int(200),
                                         histtype='bar')
- 
+
         plt.pause(0.05)
         plt.gca().clear()
 
