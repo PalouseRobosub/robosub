@@ -23,7 +23,7 @@ class Histogram():
 
         n, bins, patches = plt.hist(msg.channels[0].values, int(200),
                                         histtype='bar')
-        
+ 
         plt.pause(0.05)
         plt.gca().clear()
 
@@ -32,7 +32,7 @@ class Histogram():
 
         # Subscribe to the topic
         self.sub = rospy.Subscriber("localization/particles", PointCloud,
-					 self.callback)
+                                        self.callback)
 
         rospy.loginfo("Subscribed to localization/particles")
 
@@ -47,4 +47,3 @@ if __name__ == "__main__":
     h = Histogram()
 
     rospy.spin()
-
