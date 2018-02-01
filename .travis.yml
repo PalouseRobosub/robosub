@@ -8,9 +8,9 @@ notifications:
   email: false
   slack:
     rooms:
-      - palouserobosub:C883XOLXAI646jXLW8zENsVE#software
-    on_success: never
-    on_failure: never
+      - palouserobosub:C883XOLXAI646jXLW8zENsVE#travis
+    on_success: always
+    on_failure: always
 
 #whitelist for branches to build
 branches:
@@ -32,8 +32,8 @@ addons:
     packages:
     - robosub
 
-#most dependencies are installed from packages, install just does simulator if needed 
-install: 
+#most dependencies are installed from packages, install just does simulator if needed
+install:
   - if [ "$TEST" == "true" ] ; then sudo apt-get install robosub-simulator; fi
 
 #build the project
