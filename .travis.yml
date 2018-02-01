@@ -8,7 +8,7 @@ notifications:
   email: false
   slack:
     rooms:
-      - palouserobosub:C883XOLXAI646jXLW8zENsVE#travis
+      - secure: "1UGbBfvsSaV3iSfx0XlZsidB0F4M345jj2qFRpd78DUYs5Ozs3JNLglbFnzNRhTEskvD8D+ZTuGE5iu9Je2yX7s+etb6wWpCVBHAmU+QQWkWRGwk0jIeeUpIhmA9ekl0f+a5pfAAVNYqr6OHoO7ByYoqFcw54YT1U02ybtpWceMto0ZWwgzvyKGJHlow26qaPFnR0r7XLmViHo/SkfCnM9I4Wo992AV9K5FYpRmS6v44gbkH+jx/WmL973VJcijUqINpu5iUJEzosEhkrBnvYP6MBFbpFI6uE7U0BTdJsUHHpvhdexKuEBtPrMDe+SXKgsRNhN3UPVXx7Cq7GGu7PMlTe4Q7NuNoBxDqXcSScoDTDKBWGzAi7yhYfh0IiWzGMRNkHfk1pu35ShKUmo53bq2TDNpeBg+hQFqzBJgPkqrWfDTltTn4YGPiPiN9Eesg1q2MYeFitJYVz+95nX3ea7mCB0kHaSwFNXjNsb/ZRiV6eWnQFhoCb3Lz0j6EjvhB/UeGldALKiLJWD98xUf5y1H4k9MDqkRiigAaFK12RhpYoKmc6xRKKLsFGwkXhr70PVprFf3b/xLrNxXv7JZdMLlRHyDZzatJ1AO774B7LebwubOQ3bYl//9YLAfOl2gPzePFYIIcnCjjd+QWlbgHaz5HGG4A4Vcnsr5EDKI5QCI="
     on_success: always
     on_failure: always
 
