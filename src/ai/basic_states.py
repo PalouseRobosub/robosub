@@ -211,6 +211,8 @@ class YawRelative(SubscribeState):
             c.publish()
             return
 
+        c = control_wrapper.control_wrapper()
+        c.publish()
         if abs(util.wrap_yaw(self.target_yaw - yaw)) < self.max_error:
             self.exit('success')
 
