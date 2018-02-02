@@ -290,7 +290,23 @@ void ParticleFilter::update_particle_states()
 
 void ParticleFilter::update_particle_weights()
 {
-    // TODO: Change to use unit-vector scalar angle as primary measurement
+    /* TODO: Change to use unit-vector scalar angle as primary measurement.
+     *       As it stands, this algorithm considers each vector component
+     *       (i, j, k) as its own dataset, with a Gaussian distribution on each.
+     *       This is somewhat inaccurate when it comes to error from data
+     *       sources like the pinger bearing.
+     *       Now, recall that the dot product of two unit vectors is equal to
+     *       the cosine of the angle between them (in a flat plane encompassing
+     *       both vectors). By taking the inverse cosine of the dot product
+     *       between our "observed" vector to the pinger and a given
+     *       prediction's vector to the pinger, we get a single ("scalar") angle
+     *       that tells us We are off by <n> degrees/radians." This allows us to
+     *       consider our angular error as a single normal distribution (i.e.
+     *       "Our pinger bearing has a standard deviation of 5 degrees"). This
+     *       provides a more natural way of defining uncertainty on the pinger
+     *       bearing.
+     */
+
     // Sets weights for all particles based on the hydrophone and depth
     // observation. Also normalizes the weights afterward.
     double particle_weights_sum = 0.0;
