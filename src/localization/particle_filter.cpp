@@ -280,18 +280,11 @@ void ParticleFilter::update_particle_states()
     // update model, control model, and system update noise. This pushes the
     // particles based on inputted linear velocity and adds some noise.
 
-    MatrixXd noise;
-
     for(int n = 0; n < num_particles; n++)
     {
-        noise = randn_mat(3, 1);
-
-        ROS_DEBUG_STREAM("PF State noise update for particle " << n << ": " <<
-                        noise);
-
         particle_states[n] = system_update_model * last_particle_states[n] +
             control_update_model * control_input +
-            system_update_stddev * noise;
+            system_update_stddev * randn_mat(3, 1);
     }
 }
 
