@@ -105,7 +105,8 @@ namespace rs
             i = ::write(this->m_port_fd, buf, num);
             if (i < 0)
             {
-                ROS_ERROR("serial write error");
+                ROS_FATAL("serial write error");
+                ros::shutdown();
             }
             else
             {
