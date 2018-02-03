@@ -1,6 +1,0 @@
-<launch>
-    <node pkg="robosub" type="thruster_maestro" name="thruster" required="true"/>
-    <node pkg="robosub" type="control" name="control" required="true"/>
-    <node name="bno055" pkg="robosub" type="bno055_sensor" required="true"/>
-    <node name="depth" pkg="rosserial_python" type="serial_node.py" args="/dev/arduino_uno" required="true"/>
-</launch>
