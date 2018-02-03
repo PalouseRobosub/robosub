@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 
 <launch>
+    <rosparam command="load" file="$(find robosub)/param/cobalt.yaml"/>
+
     <include file="$(find robosub)/launch/cameras.launch"/>
 
     <include file="$(find robosub)/launch/sensors.launch"/>
