@@ -6,6 +6,10 @@
 
     <include file="$(find robosub)/launch/undistortion.launch" />
 
+    <node pkg="robosub" type="stereo_node.py" name="stereo_vision">
+        <rosparam command="load" file="$(find robosub)/param/stereo_vision.yaml"/>
+    </node>
+
     <group ns="camera">
         <group ns="left">
             <node pkg="nodelet" type="nodelet" name="left_camera_manager" args="manager" />
