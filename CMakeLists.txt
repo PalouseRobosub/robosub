@@ -178,7 +178,7 @@ generate_dynamic_reconfigure_options(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
  INCLUDE_DIRS src
- LIBRARIES test_tools serial bno055
+ LIBRARIES test_tools serial
   CATKIN_DEPENDS roscpp rospy dynamic_reconfigure std_msgs message_runtime
   DEPENDS OpenCV
 )
