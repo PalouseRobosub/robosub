@@ -32,9 +32,9 @@ def filterByLabel(detection_array, label_name, thresh=0.1):
 
 def wrap_yaw(yaw):
     while yaw >= 180:
-        yaw = yaw - 180
+        yaw = yaw - 360
 
     while yaw < -180:
-        yaw = yaw + 180
+        yaw = yaw + 360
 
     return yaw

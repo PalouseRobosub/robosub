@@ -215,7 +215,7 @@ class SetDistance(SubscribeState):
             distance: The distance to approach to in meters.
             error: The maximum error off nominal distance in meters.
             speed: The desired correction movement speed.
-            max_duration: The maximum duration of the state in meters.
+            max_duration: The maximum duration of the state in seconds.
         """
         SubscribeState.__init__(self,
                                 'vision/relative',
