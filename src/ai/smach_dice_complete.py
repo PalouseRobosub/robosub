@@ -183,18 +183,18 @@ class CenterTarget(SubscribeState):
         Returns:
             The name of the next dice target.
         """
-        if current_target is 'die_one':
-            return ['die_six']
-        elif current_target is 'die_two':
-            return ['die_five']
-        elif current_target is 'die_three':
-            return ['die_four']
-        elif current_target is 'die_four':
-            return ['die_three']
-        elif current_target is 'die_five':
-            return ['die_two', 'die_six']
-        elif current_target is 'die_six':
-            return ['die_one', 'die_five']
+        if current_target is 'die_1':
+            return ['die_6']
+        elif current_target is 'die_2':
+            return ['die_5']
+        elif current_target is 'die_3':
+            return ['die_4']
+        elif current_target is 'die_4':
+            return ['die_3']
+        elif current_target is 'die_5':
+            return ['die_2', 'die_6']
+        elif current_target is 'die_6':
+            return ['die_1', 'die_5']
 
         return ['']
 
@@ -472,7 +472,7 @@ if __name__ == '__main__':
 
     # The five and six dice give us two potential other dice to add up to 7 or
     # 11.
-    sm.userdata.dice_options = ['die_five', 'die_six']
+    sm.userdata.dice_options = ['die_5', 'die_6']
 
     with sm:
         smach.StateMachine.add('DICE', DiceTask(),
