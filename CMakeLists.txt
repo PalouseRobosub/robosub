@@ -124,7 +124,6 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  bno_mode.srv
   pneumatic_status.srv
 )
 
