@@ -19,7 +19,7 @@ class MarkerTask():
         ts = ApproximateTimeSynchronizer(
                         [Subscriber("/camera/bottom/undistorted",
                         Image),
-                        Subscriber("/vision/right", DetectionArray)], 10, .180)
+                        Subscriber("/vision/bottom", DetectionArray)], 10, .180)
 
         ts.registerCallback(self.callback)
         self.angle = 0
@@ -59,6 +59,8 @@ class MarkerTask():
 
         mask = cv2.inRange(hsv, lower_red, upper_red)
         output = cv2.bitwise_and(hsv, hsv, mask = mask)
+        cv2.imshow('output', output)
+        cv2.waitKey(0)
 
         box_height = box[1][1] - box[0][1]
 

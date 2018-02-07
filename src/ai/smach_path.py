@@ -14,7 +14,7 @@ import smach_ros
 # Move to marker and center
 class center_on_marker(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision", DetectionArray,
+        SubscribeState.__init__(self, "vision/bottom", DetectionArray,
                                 self.callback_vision, outcomes=['success',
                                                                 'nothing'])
         self.vision_label = vision_label
