@@ -55,12 +55,10 @@ class MarkerTask():
         height, width = img.shape[:2]
 
         lower_red = np.array([0,100,100])
-        upper_red = np.array([20,255,255])
+        upper_red = np.array([30,255,255])
 
         mask = cv2.inRange(hsv, lower_red, upper_red)
         output = cv2.bitwise_and(hsv, hsv, mask = mask)
-        cv2.imshow('output', output)
-        cv2.waitKey(0)
 
         box_height = box[1][1] - box[0][1]
 

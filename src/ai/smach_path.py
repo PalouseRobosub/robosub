@@ -26,6 +26,7 @@ class center_on_marker(SubscribeState):
         self.detectionArray = detectionArray
         c = control_wrapper()
         c.levelOut()
+        c.diveAbsolute(-.75)
 
         detections = filterByLabel(self.detectionArray.detections,
                                   self.vision_label)
@@ -74,6 +75,7 @@ class yaw_to_angle(smach.State):
 
         c = control_wrapper();
         c.levelOut()
+        c.diveAbsolute(-.75)
         if abs(self.angle) > 5:
             yaw_amount = (self.angle) * self.yaw_factor
             rospy.loginfo("Trying to center yaw: {}".format(yaw_amount))
@@ -83,32 +85,41 @@ class yaw_to_angle(smach.State):
         else:
             return 'success'
 
-# Creep forward
-class creep_forward(smach.State):
+class follow_path(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['creeping', 'waiting', 'ending'])
-        self.forward_error = rospy.get_param("ai/center_path/forward_error")
+        smach.State.__init__(self, outcomes=['success'])
+        self.errorGoal = rospy.get_param("ai/center_path/error_goal")
+        self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
 
     def execute(self, userdata):
         rospy.wait_for_service('path_angle')
-        try:
-           self.path_angle = rospy.ServiceProxy('path_angle', get_path_angle)
-           response = self.path_angle('path_marker')
-           self.angle = response.angle
-        except rospy.ServiceException, e:
-           print "Service call failed: %s"%e
 
         c = control_wrapper();
         c.levelOut()
-        if abs(self.angle) < 5:
-            rospy.loginfo("Creeping at: {}".format(forward_error))
-            c.forwardError(forward_error)
-            c.publish()
-            return 'creeping'
-        elif self.angle == None:
-            return 'ending'
-        else:
-            return 'waiting'
+        c.diveAbsolute(-.75)
+
+        rospy.loginfo("Following Path")
+        c.forwardError(.25)
+        c.publish()
+        rospy.sleep(2)
+        c.yawLeftAbsolute(-30)
+        c.publish()
+        rospy.sleep(3)
+        c.forwardError(.25)
+        c.publish()
+        rospy.sleep(4)
+        c.yawLeftAbsolute(90)
+        c.publish()
+        rospy.sleep(3)
+        c.forwardError(.3)
+        c.publish()
+        rospy.sleep(3)
+        c.yawLeftAbsolute(30)
+        c.publish()
+        rospy.sleep(3)
+        c.forwardError(.25)
+        c.publish()
+        return 'success'
 
 class marker_task(smach.StateMachine):
     def __init__(self):
@@ -118,27 +129,17 @@ class marker_task(smach.StateMachine):
         with self:
             smach.StateMachine.add('CENTER_ON_MARKER',
                 center_on_marker('path_marker'),
-                transitions={'success': 'YAWANDCREEP',
+                transitions={'success': 'YAW_TO_ANGLE',
                              'nothing': 'CENTER_ON_MARKER'})
 
+            smach.StateMachine.add('YAW_TO_ANGLE',
+                yaw_to_angle(),
+                transitions={'success': 'FOLLOW_PATH',
+                             'trying' : 'YAW_TO_ANGLE'})
 
-            yawandcreep = smach.Concurrence(outcomes=['success','failure'],
-                              default_outcome='failure',
-                              outcome_map={'success':
-                                          {'YAW_TO_ANGLE':'success',
-                                           'CREEP_FORWARD':'ending'}})
-            with yawandcreep:
-
-                smach.Concurrence.add('YAW_TO_ANGLE', yaw_to_angle())
-                smach.Concurrence.add('CREEP_FORWARD', creep_forward())
-
-            smach.StateMachine.add('YAWANDCREEP', yawandcreep,
-                                    transitions={'failure':'YAWANDCREEP',
-                                                 'success':'BLIND_FORWARD'})
-
-            smach.StateMachine.add('BLIND_FORWARD',
-                move_forward(self.time, self.speed),
-                transitions={'success':'success'})
+            smach.StateMachine.add('FOLLOW_PATH',
+                follow_path(),
+                transitions={'success': 'success'})
 
 if __name__ == '__main__':
     rospy.init_node('ai')
