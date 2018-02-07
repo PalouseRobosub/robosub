@@ -75,6 +75,7 @@ class yaw_to_angle(smach.State):
 
         c = control_wrapper();
         c.levelOut()
+        c.forwardError(0)
         c.diveAbsolute(-.75)
         if abs(self.angle) > 5:
             yaw_amount = (self.angle) * self.yaw_factor
@@ -89,34 +90,53 @@ class follow_path(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['success'])
         self.errorGoal = rospy.get_param("ai/center_path/error_goal")
-        self.yaw_factor = rospy.get_param("ai/center_path/yaw_factor")
 
     def execute(self, userdata):
-        rospy.wait_for_service('path_angle')
+        self.angle =0
 
         c = control_wrapper();
         c.levelOut()
         c.diveAbsolute(-.75)
 
         rospy.loginfo("Following Path")
-        c.forwardError(.25)
+        c.forwardError(.5)
         c.publish()
-        rospy.sleep(2)
-        c.yawLeftAbsolute(-30)
+        rospy.sleep(1)
+        c.forwardError(0)
         c.publish()
-        rospy.sleep(3)
-        c.forwardError(.25)
+        while self.angle > -30:
+            c.yawLeftRelative(-5)
+            self.angle = self.angle - 1
+            print(self.angle)
+            c.publish()
+            rospy.sleep(.3)
+
+        c.forwardError(.5)
         c.publish()
-        rospy.sleep(4)
-        c.yawLeftAbsolute(90)
+        rospy.sleep(1)
+        c.forwardError(0)
         c.publish()
-        rospy.sleep(3)
-        c.forwardError(.3)
+
+        while self.angle < 25:
+            self.angle = self.angle + 1
+            print(self.angle)
+            c.yawLeftRelative(5)
+            c.publish()
+            rospy.sleep(.3)
+
+        c.forwardError(.5)
         c.publish()
-        rospy.sleep(3)
-        c.yawLeftAbsolute(30)
+        rospy.sleep(1)
+        c.forwardError(0)
         c.publish()
-        rospy.sleep(3)
+
+        while self.angle > 3:
+            self.angle = self.angle - 1
+            print(self.angle)
+            c.yawLeftRelative(-5)
+            c.publish()
+            rospy.sleep(.3)
+
         c.forwardError(.25)
         c.publish()
         return 'success'
