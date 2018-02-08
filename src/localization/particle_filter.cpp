@@ -441,6 +441,9 @@ void ParticleFilter::update()
 
     update_particle_weights();
 
+    // The point cloud needs to be published prior to resampling due to the
+    // algorithm not making any changes to values in the weight channel.
+    // (TL;DR: Weights are inaccurate immediately after resampling)
     publish_point_cloud();
 
     resample_particles();
