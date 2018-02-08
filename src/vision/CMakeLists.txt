@@ -1,2 +1,6 @@
 add_ros_node(undistortion fisheye_undistortion.cpp)
 target_link_libraries(undistortion ${OpenCV_LIBRARIES})
+add_ros_node(new_vision new_stereo_node.cpp)
+target_link_libraries(new_vision ${OpenCV_LIBRARIES})
+add_ros_node(capture_images stereo_capture.cpp)
+target_link_libraries(capture_images ${OpenCV_LIBRARIES})
