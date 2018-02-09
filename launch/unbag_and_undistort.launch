@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <include file="$(find robosub)/launch/cameras.launch"/>
+    <node pkg="robosub" type="unbag_and_undistort" name="unbag_and_undistort" required="true"/>
+
+</launch>
