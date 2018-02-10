@@ -20,7 +20,7 @@ import smach_ros
 import tf
 
 from RouletteWheel import *
-from SubscribeState import SubscribeState
+from SubscribeState import SubscribeState, SynchronousSubscribeState
 import basic_states
 import util
 import control_wrapper
@@ -95,43 +95,48 @@ class CenterDownwardCamera(SubscribeState):
 
     Attributes:
         speed: The speed factor to use for movement.
-        bridge: A CvBridge object for converting from ROS images to OpenCV.
         center_percentage: The percentage of the image that the center of the
             roulette wheel must lie in.
+        retry_count: The maximum number of times that a detection can arrive
+            without the roulette wheel marked.
+        tries: The number of times a detection has arrived without the roulette
+            wheel marked.
     """
 
-    def __init__(self, center_percentage=20, max_duration=50):
+    def __init__(self, max_retry_count=5, center_percentage=20, max_duration=50):
         """Initializes the state.
 
         Args:
+            max_retry_count: The maximum number of times that a detection can
+                arrive without the roulette wheel marked.
             center_percentage: The percentage of the image that the center of
                 the roulette wheel must lie on.
             max_duration: The max duration of the state in seconds.
         """
         SubscribeState.__init__(self,
-                                'camera/bottom/undistorted',
-                                Image,
+                                'vision/bottom',
+                                DetectionArray,
                                 self.camera_callback,
                                 outcomes=['success', 'fail'],
                                 timeout=max_duration)
         self.speed = 1
-        self.bridge = cv_bridge.CvBridge()
         self.center_percentage = center_percentage
+        self.tries = 0
+        self.retry_count = max_retry_count
 
 
-    def camera_callback(self, image_msg, user_data):
-        """ROS callback for bottom camera image messages."""
-        img = self.bridge.imgmsg_to_cv2(image_msg, 'bgr8')
-        img = cv2.resize(img, (0, 0), fx=0.3, fy=0.3)
+    def camera_callback(self, detection_msg, user_data):
+        """ROS callback for bottom camera detection messages."""
+        wheels = [x for x in detection_msg.detections
+                  if x.label == 'roulette_wheel']
+        detection = util.getMostProbable(detection_msg.detections, thresh=0.5)
 
-        # Parse the image for the roulette wheel.
-        wheel = RouletteWheel(img)
-        if len(wheel.slices) == 0:
-            self.exit('fail')
-
-        detection = Detection()
-        detection.x = float(wheel.origin[0]) / img.shape[1]
-        detection.y = float(wheel.origin[1]) / img.shape[0]
+        # If the roulette wheel is available.
+        if detection is None:
+            if self.tries >= self.retry_count:
+                self.exit('fail')
+            tries = self.tries + 1
+            return
 
         x_error = (detection.x - 0.5) / 0.5
         y_error = (detection.y - 0.5) / 0.5
@@ -191,7 +196,7 @@ class CenterAbove(smach.StateMachine):
                                  'timeout': 'fail'})
 
 
-class TargetColor(SubscribeState):
+class TargetColor(SynchronousSubscribeState):
     """Centers above the nearest colored slice of the roulette wheel.
 
     Attributes:
@@ -210,9 +215,12 @@ class TargetColor(SubscribeState):
             color: The RouletteWheel.Color type to search for.
             max_duration: The max duration of the state in seconds.
         """
-        SubscribeState.__init__(self,
+        SynchronousSubscribeState.__init__(self,
                                 'camera/bottom/undistorted',
                                 Image,
+                                'vision/bottom',
+                                DetectionArray,
+                                1.0,
                                 self.camera_callback,
                                 outcomes=['success', 'fail'],
                                 timeout=max_duration)
@@ -222,9 +230,39 @@ class TargetColor(SubscribeState):
         self.bridge = cv_bridge.CvBridge()
 
 
-    def camera_callback(self, image_msg, user_data):
+    def camera_callback(self, image_msg, detection_msg, user_data):
         img = self.bridge.imgmsg_to_cv2(image_msg, 'bgr8')
         img = cv2.resize(img, (0, 0), fx=0.3, fy=0.3)
+
+        height = img.shape[0]
+        width = img.shape[1]
+
+        wheels = [x for x in detection_msg.detections
+                  if x.label == 'roulette_wheel']
+
+        wheel_detection = util.getMostProbable(wheels, thresh=0.5)
+
+        if wheel_detection is None:
+            if self.tries > self.retry_count:
+                self.exit('fail')
+            self.tries = self.tries + 1
+            return
+
+        origin = ((wheel_detection.x - 0.5)* width,
+                  (wheel_detection.y - 0.5) * height)
+        length = wheel_detection.width * width
+        height = wheel_detection.height * height
+
+        upper_left = (int(origin[0] - length / 2), int(origin[1] - width / 2))
+        lower_right = (int(origin[0] + length / 2), int(origin[1] + width / 2))
+
+        # Mask away everything except the detection box.
+        mask = np.zeros(shape=img.shape, dtype=uint8)
+        cv2.rectangle(mask, upper_left, lower_right, (255, 255, 255), -1)
+        img = cv2.bitwise_and(img, mask)
+
+        cv2.imshow('Masked', img)
+        cv2.waitKey()
 
         wheel = RouletteWheel(img)
         if len(wheel.slices) == 0:
@@ -296,7 +334,7 @@ class RouletteTask(smach.StateMachine):
 
         with self:
             # First, dive to a certain depth and search for the pinger.
-            smach.StateMachine.add('DIVE_PINGER', basic_states.GoToDepth(1.5),
+            smach.StateMachine.add('DIVE_PINGER', basic_states.GoToDepth(0.75),
                     transitions={'success': 'FIND_PINGER',
                                  'fail': 'fail',
                                  'timeout': 'fail'})

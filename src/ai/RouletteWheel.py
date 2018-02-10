@@ -68,11 +68,11 @@ class RouletteWheel:
                 reverse=True)
 
         # Enclose a circle around all of the largest contours. All contours
-        # that are atleast half as big as the largest are signficant.
+        # that are atleast 33% as big as the largest are signficant.
         largest_area = cv2.contourArea(sorted_contours[0])
         for i in range(1, len(sorted_contours)):
             contour = sorted_contours[i]
-            if cv2.contourArea(contour) > largest_area / 2:
+            if cv2.contourArea(contour) > largest_area / 3:
                 min_cnt += 1
 
         # Calculate the minimum enclosing circle for the largest contours.
@@ -128,6 +128,34 @@ class RouletteWheel:
         blurred = cv2.GaussianBlur(self.image, (5, 5), 0)
         hsv_im = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
+#        # Hough a circle around the wheel and mask out all other colors.
+#        gray_im = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
+#
+#        print 'Getting circles'
+#
+#        center = cv2.HoughCircles(gray_im, cv2.HOUGH_GRADIENT, 1, 20, param1=70, param2=40, minRadius=0)
+#        if center is None:
+#            return []
+#
+#        flattened = center.flatten().tolist()
+#        biggest_circle = (0, 0, 0)
+#        for i in range(0, len(flattened), 3):
+#            x = int(flattened[i + 0])
+#            y = int(flattened[i + 1])
+#            r = int(flattened[i + 2])
+#
+#            if r > biggest_circle[2]:
+#                biggest_circle = (x, y, r)
+#
+#        circle_mask = np.zeros(shape=hsv_im.shape, dtype=np.uint8)
+#        cv2.circle(circle_mask, (biggest_circle[0], biggest_circle[1]), int(biggest_circle[2] * 0.95), (255, 255, 255), -1)
+#        hsv_im = cv2.bitwise_and(hsv_im, circle_mask)
+
+#        img_test = hsv_im.copy()
+#        img_test = cv2.resize(img_test, (0, 0), fx=0.5, fy=0.5)
+#        cv2.imshow('Circled', img_test)
+#        cv2.waitKey()
+
         # Find all red portions of the image.
         lower_red = np.array([0, 100, 100])
         upper_red = np.array([10, 255, 255])
@@ -146,7 +174,6 @@ class RouletteWheel:
         # Construct the bounding circle of the entire roulette wheel from the
         # detected red portions of the image.
         (x, y), radius = self.get_circle(red_mask, 1)
-        radius *= 0.95
 
         # Create a mask to remove the center of the roulette wheel from all
         # threshold masks. The center has a tendendency to cause two slice
@@ -154,12 +181,13 @@ class RouletteWheel:
         # removed from the mask. Additionally, ignoring colors in the center
         # pushes the contour origin towards the edge of the wheel, which gives
         # more room for error in dropping the marker.
-        center_mask = np.zeros(shape=red_filtered.shape, dtype=np.uint8)
-        cv2.circle(center_mask, (int(x), int(y)), int(radius * 0.5), 255, -1)
+        center_mask = np.zeros(shape=red_mask.shape, dtype=np.uint8)
+        cv2.circle(center_mask, (int(x), int(y)), int(radius * 0.3), 255, -1)
         mask_inv = cv2.bitwise_not(center_mask)
 
         # Remove the center fron the red mask and grab the slices from it.
         red_mask = cv2.bitwise_and(red_mask, mask_inv)
+
         red_slices = self.get_slice_moments(red_mask, Color.RED)
         if len(red_slices) != 2:
             return []
@@ -168,8 +196,8 @@ class RouletteWheel:
         # wheel is potentially black and subtract the red and green regions
         # as we find them. Any remaining area is considered black.
         self.origin = (int(x), int(y))
-        self.radius = int(radius)
-        binary_wheel = np.zeros(shape=red_filtered.shape, dtype=np.uint8)
+        self.radius = int(radius * 0.85)
+        binary_wheel = np.zeros(shape=red_mask.shape, dtype=np.uint8)
         cv2.circle(binary_wheel, (int(x), int(y)), int(radius), 255, -1)
 
         # Subtract the red slices from the area that can potentially be black.
@@ -211,5 +239,23 @@ class RouletteWheel:
             cv2.circle(self.image, green.origin, 4, (0, 0, 255), 2)
         for black in black_slices:
             cv2.circle(self.image, black.origin, 4, (0, 155, 0), 2)
+
+
+#        wheel = np.zeros(shape=(red_mask.shape[0], red_mask.shape[1], 3), dtype=np.uint8)
+#        cv2.circle(wheel, self.origin, self.radius, (255, 255, 255), -1)
+#        wheel = cv2.bitwise_not(wheel)
+#
+#        green_mask_color = cv2.cvtColor(green_mask, cv2.COLOR_GRAY2BGR)
+#        green_mask_color[green_mask > 0] = (0, 255, 0)
+#
+#        red_mask_color = cv2.cvtColor(red_mask, cv2.COLOR_GRAY2BGR)
+#        red_mask_color[red_mask > 0] = (0, 0, 255)
+#
+#        wheel = cv2.bitwise_or(wheel, green_mask_color)
+#        wheel = cv2.bitwise_or(wheel, red_mask_color)
+#
+#        tst = cv2.resize(wheel, (0,0), fx=0.5, fy=0.5)
+#        cv2.imshow('Masking', tst)
+#        cv2.waitKey()
 
         return red_slices + green_slices + black_slices
