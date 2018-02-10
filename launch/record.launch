@@ -6,7 +6,7 @@
 
     <!-- record all cameras -->
     <node pkg="rosbag" type="record" name="camera_bag" output="screen"
-        args="-o $(arg outdir)/cameras -e /camera/(.*)/image_raw" />
+        args="-o $(arg outdir)/cameras -e /camera/(.*)/undistorted" />
 
     <!-- record all sensors -->
     <node pkg="rosbag" type="record" name="sensor_bag" output="screen"
