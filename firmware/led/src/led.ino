@@ -64,7 +64,6 @@ void led_callback(const std_msgs::Float32& msg)
     /*
      * Calculate the pwm duty cycle.
      */
-
     current_duty = (percentage * (1.0 - min_duty_cycle)) + min_duty_cycle;
 }
 
