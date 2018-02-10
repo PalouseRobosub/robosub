@@ -9,6 +9,7 @@ class Color(enum.Enum):
     GREEN = 2
     BLACK = 3
 
+
 class Slice:
     """Describes a colored slice of the roulette wheel.
 
@@ -97,7 +98,6 @@ class RouletteWheel:
         # part. If two do not exist, there was improper filtering done
         # previously.
         if len(contours) < 2:
-            rospy.loginfo('Two contours did not exist')
             return []
 
         # Sort the contours in descending order by size.
@@ -127,34 +127,6 @@ class RouletteWheel:
         # Blur the image and convert it to an HSV image.
         blurred = cv2.GaussianBlur(self.image, (5, 5), 0)
         hsv_im = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-
-#        # Hough a circle around the wheel and mask out all other colors.
-#        gray_im = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
-#
-#        print 'Getting circles'
-#
-#        center = cv2.HoughCircles(gray_im, cv2.HOUGH_GRADIENT, 1, 20, param1=70, param2=40, minRadius=0)
-#        if center is None:
-#            return []
-#
-#        flattened = center.flatten().tolist()
-#        biggest_circle = (0, 0, 0)
-#        for i in range(0, len(flattened), 3):
-#            x = int(flattened[i + 0])
-#            y = int(flattened[i + 1])
-#            r = int(flattened[i + 2])
-#
-#            if r > biggest_circle[2]:
-#                biggest_circle = (x, y, r)
-#
-#        circle_mask = np.zeros(shape=hsv_im.shape, dtype=np.uint8)
-#        cv2.circle(circle_mask, (biggest_circle[0], biggest_circle[1]), int(biggest_circle[2] * 0.95), (255, 255, 255), -1)
-#        hsv_im = cv2.bitwise_and(hsv_im, circle_mask)
-
-#        img_test = hsv_im.copy()
-#        img_test = cv2.resize(img_test, (0, 0), fx=0.5, fy=0.5)
-#        cv2.imshow('Circled', img_test)
-#        cv2.waitKey()
 
         # Find all red portions of the image.
         lower_red = np.array([0, 100, 100])
@@ -194,14 +166,12 @@ class RouletteWheel:
 
         # For black, we don't do color thresholding. Instead, assume the whole
         # wheel is potentially black and subtract the red and green regions
-        # as we find them. Any remaining area is considered black.
+        # as we find them. Any remaining area is then checked for low color
+        # value, which indicates blackness is present.
         self.origin = (int(x), int(y))
         self.radius = int(radius * 0.85)
         binary_wheel = np.zeros(shape=red_mask.shape, dtype=np.uint8)
         cv2.circle(binary_wheel, (int(x), int(y)), int(radius), 255, -1)
-
-        # Subtract the red slices from the area that can potentially be black.
-        binary_wheel = cv2.bitwise_and(binary_wheel, cv2.bitwise_not(red_mask))
 
         # Filter for green sections of the wheel
         lower_green = np.array([40, 100, 100])
@@ -215,24 +185,32 @@ class RouletteWheel:
         if len(green_slices) != 2:
             return []
 
-        # Subtract the green slices from the binary wheel
+        # Subtract the green and red slices from the binary wheel. They can't
+        # be considered black if they have already been used.
+        binary_wheel = cv2.bitwise_and(binary_wheel, cv2.bitwise_not(red_mask))
         binary_wheel = cv2.bitwise_and(binary_wheel,
                                        cv2.bitwise_not(green_mask))
 
-        # Finally, close the black sections and remove the center to grab the
-        # necessary slices.
+        # Filter for black colors by searching for low value in the HSV space.
+        low_black = np.array([0, 0, 0])
+        high_black = np.array([180, 255, 30])
+        black_values = cv2.inRange(hsv_im, low_black, high_black)
+
+        # Check for black values only in areas within the wheel mask that
+        # haven't been used for red and green. Remove the center of the wheel.
         binary_wheel = cv2.bitwise_and(binary_wheel, mask_inv)
-        black_mask = cv2.morphologyEx(binary_wheel, cv2.MORPH_CLOSE, (9, 9))
+        black_mask_closed = cv2.morphologyEx(binary_wheel, cv2.MORPH_CLOSE,
+                (9, 9))
+        black_mask = cv2.bitwise_and(black_mask_closed, black_values)
 
         black_slices = self.get_slice_moments(black_mask, Color.BLACK)
         if len(black_slices) != 2:
             return []
 
         # Draw a circle around the border of the bounding circle on the
-        # roulette wheel.
+        # roulette wheel. Also draw circles around the origins of each slice.
         cv2.circle(self.image, self.origin, self.radius, (255, 255, 0), 2)
 
-        # Draw circles around the origins of each slice.
         for red in red_slices:
             cv2.circle(self.image, red.origin, 4, (255, 0, 0), 2)
         for green in green_slices:
@@ -240,22 +218,27 @@ class RouletteWheel:
         for black in black_slices:
             cv2.circle(self.image, black.origin, 4, (0, 155, 0), 2)
 
+        # Create a colored image of the slices for debugging purposes. The red
+        # regions are shown in red, green regions in green, and black regions
+        # in blue.
+        wheel = np.zeros(shape=(red_mask.shape[0],
+                    red_mask.shape[1], 3), dtype=np.uint8)
+        cv2.circle(wheel, self.origin, self.radius, (255, 255, 255), -1)
+        wheel = cv2.bitwise_not(wheel)
 
-#        wheel = np.zeros(shape=(red_mask.shape[0], red_mask.shape[1], 3), dtype=np.uint8)
-#        cv2.circle(wheel, self.origin, self.radius, (255, 255, 255), -1)
-#        wheel = cv2.bitwise_not(wheel)
-#
-#        green_mask_color = cv2.cvtColor(green_mask, cv2.COLOR_GRAY2BGR)
-#        green_mask_color[green_mask > 0] = (0, 255, 0)
-#
-#        red_mask_color = cv2.cvtColor(red_mask, cv2.COLOR_GRAY2BGR)
-#        red_mask_color[red_mask > 0] = (0, 0, 255)
-#
-#        wheel = cv2.bitwise_or(wheel, green_mask_color)
-#        wheel = cv2.bitwise_or(wheel, red_mask_color)
-#
-#        tst = cv2.resize(wheel, (0,0), fx=0.5, fy=0.5)
-#        cv2.imshow('Masking', tst)
-#        cv2.waitKey()
+        green_mask_color = cv2.cvtColor(green_mask, cv2.COLOR_GRAY2BGR)
+        green_mask_color[green_mask > 0] = (0, 255, 0)
+
+        red_mask_color = cv2.cvtColor(red_mask, cv2.COLOR_GRAY2BGR)
+        red_mask_color[red_mask > 0] = (0, 0, 255)
+
+        black_mask_color = cv2.cvtColor(black_mask, cv2.COLOR_GRAY2BGR)
+        black_mask_color[black_mask > 0] = (255, 0, 0)
+
+        wheel = cv2.bitwise_or(wheel, green_mask_color)
+        wheel = cv2.bitwise_or(wheel, red_mask_color)
+        wheel = cv2.bitwise_or(wheel, black_mask_color)
+
+        self.visual_slices = cv2.resize(wheel, (0,0), fx=0.5, fy=0.5)
 
         return red_slices + green_slices + black_slices

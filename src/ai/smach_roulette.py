@@ -265,6 +265,7 @@ class TargetColor(SynchronousSubscribeState):
         cv2.waitKey()
 
         wheel = RouletteWheel(img)
+
         if len(wheel.slices) == 0:
             self.exit('fail')
 
