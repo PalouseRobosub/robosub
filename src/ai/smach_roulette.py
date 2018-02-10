@@ -205,14 +205,19 @@ class TargetColor(SynchronousSubscribeState):
             slice.
         center_percentage: The percentage of the image that the slice must
             reside in for success.
+        retry_count: The maximum number of images that can arrive without
+            the roulette wheel in the image.
         bridge: A CvBridge object for converting ROS Image messages to OpenCV.
     """
 
-    def __init__(self, color, speed=1.3, max_duration=45):
+    def __init__(self, color, speed=1.3, max_retries=5, max_duration=45):
         """Initializes the state.
 
         Args:
             color: The RouletteWheel.Color type to search for.
+            speed: The speed of movement.
+            max_retries: The maximum number of images that can arrive without
+                a roulette wheel in the image.
             max_duration: The max duration of the state in seconds.
         """
         SynchronousSubscribeState.__init__(self,
@@ -228,6 +233,8 @@ class TargetColor(SynchronousSubscribeState):
         self.speed = speed
         self.center_percentage = 5
         self.bridge = cv_bridge.CvBridge()
+        self.tries = 0
+        self.retry_count = max_retries
 
 
     def camera_callback(self, image_msg, detection_msg, user_data):
@@ -248,21 +255,20 @@ class TargetColor(SynchronousSubscribeState):
             self.tries = self.tries + 1
             return
 
-        origin = ((wheel_detection.x - 0.5)* width,
-                  (wheel_detection.y - 0.5) * height)
+        origin = (wheel_detection.x * width, wheel_detection.y * height)
         length = wheel_detection.width * width
         height = wheel_detection.height * height
 
-        upper_left = (int(origin[0] - length / 2), int(origin[1] - width / 2))
-        lower_right = (int(origin[0] + length / 2), int(origin[1] + width / 2))
+        upper_left = (int(origin[0] - length / 2), int(origin[1] - height / 2))
+        lower_right = (int(origin[0] + length / 2), int(origin[1] + height / 2))
+
+        rospy.loginfo('{}, l:{} h:{}'.format(origin, length, height))
+        rospy.loginfo('{} {}'.format(upper_left, lower_right))
 
         # Mask away everything except the detection box.
-        mask = np.zeros(shape=img.shape, dtype=uint8)
+        mask = np.zeros(shape=img.shape, dtype=np.uint8)
         cv2.rectangle(mask, upper_left, lower_right, (255, 255, 255), -1)
         img = cv2.bitwise_and(img, mask)
-
-        cv2.imshow('Masked', img)
-        cv2.waitKey()
 
         wheel = RouletteWheel(img)
 
@@ -279,6 +285,7 @@ class TargetColor(SynchronousSubscribeState):
             rospy.loginfo('Did not find two slices with color '
                     '{}'.format(self.color))
             self.exit('fail')
+            return
 
         # Find the slice that is closest to the center.
         distances = []

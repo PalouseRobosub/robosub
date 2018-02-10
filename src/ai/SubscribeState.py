@@ -91,8 +91,7 @@ class SynchronousSubscribeState(smach.State):
 
 
     def _sync_callback(self, msg1, msg2):
-        print 'Got sync callback'
-        self._sub_callback(ms1, msg2, self._user_data)
+        self._sub_callback(msg1, msg2, self._user_data)
 
 
     def execute(self, user_data):
@@ -121,8 +120,6 @@ class SynchronousSubscribeState(smach.State):
                 break
             else:
                 self._poll_rate.sleep()
-
-        self._sub.unregister()
 
         self._sub1.unregister()
         self._sub2.unregister()
