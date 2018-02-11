@@ -95,7 +95,7 @@ class SynchronousSubscribeState(smach.State):
 
 
     def execute(self, user_data):
-        rospy.logdebug('SubscribeState base class "execute" running')
+        rospy.logdebug('SynchronousSubscribeState base class "execute" running')
         self._done = False
         self._outcome = None
         self._user_data = user_data

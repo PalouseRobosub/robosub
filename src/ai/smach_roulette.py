@@ -138,7 +138,7 @@ class CenterDownwardCamera(SubscribeState):
         if detection is None:
             if self.tries >= self.retry_count:
                 self.exit('fail')
-            tries = self.tries + 1
+            self.tries = self.tries + 1
             return
 
         x_error = (detection.x - 0.5) / 0.5
@@ -265,9 +265,6 @@ class TargetColor(SynchronousSubscribeState):
         upper_left = (int(origin[0] - length / 2), int(origin[1] - height / 2))
         lower_right = (int(origin[0] + length / 2), int(origin[1] + height / 2))
 
-        rospy.loginfo('{}, l:{} h:{}'.format(origin, length, height))
-        rospy.loginfo('{} {}'.format(upper_left, lower_right))
-
         # Mask away everything except the detection box.
         mask = np.zeros(shape=img.shape, dtype=np.uint8)
         cv2.rectangle(mask, upper_left, lower_right, (255, 255, 255), -1)
@@ -277,6 +274,7 @@ class TargetColor(SynchronousSubscribeState):
 
         if len(wheel.slices) == 0:
             self.exit('fail')
+            return
 
         # Filter the slices to the color of interest.
         color_slices = []
@@ -345,7 +343,7 @@ class RouletteTask(smach.StateMachine):
 
         with self:
             # First, dive to a certain depth and search for the pinger.
-            smach.StateMachine.add('DIVE_PINGER', basic_states.GoToDepth(0.75),
+            smach.StateMachine.add('DIVE_PINGER', basic_states.GoToDepth(1.0),
                     transitions={'success': 'FIND_PINGER',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
