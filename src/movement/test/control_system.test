@@ -1,5 +1,5 @@
 <launch>
-    <test test-name="test_control_system" pkg="robosub" type="test_control_system" time-limit="120.0" />
+    <test test-name="test_control_system" pkg="robosub" type="test_control_system" time-limit="180.0" />
 
     <rosparam command="load" file="$(find robosub)/param/cobalt.yaml" />
 
