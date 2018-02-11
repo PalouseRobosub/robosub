@@ -34,4 +34,3 @@ if __name__ == '__main__':
 
     node = Node(topic)
     rospy.spin()
-

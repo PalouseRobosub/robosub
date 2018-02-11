@@ -103,7 +103,10 @@ class CenterDownwardCamera(SubscribeState):
             wheel marked.
     """
 
-    def __init__(self, max_retry_count=5, center_percentage=20, max_duration=50):
+    def __init__(self,
+                 max_retry_count=5,
+                 center_percentage=20,
+                 max_duration=50):
         """Initializes the state.
 
         Args:

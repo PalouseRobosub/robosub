@@ -239,6 +239,6 @@ class RouletteWheel:
         wheel = cv2.bitwise_or(wheel, red_mask_color)
         wheel = cv2.bitwise_or(wheel, black_mask_color)
 
-        self.visual_slices = cv2.resize(wheel, (0,0), fx=0.5, fy=0.5)
+        self.visual_slices = cv2.resize(wheel, (0, 0), fx=0.5, fy=0.5)
 
         return red_slices + green_slices + black_slices
