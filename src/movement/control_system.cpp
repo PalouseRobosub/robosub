@@ -132,6 +132,15 @@ namespace robosub
         ROS_INFO_STREAM("Motor Matrix Inverted:\n" << motors_inverted);
     }
 
+    void ControlSystem::go_silent(const bool silence)
+    {
+        silenced = silence;
+    }
+
+    bool ControlSystem::isSilenced()
+    {
+        return silenced;
+    }
 
     /*
       getter function that returns variable telling us if we should

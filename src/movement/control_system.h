@@ -77,6 +77,8 @@ public:
     robosub_msgs::control_status GetControlStatus();
     bool isEnabled();
     void setEnabled(bool enable);
+    void go_silent(const bool silence);
+    bool isSilenced();
 
 private:
     bool enabled;
@@ -173,6 +175,8 @@ private:
      * The previous errors calculated.
      */
     Matrix<std::deque<StateMeasurement>, 6, 1> previous_error;
+
+    bool silenced;
 };
 }
 #endif // CONTROL_SYSTEM_H

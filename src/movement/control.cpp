@@ -5,6 +5,7 @@
 #include "std_msgs/Float32.h"
 #include <utility/ThrottledPublisher.hpp>
 #include "std_srvs/Empty.h"
+#include "std_srvs/SetBool.h"
 
 #include <string>
 
@@ -22,6 +23,14 @@ bool disable(std_srvs::Empty::Request& req,
                    std_srvs::Empty::Response& res)
 {
     control_system->setEnabled(false);
+    return true;
+}
+
+bool toggle(std_srvs::SetBool::Request& req,
+            std_srvs::SetBool::Response &res)
+{
+    control_system->go_silent(req.data);
+    res.success = true;
     return true;
 }
 
@@ -63,6 +72,9 @@ int main(int argc, char **argv)
     ros::ServiceServer disableService =
         nh.advertiseService("control/disable", disable);
 
+    ros::ServiceServer silentService = nh.advertiseService("control/silence",
+                                                           toggle);
+
     int rate;
     nh.getParam("rate/control", rate);
     ros::Rate r(rate);
@@ -70,7 +82,7 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         control_state_pub.publish(control_system->GetControlStatus());
-        if(control_system->isEnabled())
+        if(control_system->isEnabled() && !control_system->isSilenced())
         {
             pub.publish(control_system->CalculateThrusterMessage());
         }
