@@ -30,8 +30,8 @@ RobosubSensors::RobosubSensors() :
 {
 }
 
-void RobosubSensors::InputRelLinAcl(const
-                                   geometry_msgs::Vector3Stamped::ConstPtr &msg)
+void RobosubSensors::InputRelLinAcl(
+        const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     rel_lin_acl = tf::Vector3(msg->vector.x, msg->vector.y, msg->vector.z);
     rel_lin_acl_dt = (msg->header.stamp - last_rel_lin_acl_time).toSec();
@@ -41,7 +41,8 @@ void RobosubSensors::InputRelLinAcl(const
     calculate_absolute_lin_accel();
 }
 
-void RobosubSensors::InputDepth(const robosub_msgs::Float32Stamped::ConstPtr &msg)
+void RobosubSensors::InputDepth(
+        const robosub_msgs::Float32Stamped::ConstPtr &msg)
 {
     depth = msg->data;
     depth_dt = (msg->header.stamp - last_depth_time).toSec();

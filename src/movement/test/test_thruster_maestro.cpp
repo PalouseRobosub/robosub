@@ -1,9 +1,8 @@
 //This file is designed to test the Maestro Thruster node, which
-//receives messages of the robosub_msgs/thruster type, parses the normalized value,
-//and transmits the thruster signal over the serial port.
-//This example sends a single thruster message with several thrusters inside,
-//and then listens on a serial port to confirm that the received values are
-//correct.
+//receives messages of the robosub_msgs/thruster type, parses the normalized
+//value, and transmits the thruster signal over the serial port. This example
+//sends a single thruster message with several thrusters inside, and then
+//listens on a serial port to confirm that the received values are correct.
 #include <gtest/gtest.h>
 #include "ros/ros.h"
 #include "robosub_msgs/thruster.h"
