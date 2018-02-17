@@ -1,6 +1,6 @@
 #include "sensors/PniTrax.h"
 #include "ros/ros.h"
-#include "robosub/Euler.h"
+#include "robosub_msgs/Euler.h"
 #include <geometry_msgs/QuaternionStamped.h>
 #include <std_msgs/String.h>
 #include <std_srvs/Empty.h>
@@ -8,7 +8,6 @@
 #include "tf/transform_datatypes.h"
 
 using std::to_string;
-using namespace robosub;
 
 #define _PI_OVER_180 (3.14159) / 180.0
 
@@ -68,7 +67,7 @@ int main(int argc, char *argv[])
     ros::Publisher trax_publisher =
             np.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
     ros::Publisher trax_pretty_publisher =
-            np.advertise<robosub::Euler>("pretty/orientation", 1);
+            np.advertise<robosub_msgs::Euler>("pretty/orientation", 1);
     ros::Publisher trax_info_publisher =
             np.advertise<std_msgs::String>("info", 1);
 
@@ -131,7 +130,7 @@ int main(int argc, char *argv[])
          * Construct the human-readable message. Note that due to the trim,
          * these values may not lie within the TRAX specified ranges.
          */
-        robosub::Euler trax_pretty_message;
+        robosub_msgs::Euler trax_pretty_message;
         trax_pretty_message.roll = roll;
         trax_pretty_message.pitch = pitch;
         trax_pretty_message.yaw = yaw;

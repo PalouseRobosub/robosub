@@ -1,6 +1,6 @@
 #include "geometry_msgs/QuaternionStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
-#include "robosub/Euler.h"
+#include "robosub_msgs/Euler.h"
 #include "ros/ros.h"
 #include <string>
 #include "tf/transform_datatypes.h"
@@ -11,12 +11,12 @@ ros::Publisher quaternion_publisher;
 ros::Publisher euler_publisher;
 ros::Publisher acceleration_publisher;
 
-robosub::Euler quaternion_to_euler(
+robosub_msgs::Euler quaternion_to_euler(
                          const geometry_msgs::QuaternionStamped::ConstPtr &msg)
 {
     double roll, pitch, yaw;
     tf::Quaternion tf_quaternion;
-    robosub::Euler euler_msg;
+    robosub_msgs::Euler euler_msg;
 
     tf::quaternionMsgToTF(msg->quaternion, tf_quaternion);
 
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
     quaternion_publisher =
         n.advertise<geometry_msgs::QuaternionStamped>("orientation", 1);
-    euler_publisher = n.advertise<robosub::Euler>("pretty/orientation", 1);
+    euler_publisher = n.advertise<robosub_msgs::Euler>("pretty/orientation", 1);
     acceleration_publisher =
         n.advertise<geometry_msgs::Vector3Stamped>("acceleration/linear", 1);
 

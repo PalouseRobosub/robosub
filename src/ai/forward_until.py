@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from rs_yolo.msg import DetectionArray as detection_array
-from robosub.msg import control
+from robosub_msgs.msg import control, DetectionArray
 from util import *
 
 class ForwardUntilTask():
@@ -10,7 +9,7 @@ class ForwardUntilTask():
     def __init__(self, label_list, yaw_value):
         rospy.loginfo("Init done")
         self.pub = rospy.Publisher('control', control, queue_size=1)
-        self.sub = rospy.Subscriber('vision', detection_array, self.callback)
+        self.sub = rospy.Subscriber('vision', DetectionArray, self.callback)
 
         self.labels = label_list
         self.yaw_value = float(yaw_value)

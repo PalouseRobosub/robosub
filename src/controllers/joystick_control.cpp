@@ -1,8 +1,8 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "std_msgs/Float64.h"
-#include "robosub/joystick.h"
-#include "robosub/control.h"
+#include "robosub_msgs/joystick.h"
+#include "robosub_msgs/control.h"
 #include "std_srvs/Empty.h"
 
 ros::Publisher pub;
@@ -23,7 +23,7 @@ void reloadDepthParams()
     ros::param::getCached("joystick_control/max_depth", max_depth);
 }
 
-bool checkArming(const robosub::joystick msg)
+bool checkArming(const robosub_msgs::joystick msg)
 {
     int armingButtonsPressed = static_cast<int>(msg.buttons[2])
                             + static_cast<int>(msg.buttons[3])
@@ -36,12 +36,12 @@ bool checkArming(const robosub::joystick msg)
     return (armingButtonsPressed == 1);
 }
 
-void joystickToControlCallback(const robosub::joystick msg)
+void joystickToControlCallback(const robosub_msgs::joystick msg)
 {
     reloadDepthParams();
 
     //Generate a control packet out of the type to send to control module
-    robosub::control outmsg;
+    robosub_msgs::control outmsg;
     outmsg.forward_state = outmsg.STATE_ERROR;
     outmsg.strafe_state  = outmsg.STATE_ERROR;
     outmsg.dive_state    = outmsg.STATE_ABSOLUTE;
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber sub = nh.subscribe("joystick_driver", 1,
                                        joystickToControlCallback);
-    pub = nh.advertise<robosub::control>("control", 1);
+    pub = nh.advertise<robosub_msgs::control>("control", 1);
     nh = ros::NodeHandle("joystick_control");
 
     // Load settings

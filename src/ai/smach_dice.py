@@ -14,7 +14,7 @@ import smach_ros
 import tf
 
 from SubscribeState import SubscribeState
-from robosub.msg import ObstaclePosArray
+from robosub_msgs.msg import ObstaclePosArray
 
 
 class GetTargetAngle(SubscribeState):

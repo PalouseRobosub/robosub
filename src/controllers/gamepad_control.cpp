@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include "std_msgs/Float64.h"
-#include "robosub/gamepad.h"
-#include "robosub/control.h"
+#include "robosub_msgs/gamepad.h"
+#include "robosub_msgs/control.h"
 #include "std_srvs/Empty.h"
 
 ros::Publisher pub;
@@ -31,11 +31,11 @@ double dead_scale(double value, double deadzone, double scaling_power)
     return pow( num/(1-deadzone), scaling_power ) * sgn;
 }
 
-bool checkArmingAndTriggers(const robosub::gamepad msg)
+bool checkArmingAndTriggers(const robosub_msgs::gamepad msg)
 {
     int armingButtonsPressed = 0;
     int triggersPressed = 0;
-    if (msg.type == robosub::gamepad::XBOX)
+    if (msg.type == robosub_msgs::gamepad::XBOX)
     {
         armingButtonsPressed = static_cast<int>(msg.buttons[1])
                             + static_cast<int>(msg.buttons[2]);
@@ -43,7 +43,7 @@ bool checkArmingAndTriggers(const robosub::gamepad msg)
         triggersPressed = static_cast<int>(msg.buttons[4])
                         + static_cast<int>(msg.buttons[5]);
     }
-    else if (msg.type == robosub::gamepad::PS3)
+    else if (msg.type == robosub_msgs::gamepad::PS3)
     {
         armingButtonsPressed = static_cast<int>(msg.buttons[13])
                             + static_cast<int>(msg.buttons[15]);
@@ -64,7 +64,7 @@ bool checkArmingAndTriggers(const robosub::gamepad msg)
     return (armingButtonsPressed == 1) && (triggersPressed == 1);
 }
 
-void gamepadToControlCallback(const robosub::gamepad msg)
+void gamepadToControlCallback(const robosub_msgs::gamepad msg)
 {
     //scale and apply deadzones
     double axisX = dead_scale(msg.axisX, axisXdeadzone, x_scaling_power);
@@ -74,7 +74,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
     double axisRZ = dead_scale(msg.axisRZ, axisRZdeadzone, rz_scaling_power);
 
     //Generate a control packet out of the type to send to control module
-    robosub::control outmsg;
+    robosub_msgs::control outmsg;
     outmsg.forward_state = outmsg.STATE_ERROR;
     outmsg.strafe_state  = outmsg.STATE_ERROR;
     outmsg.dive_state    = outmsg.STATE_RELATIVE;
@@ -95,7 +95,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
     ros::ServiceClient client = n.serviceClient<std_srvs::Empty>("drop_marker");
     std_srvs::Empty e;
     // Using Xbox controller
-    if (robosub::gamepad::XBOX == msg.type && !msg.buttons[8])
+    if (robosub_msgs::gamepad::XBOX == msg.type && !msg.buttons[8])
     {
         if (msg.hatX)
         {
@@ -159,7 +159,7 @@ void gamepadToControlCallback(const robosub::gamepad msg)
         }
     }
     // Using PlayStation controller
-    else if (robosub::gamepad::PS3 == msg.type && !msg.buttons[3])
+    else if (robosub_msgs::gamepad::PS3 == msg.type && !msg.buttons[3])
     {
         if (msg.buttons[4] || msg.buttons[6])
         {
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 
     ros::Subscriber sub = nh.subscribe("gamepad_driver", 1,
                                        gamepadToControlCallback);
-    pub = nh.advertise<robosub::control>("control", 1);
+    pub = nh.advertise<robosub_msgs::control>("control", 1);
     nh = ros::NodeHandle("gamepad_control");
 
     // Load settings

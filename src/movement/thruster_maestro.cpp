@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include "utility/serial.hpp"
-#include "robosub/thruster.h"
+#include "robosub_msgs/thruster.h"
 #include "movement/maestro_thruster_driver.h"
 #include <string>
 #include <map>
@@ -19,7 +19,7 @@ std::vector<Thruster_info> mThruster_info;
 ros::Time last_msg_time;
 ros::Duration timeout_duration;
 
-void Callback (const robosub::thruster::ConstPtr& msg)
+void Callback (const robosub_msgs::thruster::ConstPtr& msg)
 {
     int result = 0;
     for (unsigned int i = 0; i < msg->data.size(); i++)

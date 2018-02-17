@@ -5,7 +5,7 @@
 //confirm that the received values are the same as the sent values.
 #include <gtest/gtest.h>
 #include "ros/ros.h"
-#include "robosub/thruster.h"
+#include "robosub_msgs/thruster.h"
 #include "utility/serial.hpp"
 #include "utility/test_tools.hpp"
 #include <string>
@@ -23,7 +23,7 @@ TEST(SerialSubscriber, basicTest)
     uint8_t serial_data[256] = {0};
 
     //create an empty thruster message to send to the thruster module
-    robosub::thruster thruster_msg;
+    robosub_msgs::thruster thruster_msg;
 
     //fill out data in the thruster message.
     thruster_msg.data.push_back(27);
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     mSerial.Open(testing_port.c_str(), B9600);
 
     //initialize our publisher used for sending thruster messages
-    pub = n.advertise<robosub::thruster>("thruster", 1);
+    pub = n.advertise<robosub_msgs::thruster>("thruster", 1);
 
     //wait for the UUT to finish launching, can't run tests until the UUT has
     //set itself up. This function will wait for 3 seconds for the UUT to

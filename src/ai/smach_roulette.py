@@ -9,7 +9,7 @@ Description: A ROS SMACH implementation for the roulette wheel task.
 from operator import add, sub
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Vector3Stamped
-from rs_yolo.msg import DetectionArray, Detection
+from robosub_msgs.msg import DetectionArray, Detection
 import cv2
 import cv_bridge
 import math

@@ -1,8 +1,7 @@
 #!/usr/bin/python
 import rospy
 from util import *
-from rs_yolo.msg import DetectionArray
-from robosub.msg import control
+from robosub_msgs.msg import control, DetectionArray
 from SubscribeState import SubscribeState
 from control_wrapper import control_wrapper
 import smach

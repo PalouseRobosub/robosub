@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import rospy
 from std_msgs.msg import Bool
-from rs_yolo.msg import DetectionArray
+from robosub_msgs.msg import DetectionArray
 from util import *
 from control_wrapper import control_wrapper
 from start_switch import start_switch

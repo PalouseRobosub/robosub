@@ -10,7 +10,7 @@
 #include <string>
 
 #include <ros/ros.h>
-#include "robosub/gamepad.h" // Gamepad Msg
+#include "robosub_msgs/gamepad.h" // Gamepad Msg
 
 typedef struct
 {
@@ -50,7 +50,7 @@ private:
     std::string device;
 
 public:
-    robosub::gamepad GetGamepadMessage();
+    robosub_msgs::gamepad GetGamepadMessage();
     void shutdown();
 
     GamepadDriver(ros::NodeHandle *n);

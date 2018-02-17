@@ -24,7 +24,7 @@ JoystickDriver::JoystickDriver(ros::NodeHandle *nh)
     }
 }
 
-robosub::joystick JoystickDriver::GetJoystickMessage()
+robosub_msgs::joystick JoystickDriver::GetJoystickMessage()
 {
     while(read(fd, &e, sizeof(e)) > 0)
     {
@@ -38,7 +38,7 @@ robosub::joystick JoystickDriver::GetJoystickMessage()
     }
 
     // Create joystick msg
-    robosub::joystick js_msg;
+    robosub_msgs::joystick js_msg;
     //ROS_DEBUG("joystick_data.axisX: %f\n", joystick_data.axisX);
 
     js_msg.axisX = static_cast<double>(joystick_data.axisX);
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Publisher pub;
-    pub = nh.advertise<robosub::joystick>("joystick_driver", 1);
+    pub = nh.advertise<robosub_msgs::joystick>("joystick_driver", 1);
     nh = ros::NodeHandle("joystick_driver");
 
     int rate;

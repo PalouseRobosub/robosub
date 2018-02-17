@@ -41,7 +41,7 @@ void RobosubSensors::InputRelLinAcl(const
     calculate_absolute_lin_accel();
 }
 
-void RobosubSensors::InputDepth(const robosub::Float32Stamped::ConstPtr &msg)
+void RobosubSensors::InputDepth(const robosub_msgs::Float32Stamped::ConstPtr &msg)
 {
     depth = msg->data;
     depth_dt = (msg->header.stamp - last_depth_time).toSec();

@@ -10,9 +10,9 @@ namespace robosub
     }
 
     void ObstacleMap::InputPositionCallback(const
-            robosub::ObstaclePosArray::ConstPtr &msg)
+            robosub_msgs::ObstaclePosArray::ConstPtr &msg)
     {
-        for(robosub::ObstaclePos item : msg->data)
+        for(robosub_msgs::ObstaclePos item : msg->data)
         {
             obstacle_map[item.name] = tf::Vector3(item.x,
                     item.y, item.z);

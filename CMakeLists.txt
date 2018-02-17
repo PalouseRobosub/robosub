@@ -27,6 +27,7 @@ if ("$ENV{ROS_DISTRO}" STRGREATER "indigo")
     image_transport
     cv_bridge
     pointgrey_camera_driver
+    robosub_msgs
   )
 
 else ()
@@ -44,6 +45,7 @@ else ()
     image_transport
     cv3_bridge
     pointgrey_camera_driver
+    robosub_msgs
   )
 endif()
 
@@ -100,26 +102,9 @@ roslint_python("./")
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  thruster.msg
-  control.msg
-  control_status.msg
-  joystick.msg
-  gamepad.msg
-  Float32Stamped.msg
-  Euler.msg
-  HydrophoneDeltas.msg
-  Position.msg
-  PositionArrayStamped.msg
-  visionPos.msg
-  visionPosArray.msg
-  ObstaclePos.msg
-  ObstaclePosArray.msg
-  BatteryDetailed.msg
-  rgb.msg
-  rgbArray.msg
-)
+# add_message_files(
+#   FILES
+# )
 
 ## Generate services in the 'srv' folder
 add_service_files(
@@ -134,11 +119,9 @@ add_service_files(
 #)
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
-)
+# generate_messages(
+#   DEPENDENCIES
+# )
 
 # Build platformio message headers
 add_custom_target(

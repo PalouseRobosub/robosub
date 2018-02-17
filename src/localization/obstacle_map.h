@@ -13,8 +13,8 @@
 #include "ros/ros.h"
 #include "tf/transform_datatypes.h"
 
-#include "robosub/ObstaclePos.h"
-#include "robosub/ObstaclePosArray.h"
+#include "robosub_msgs/ObstaclePos.h"
+#include "robosub_msgs/ObstaclePosArray.h"
 
 namespace robosub
 {
@@ -31,7 +31,7 @@ private:
     std::map<std::string, tf::Vector3> obstacle_map;
     ros::NodeHandle &nh;
 
-    void InputPositionCallback(const robosub::ObstaclePosArray::ConstPtr
+    void InputPositionCallback(const robosub_msgs::ObstaclePosArray::ConstPtr
                                     &msg);
 };
 }

@@ -1,12 +1,12 @@
 //This file is designed to test the Maestro Thruster node, which
-//receives messages of the robosub/thruster type, parses the normalized value,
+//receives messages of the robosub_msgs/thruster type, parses the normalized value,
 //and transmits the thruster signal over the serial port.
 //This example sends a single thruster message with several thrusters inside,
 //and then listens on a serial port to confirm that the received values are
 //correct.
 #include <gtest/gtest.h>
 #include "ros/ros.h"
-#include "robosub/thruster.h"
+#include "robosub_msgs/thruster.h"
 #include "utility/serial.hpp"
 #include "utility/test_tools.hpp"
 #include <vector>
@@ -29,7 +29,7 @@ TEST(Maestro, basicTest)
     uint8_t maestro_data[256] = {0};
 
     //create an empty thruster message to send to the thruster module
-    robosub::thruster maestro_msg;
+    robosub_msgs::thruster maestro_msg;
     for (uint8_t i = 0; i < channels.size(); i++)
     {
         maestro_msg.data.push_back(0.0);
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     mSerial.Open(testing_port.c_str(), B9600);
 
     //initialize our publisher used for sending thruster messages
-    pub = n.advertise<robosub::thruster>("thruster", 1);
+    pub = n.advertise<robosub_msgs::thruster>("thruster", 1);
 
     //wait for the UUT to finish launching, can't run tests until the UUT has
     //set itself up. This function will wait for 3 seconds for the UUT to

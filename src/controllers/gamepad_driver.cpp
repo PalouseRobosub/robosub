@@ -42,11 +42,11 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
     // Set the internal type for the gamepad based on the name
     if (0 == strncmp(name, "Microsoft", 9))
     {
-        gamepad_data.type = robosub::gamepad::XBOX;
+        gamepad_data.type = robosub_msgs::gamepad::XBOX;
     }
     else if (0 == strncmp(name, "Sony PLAYSTATION", 16))
     {
-        gamepad_data.type = robosub::gamepad::PS3;
+        gamepad_data.type = robosub_msgs::gamepad::PS3;
     }
     else
     {
@@ -55,7 +55,7 @@ GamepadDriver::GamepadDriver(ros::NodeHandle *nh)
     }
 }
 
-robosub::gamepad GamepadDriver::GetGamepadMessage()
+robosub_msgs::gamepad GamepadDriver::GetGamepadMessage()
 {
     while(read(fd, &e, sizeof(e)) > 0)
     {
@@ -69,7 +69,7 @@ robosub::gamepad GamepadDriver::GetGamepadMessage()
     }
 
     // Create gamepad msg
-    robosub::gamepad gp_msg;
+    robosub_msgs::gamepad gp_msg;
 
     gp_msg.axisX = static_cast<double>(gamepad_data.axisX);
     gp_msg.axisY = static_cast<double>(gamepad_data.axisY);
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Publisher pub;
-    pub = nh.advertise<robosub::gamepad>("gamepad_driver", 1);
+    pub = nh.advertise<robosub_msgs::gamepad>("gamepad_driver", 1);
     nh = ros::NodeHandle("gamepad_driver");
 
     int rate;

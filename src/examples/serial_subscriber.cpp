@@ -1,11 +1,11 @@
 #include "ros/ros.h"
-#include "robosub/thruster.h"
+#include "robosub_msgs/thruster.h"
 #include "utility/serial.hpp"
 #include <string>
 
 rs::Serial mSerial;
 
-void callback(const robosub::thruster::ConstPtr& msg)
+void callback(const robosub_msgs::thruster::ConstPtr& msg)
 {
   uint8_t serial_data[256];
 

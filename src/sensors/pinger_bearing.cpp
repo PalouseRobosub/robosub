@@ -1,4 +1,4 @@
-#include "robosub/HydrophoneDeltas.h"
+#include "robosub_msgs/HydrophoneDeltas.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "ros/ros.h"
 #include <eigen3/Eigen/Dense>
@@ -26,7 +26,7 @@ static constexpr double speed_sound_in_water = 1484.0;
 // principle of operation: JFM
 // (see http://robosub.eecs.wsu.edu/wiki/cs/hydrophones/pinger_bearing/start
 // for details)
-void deltaCallback(const robosub::HydrophoneDeltas::ConstPtr& msg)
+void deltaCallback(const robosub_msgs::HydrophoneDeltas::ConstPtr& msg)
 {
     Vector3d bearing, d, time_deltas;
 

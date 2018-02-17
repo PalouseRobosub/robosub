@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "robosub/control.h"
+#include "robosub_msgs/control.h"
 #include <termios.h>
 #include <vector>
 #include <ostream>
@@ -57,16 +57,16 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "keyboard_control");
     ros::NodeHandle nh;
 
-    ros::Publisher pub = nh.advertise<robosub::control>("control", 1);
+    ros::Publisher pub = nh.advertise<robosub_msgs::control>("control", 1);
 
-    robosub::control base_msg;
+    robosub_msgs::control base_msg;
 
-    base_msg.pitch_state   = robosub::control::STATE_ABSOLUTE;
-    base_msg.roll_state    = robosub::control::STATE_ABSOLUTE;
-    base_msg.forward_state = robosub::control::STATE_ERROR;
-    base_msg.strafe_state  = robosub::control::STATE_ERROR;
-    base_msg.dive_state    = robosub::control::STATE_RELATIVE;
-    base_msg.yaw_state     = robosub::control::STATE_RELATIVE;
+    base_msg.pitch_state   = robosub_msgs::control::STATE_ABSOLUTE;
+    base_msg.roll_state    = robosub_msgs::control::STATE_ABSOLUTE;
+    base_msg.forward_state = robosub_msgs::control::STATE_ERROR;
+    base_msg.strafe_state  = robosub_msgs::control::STATE_ERROR;
+    base_msg.dive_state    = robosub_msgs::control::STATE_RELATIVE;
+    base_msg.yaw_state     = robosub_msgs::control::STATE_RELATIVE;
 
     //backup terminal settings
     struct termios attr_backup;
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
     while(ros::ok())
     {
-        robosub::control msg = base_msg;
+        robosub_msgs::control msg = base_msg;
         uint8_t key;
         vector<uint8_t> keys;
 

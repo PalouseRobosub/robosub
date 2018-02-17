@@ -1,4 +1,4 @@
-#include "robosub/Float32Stamped.h"
+#include "robosub_msgs/Float32Stamped.h"
 
 #include <Tca9545a.h>
 #include <MS5837.h>
@@ -21,7 +21,7 @@ static constexpr int depth_power_control_pin = 26;
 
 ros::NodeHandle n;
 
-robosub::Float32Stamped depth_msg;
+robosub_msgs::Float32Stamped depth_msg;
 ros::Publisher depth_data_pub("depth", &depth_msg);
 
 double cycle_delay = 0;

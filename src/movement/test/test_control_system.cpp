@@ -1,17 +1,17 @@
 #include <gtest/gtest.h>
 #include "ros/ros.h"
-#include "robosub/control.h"
+#include "robosub_msgs/control.h"
 #include "utility/test_tools.hpp"
 #include <vector>
 #include <string>
-#include "robosub/Float32Stamped.h"
-#include "robosub/Euler.h"
+#include "robosub_msgs/Float32Stamped.h"
+#include "robosub_msgs/Euler.h"
 
 ros::Publisher pub;
 
 
 //function for extracting the depth data
-double get_roll_data(const robosub::Euler::ConstPtr& msg)
+double get_roll_data(const robosub_msgs::Euler::ConstPtr& msg)
 {
     return msg->roll;
 }
@@ -22,25 +22,25 @@ TEST(ControlSystem, roll)
     double average_threshold = 1.0;
     double std_dev_allowed = 0.7;
 
-    rs::SubscriberAnalyzer<robosub::Euler> analyzer;
+    rs::SubscriberAnalyzer<robosub_msgs::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_roll_data);
 
-    robosub::control msg;
+    robosub_msgs::control msg;
 
     //keep the sub steady
-    msg.forward_state = robosub::control::STATE_ERROR;
+    msg.forward_state = robosub_msgs::control::STATE_ERROR;
     msg.forward = 0;
-    msg.strafe_state = robosub::control::STATE_ERROR;
+    msg.strafe_state = robosub_msgs::control::STATE_ERROR;
     msg.strafe_left = 0;
-    msg.yaw_state = robosub::control::STATE_RELATIVE;
+    msg.yaw_state = robosub_msgs::control::STATE_RELATIVE;
     msg.yaw_left = 0;
-    msg.dive_state = robosub::control::STATE_ABSOLUTE;
+    msg.dive_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.dive = -1;
-    msg.pitch_state = robosub::control::STATE_ABSOLUTE;
+    msg.pitch_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
 
     //just go to roll goal
-    msg.roll_state = robosub::control::STATE_ABSOLUTE;
+    msg.roll_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.roll_right = test_roll;
 
     //fill out a control message to roll
@@ -79,7 +79,7 @@ TEST(ControlSystem, roll)
     EXPECT_LT(analyzer.GetStandardDeviation(), std_dev_allowed);
 }
 
-double get_pitch_data(const robosub::Euler::ConstPtr& msg)
+double get_pitch_data(const robosub_msgs::Euler::ConstPtr& msg)
 {
     return msg->pitch;
 }
@@ -90,25 +90,25 @@ TEST(ControlSystem, pitch)
     double average_threshold = 1.0;
     double std_dev_allowed = 0.7;
 
-    rs::SubscriberAnalyzer<robosub::Euler> analyzer;
+    rs::SubscriberAnalyzer<robosub_msgs::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_pitch_data);
 
-    robosub::control msg;
+    robosub_msgs::control msg;
 
     //keep the sub steady
-    msg.forward_state = robosub::control::STATE_ERROR;
+    msg.forward_state = robosub_msgs::control::STATE_ERROR;
     msg.forward = 0;
-    msg.strafe_state = robosub::control::STATE_ERROR;
+    msg.strafe_state = robosub_msgs::control::STATE_ERROR;
     msg.strafe_left = 0;
-    msg.yaw_state = robosub::control::STATE_RELATIVE;
+    msg.yaw_state = robosub_msgs::control::STATE_RELATIVE;
     msg.yaw_left = 0;
-    msg.dive_state = robosub::control::STATE_ABSOLUTE;
+    msg.dive_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.dive = -1;
-    msg.roll_state = robosub::control::STATE_ABSOLUTE;
+    msg.roll_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
     //just go to pitch goal
-    msg.pitch_state = robosub::control::STATE_ABSOLUTE;
+    msg.pitch_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.pitch_down = test_pitch;
 
     //fill out a control message to pitch
@@ -147,7 +147,7 @@ TEST(ControlSystem, pitch)
     EXPECT_LT(analyzer.GetStandardDeviation(), std_dev_allowed);
 }
 
-double get_yaw_data(const robosub::Euler::ConstPtr& msg)
+double get_yaw_data(const robosub_msgs::Euler::ConstPtr& msg)
 {
     return fabs(msg->yaw);
 }
@@ -158,25 +158,25 @@ TEST(ControlSystem, yaw)
     double average_threshold = 1.0;
     double std_dev_allowed = 1.25;
 
-    rs::SubscriberAnalyzer<robosub::Euler> analyzer;
+    rs::SubscriberAnalyzer<robosub_msgs::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_yaw_data);
 
-    robosub::control msg;
+    robosub_msgs::control msg;
 
     //keep the sub steady
-    msg.forward_state = robosub::control::STATE_ERROR;
+    msg.forward_state = robosub_msgs::control::STATE_ERROR;
     msg.forward = 0;
-    msg.strafe_state = robosub::control::STATE_ERROR;
+    msg.strafe_state = robosub_msgs::control::STATE_ERROR;
     msg.strafe_left = 0;
-    msg.pitch_state = robosub::control::STATE_ABSOLUTE;
+    msg.pitch_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
-    msg.dive_state = robosub::control::STATE_ABSOLUTE;
+    msg.dive_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.dive = -1;
-    msg.roll_state = robosub::control::STATE_ABSOLUTE;
+    msg.roll_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
     //just go to yaw goal
-    msg.yaw_state = robosub::control::STATE_ABSOLUTE;
+    msg.yaw_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.yaw_left = test_yaw;
 
     //fill out a control message to yaw
@@ -216,7 +216,7 @@ TEST(ControlSystem, yaw)
 }
 
 //function for extracting the depth data
-double get_depth_data(const robosub::Float32Stamped::ConstPtr& msg)
+double get_depth_data(const robosub_msgs::Float32Stamped::ConstPtr& msg)
 {
     return msg->data;
 }
@@ -228,25 +228,25 @@ TEST(ControlSystem, depth)
     double average_threshold = 0.05;
     double std_dev_allowed = 0.01;
 
-    rs::SubscriberAnalyzer<robosub::Float32Stamped> analyzer;
+    rs::SubscriberAnalyzer<robosub_msgs::Float32Stamped> analyzer;
 
     analyzer.Init("depth", &get_depth_data);
 
-    robosub::control msg;
+    robosub_msgs::control msg;
     //keep the sub steady
-    msg.forward_state = robosub::control::STATE_ERROR;
+    msg.forward_state = robosub_msgs::control::STATE_ERROR;
     msg.forward = 0;
-    msg.strafe_state = robosub::control::STATE_ERROR;
+    msg.strafe_state = robosub_msgs::control::STATE_ERROR;
     msg.strafe_left = 0;
-    msg.yaw_state = robosub::control::STATE_RELATIVE;
+    msg.yaw_state = robosub_msgs::control::STATE_RELATIVE;
     msg.yaw_left = 0;
-    msg.roll_state = robosub::control::STATE_ABSOLUTE;
+    msg.roll_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
-    msg.pitch_state = robosub::control::STATE_ABSOLUTE;
+    msg.pitch_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
 
     //just go to depth
-    msg.dive_state = robosub::control::STATE_ABSOLUTE;
+    msg.dive_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.dive = test_depth;
 
     //fill out a control message to stay level and go to depth
@@ -290,24 +290,24 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "control_system_test");
     ros::NodeHandle n;
 
-    pub = n.advertise<robosub::control>("control", 1);
+    pub = n.advertise<robosub_msgs::control>("control", 1);
 
     rs::wait_for_subscriber(pub, 5);
 
-    robosub::control msg;
+    robosub_msgs::control msg;
 
     //Dive to initial depth
-    msg.forward_state = robosub::control::STATE_ERROR;
+    msg.forward_state = robosub_msgs::control::STATE_ERROR;
     msg.forward = 0;
-    msg.strafe_state = robosub::control::STATE_ERROR;
+    msg.strafe_state = robosub_msgs::control::STATE_ERROR;
     msg.strafe_left = 0;
-    msg.yaw_state = robosub::control::STATE_RELATIVE;
+    msg.yaw_state = robosub_msgs::control::STATE_RELATIVE;
     msg.yaw_left = 0;
-    msg.dive_state = robosub::control::STATE_ABSOLUTE;
+    msg.dive_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.dive = -1;
-    msg.pitch_state = robosub::control::STATE_ABSOLUTE;
+    msg.pitch_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.pitch_down = 0;
-    msg.roll_state = robosub::control::STATE_ABSOLUTE;
+    msg.roll_state = robosub_msgs::control::STATE_ABSOLUTE;
     msg.roll_right = 0;
 
     //fill out a control message to dive

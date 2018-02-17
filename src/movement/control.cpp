@@ -52,9 +52,9 @@ int main(int argc, char **argv)
     ros::Subscriber control_sub = nh.subscribe("control", 1,
             &ControlSystem::InputControlMessage, control_system);
 
-    ros::Publisher pub = nh.advertise<robosub::thruster>("thruster", 1);
+    ros::Publisher pub = nh.advertise<robosub_msgs::thruster>("thruster", 1);
 
-    rs::ThrottledPublisher<robosub::control_status>
+    rs::ThrottledPublisher<robosub_msgs::control_status>
             control_state_pub(std::string("control_status"), 1, 5);
 
     ros::Timer timer = nh.createTimer(ros::Duration(0.1),

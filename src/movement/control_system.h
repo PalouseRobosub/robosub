@@ -9,10 +9,10 @@
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/QuaternionStamped.h"
-#include "robosub/control.h"
-#include "robosub/control_status.h"
-#include "robosub/Float32Stamped.h"
-#include "robosub/thruster.h"
+#include "robosub_msgs/control.h"
+#include "robosub_msgs/control_status.h"
+#include "robosub_msgs/Float32Stamped.h"
+#include "robosub_msgs/thruster.h"
 #include "ros/ros.h"
 #include "rotation_engine.hpp"
 #include "tf/transform_datatypes.h"
@@ -63,17 +63,17 @@ class ControlSystem
 
 public:
     ControlSystem();
-    void InputControlMessage(const robosub::control::ConstPtr& msg);
+    void InputControlMessage(const robosub_msgs::control::ConstPtr& msg);
     void InputOrientationMessage(
             const geometry_msgs::QuaternionStamped::ConstPtr& quat_msg);
     void InputLocalizationMessage(
             const geometry_msgs::PointStamped::ConstPtr& point_msg);
-    void InputDepthMessage(const robosub::Float32Stamped::ConstPtr& depth_msg);
+    void InputDepthMessage(const robosub_msgs::Float32Stamped::ConstPtr& depth_msg);
     void CheckTimeout(const ros::TimerEvent& timer_event);
     void ReloadPIDParams();
-    robosub::thruster CalculateThrusterMessage();
-    robosub::thruster GetZeroThrusterMessage();
-    robosub::control_status GetControlStatus();
+    robosub_msgs::thruster CalculateThrusterMessage();
+    robosub_msgs::thruster GetZeroThrusterMessage();
+    robosub_msgs::control_status GetControlStatus();
     bool isEnabled();
     void setEnabled(bool enable);
 
@@ -91,7 +91,7 @@ private:
     Vector6d goals;
 
     /*
-     * Defines the type of goal as specified in the robosub::control::goal
+     * Defines the type of goal as specified in the robosub_msgs::control::goal
      * enumeration.
      */
     Matrix<uint8_t, 6, 1> goal_types;

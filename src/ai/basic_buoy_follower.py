@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import rospy
-from robosub.msg import visionPosArray
-from robosub.msg import control
+from robosub_msgs.msg import visionPosArray
+from robosub_msgs.msg import control
 
 
 class Node():

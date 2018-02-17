@@ -3,8 +3,7 @@ import math
 import message_filters
 import rospy
 
-from robosub.msg import ObstaclePosArray, ObstaclePos
-from rs_yolo.msg import DetectionArray
+from robosub_msgs.msg import ObstaclePosArray, ObstaclePos, DetectionArray
 
 
 class Pair:

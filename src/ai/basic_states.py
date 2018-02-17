@@ -12,8 +12,7 @@ import tf
 import util
 
 from geometry_msgs.msg import QuaternionStamped
-from robosub.msg import Float32Stamped
-from rs_yolo.msg import DetectionArray, Detection
+from robosub_msgs.msg import Float32Stamped, DetectionArray, Detection
 from std_srvs.srv import Empty
 from SubscribeState import SubscribeState
 

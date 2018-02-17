@@ -6,7 +6,7 @@
  *        divider of a thermistor and a resistor.
  */
 
-#include "robosub/Float32Stamped.h"
+#include "robosub_msgs/Float32Stamped.h"
 #include <ros.h>
 
 /**
@@ -23,14 +23,14 @@ ros::NodeHandle n;
  * Publisher for the measured temperature (in Celcius) of the temperature
  * probe.
  */
-robosub::Float32Stamped temp_msg;
+robosub_msgs::Float32Stamped temp_msg;
 ros::Publisher temp_data_pub("power/temp", &temp_msg);
 
 /**
  * Publisher for the measured resistance of the sensor. This is useful to
  * detect the extremes of the temperature sensor's measurement capabilities.
  */
-robosub::Float32Stamped resistance_msg;
+robosub_msgs::Float32Stamped resistance_msg;
 ros::Publisher resistance_data_pub("power/resistance", &resistance_msg);
 
 /**

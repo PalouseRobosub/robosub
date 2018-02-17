@@ -42,7 +42,7 @@ namespace robosub
          */
         for(int i = 0; i < 6; ++i)
         {
-            goal_types[i] = robosub::control::STATE_ERROR;
+            goal_types[i] = robosub_msgs::control::STATE_ERROR;
 
             /*
              * Set the previous message queues to empty.
@@ -223,7 +223,7 @@ namespace robosub
      * @return None.
      */
     void ControlSystem::InputControlMessage(const
-            robosub::control::ConstPtr& msg)
+            robosub_msgs::control::ConstPtr& msg)
     {
         enabled = true;
         last_msg_time = ros::Time::now();
@@ -249,8 +249,8 @@ namespace robosub
         {
             switch(control_states[i])
             {
-                case robosub::control::STATE_ABSOLUTE:
-                    this->goal_types[i] = robosub::control::STATE_ABSOLUTE;
+                case robosub_msgs::control::STATE_ABSOLUTE:
+                    this->goal_types[i] = robosub_msgs::control::STATE_ABSOLUTE;
                     this->goals[i] = control_values[i];
                     break;
 
@@ -261,7 +261,7 @@ namespace robosub
                  *   Pitch (PHI): (-90, 90)
                  *   Yaw (THETA): (-180, 180)
                  */
-                case robosub::control::STATE_RELATIVE:
+                case robosub_msgs::control::STATE_RELATIVE:
                     /*
                      * Set the current state to absolute, but update the goal
                      * by adding the new goal relative to the current state.
@@ -273,7 +273,7 @@ namespace robosub
                         //if the previous goal was not absolute we should use
                         //our current state as the new absolute goal
                         if (this->goal_types[i] !=
-                            robosub::control::STATE_ABSOLUTE)
+                            robosub_msgs::control::STATE_ABSOLUTE)
                         {
                             this->goals[i] = state_vector[i];
                         }
@@ -305,16 +305,16 @@ namespace robosub
                         }
                     }
 
-                    this->goal_types[i] = robosub::control::STATE_ABSOLUTE;
+                    this->goal_types[i] = robosub_msgs::control::STATE_ABSOLUTE;
 
                     break;
 
-                case robosub::control::STATE_ERROR:
-                    this->goal_types[i] = robosub::control::STATE_ERROR;
+                case robosub_msgs::control::STATE_ERROR:
+                    this->goal_types[i] = robosub_msgs::control::STATE_ERROR;
                     this->goals[i] = control_values[i];
                     break;
 
-                case robosub::control::STATE_NONE:
+                case robosub_msgs::control::STATE_NONE:
                     break;
 
                 default:
@@ -396,7 +396,7 @@ namespace robosub
      * @return None.
      */
     void ControlSystem::InputDepthMessage(const
-            robosub::Float32Stamped::ConstPtr& depth_msg)
+            robosub_msgs::Float32Stamped::ConstPtr& depth_msg)
     {
         state_vector[2] = depth_msg->data;
 
@@ -411,7 +411,7 @@ namespace robosub
      *
      * @return A thruster packet calculated for the latest control state.
      */
-    robosub::thruster ControlSystem::CalculateThrusterMessage()
+    robosub_msgs::thruster ControlSystem::CalculateThrusterMessage()
     {
         /*
          * Force a reload of control system parameters incase they have been
@@ -431,7 +431,7 @@ namespace robosub
                 state_vector.segment<3>(0);
         for(int i = 0; i < 3; ++i)
         {
-            if(goal_types[i] == robosub::control::STATE_ERROR)
+            if(goal_types[i] == robosub_msgs::control::STATE_ERROR)
             {
                 translation_error[i] = goals[i];
                 current_integral[i] = 0.0;
@@ -440,7 +440,7 @@ namespace robosub
 
         for (int state_index = 3, i = 0; i < 3; ++i, ++state_index)
         {
-            if(goal_types[state_index] == robosub::control::STATE_ERROR)
+            if(goal_types[state_index] == robosub_msgs::control::STATE_ERROR)
             {
                 rotation_goals[i] = state_vector[state_index] +
                         goals[state_index];
@@ -613,8 +613,8 @@ namespace robosub
         current_orientation[0] = state_vector[3];
         current_orientation[1] = state_vector[4];
 
-        if (goal_types[0] == robosub::control::STATE_ABSOLUTE ||
-            goal_types[1] == robosub::control::STATE_ABSOLUTE)
+        if (goal_types[0] == robosub_msgs::control::STATE_ABSOLUTE ||
+            goal_types[1] == robosub_msgs::control::STATE_ABSOLUTE)
         {
             //Use the global reference frame when either x or y
             // state is absolute
@@ -673,7 +673,7 @@ namespace robosub
          * Create a new thruster control message based upon the newly
          * calculated total_control vector.
          */
-        robosub::thruster thruster_message;
+        robosub_msgs::thruster thruster_message;
 
         for (int i = 0; i < num_thrusters; ++i)
         {
@@ -688,9 +688,9 @@ namespace robosub
      *
      * @return A thruster message to be published.
      */
-    robosub::thruster ControlSystem::GetZeroThrusterMessage()
+    robosub_msgs::thruster ControlSystem::GetZeroThrusterMessage()
     {
-        robosub::thruster thruster_message;
+        robosub_msgs::thruster thruster_message;
 
         for (int i = 0; i < num_thrusters; ++i)
         {
@@ -705,9 +705,9 @@ namespace robosub
      *
      * @return A control message to be published.
      */
-    robosub::control_status ControlSystem::GetControlStatus()
+    robosub_msgs::control_status ControlSystem::GetControlStatus()
     {
-        robosub::control_status current_state;
+        robosub_msgs::control_status current_state;
 
         current_state.forward_state =  state_to_string(goal_types[0]);
         current_state.strafe_left_state =  state_to_string(goal_types[1]);
@@ -769,16 +769,16 @@ namespace robosub
         std::string ret = "Unknown State";
         switch (state)
         {
-            case robosub::control::STATE_NONE:
+            case robosub_msgs::control::STATE_NONE:
                 ret = "NONE";
                 break;
-            case robosub::control::STATE_ERROR:
+            case robosub_msgs::control::STATE_ERROR:
                 ret = "ERROR";
                 break;
-            case robosub::control::STATE_ABSOLUTE:
+            case robosub_msgs::control::STATE_ABSOLUTE:
                 ret = "ABSOLUTE";
                 break;
-            case robosub::control::STATE_RELATIVE:
+            case robosub_msgs::control::STATE_RELATIVE:
                 ret = "RELATIVE";
                 break;
             default:

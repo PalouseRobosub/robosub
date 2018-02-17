@@ -9,7 +9,7 @@
 #           therefore making relative commands possible from any instance
 
 import rospy
-from robosub.msg import control
+from robosub_msgs.msg import control
 
 class control_wrapper():
     def __init__(self, topic="control"):
