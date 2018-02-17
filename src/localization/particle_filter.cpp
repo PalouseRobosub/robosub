@@ -412,12 +412,20 @@ void ParticleFilter::estimate_state()
     last_estimated_position_time = ros::Time::now();
 }
 
-// Update all particle states and restimate state. No weighting or resampling
-// is done here.
+// Update all particle states and restimate state.
 void ParticleFilter::predict()
 {
     update_particle_states();
 
+    /* Not updating the weights during intermediate update periods caused the
+     * point-cloud weights to quickly (i.e. within one or two frames) become
+     * inaccurate (to the point of losing clarity) due to the particles
+     * drifting.
+     *
+     * We found that updating the particle weights here (even if the data is not
+     * guaranteed to be brand-new) provided a much more cohesive probability
+     * distribution inside of the point-cloud.
+     */
     update_particle_weights();
 
     last_particle_states = particle_states;
