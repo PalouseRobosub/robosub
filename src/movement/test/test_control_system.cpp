@@ -18,9 +18,9 @@ double get_roll_data(const robosub_msgs::Euler::ConstPtr& msg)
 TEST(ControlSystem, roll)
 {
     double test_roll = 25;
-    double overshoot_allowed = 2;
-    double average_threshold = 1.0;
-    double std_dev_allowed = 0.7;
+    double overshoot_allowed = 3;
+    double average_threshold = 2.0;
+    double std_dev_allowed = 1.5;
 
     rs::SubscriberAnalyzer<robosub_msgs::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_roll_data);
@@ -86,9 +86,9 @@ double get_pitch_data(const robosub_msgs::Euler::ConstPtr& msg)
 TEST(ControlSystem, pitch)
 {
     double test_pitch = 15;
-    double overshoot_allowed = 2;
-    double average_threshold = 1.0;
-    double std_dev_allowed = 0.7;
+    double overshoot_allowed = 2.5;
+    double average_threshold = 2.0;
+    double std_dev_allowed = 1.5;
 
     rs::SubscriberAnalyzer<robosub_msgs::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_pitch_data);
@@ -154,9 +154,9 @@ double get_yaw_data(const robosub_msgs::Euler::ConstPtr& msg)
 TEST(ControlSystem, yaw)
 {
     double test_yaw = 180;
-    double overshoot_allowed = 2;
-    double average_threshold = 1.0;
-    double std_dev_allowed = 1.25;
+    double overshoot_allowed = 18.0;
+    double average_threshold = 4.0;
+    double std_dev_allowed = 2.0;
 
     rs::SubscriberAnalyzer<robosub_msgs::Euler> analyzer;
     analyzer.Init("pretty/orientation", &get_yaw_data);
@@ -224,9 +224,9 @@ double get_depth_data(const robosub_msgs::Float32Stamped::ConstPtr& msg)
 TEST(ControlSystem, depth)
 {
     double test_depth = -3;
-    double overshoot_allowed  = 0.1;
-    double average_threshold = 0.05;
-    double std_dev_allowed = 0.01;
+    double overshoot_allowed  = 0.3;
+    double average_threshold = 0.1;
+    double std_dev_allowed = 0.05;
 
     rs::SubscriberAnalyzer<robosub_msgs::Float32Stamped> analyzer;
 
