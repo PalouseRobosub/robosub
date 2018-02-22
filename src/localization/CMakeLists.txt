@@ -1,3 +1,4 @@
+#create and add librarires for all files in this system
 add_library(localization_system localization_system.cpp)
 add_dependencies(localization_system ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
@@ -13,5 +14,9 @@ add_dependencies(robosub_sensors ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 add_library(obstacle_map obstacle_map.cpp)
 add_dependencies(obstacle_map ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+#creates the localization system node
 add_ros_node(localization localization.cpp)
 target_link_libraries(localization localization_system particle_filter lin_accel_kalman_filter robosub_sensors ${catkin_LIBRARIES})
+
+#add the test directory
+add_subdirectory(tests)
