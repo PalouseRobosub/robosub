@@ -32,7 +32,7 @@ public:
     void InputDepth(const robosub::Float32Stamped::ConstPtr &msg);
     void InputHydrophones(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputOrientation(const geometry_msgs::QuaternionStamped::ConstPtr
-                          &msg);
+        &msg);
 
     // Inputs for derived data
     // Since we have no stamp for these inputs, DT is calculated using the time

@@ -34,6 +34,20 @@ geometry_msgs::Vector3Stamped LocalizationSystem::GetLocalizationMessage()
     return msg;
 }
 
+geometry_msgs::Vector3Stamped LocalizationSystem::GetKFVelocityEstimate()
+{
+    geometry_msgs::Vector3Stamped msg;
+
+    tf::Vector3 velocity = kalman_filter.GetAbsLinVel();
+
+    msg.vector.x = velocity[0];
+    msg.vector.y = velocity[1];
+    msg.vector.z = velocity[2];
+    msg.header.stamp = ros::Time::now();
+
+    return msg;
+}
+
 geometry_msgs::PointStamped LocalizationSystem::GetLocalizationPoint()
 {
     geometry_msgs::PointStamped msg;

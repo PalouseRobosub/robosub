@@ -13,6 +13,13 @@ int main(int argc, char **argv)
     ros::Publisher loc_point_pub =
     nh.advertise<geometry_msgs::PointStamped>("position/point", 1);
 
+    /* Establishes a publisher for the Kalman filter internal state.
+    This is to be used for debugging, so that we can understand the internals
+    of the Kalman filter during program execution. */
+    ros::Publisher kalman_filter_velocity_pub =
+        nh.advertise<geometry_msgs::Vector3Stamped>
+        ("localization/debug/kf/linVel", 1);
+
     // Set up pose publisher. This is necessary for visualizing in rviz.
     ros::Publisher pose_pub =
         nh.advertise<geometry_msgs::PoseStamped>("rviz/cobalt/pose", 1);
@@ -59,6 +66,7 @@ int main(int argc, char **argv)
         // Finally, publish our data - both as a pose and the point itself.
         pose_pub.publish(loc_system.GetPoseMessage());
         loc_point_pub.publish(loc_system.GetLocalizationPoint());
+        kalman_filter_velocity_pub.publish(loc_system.GetKFVelocityEstimate());
 
         r.sleep();
     }

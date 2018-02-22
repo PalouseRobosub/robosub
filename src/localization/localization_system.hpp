@@ -33,10 +33,11 @@ public:
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
     geometry_msgs::PoseStamped GetPoseMessage();
     geometry_msgs::PointStamped GetLocalizationPoint();
+    geometry_msgs::Vector3Stamped GetKFVelocityEstimate();
 
     void Update();
 
-private:
+  private:
     void publish_tf_message(tf::Vector3 pos);
 
     // Objects inputted from localization main
