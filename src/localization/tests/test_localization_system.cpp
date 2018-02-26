@@ -15,7 +15,7 @@ and integration tests.
 #include "../lin_accel_kalman_filter.h"
 #include "../robosub_sensors.h"
 
-TEST(ParticleFilter, HandlesGettersAndSetters)
+TEST(ParticleFilter, VerifyTestingSuite)
 {
     EXPECT_TRUE(true) << "This trivial test should never fail.";
 }
