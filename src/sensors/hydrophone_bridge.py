@@ -88,7 +88,7 @@ class HydroNode:
         silence_sock.settimeout(0.5)
         silence_sock.bind((self.hostname, 3005))
 
-        while self.running:
+        while not rospy.is_shutdown() and self.running:
             try:
                 data = silence_sock.recv(1024)
             except socket.timeout:
@@ -124,7 +124,7 @@ class HydroNode:
         stdout_sock.settimeout(0.5)
         stdout_sock.bind((self.hostname, 3004))
 
-        while self.running:
+        while not rospy.is_shutdown() and self.running:
             try:
                 line = stdout_sock.recv(1024).rstrip('\n')
             except socket.timeout:
@@ -140,7 +140,7 @@ class HydroNode:
         result_sock.settimeout(0.5)
         result_sock.bind((self.hostname, 3002))
 
-        while self.running:
+        while not rospy.is_shutdown() and self.running:
             try:
                 data = result_sock.recv(1024)
             except socket.timeout:
