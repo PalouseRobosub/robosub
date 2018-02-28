@@ -1,4 +1,11 @@
 #!/usr/bin/python
+"""
+@author Ryan Summers
+@date 2-28-2018
+
+@brief Provides a bridge from the raw socket API implemented on the HydroZynq to
+       the ROS infrastructure.
+"""
 
 import argparse
 import re
@@ -13,7 +20,17 @@ from robosub.srv import SetInt, SetIntResponse, SetIntRequest
 
 
 class DeltaPacket:
+    """ Parses a string for the hydrophone delta result.
+
+    Attributes
+        x: The delay in nanoseconds of the first channel.
+        y: The delay in nanoseconds of the second channel.
+        z: The delay in nanoseconds of the third channel.
+    """
+
     def __init__(self, data):
+        # The result string is human readable in the form:
+        #   Result - 1: [time in ns] 2: [time in ns] 3: [time in ns]
         matches = re.search(r'.*1: (-?\d+) 2: (-?\d+) 3: (-?\d+).*', data)
         if not matches:
             raise Exception('Invalid result string')
@@ -27,7 +44,26 @@ class DeltaPacket:
 
 
 class HydroNode:
+    """ Handles bridge tasks for the hydrophone node.
+
+    Attributes
+        running: Boolean that specifies true if the threads should continue.
+        hostname: The hostname of Cobalt
+        zynq_hostname: The hostname of the Zynq processor.
+        delta_pub: A ROS publisher for hydrophone delays.
+        silence_thread: A thread for silencing the control system.
+        stdout_thread: A thread for reading the Zynq STDOUT.
+        result_thread: A thread for reading the Zynq hydrophone delays.
+        ping_threshold_service: A thread for setting the Zynq ping threshold.
+    """
+
     def __init__(self, hostname, zynq_hostname):
+        """ Initializes the node.
+
+        Args
+            hostname: The hostname of the current computer.
+            zynq_hostname: The hostname of the Zynq processor.
+        """
         self.running = False
         self.hostname = hostname
         self.zynq_hostname = zynq_hostname
@@ -53,6 +89,7 @@ class HydroNode:
 
 
     def begin(self):
+        """ Start all threads. """
         self.running = True
         self.silence_thread.start()
         self.stdout_thread.start()
@@ -60,6 +97,7 @@ class HydroNode:
 
 
     def end(self):
+        """ Stop all threads. """
         self.running = False
         rospy.loginfo('Terminating threads...')
         self.silence_thread.join()
@@ -68,6 +106,7 @@ class HydroNode:
 
 
     def set_threshold(self, req):
+        """ ROS Service callback for setting ping threshold. """
         arg_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         arg_sock.connect((self.zynq_hostname, 3000))
 
@@ -78,7 +117,7 @@ class HydroNode:
 
 
     def _silence_thread_target(self):
-
+        """ Handles requests for silencing thrusters. """
         rospy.loginfo('BRIDGE: Waiting for control/silence service.')
         rospy.wait_for_service('control/silence')
         rospy.loginfo('BRIDGE: Service acquired.')
@@ -120,6 +159,7 @@ class HydroNode:
 
 
     def _stdout_thread_target(self):
+        """ Handles displaying the Zynq standard output. """
         stdout_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         stdout_sock.settimeout(0.5)
         stdout_sock.bind((self.hostname, 3004))
@@ -136,6 +176,7 @@ class HydroNode:
 
 
     def _result_thread_target(self):
+        """ Handles receiving the Zynq's hydrophone delay results. """
         result_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         result_sock.settimeout(0.5)
         result_sock.bind((self.hostname, 3002))
