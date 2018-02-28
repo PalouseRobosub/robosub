@@ -5,6 +5,8 @@
 
     <node name="trax" pkg="robosub" type="trax_sensor" output="screen"/>
 
+    <node name="hydrophone_bridge" pkg="robosub" type="hydrophone_bridge.py" output="screen"/>
+
     <!-- robosub -->
     <node name="imu" pkg="robosub" type="imu" output="screen">
         <param name="active_imu" value="trax"/>
