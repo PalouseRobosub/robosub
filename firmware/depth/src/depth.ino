@@ -65,7 +65,7 @@ void setup()
      * Initialize the depth sensor with the fluid density of
      * water (997 kg/m^3) and initialize the I2C mux.
      */
-    if(mux.init(Tca9545a::Channel::One))
+    if(mux.init(Tca9545a::Channel::Four))
     {
         n.logwarn("Failed to initialize the I2C mux.");
     }
