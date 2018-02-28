@@ -26,6 +26,14 @@ bool disable(std_srvs::Empty::Request& req,
     return true;
 }
 
+/**
+ * Service callback for silencing the control system.
+ *
+ * @param req The request.
+ * @param res[out] The result of the request.
+ *
+ * @return True.
+ */
 bool toggle(std_srvs::SetBool::Request& req,
             std_srvs::SetBool::Response &res)
 {
