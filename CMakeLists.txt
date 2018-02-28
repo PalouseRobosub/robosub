@@ -110,6 +110,7 @@ roslint_python("./")
 add_service_files(
   FILES
   pneumatic_status.srv
+  SetInt.srv
 )
 
 ## Generate actions in the 'action' folder

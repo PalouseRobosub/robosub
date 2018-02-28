@@ -5,9 +5,11 @@ import re
 import rospy
 import socket
 import struct
+import threading
 
 from std_srvs.srv import SetBool
 from robosub_msgs.msg import HydrophoneDeltas
+from robosub.srv import SetInt, SetIntResponse
 
 
 class DeltaPacket:
@@ -43,6 +45,11 @@ class HydroNode:
                 target=self._result_thread_target,
                 name='Result Thread')
 
+        self.ping_threshold_service = rospy.Service(
+                'hydrophone_bridge/set_ping_threshold',
+                SetInt,
+                self.set_threshold)
+
 
     def begin(self):
         self.running = True
@@ -56,6 +63,16 @@ class HydroNode:
         self.silence_thread.join(1.0)
         self.stdout_thread.join(1.0)
         self.result_thread.join(1.0)
+
+
+    def set_threshold(self, req):
+        arg_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        arg_sock.connect((self.zynq_hostname, 3000))
+
+        command = 'threshold:{}'.format(req.data)
+        arg_sock.send(command)
+        arg_sock.close()
+        return SetIntResponse()
 
 
     def _silence_thread_target(self):
@@ -94,7 +111,7 @@ class HydroNode:
         stdout_sock.bind((self.hostname, 3004))
 
         while self.running:
-            rospy.loginfo(sock.recv(1024).rstrip('\n'))
+            rospy.loginfo(stdout_sock.recv(1024).rstrip('\n'))
         stdout_sock.close()
 
 
@@ -103,7 +120,7 @@ class HydroNode:
         result_sock.bind((self.hostname, 3002))
 
         while self.running:
-            data = sock.recv(1024)
+            data = result_sock.recv(1024)
 
             try:
                 deltas = DeltaPacket(data)
