@@ -4,6 +4,7 @@
 
 using namespace std;
 ros::Publisher pub;
+ros::RATE loop_rate(1);
 
 // TODO finish this program.
 int main(int argc, char **argv)
@@ -17,10 +18,11 @@ int main(int argc, char **argv)
     float change = 0.1;
     while(true)
     {
-        for(;outmsg.data != 1.0; outmsg.data += change)
+        for(;outmsg.data < 1.0; outmsg.data += change)
         {
             pub.publish(outmsg);
-            sleep(0.2);
+            ros::spinOnce();
+            loop_rate.sleep();
         }
         change = -change;
     }
