@@ -9,7 +9,7 @@ import threading
 
 from std_srvs.srv import SetBool
 from robosub_msgs.msg import HydrophoneDeltas
-from robosub.srv import SetInt, SetIntResponse
+from robosub.srv import SetInt, SetIntResponse, SetIntRequest
 
 
 class DeltaPacket:
@@ -27,9 +27,10 @@ class DeltaPacket:
 
 
 class HydroNode:
-    def __init__(self, hostname):
+    def __init__(self, hostname, zynq_hostname):
         self.running = False
         self.hostname = hostname
+        self.zynq_hostname = zynq_hostname
         self.delta_pub = rospy.Publisher(
                 'hydrophones/30khz/delta', HydrophoneDeltas, queue_size=10)
 
@@ -60,9 +61,10 @@ class HydroNode:
 
     def end(self):
         self.running = False
-        self.silence_thread.join(1.0)
-        self.stdout_thread.join(1.0)
-        self.result_thread.join(1.0)
+        rospy.loginfo('Terminating threads...')
+        self.silence_thread.join()
+        self.stdout_thread.join()
+        self.result_thread.join()
 
 
     def set_threshold(self, req):
@@ -72,17 +74,25 @@ class HydroNode:
         command = 'threshold:{}'.format(req.data)
         arg_sock.send(command)
         arg_sock.close()
-        return SetIntResponse()
+        return SetIntResponse(True)
 
 
     def _silence_thread_target(self):
         silence_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        silence_sock.settimeout(0.5)
         silence_sock.bind((self.hostname, 3005))
 
+        rospy.loginfo('BRIDGE: Waiting for control/silence service.')
+        rospy.wait_for_service('control/silence')
+        rospy.loginfo('BRIDGE: Service acquired.')
         control_shutdown_srv = rospy.ServiceProxy('control/silence', SetBool)
 
         while self.running:
-            data = silence_sock.recv(1024)
+            try:
+                data = silence_sock.recv(1024)
+            except socket.timeout:
+                continue
+
             recv_time = rospy.get_time()
             if len(data) != 8:
                 rospy.logwarn('Received invalid packet size.')
@@ -103,24 +113,37 @@ class HydroNode:
 
             control_shutdown_srv(False)
             rospy.loginfo('Disabling silence')
+        rospy.loginfo('Silence thread terminating...')
+
         silence_sock.close()
 
 
     def _stdout_thread_target(self):
         stdout_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        stdout_sock.settimeout(0.5)
         stdout_sock.bind((self.hostname, 3004))
 
         while self.running:
-            rospy.loginfo(stdout_sock.recv(1024).rstrip('\n'))
+            try:
+                line = stdout_sock.recv(1024).rstrip('\n')
+            except socket.timeout:
+                continue
+
+            rospy.loginfo(line)
+        rospy.loginfo('STDOUT thread terminating...')
         stdout_sock.close()
 
 
     def _result_thread_target(self):
         result_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        result_sock.settimeout(0.5)
         result_sock.bind((self.hostname, 3002))
 
         while self.running:
-            data = result_sock.recv(1024)
+            try:
+                data = result_sock.recv(1024)
+            except socket.timeout:
+                continue
 
             try:
                 deltas = DeltaPacket(data)
@@ -138,6 +161,7 @@ class HydroNode:
             msg.zDelta = rospy.Duration(deltas.z)
 
             self.delta_pub.publish(msg)
+        rospy.loginfo('Result thread terminating...')
         result_sock.close()
 
 
@@ -145,9 +169,14 @@ if __name__ == '__main__':
     rospy.init_node('hydrophone_bridge')
 
     hostname = rospy.get_param('~hostname', default='192.168.0.2')
+    zynq_hostname = rospy.get_param('~zynq_hostname', default='192.168.0.7')
+    threshold = rospy.get_param('~threshold', default=500)
 
-    node = HydroNode(hostname)
+    node = HydroNode(hostname, zynq_hostname)
 
     node.begin()
+
+    node.set_threshold(SetIntRequest(threshold))
+
     rospy.spin()
     node.end()
