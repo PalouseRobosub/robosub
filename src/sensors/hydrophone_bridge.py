@@ -78,14 +78,15 @@ class HydroNode:
 
 
     def _silence_thread_target(self):
-        silence_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        silence_sock.settimeout(0.5)
-        silence_sock.bind((self.hostname, 3005))
 
         rospy.loginfo('BRIDGE: Waiting for control/silence service.')
         rospy.wait_for_service('control/silence')
         rospy.loginfo('BRIDGE: Service acquired.')
         control_shutdown_srv = rospy.ServiceProxy('control/silence', SetBool)
+
+        silence_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        silence_sock.settimeout(0.5)
+        silence_sock.bind((self.hostname, 3005))
 
         while self.running:
             try:
