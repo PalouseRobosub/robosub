@@ -16,6 +16,11 @@ using namespace robosub;
  */
 ControlSystem *control_system;
 
+/**
+ * Specified true if the control system should be silenced.
+ */
+bool silence_control_system = false;
+
 /*
  * Function to deal with Enable/Disable service call.
  */
@@ -37,7 +42,7 @@ bool disable(std_srvs::Empty::Request& req,
 bool toggle(std_srvs::SetBool::Request& req,
             std_srvs::SetBool::Response &res)
 {
-    control_system->go_silent(req.data);
+    silence_control_system = req.data;
     res.success = true;
     return true;
 }
@@ -90,7 +95,7 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         control_state_pub.publish(control_system->GetControlStatus());
-        if(control_system->isEnabled() && !control_system->isSilenced())
+        if(control_system->isEnabled() && !silence_control_system)
         {
             pub.publish(control_system->CalculateThrusterMessage());
         }
