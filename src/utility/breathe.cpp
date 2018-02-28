@@ -3,14 +3,15 @@
 #include "std_msgs/Float32.h"
 
 using namespace std;
-ros::Publisher pub;
-ros::RATE loop_rate(1);
+
 
 // TODO finish this program.
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "LED");
     ros::NodeHandle n;
+    ros::Publisher pub;
+    ros::Rate loop_rate(1);
 
     std_msgs::Float32 outmsg;
     outmsg.data = 0.1;
