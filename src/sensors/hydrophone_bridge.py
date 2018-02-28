@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     hostname = rospy.get_param('~hostname', default='192.168.0.2')
 
-    node = HydroNode()
+    node = HydroNode(hostname)
 
     node.begin()
     rospy.spin()
