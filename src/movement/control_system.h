@@ -9,6 +9,7 @@
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/QuaternionStamped.h"
+#include "geometry_msgs/Accel.h"
 #include "robosub_msgs/control.h"
 #include "robosub_msgs/control_status.h"
 #include "robosub_msgs/Float32Stamped.h"
@@ -77,7 +78,7 @@ public:
     robosub_msgs::control_status GetControlStatus();
 
     /* Provides external access to the private acceleration_estimate variable */
-    geometry_msgs::Vector6d GetAccelerationEstimate();
+    geometry_msgs::Accel GetAccelerationEstimate();
 
     bool isEnabled();
     void setEnabled(bool enable);
@@ -180,7 +181,7 @@ private:
 
     /* This field supports a publisher of the current acceleration. Calculation
     happens in the CalculateThrusterMessage() function. */
-    geometry_msgs::Vector6d acceleration_estimate;
+    Vector6d acceleration_estimate;
 };
 }
 #endif // CONTROL_SYSTEM_H

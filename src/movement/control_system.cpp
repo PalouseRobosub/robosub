@@ -60,6 +60,7 @@ namespace robosub
         current_integral = Vector6d::Zero();
         current_derivative = Vector6d::Zero();
         goals = Vector6d::Zero();
+        acceleration_estimate = Vector6d::Zero();
 
         /*
          * Load thruster node settings. A nodehandle reference is not
@@ -819,7 +820,17 @@ namespace robosub
         return var;
     }
 
-    geometry_msgs::Vector6d GetAccelerationEstimate(){
-        return this->acceleration_estimate;
+    geometry_msgs::Accel ControlSystem::GetAccelerationEstimate()
+    {
+        geometry_msgs::Accel msg;
+
+        msg.linear.x = this->acceleration_estimate[0];
+        msg.linear.y = this->acceleration_estimate[1];
+        msg.linear.z = this->acceleration_estimate[2];
+        msg.angular.x = this->acceleration_estimate[3];
+        msg.angular.y = this->acceleration_estimate[4];
+        msg.angular.z = this->acceleration_estimate[5];
+
+        return msg;
     }
 }
