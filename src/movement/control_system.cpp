@@ -815,4 +815,8 @@ namespace robosub
             var = x;
         return var;
     }
+
+    geometry_msgs::Vector6d GetAccelerationEstimate(){
+        return this->acceleration_estimate;
+    }
 }

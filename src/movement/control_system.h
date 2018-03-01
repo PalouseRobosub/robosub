@@ -77,7 +77,7 @@ public:
     robosub_msgs::control_status GetControlStatus();
 
     /* Provides external access to the private acceleration_estimate variable */
-    geometry_msgs::Vector6 GetAccelerationEstimate();
+    geometry_msgs::Vector6d GetAccelerationEstimate();
 
     bool isEnabled();
     void setEnabled(bool enable);
@@ -180,7 +180,7 @@ private:
 
     /* This field supports a publisher of the current acceleration. Calculation
     happens in the CalculateThrusterMessage() function. */
-    geometry_msgs::Vector6 acceleration_estimate;
+    geometry_msgs::Vector6d acceleration_estimate;
 };
 }
 #endif // CONTROL_SYSTEM_H
