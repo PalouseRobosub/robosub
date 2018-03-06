@@ -590,7 +590,13 @@ namespace robosub
         m_accel += D.cwiseProduct(current_derivative);
 
         //saves the most recent calculated acceleration for publishing
-        this->acceleration_estimate = m_accel;
+        this->acceleration_estimate[0] = m_accel[0];
+        this->acceleration_estimate[1] = m_accel[1];
+        this->acceleration_estimate[2] = m_accel[2];
+        this->acceleration_estimate[3] = m_accel[3];
+        this->acceleration_estimate[4] = m_accel[4];
+        this->acceleration_estimate[5] = m_accel[5];
+
 
         /*
          * Convert accelerations to force by multipling by masses.
