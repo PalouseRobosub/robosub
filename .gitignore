@@ -1,3 +1,4 @@
 *.pyc
 firmware/ros_lib
 *.swp
+.vscode/c_cpp_properties.json
