@@ -13,7 +13,7 @@ import smach_ros
 
 class track_buoy(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
+        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
                                outcomes=['success', 'lost_buoy'],
                                setup_callback=self.setup)
         self.vision_label = vision_label
@@ -101,7 +101,7 @@ class track_buoy(SubscribeState):
 
 class find_buoy(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision", DetectionArray, self.callback,
+        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
             outcomes=['success'])
         self.vision_label = vision_label
         self.errorGoal = rospy.get_param("ai/find_buoy/errorGoal")
