@@ -597,7 +597,6 @@ namespace robosub
         this->acceleration_estimate[4] = m_accel[4];
         this->acceleration_estimate[5] = m_accel[5];
 
-
         /*
          * Convert accelerations to force by multipling by masses.
          */
@@ -826,6 +825,11 @@ namespace robosub
         return var;
     }
 
+    /**
+     * Returns the stored acceleration value calculated by thruster control.
+     *
+     * @return A ROS Accel message (6d) with most recent acceleration values.
+     */
     geometry_msgs::Accel ControlSystem::GetAccelerationEstimate()
     {
         geometry_msgs::Accel msg;

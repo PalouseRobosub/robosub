@@ -76,8 +76,6 @@ public:
     robosub_msgs::thruster CalculateThrusterMessage();
     robosub_msgs::thruster GetZeroThrusterMessage();
     robosub_msgs::control_status GetControlStatus();
-
-    /* Provides external access to the private acceleration_estimate variable */
     geometry_msgs::Accel GetAccelerationEstimate();
 
     bool isEnabled();
@@ -179,8 +177,9 @@ private:
      */
     Matrix<std::deque<StateMeasurement>, 6, 1> previous_error;
 
-    /* This field supports a publisher of the current acceleration. Calculation
-    happens in the CalculateThrusterMessage() function. */
+    /*
+     * The previously calculated acceleration exerted on the submarine.
+     */
     Vector6d acceleration_estimate;
 };
 }

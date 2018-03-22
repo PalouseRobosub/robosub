@@ -99,6 +99,7 @@ int main(int argc, char **argv)
     while(ros::ok())
     {
         control_state_pub.publish(control_system->GetControlStatus());
+        accel_pub.publish(control_system->GetAccelerationEstimate());
         if(control_system->isEnabled() && !silence_control_system)
         {
             pub.publish(control_system->CalculateThrusterMessage());
@@ -107,7 +108,6 @@ int main(int argc, char **argv)
         {
             pub.publish(control_system->GetZeroThrusterMessage());
         }
-        accel_pub.publish(control_system->GetAccelerationEstimate());
         ros::spinOnce();
         r.sleep();
     }
