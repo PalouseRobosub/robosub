@@ -830,16 +830,17 @@ namespace robosub
      *
      * @return A ROS Accel message (6d) with most recent acceleration values.
      */
-    geometry_msgs::Accel ControlSystem::GetAccelerationEstimate()
+    geometry_msgs::AccelStamped ControlSystem::GetAccelerationEstimate()
     {
-        geometry_msgs::Accel msg;
+        geometry_msgs::AccelStamped msg;
 
-        msg.linear.x = this->acceleration_estimate[0];
-        msg.linear.y = this->acceleration_estimate[1];
-        msg.linear.z = this->acceleration_estimate[2];
-        msg.angular.x = this->acceleration_estimate[3];
-        msg.angular.y = this->acceleration_estimate[4];
-        msg.angular.z = this->acceleration_estimate[5];
+        msg.accel.linear.x = this->acceleration_estimate[0];
+        msg.accel.linear.y = this->acceleration_estimate[1];
+        msg.accel.linear.z = this->acceleration_estimate[2];
+        msg.accel.angular.x = this->acceleration_estimate[3];
+        msg.accel.angular.y = this->acceleration_estimate[4];
+        msg.accel.angular.z = this->acceleration_estimate[5];
+        msg.header.stamp = ros::Time::now();
 
         return msg;
     }

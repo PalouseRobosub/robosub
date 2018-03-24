@@ -1,6 +1,6 @@
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/QuaternionStamped.h"
-#include "geometry_msgs/Accel.h"
+#include "geometry_msgs/AccelStamped.h"
 #include "movement/control_system.h"
 #include "ros/ros.h"
 #include "std_msgs/Float32.h"
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     ros::Publisher pub = nh.advertise<robosub_msgs::thruster>("thruster", 1);
 
-    ros::Publisher accel_pub = nh.advertise<geometry_msgs::Accel>(
+    ros::Publisher accel_pub = nh.advertise<geometry_msgs::AccelStamped>(
         "control_acceleration", 1);
 
     rs::ThrottledPublisher<robosub_msgs::control_status>

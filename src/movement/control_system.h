@@ -9,7 +9,7 @@
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/Vector3.h"
 #include "geometry_msgs/QuaternionStamped.h"
-#include "geometry_msgs/Accel.h"
+#include "geometry_msgs/AccelStamped.h"
 #include "robosub_msgs/control.h"
 #include "robosub_msgs/control_status.h"
 #include "robosub_msgs/Float32Stamped.h"
@@ -76,7 +76,7 @@ public:
     robosub_msgs::thruster CalculateThrusterMessage();
     robosub_msgs::thruster GetZeroThrusterMessage();
     robosub_msgs::control_status GetControlStatus();
-    geometry_msgs::Accel GetAccelerationEstimate();
+    geometry_msgs::AccelStamped GetAccelerationEstimate();
 
     bool isEnabled();
     void setEnabled(bool enable);
