@@ -41,6 +41,9 @@ int main(int argc, char **argv)
     ros::Subscriber orientation_sub = nh.subscribe("orientation", 1,
             &RobosubSensors::InputOrientation, &sensors);
 
+    ros::Subscriber control_accel = nh.subscribe("control_acceleration", 1,
+            &RobosubSensors::InputAccelMsg, &sensors);
+
     // Load main loop update rate
     double rate;
     ROS_ERROR_COND(!ros::param::getCached("rate/localization",
