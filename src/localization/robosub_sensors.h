@@ -34,6 +34,8 @@ public:
     void InputHydrophones(const geometry_msgs::Vector3Stamped::ConstPtr &msg);
     void InputOrientation(const geometry_msgs::QuaternionStamped::ConstPtr
             &msg);
+
+    //should read any arbitrary acceleration message passed to it
     void InputAccelMsg(const geometry_msgs::Accel::ConstPtr &msg);
 
     // Inputs for derived data
