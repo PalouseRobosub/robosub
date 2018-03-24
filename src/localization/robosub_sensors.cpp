@@ -63,7 +63,7 @@ void RobosubSensors::InputOrientation(const
         geometry_msgs::QuaternionStamped::ConstPtr &msg)
 {
     orientation = tf::Quaternion(msg->quaternion.x, msg->quaternion.y,
-                                 msg->quaternion.z, msg->quaternion.w);
+        msg->quaternion.z, msg->quaternion.w);
     orientation_dt = (msg->header.stamp - last_orientation_time).toSec();
     new_orientation = true;
     last_orientation_time = msg->header.stamp;

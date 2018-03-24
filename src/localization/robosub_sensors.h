@@ -61,7 +61,7 @@ public:
     bool NewAbsLinVel();
     bool NewPosition();
 
-    // Get time since last update
+    // Get time since last update, measured in seconds
     double GetRelLinAclDT();
     double GetDepthDT();
     double GetHydrophonesDT();
