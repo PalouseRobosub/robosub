@@ -9,18 +9,19 @@
 #include "robosub_msgs/Float32Stamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 
-// RobosubSensors is responsible for storing and handling all sensor input
-// (both from callbacks and derived info like linear velocity). It provides the
-// following functions for each set of sensor data:
-// Input Data
-// Get Data
-// Is New Data
-// Get DT
-// All data is stored as tf datatypes or primitive datatypes.
+/*  RobosubSensors is responsible for storing and handling all sensor input
+    (both from callbacks and derived info like linear velocity). It provides the
+    following functions for each set of sensor data:
+    + Input Data (called via RPC by subscribers in localization.cpp)
+    + Get Data (called from the kalman filter and particle filter)
+    + Is New Data (do we have new data since last access?)
+    + Get DT (time since last data update via callback)
+    All data is stored as tf datatypes or primitive datatypes.
 
-// Additionally RobosubSensors provides one other function: Calculating
-// absolute linear acceleration whenever the relative linear acceleration
-// callback occurs.
+    Additionally, RobosubSensors provides one other function: Calculating
+    absolute linear acceleration whenever the relative linear acceleration
+    callback occurs. */
+
 class RobosubSensors
 {
 public:
@@ -42,7 +43,7 @@ public:
     void InputPosition(const tf::Vector3 pos);
 
     // Getter functions.
-    // These set the new field to false when called.
+    // These set the `new data` field to false when called.
     tf::Vector3 GetRelLinAcl();
     double GetDepth();
     tf::Vector3 GetHydrophones();
@@ -51,7 +52,7 @@ public:
     tf::Vector3 GetAbsLinVel();
     tf::Vector3 GetPosition();
 
-    // Get new status
+    // check if there's new data avaliable
     bool NewRelLinAcl();
     bool NewDepth();
     bool NewHydrophones();
@@ -60,7 +61,7 @@ public:
     bool NewAbsLinVel();
     bool NewPosition();
 
-    // Get DTs
+    // Get time since last update
     double GetRelLinAclDT();
     double GetDepthDT();
     double GetHydrophonesDT();
@@ -72,8 +73,8 @@ public:
 private:
     void calculate_absolute_lin_accel();
 
-    // Stores whether sensor is new. Set to false when a particular sensors Get
-    // method is called.
+    /* Stores whether sensor is new. Set to false when a particular sensor's Get
+    method is called. */
     bool new_rel_lin_acl;
     bool new_depth;
     bool new_hydrophones;
