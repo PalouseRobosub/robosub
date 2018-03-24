@@ -41,12 +41,14 @@ void RobosubSensors::InputRelLinAcl(
     calculate_absolute_lin_accel();
 }
 
-void RobosubSensors::InputAccelMsg(const geometry_msgs::Accel::ConstPtr &msg)
+void RobosubSensors::InputAccelMsg(const geometry_msgs::AccelStamped::ConstPtr
+        &msg)
 {
-    rel_lin_acl = tf::Vector3(msg->linear.x, msg->linear.y, msg->linear.z);
-    rel_lin_acl_dt = (ros::Time::now() - last_rel_lin_acl_time).toSec();
+    rel_lin_acl = tf::Vector3(msg->accel.linear.x,
+        msg->accel.linear.y, msg->accel.linear.z);
+    rel_lin_acl_dt = (msg->header.stamp - last_rel_lin_acl_time).toSec();
     new_rel_lin_acl = true;
-    last_rel_lin_acl_time = ros::Time::now();
+    last_rel_lin_acl_time = msg->header.stamp;
 
     calculate_absolute_lin_accel();
 }

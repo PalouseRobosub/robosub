@@ -8,7 +8,7 @@
 #include "geometry_msgs/QuaternionStamped.h"
 #include "robosub_msgs/Float32Stamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
-#include "geometry_msgs/Accel.h"
+#include "geometry_msgs/AccelStamped.h"
 
 // RobosubSensors is responsible for storing and handling all sensor input
 // (both from callbacks and derived info like linear velocity). It provides the
@@ -36,7 +36,7 @@ public:
             &msg);
 
     //should read any arbitrary acceleration message passed to it
-    void InputAccelMsg(const geometry_msgs::Accel::ConstPtr &msg);
+    void InputAccelMsg(const geometry_msgs::AccelStamped::ConstPtr &msg);
 
     // Inputs for derived data
     // Since we have no stamp for these inputs, DT is calculated using the time
