@@ -28,22 +28,32 @@ public:
     LocalizationSystem(ros::NodeHandle &_nh, RobosubSensors &_sensors);
 
     bool ResetFilterCallback(std_srvs::Empty::Request &req,
-                             std_srvs::Empty::Response &rep);
+        std_srvs::Empty::Response &rep);
 
+    /* pulls position data from the particle filter, as vector message */
     geometry_msgs::Vector3Stamped GetLocalizationMessage();
+
+    /* pulls both position and orientation data from the particle filter, and 
+    provides it as pose message */
     geometry_msgs::PoseStamped GetPoseMessage();
+
+    /* pulls position data from the particle filter, as point message */
     geometry_msgs::PointStamped GetLocalizationPoint();
 
+    /* Checks for new data in sensors class, and pushes this data from the
+    sensors class into the filters. This in turn causes the filters to update
+    their internal state. */
     void Update();
 
 private:
     void publish_tf_message(tf::Vector3 pos);
 
-    // Objects inputted from localization main
+    /* references to the sensors and nodehandle objects created in
+    localization.cpp and passed in via the constructor. */
     RobosubSensors &sensors;
     ros::NodeHandle &nh;
 
-    // Filter objects
+    /* Storage for the kalman filter and particle filter object instances */
     LinAccelKalmanFilter kalman_filter;
     ParticleFilter particle_filter;
 
