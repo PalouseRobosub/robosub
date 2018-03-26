@@ -10,8 +10,8 @@ import smach_ros
 # Based on move_forward from forward_until.py with tweaks for vision
 class move_to_gate(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
-                               outcomes=['success'])
+        SubscribeState.__init__(self, "vision/left", DetectionArray,
+                               self.callback, outcomes=['success'])
         self.vision_label = vision_label
         self.forward_speed = rospy.get_param("ai/move_to_gate/forward_speed")
 
@@ -36,9 +36,9 @@ class move_to_gate(SubscribeState):
 # When we do not see any of gate posts at all
 class lost(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
-        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
-                               outcomes=['1 post', 'none', '2 posts'],
-                               input_keys=['direction'],
+        SubscribeState.__init__(self, "vision/left", DetectionArray,
+                               self.callback, outcomes=['1 post', 'none',
+                               '2 posts'], input_keys=['direction'],
                                output_keys=['direction'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
@@ -92,9 +92,9 @@ class flip(smach.State):
 # it either loses all of posts or finds second.
 class search(SubscribeState):
     def __init__(self, vision_label, poll_rate=10):
-        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
-                               outcomes=['2 posts', 'none', '1 post'],
-                               input_keys=['direction'],
+        SubscribeState.__init__(self, "vision/left", DetectionArray,
+                               self.callback, outcomes=['2 posts', 'none',
+                               '1 post'], input_keys=['direction'],
                                output_keys=['direction'])
         self.vision_label = vision_label
         self.yaw = rospy.get_param("ai/search_gate/yaw_speed_factor")
@@ -154,8 +154,8 @@ class Search_for_gates(smach.StateMachine):
 # State for centering between gate posts or moving while being centered
 class center(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
-                               outcomes=['centered', 'lost'])
+        SubscribeState.__init__(self, "vision/left", DetectionArray,
+                               self.callback, outcomes=['centered', 'lost'])
         self.vision_label = vision_label
         self.error_goal = rospy.get_param("ai/center/error_goal")
         self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
@@ -200,8 +200,9 @@ class center(SubscribeState):
 # slow  down or stop if it gets close to path marker.
 class move_forward_centered(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
-                               outcomes=['ready', 'not centered', 'lost'])
+        SubscribeState.__init__(self, "vision/left", DetectionArray,
+                               self.callback, outcomes=['ready', 'not centered',
+                               'lost'])
         self.vision_label = vision_label
         self.distanceGoal = rospy.get_param("ai/move_forward/distanceGoal")
         self.error_goal = rospy.get_param("ai/move_forward/error_goal")
@@ -304,8 +305,9 @@ class u_turn(smach.State):
 
 class center_object(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
-                               outcomes=['centered', 'lost', 'ready'])
+        SubscribeState.__init__(self, "vision/left", DetectionArray,
+                               self.callback, outcomes=['centered', 'lost',
+                               'ready'])
         self.vision_label = vision_label
         self.error_goal = rospy.get_param("ai/center/error_goal")
         self.yaw_factor = rospy.get_param("ai/center/yaw_factor")
@@ -354,8 +356,9 @@ class center_object(SubscribeState):
 
 class move_forward_centered_single(SubscribeState):
     def __init__(self, vision_label):
-        SubscribeState.__init__(self, "vision/left", DetectionArray, self.callback,
-                               outcomes=['ready', 'not centered', 'lost'])
+        SubscribeState.__init__(self, "vision/left", DetectionArray,
+                               self.callback, outcomes=['ready', 'not centered',
+                               'lost'])
         self.vision_label = vision_label
         self.distanceGoal = rospy.get_param(
                             "ai/move_forward_single/distanceGoal")
