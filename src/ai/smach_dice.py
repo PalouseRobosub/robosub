@@ -12,6 +12,7 @@ import rospy
 import smach
 import smach_ros
 import tf
+from start_switch import start_switch
 
 from SubscribeState import SubscribeState
 from robosub_msgs.msg import ObstaclePosArray
@@ -475,6 +476,9 @@ if __name__ == '__main__':
     sm.userdata.dice_options = ['die_5', 'die_6']
 
     with sm:
+        smach.StateMachine.add('START_SWITCH', start_switch(),
+                              transitions={'success': 'DICE'},
+                              remapping={'options': 'dice_options'})
         smach.StateMachine.add('DICE', DiceTask(),
                 transitions={'success': 'success',
                              'fail': 'fail'},

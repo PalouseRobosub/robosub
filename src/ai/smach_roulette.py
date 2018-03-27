@@ -10,6 +10,7 @@ from operator import add, sub
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Vector3Stamped
 from robosub_msgs.msg import DetectionArray, Detection
+from start_switch import start_switch
 import cv2
 import cv_bridge
 import math
@@ -389,6 +390,8 @@ if __name__ == '__main__':
     sm = smach.StateMachine(outcomes=['success', 'fail'])
 
     with sm:
+        smach.StateMachine.add('START_SWITCH', start_switch(),
+                              transitions={'success': 'ROULETTE'})
         smach.StateMachine.add('ROULETTE', RouletteTask(),
                 transitions={'success': 'success',
                              'fail': 'fail'})
