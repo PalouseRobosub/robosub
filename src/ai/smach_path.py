@@ -124,7 +124,7 @@ class YawRelative(SubscribeState):
         rospy.logdebug('Yaw is {} -> Target: {}'.format(yaw, self.target_yaw))
         if self.target_yaw is None:
             self.target_yaw = util.wrap_yaw(yaw + user_data.yaw_left)
-            c = control_wrapper.control_wrapper()
+            c = control_wrapper()
             c.levelOut()
             c.yawLeftRelative(user_data.yaw_left)
             c.forwardError(0)
@@ -133,7 +133,6 @@ class YawRelative(SubscribeState):
             return
 
         if abs(util.wrap_yaw(self.target_yaw - yaw)) < self.max_error:
-            user_data.yaw_left = 60
             self.exit('success')
 
 class follow_path(smach.State):
@@ -149,7 +148,7 @@ class follow_path(smach.State):
         c.diveAbsolute(-1.5)
 
         rospy.loginfo("Following Path")
-        c.forwardError(.5)
+        c.forwardError(1)
         c.publish()
         rospy.sleep(1)
         c.forwardError(0)
@@ -160,7 +159,7 @@ class follow_path(smach.State):
         elif user_data.yaw_left == -30:
             user_data.yaw_left = 60
         elif user_data.yaw_left == 60:
-            user_data.yaw_left = -30
+            user_data.yaw_left = -31
         else:
             return 'done'
 
