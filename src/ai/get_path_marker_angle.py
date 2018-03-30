@@ -3,7 +3,7 @@ import numpy as np
 import math
 import cv2
 from robosub.srv import get_path_angle
-from rs_yolo.msg import DetectionArray
+from robosub_msgs.msg import DetectionArray
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from message_filters import ApproximateTimeSynchronizer, Subscriber
