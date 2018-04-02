@@ -17,9 +17,9 @@ class MarkerTask():
                                 self.getPathMarkerAngle)
 
         ts = ApproximateTimeSynchronizer(
-                        [Subscriber("/camera/bottom/undistorted",
+                        [Subscriber("/camera/right/undistorted",
                         Image),
-                        Subscriber("/vision/bottom", DetectionArray)], 10, .180)
+                        Subscriber("/vision/right", DetectionArray)], 10, .380)
 
         ts.registerCallback(self.callback)
         self.angle = 0
@@ -55,7 +55,7 @@ class MarkerTask():
         height, width = img.shape[:2]
 
         lower_red = np.array([0,100,100])
-        upper_red = np.array([30,255,255])
+        upper_red = np.array([20,255,255])
 
         mask = cv2.inRange(hsv, lower_red, upper_red)
         output = cv2.bitwise_and(hsv, hsv, mask = mask)
@@ -121,6 +121,7 @@ class MarkerTask():
         #angle *= -1.0
 
         self.angle = angle
+	print('angle =', angle)
 
 if __name__ == "__main__":
     rospy.init_node('path_angle')
