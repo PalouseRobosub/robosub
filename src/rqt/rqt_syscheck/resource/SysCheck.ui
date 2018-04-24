@@ -205,7 +205,7 @@
         <widget class="QLineEdit" name="currentDepth">
          <property name="maximumSize">
           <size>
-           <width>135</width>
+           <width>60</width>
            <height>16777215</height>
           </size>
          </property>

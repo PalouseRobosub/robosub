@@ -234,7 +234,7 @@ class SysCheck(Plugin):
         if not self._widget.depthActive.isVisible():
             self._widget.depthActive.show()
 
-        self._widget.currentDepth.setText(str(m.data))
+        self._widget.currentDepth.setText("{0:.2f}".format(m.data))
 
         # Restart the timer
         self.depthTimer.start(1000)
