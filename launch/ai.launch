@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+     <!-- Specifies ai to load. Main ai is the default -->
+    <arg name="type" default="smach_ai.py" />
+
+     <!-- Specifies parameters file to load, simulator is the default. -->
+    <arg name="params" default="ai.yaml" />
+
+    <rosparam command="load" file="$(find robosub)/param/$(arg params)"/>
+    <node pkg="robosub" type="$(arg type)" name="ai" required="true" output="screen"/>
+</launch>
