@@ -17,6 +17,7 @@
                 <param name="serial" value="$(arg left_serial)" />
                 <param name="packet_resend" value="$(arg packet_resend)" />
 
+
             </node>
         </group>
 
@@ -29,6 +30,7 @@
                 <param name="frame_id" value="right" />
                 <param name="serial" value="$(arg right_serial)" />
                 <param name="packet_resend" value="$(arg packet_resend)" />
+
 
             </node>
         </group>
