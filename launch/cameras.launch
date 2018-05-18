@@ -3,6 +3,7 @@
 
     <arg name="left_serial" default="14406634"/>
     <arg name="right_serial" default="14406637" />
+    <arg name="packet_resend" default="false" />
 
     <include file="$(find robosub)/launch/undistortion.launch" />
 
@@ -14,6 +15,8 @@
                   args="load pointgrey_camera_driver/PointGreyCameraNodelet left_camera_manager" >
                 <param name="frame_id" value="left" />
                 <param name="serial" value="$(arg left_serial)" />
+                <param name="packet_resend" value="$(arg packet_resend)" />
+
             </node>
         </group>
 
@@ -25,6 +28,8 @@
                   args="load pointgrey_camera_driver/PointGreyCameraNodelet right_camera_manager" >
                 <param name="frame_id" value="right" />
                 <param name="serial" value="$(arg right_serial)" />
+                <param name="packet_resend" value="$(arg packet_resend)" />
+
             </node>
         </group>
     </group>
