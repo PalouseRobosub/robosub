@@ -23,9 +23,9 @@ class DeltaPacket:
     """ Parses a string for the hydrophone delta result.
 
     Attributes
-        x: The delay in nanoseconds of the first channel.
-        y: The delay in nanoseconds of the second channel.
-        z: The delay in nanoseconds of the third channel.
+        x: The delay in seconds of the first channel.
+        y: The delay in seconds of the second channel.
+        z: The delay in seconds of the third channel.
     """
 
     def __init__(self, data):
@@ -38,9 +38,10 @@ class DeltaPacket:
         if len(matches.groups()) != 3:
             raise Exception('Valid number of groups')
 
-        self.x = int(matches.group(1))
-        self.y = int(matches.group(2))
-        self.z = int(matches.group(3))
+        # Convert the nanosecond results into seconds.
+        self.x = float(matches.group(1)) / 1000000000.0
+        self.y = float(matches.group(2)) / 1000000000.0
+        self.z = float(matches.group(3)) / 1000000000.0
 
 
 class HydroNode:
