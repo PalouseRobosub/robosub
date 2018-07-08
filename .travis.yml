@@ -16,7 +16,6 @@ notifications:
 branches:
   only:
     - master
-    - dev
     - travisci
 
 #install dependencies
