@@ -199,9 +199,9 @@ class HydroNode:
 
             msg.header.stamp = rospy.Time.now()
             msg.header.frame_id = 'hydrophone_array'
-            msg.xDelta = rospy.Duration(deltas.x)
-            msg.yDelta = rospy.Duration(deltas.y)
-            msg.zDelta = rospy.Duration(deltas.z)
+            msg.xDelta = rospy.Duration.from_sec(deltas.x)
+            msg.yDelta = rospy.Duration.from_sec(deltas.y)
+            msg.zDelta = rospy.Duration.from_sec(deltas.z)
 
             self.delta_pub.publish(msg)
         rospy.loginfo('Result thread terminating...')
