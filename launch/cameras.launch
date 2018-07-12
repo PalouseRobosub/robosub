@@ -2,7 +2,7 @@
 <launch>
 
     <arg name="left_serial" default="14406634"/>
-    <arg name="right_serial" default="14406637" />
+    <arg name="right_serial" default="14406636" />
     <arg name="packet_resend" default="false" />
 
     <include file="$(find robosub)/launch/undistortion.launch" />
