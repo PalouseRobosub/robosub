@@ -37,7 +37,7 @@ install:
 
 #build the project
 before_script:
-  - source /opt/ros/indigo/setup.bash
+  - source /opt/ros/kinetic/setup.bash
   - cd ../ && mkdir src && mv robosub src/ && cd src
   - git clone https://github.com/PalouseRobosub/robosub_msgs.git
   - catkin_init_workspace
