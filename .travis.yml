@@ -22,18 +22,18 @@ branches:
 addons:
   apt:
     sources:
-    - sourceline: 'deb http://packages.ros.org/ros/ubuntu trusty main'
+    - sourceline: 'deb http://packages.ros.org/ros/ubuntu xenial main'
       key_url: 'https://raw.githubusercontent.com/ros/rosdistro/master/ros.key '
     - sourceline: 'deb http://robosub.eecs.wsu.edu/repo/ /'
       key_url: 'http://robosub.eecs.wsu.edu/repo/repository_key'
-    - sourceline: 'deb http://packages.osrfoundation.org/gazebo/ubuntu trusty main'
+    - sourceline: 'deb http://packages.osrfoundation.org/gazebo/ubuntu xenial main'
       key_url: 'http://packages.osrfoundation.org/gazebo.key'
     packages:
-    - robosub
+    - robosub-kinetic
 
 #most dependencies are installed from packages, install just does simulator if needed
 install:
-  - if [ "$TEST" == "true" ] ; then sudo apt-get install robosub-simulator; fi
+  - if [ "$TEST" == "true" ] ; then sudo apt-get install robosub-simulator-kinetic; fi
 
 #build the project
 before_script:
