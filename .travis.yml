@@ -20,6 +20,7 @@ branches:
 
 #install dependencies
 addons:
+  bash ./wait_for_apt.sh
   apt:
     sources:
     - sourceline: 'deb http://packages.ros.org/ros/ubuntu xenial main'
@@ -33,7 +34,6 @@ addons:
 
 #most dependencies are installed from packages, install just does simulator if needed
 install:
-  - bash ./wait_for_apt.sh
   - if [ "$TEST" == "true" ] ; then sudo apt-get install robosub-simulator-kinetic; fi
 
 #build the project
