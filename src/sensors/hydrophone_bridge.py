@@ -32,7 +32,8 @@ class DeviceStatus:
         record_time: The number of seconds that the last recording took.
         fft_time: The number of seconds the last FFT took.
         correlation_time: The number of seconds the last correlation took.
-        ping_processing_time: The total number of seconds to process the last ping.
+        ping_processing_time: The total number of seconds to process the last
+            ping.
         tracking_25: True if 25KHz is being tracked.
         tracking_30: True if 30KHz is being tracked.
         tracking_35: True if 35KHz is being tracked.
@@ -57,7 +58,8 @@ class DeviceStatus:
                      'Tracking 30KHz: (?P<track30>\d+)\n'
                      'Tracking 35KHz: (?P<track35>\d+)\n'
                      'Tracking 40KHz: (?P<track40>\d+)\n'
-                     'Detection Threshold: (?P<threshold>\d+)\n', data, re.MULTILINE)
+                     'Detection Threshold: (?P<threshold>\d+)\n',
+                     data, re.MULTILINE)
 
         if not match:
             raise Exception('Failed to match status message.')
@@ -113,7 +115,8 @@ class DeltaPacket:
     def __init__(self, data):
         # The result string is human readable in the form:
         # [num] KHz Result - 1: [time in ns] 2: [time in ns] 3: [time in ns]
-        matches = re.search(r'(\d+) KHz Result - 1: (-?\d+) 2: (-?\d+) 3: (-?\d+).*', data)
+        matches = re.search(
+                r'(\d+) KHz Result - 1: (-?\d+) 2: (-?\d+) 3: (-?\d+).*', data)
         if not matches:
             raise Exception('Invalid result string')
 
@@ -261,7 +264,7 @@ class HydroNode:
 
 
     def _status_thread_target(self):
-        """ Handles receiving the Zynq device status information for logging. """
+        """ Handles receiving the Zynq device status information. """
         status_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         status_sock.settimeout(0.5)
         status_sock.bind((self.hostname, 3007))
@@ -276,7 +279,8 @@ class HydroNode:
             try:
                 parser = DeviceStatus(line)
             except Exception as e:
-                rospy.loginfo('Could not parse device status \'{}\': {}'.format(line, e))
+                rospy.loginfo('Could not parse device status \'{}\': {}'.format(
+                              line, e))
                 continue
 
             # Construct the message and publish it.
