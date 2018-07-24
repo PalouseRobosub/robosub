@@ -44,8 +44,12 @@ ai:
         forward_speed: 5
     move_forward_single:
         distanceGoal: 0.007
-    blind_gate_task:
-        forward_time: 25 # number of seconds to move forward
-        forward_speed: 6.0 # speed to move forward
-        yaw_error: 2 # yaw error in degrees that will be tolerated
-
+# roulette wheel AI variables. They are all time in seconds
+    roulette_wheel:
+        stabilize: 25
+        yaw_relative: 40
+        go_to_depth: 20
+        locate_object: 40
+        move_to_pinger: 130
+        center_downward_camera: 60
+        target_color: 55
