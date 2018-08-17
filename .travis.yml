@@ -22,9 +22,9 @@ services:
     - docker
 
 before_install:
-    - mkdir -p /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/ca.crt
-    - wget robosub.eecs.wsu.edu/docker/ca.crt -O /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/ca.crt
-    - docker pull robosub.eecs.wsu.edu:443/robosub
+    - sudo mkdir -p /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/ca.crt
+    - sudo wget robosub.eecs.wsu.edu/docker/ca.crt -O /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/ca.crt
+    - sudo docker pull robosub.eecs.wsu.edu:443/robosub
 
 install:
     - if [ "$TEST" == "true" ]; then echo "TEST=true\n" >> env.list; fi
