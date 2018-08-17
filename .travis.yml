@@ -24,12 +24,14 @@ services:
 before_install:
     - sudo mkdir -p /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/
     - sudo wget robosub.eecs.wsu.edu/docker/ca.crt -O /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/ca.crt
+    - echo "Pulling image..."
     - sudo docker pull robosub.eecs.wsu.edu:443/robosub
+    - sudo docker tag robosub.eecs.wsu.edu:443/robosub robosub
 
 install:
-    - if [ "$TEST" == "true" ]; then echo "TEST=true\n" >> env.list; fi
-    - if [ "$BUILD" == "true" ]; then echo "BUILD=true\n" >> env.list; fi
-    - if [ "$LINT" == "true" ]; then echo "LINT=true\n" >> env.list; fi
+    - if [ "$TEST" == "true" ]; then echo "TEST=true" >> env.list; fi
+    - if [ "$BUILD" == "true" ]; then echo "BUILD=true" >> env.list; fi
+    - if [ "$LINT" == "true" ]; then echo "LINT=true" >> env.list; fi
     - echo "ROBOSUB_HASH=${TRAVIS_COMMIT}" >> env.list;
     - cat env.list;
 
