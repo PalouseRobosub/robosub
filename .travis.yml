@@ -31,8 +31,10 @@ install:
     - if [ "$BUILD" == "true" ]; then echo "BUILD=true\n" >> env.list; fi
     - if [ "$LINT" == "true" ]; then echo "LINT=true\n" >> env.list; fi
     - echo "ROBOSUB_HASH=${TRAVIS_COMMIT}" >> env.list;
+    - cat env.list;
 
 script:
+    - echo "Staring build...";
     - docker run --env-file env.list robosub
 
 matrix:
