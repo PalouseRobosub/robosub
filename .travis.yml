@@ -22,7 +22,7 @@ services:
     - docker
 
 before_install:
-    - sudo mkdir -p /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/ca.crt
+    - sudo mkdir -p /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/
     - sudo wget robosub.eecs.wsu.edu/docker/ca.crt -O /etc/docker/certs.d/robosub.eecs.wsu.edu\:443/ca.crt
     - sudo docker pull robosub.eecs.wsu.edu:443/robosub
 
