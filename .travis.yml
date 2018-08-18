@@ -37,7 +37,7 @@ install:
 
 script:
     - echo "Staring build...";
-    - travis_wait docker run --env-file env.list robosub
+    - docker run --env-file env.list robosub
 
 matrix:
     fast_finish: true
