@@ -1,7 +1,6 @@
 language: generic
 sudo: required
 dist: xenial
-group: deprecated-2017Q2
 
 #slack integration
 notifications:
