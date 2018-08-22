@@ -32,7 +32,7 @@ addons:
 
 #most dependencies are installed from packages, install just does simulator if needed
 install:
-  - bash ./.travis/wait_for_apt.sh
+  - bash ./.wait_for_apt.sh
   - if [ "$TEST" == "true" ] ; then sudo apt-get install robosub-simulator-kinetic; fi
 
 #build the project
