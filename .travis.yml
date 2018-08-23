@@ -14,7 +14,7 @@ notifications:
 #whitelist for branches to build
 branches:
   only:
-    - master
+    - mike/travis
     - travisci
 
 #install dependencies
@@ -30,7 +30,6 @@ addons:
     packages:
     - robosub-kinetic
 
-#most dependencies are installed from packages, install just does simulator if needed
 before_install:
   - |
      sudo systemctl stop apt-daily.service &&
@@ -38,6 +37,8 @@ before_install:
      while ! (systemctl list-units --all apt-daily.service | fgrep -q dead) ; do
        sleep 1
      done
+
+#most dependencies are installed from packages, install just does simulator if needed
 install:
   - if [ "$TEST" == "true" ] ; then sudo apt-get install robosub-simulator-kinetic; fi
 
