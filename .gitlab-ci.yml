@@ -1,0 +1,36 @@
+image: registry.gitlab.com/skallaher/robosub-docker/robosub:latest
+
+cache:
+    paths:
+        - ccache/
+
+before_script:
+    - apt-get --quiet update --yes
+    - apt-get --quiet upgrade --yes
+    - pushd ~/ros > /dev/null
+    - rsync -r /builds/skallaher/robosub src/robosub
+    - source devel/setup.bash
+    
+lint:
+    script:
+        - catkin_make roslint
+
+build:
+    script:
+        - catkin_make -j8
+
+test:
+    image: registry.gitlab.com/skallaher/robosub-docker/robosub_simulator:latest
+    script:
+        - catkin_make run_tests
+        - catkin_test_results
+    after_script:
+        - rsync -r ~/.ros/log/latest/* $CI_PROJECT_DIR/log
+        - rsync -r ~/ros/build/test_results/* $CI_PROJECT_DIR/test_results
+    artifacts:
+        name: "$CI_COMMIT_REF_SLUG-artifacts"
+        paths:
+            - log/
+            - test_results/
+        expire_in: 1 week
+        when: on_failure
