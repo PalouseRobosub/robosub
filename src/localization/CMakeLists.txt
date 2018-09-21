@@ -15,3 +15,5 @@ add_dependencies(obstacle_map ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPOR
 
 add_ros_node(localization localization.cpp)
 target_link_libraries(localization localization_system particle_filter lin_accel_kalman_filter robosub_sensors ${catkin_LIBRARIES})
+
+add_subdirectory(test)

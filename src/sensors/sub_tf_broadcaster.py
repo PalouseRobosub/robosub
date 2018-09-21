@@ -5,7 +5,7 @@ import tf
 import tf2_ros
 from geometry_msgs.msg import QuaternionStamped, TransformStamped, \
                                 Quaternion, PointStamped, Point
-from robosub.msg import Float32Stamped
+from robosub_msgs.msg import Float32Stamped
 
 class Node():
     def __init__(self, child_frame):
