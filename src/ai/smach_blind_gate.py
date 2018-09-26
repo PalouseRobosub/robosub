@@ -9,7 +9,7 @@ from tf.transformations import euler_from_quaternion
 from SubscribeState import SubscribeState
 from geometry_msgs.msg import QuaternionStamped
 from control_wrapper import control_wrapper
-
+import math
 class take_heading(SubscribeState):
     def __init__(self):
         SubscribeState.__init__(self, "orientation", QuaternionStamped, self.callback, outcomes=['success'],  output_keys=['heading_output'])
@@ -21,7 +21,7 @@ class take_heading(SubscribeState):
         quaternion = msg.quaternion
         quaternion = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
         euler = euler_from_quaternion(quaternion)
-        yaw = euler[2]
+        yaw = euler[2]*180/math.pi
         userdata.heading_output = yaw
         self.exit("success")
 
@@ -33,10 +33,12 @@ class rotate_to_heading(SubscribeState):
         #get current heading
         #check if current heading is facing the gate
         #continue turning if not facing the gate
+       
         quaternion = msg.quaternion
         quaternion = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
         euler = euler_from_quaternion(quaternion)
-        yaw = euler[2]
+        yaw = euler[2]*180/math.pi
+        print(yaw, userdata.heading_input)
         if abs(yaw-userdata.heading_input) < 2:
             self.exit("success")
 
