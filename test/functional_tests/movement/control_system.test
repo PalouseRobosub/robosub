@@ -7,6 +7,7 @@
     
     <include file="$(find robosub_simulator)/launch/gazebo.launch">
         <arg name="gui" value="false"/>
+        <arg name="fake_net" value="false"/>
     </include>
 
     <node pkg="robosub" type="test_control_keep_alive" name="control_keep_alive"/>

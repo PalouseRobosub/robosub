@@ -6,6 +6,7 @@
 
   <include file="$(find robosub_simulator)/launch/gazebo.launch">
     <arg name="gui" value="false"/>
+    <arg name="fake_net" value="false"/>
   </include>
 
   <include file="$(find robosub)/launch/localization.launch"/>
