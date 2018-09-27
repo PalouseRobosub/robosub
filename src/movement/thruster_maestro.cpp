@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
     if(!n.getParam("ports/thruster", thruster_port))
     {
-        ROS_FATAL("no serial port specified, exiting!");
+        ROS_FATAL("No serial port specified, exiting!");
         exit(1);
     }
 

@@ -14,6 +14,3 @@ target_link_libraries(serial_subscriber_example serial)
 add_ros_node(serial_publisher_example serial_publisher.cpp)
 target_link_libraries(serial_publisher_example serial)
 
-
-#add test directory
-add_subdirectory(test)

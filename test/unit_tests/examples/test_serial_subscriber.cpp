@@ -44,6 +44,7 @@ TEST(SerialSubscriber, basicTest)
 
         //compare and make sure the value recieved is equal to the value sent
         EXPECT_EQ(thruster_msg.data[i], serial_data[0]);
+        ROS_INFO_STREAM("Correctly sent data " << i);
     }
 }
 
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
     //set the value of the thruster_serial_port parameter, the UUT will read
     //this variable so it knows what serial port to open
     ros::param::set("thruster_serial_port", UUT_port);
-
+    
     //open our serial port
     mSerial.Open(testing_port.c_str(), B9600);
 

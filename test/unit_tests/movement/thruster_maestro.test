@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
     <test test-name="test_thruster_maestro" pkg="robosub" type="test_thruster_maestro" />
 

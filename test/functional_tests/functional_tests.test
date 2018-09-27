@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <include file="$(find robosub_simulator)/launch/gazebo.launch">
-        <arg name="gui" value="false"/>
-    </include>
-
-    <include file="$(find robosub)/test/functional_tests/movement/control_system.test"/>
-    <include file="$(find robosub)/test/functional_tests/localization/localizationHz.test"/>
-</launch>

@@ -17,6 +17,7 @@ double get_roll_data(const robosub_msgs::Euler::ConstPtr& msg)
 }
 TEST(ControlSystem, roll)
 {
+    ROS_DEBUG("Starting roll test");
     double test_roll = 25;
     double overshoot_allowed = 3;
     double average_threshold = 2.0;
@@ -59,6 +60,7 @@ TEST(ControlSystem, roll)
 
     //confirm we didn't roll too far
     EXPECT_LT(analyzer.GetMax(), test_roll + overshoot_allowed);
+    //EXPECT_GT(analyzer.GetAverage(), test_roll - overshoot_allowed);
 
     ROS_INFO("maintaining roll to check steady-state oscillation...");
     analyzer.ClearData();
@@ -85,6 +87,7 @@ double get_pitch_data(const robosub_msgs::Euler::ConstPtr& msg)
 }
 TEST(ControlSystem, pitch)
 {
+    ROS_DEBUG("Starting pitch test");
     double test_pitch = 15;
     double overshoot_allowed = 2.5;
     double average_threshold = 2.0;
@@ -127,9 +130,11 @@ TEST(ControlSystem, pitch)
 
     //confirm we didn't pitch too far
     EXPECT_LT(analyzer.GetMax(), test_pitch + overshoot_allowed);
+    //EXPECT_GT(analyzer.GetAverage(), test_pitch - overshoot_allowed);
 
-    ROS_INFO("maintaining pitch to check steady-state oscillation...");
+    ROS_INFO("Maintaining pitch to check steady-state oscillation...");
     analyzer.ClearData();
+    ROS_INFO("Start collecting data.");
     analyzer.Start();
     //wait for 10 seconds to measure wiggle
     exit_time = ros::Time::now() + ros::Duration(10);
@@ -138,6 +143,7 @@ TEST(ControlSystem, pitch)
         ros::spinOnce();
         ros::Duration(0.01).sleep();
     }
+    ROS_INFO("Stopping analysis");
     analyzer.Stop();
 
     //confirm pitch is stable
@@ -153,6 +159,7 @@ double get_yaw_data(const robosub_msgs::Euler::ConstPtr& msg)
 }
 TEST(ControlSystem, yaw)
 {
+    ROS_DEBUG("Starting yaw test");
     double test_yaw = 180;
     double overshoot_allowed = 18.0;
     double average_threshold = 4.0;
@@ -195,6 +202,7 @@ TEST(ControlSystem, yaw)
 
     //confirm we didn't yaw too far
     EXPECT_LT(analyzer.GetMax(), test_yaw + overshoot_allowed);
+    //EXPECT_GT(analyzer.GetAverage(), test_yaw - overshoot_allowed);
 
     ROS_INFO("maintaining yaw to check steady-state oscillation...");
     analyzer.ClearData();
@@ -223,6 +231,7 @@ double get_depth_data(const robosub_msgs::Float32Stamped::ConstPtr& msg)
 
 TEST(ControlSystem, depth)
 {
+    ROS_DEBUG("Starting depth test");
     double test_depth = -3;
     double overshoot_allowed  = 0.3;
     double average_threshold = 0.1;
@@ -253,7 +262,7 @@ TEST(ControlSystem, depth)
     pub.publish(msg);
     analyzer.Start();
 
-    ROS_INFO("diving to depth");
+    ROS_INFO("Diving to depth");
     //wait for the sub to reach its depth
     ros::Time exit_time = ros::Time::now() + ros::Duration(10);
     while (ros::Time::now() < exit_time)
@@ -265,8 +274,9 @@ TEST(ControlSystem, depth)
 
     //confirm we didn't dive too deep
     EXPECT_LT(test_depth - overshoot_allowed, analyzer.GetMin());
+    //EXPECT_GT(test_depth + overshoot_allowed, analyzer.GetAverage());
 
-    ROS_INFO("maintaining depth to check steady-state oscillation...");
+    ROS_INFO("Maintaining depth to check steady-state oscillation...");
     analyzer.ClearData();
     analyzer.Start();
     //wait for 10 seconds to measure wiggle
@@ -279,6 +289,8 @@ TEST(ControlSystem, depth)
     analyzer.Stop();
 
     //confirm depth is stable
+    ROS_INFO_STREAM("Depth Average: " << analyzer.GetAverage());
+    ROS_INFO_STREAM("Depth STD Dev: " << analyzer.GetStandardDeviation());
     EXPECT_NEAR(test_depth, analyzer.GetAverage(), average_threshold);
     EXPECT_LT(analyzer.GetStandardDeviation(), std_dev_allowed);
 }
@@ -320,6 +332,8 @@ int main(int argc, char *argv[])
         ros::spinOnce();
         ros::Duration(0.01).sleep();
     }
+
+    ROS_INFO("Took 10 seconds to get to depth. Starting tests.");
 
     return RUN_ALL_TESTS();
 }

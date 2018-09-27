@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-
-<launch>
-    <include file="$(find robosub)/test/unit_tests/movement/thruster_maestro.test"/>
-</launch>

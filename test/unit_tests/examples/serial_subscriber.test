@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
     <test test-name="test_serial_subscriber" pkg="robosub" type="test_serial_subscriber" />
 
