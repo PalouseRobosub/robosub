@@ -2,5 +2,5 @@
     <test test-name="test_thruster_maestro" pkg="robosub" type="test_thruster_maestro" />
 
     <node name="maestro_node" pkg="robosub" type="thruster_maestro" launch-prefix="$(find robosub)/scripts/sleepme.sh 3"/>
-      <rosparam command="load" file="$(find robosub)/param/cobalt.yaml" />
+    <rosparam command="load" file="$(find robosub)/param/cobalt.yaml" />
 </launch>
