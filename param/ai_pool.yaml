@@ -44,7 +44,3 @@ ai:
         forward_speed: 5
     move_forward_single:
         distanceGoal: 0.007
-    #TODO test blind_gate_task values
-    blind_gate_task:
-        forward_time: 10 # number of seconds to mve forward
-        forward_speed: 6.0 # speed to move forward
