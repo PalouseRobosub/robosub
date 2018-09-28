@@ -28,11 +28,11 @@ class take_heading(SubscribeState):
         self.exit("success")
 
 class rotate_to_heading(SubscribeState):
-    def __init__(self, yaw_error):
+    def __init__(self):
         SubscribeState.__init__(self, "orientation", QuaternionStamped,
                                 self.callback, outcomes=['success'],
                                 input_keys=['heading_input'])
-        self.yaw_error = yaw_error
+        self.yaw_error = rospy.get_param("ai/blind_gate_task/yaw_error")
 
     def callback(self, msg, userdata):
         # get current heading
@@ -59,7 +59,6 @@ class blind_gate_task(smach.StateMachine):
         # these variables will not be found without using rosparam load ai.yaml
         self.time = rospy.get_param("ai/blind_gate_task/forward_time")
         self.speed = rospy.get_param("ai/blind_gate_task/forward_speed")
-        self.yaw_error = rospy.get_param("ai/blind_gate_task/yaw_error")
 
         with self:
             smach.StateMachine.add('TAKE_HEADING', take_heading(),
@@ -69,8 +68,7 @@ class blind_gate_task(smach.StateMachine):
             smach.StateMachine.add('START_SWITCH', start_switch(),
                                    transitions={'success': 'ROTATE_TO_HEADING'})
 
-            smach.StateMachine.add('ROTATE_TO_HEADING',
-                                   rotate_to_heading(self.yaw_error),
+            smach.StateMachine.add('ROTATE_TO_HEADING', rotate_to_heading(),
                                    transitions={'success': 'MOVE_FORWARD'},
                                    remapping={'heading_input': 'heading'})
 
