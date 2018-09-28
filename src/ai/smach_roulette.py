@@ -1,8 +1,10 @@
 #!/usr/bin/python
+import rospy
 import smach
 import smach_ros
 from start_switch import start_switch
-import roulette_states
+from roulette_states import *
+from basic_states import *
 
 class RouletteTask(smach.StateMachine):
     """Main roulette state task."""
@@ -13,7 +15,7 @@ class RouletteTask(smach.StateMachine):
 
         with self:
             # First, dive to a certain depth and search for the pinger.
-            smach.StateMachine.add('DIVE_PINGER', basic_states.GoToDepth(1.0),
+            smach.StateMachine.add('DIVE_PINGER', GoToDepth(1.0),
                     transitions={'success': 'FIND_PINGER',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
@@ -23,7 +25,7 @@ class RouletteTask(smach.StateMachine):
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
-            smach.StateMachine.add('STABILIZE', basic_states.Stabilize(),
+            smach.StateMachine.add('STABILIZE', Stabilize(),
                     transitions={'success': 'LOCATE_ROULETTE',
                                  'fail': 'fail',
                                  'timeout': 'LOCATE_ROULETTE'})
@@ -34,7 +36,7 @@ class RouletteTask(smach.StateMachine):
                                  'fail': 'fail'})
 
             # Now, dive lower and center above the desired color.
-            smach.StateMachine.add('DIVE_TARGET', basic_states.GoToDepth(3),
+            smach.StateMachine.add('DIVE_TARGET', GoToDepth(3),
                     transitions={'success': 'CENTER_TARGET',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
@@ -46,7 +48,7 @@ class RouletteTask(smach.StateMachine):
 
             # Finally, drop the marker.
             smach.StateMachine.add('DROP_TARGET',
-                    basic_states.DropMarker(),
+                    DropMarker(),
                     transitions={'success': 'success'})
 
 if __name__ == '__main__':
