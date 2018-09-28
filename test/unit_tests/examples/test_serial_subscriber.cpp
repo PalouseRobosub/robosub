@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
     //set the value of the thruster_serial_port parameter, the UUT will read
     //this variable so it knows what serial port to open
     ros::param::set("thruster_serial_port", UUT_port);
-    
+
     //open our serial port
     mSerial.Open(testing_port.c_str(), B9600);
 
