@@ -12,12 +12,14 @@ from control_wrapper import control_wrapper
 import math
 class take_heading(SubscribeState):
     def __init__(self):
-        SubscribeState.__init__(self, "orientation", QuaternionStamped, self.callback, outcomes=['success'],  output_keys=['heading_output'])
+        SubscribeState.__init__(self, "orientation", QuaternionStamped,
+                                self.callback, outcomes=['success'],
+                                output_keys=['heading_output'])
 
     def callback(self, msg, userdata):
-        #get heading
-        #convert to yaw
-        #output yaw
+        # get heading
+        # convert to yaw
+        # output yaw
         quaternion = msg.quaternion
         quaternion = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
         euler = euler_from_quaternion(quaternion)
@@ -27,13 +29,15 @@ class take_heading(SubscribeState):
 
 class rotate_to_heading(SubscribeState):
     def __init__(self):
-        SubscribeState.__init__(self, "orientation", QuaternionStamped, self.callback, outcomes=['success'], input_keys=['heading_input'])
+        SubscribeState.__init__(self, "orientation", QuaternionStamped,
+                                self.callback, outcomes=['success'],
+                                input_keys=['heading_input'])
 
     def callback(self, msg, userdata):
-        #get current heading
-        #check if current heading is facing the gate
-        #continue turning if not facing the gate
-       
+        # get current heading
+        # check if current heading is facing the gate
+        # continue turning if not facing the gate
+
         quaternion = msg.quaternion
         quaternion = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
         euler = euler_from_quaternion(quaternion)
@@ -45,23 +49,31 @@ class rotate_to_heading(SubscribeState):
         c.levelOut()
         c.yawLeftAbsolute(userdata.heading_input)
         c.publish()
-        
+
 
 class blind_gate_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
+        # these variables will not be found without using rosparam load ai.yaml
         self.time = rospy.get_param("ai/blind_gate_task/forward_time")
         self.speed = rospy.get_param("ai/blind_gate_task/forward_speed")
 
         with self:
-            smach.StateMachine.add('TAKE_HEADING', take_heading(), transitions={'success': 'START_SWITCH'}, remapping={'heading_output': 'heading'})
+            smach.StateMachine.add('TAKE_HEADING', take_heading(),
+                                   transitions={'success': 'START_SWITCH'},
+                                   remapping={'heading_output': 'heading'})
 
-            smach.StateMachine.add('START_SWITCH', start_switch(), transitions={'success': 'ROTATE_TO_HEADING'})
+            smach.StateMachine.add('START_SWITCH', start_switch(),
+                                   transitions={'success': 'ROTATE_TO_HEADING'})
 
-            smach.StateMachine.add('ROTATE_TO_HEADING', rotate_to_heading(), transitions={'success': 'MOVE_FORWARD'}, remapping={'heading_input': 'heading'})
+            smach.StateMachine.add('ROTATE_TO_HEADING', rotate_to_heading(),
+                                   transitions={'success': 'MOVE_FORWARD'},
+                                   remapping={'heading_input': 'heading'})
 
-            smach.StateMachine.add('MOVE_FORWARD', move_forward(self.time, self.speed), transitions={'success': 'success'})
+            smach.StateMachine.add('MOVE_FORWARD',
+                                   move_forward(self.time, self.speed),
+                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
     rospy.init_node('ai')
@@ -71,7 +83,8 @@ if __name__ == '__main__':
 
     sm = smach.StateMachine(outcomes=['success'])
     with sm:
-        smach.StateMachine.add('BLIND_GATE_TASK', blind_gate_task(), transitions={'success': 'success'})
+        smach.StateMachine.add('BLIND_GATE_TASK', blind_gate_task(),
+                               transitions={'success': 'success'})
 
     sis = smach_ros.IntrospectionServer('smach_server', sm, '/SM_ROOT')
     sis.start()
