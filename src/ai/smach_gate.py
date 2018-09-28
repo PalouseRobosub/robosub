@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import rospy
 from blind_movement import move_forward
-from gate_util import *
+from gate_states import *
 from start_switch import start_switch
 import smach
 import smach_ros
