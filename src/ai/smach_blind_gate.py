@@ -38,11 +38,11 @@ class rotate_to_heading(SubscribeState):
         quaternion = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
         euler = euler_from_quaternion(quaternion)
         yaw = euler[2]*180/math.pi
-        print(yaw, userdata.heading_input)
         if abs(yaw-userdata.heading_input) < 2:
             self.exit("success")
 
         c = control_wrapper()
+        c.levelOut()
         c.yawLeftAbsolute(userdata.heading_input)
         c.publish()
         
@@ -51,10 +51,8 @@ class blind_gate_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
-
-        #TODO make these ros params
-        self.time = 10
-        self.speed = 100
+        self.time = rospy.get_param("ai/blind_gate_task/forward_time")
+        self.speed = rospy.get_param("ai/blind_gate_task/forward_speed")
 
         with self:
             smach.StateMachine.add('TAKE_HEADING', take_heading(), transitions={'success': 'START_SWITCH'}, remapping={'heading_output': 'heading'})
