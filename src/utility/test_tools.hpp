@@ -39,9 +39,9 @@ private:
 };
 
 
-void wait_for_param(const char *param_name, int timeout_seconds);
-void wait_for_subscriber(ros::Publisher pub, int timeout_seconds);
-void wait_for_publisher(ros::Subscriber pub, int timeout_seconds);
+void wait_for_param(const char *param_name, int timeout_seconds=-1);
+void wait_for_subscriber(ros::Publisher pub, int timeout_seconds=-1);
+void wait_for_publisher(ros::Subscriber pub, int timeout_seconds=-1);
 
 
 //this class is meant to easy testing nodes, it acquires and holds onto

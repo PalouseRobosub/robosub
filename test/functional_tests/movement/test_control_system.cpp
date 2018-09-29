@@ -304,7 +304,8 @@ int main(int argc, char *argv[])
 
     pub = n.advertise<robosub_msgs::control>("control", 1);
 
-    rs::wait_for_subscriber(pub, 5);
+    ROS_INFO("Waiting for control subscriber...");
+    rs::wait_for_subscriber(pub, -1);
 
     robosub_msgs::control msg;
 
