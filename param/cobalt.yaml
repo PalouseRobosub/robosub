@@ -135,7 +135,7 @@ control:
         translation: 0.5
     buoyancy_offset: -2.0
 depth:
-    offset: 0.75
+    offset: -0.25
 temperature:
     oversampling: 25
 trax:

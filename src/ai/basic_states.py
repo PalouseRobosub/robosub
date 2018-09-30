@@ -248,6 +248,9 @@ class GoToDepth(SubscribeState):
         """Callback for ROS depth messages."""
         c = control_wrapper.control_wrapper()
         c.diveAbsolute(self.depth)
+        c.strafeLeftError(0.0)
+        c.yawLeftError(0.0)
+        c.forwardError(0.0)
         c.levelOut()
         c.publish()
 

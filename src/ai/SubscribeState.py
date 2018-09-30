@@ -60,6 +60,68 @@ class SubscribeState(smach.State):
         return self._outcome
 
 
+class MultiSubscribeState(smach.State):
+    def __init__(self, topics, msg_types, sub_callbacks, outcomes, input_keys=[],
+                output_keys=[], setup_callback=None, timeout=None,
+                poll_rate=10):
+        rospy.logdebug('base class "init" running')
+        if timeout is not None and 'timeout' not in outcomes:
+            outcomes.append('timeout')
+
+        smach.State.__init__(self, outcomes=outcomes,
+                            input_keys=input_keys, output_keys=output_keys)
+        self._topics = topics
+        self._msg_types = msg_types
+        self._sub_callbacks = sub_callbacks
+        if timeout is not None:
+            self._timeout = rospy.Duration(timeout)
+        else:
+            self._timeout = None
+
+        self._setup_callback = setup_callback
+        self._outcome = None
+        self._done = False
+        self._poll_rate = rospy.Rate(poll_rate)
+
+    def exit(self, outcome):
+        self._done = True
+        self._outcome = outcome
+
+    def execute(self, user_data):
+        rospy.logdebug('SubscribeState base class "execute" running')
+        self._done = False
+        self._outcome = None
+
+        self._subs = []
+        for topic, msg_type, sub_callback in zip(self._topics, self._msg_types, self._sub_callbacks):
+            print('creating subscriber: {} {} {}'.format(topic, msg_type, sub_callback))
+            sub = rospy.Subscriber(topic, msg_type,
+                                    sub_callback,
+                                    callback_args=user_data)
+            self._subs.append(sub)
+        print ('created list of subscribers')
+        print (self._subs)
+
+        if self._setup_callback:
+            self._setup_callback()
+
+        start_time = rospy.Time.now()
+
+        while not rospy.is_shutdown():
+            if self._timeout and rospy.Time.now() - start_time > self._timeout:
+                self._outcome = 'timeout'
+                break
+            if self._done is True:
+                break
+            else:
+                self._poll_rate.sleep()
+
+        for sub in self._subs:
+            sub.unregister()
+
+        return self._outcome
+
+
 class SynchronousSubscribeState(smach.State):
     def __init__(self, topic, msg_type, topic2, msg_type2, time, sub_callback,
                  outcomes, input_keys=[], output_keys=[], setup_callback=None,
@@ -95,7 +157,7 @@ class SynchronousSubscribeState(smach.State):
 
 
     def execute(self, user_data):
-        rospy.logdebug('SynchronousSubscribeState base class "execute" running')
+        rospy.loginfo('SynchronousSubscribeState base class "execute" running')
         self._done = False
         self._outcome = None
         self._user_data = user_data
@@ -103,9 +165,11 @@ class SynchronousSubscribeState(smach.State):
         self._sub1 = message_filters.Subscriber(self._topic1, self._msg_type1)
         self._sub2 = message_filters.Subscriber(self._topic2, self._msg_type2)
 
+        rospy.loginfo('registering approixmate time synchronizer')
         self._sub = message_filters.ApproximateTimeSynchronizer(
                 [self._sub1, self._sub2], 10, self._sync_time)
-        self._sub.registerCallback(self._sync_callback)
+        rospy.loginfo(self._sub.registerCallback(self._sync_callback))
+        rospy.loginfo('finished registering approximate time synchronizer {}'.format(self._sub))
 
         if self._setup_callback:
             self._setup_callback()
