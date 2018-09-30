@@ -44,3 +44,8 @@ ai:
         forward_speed: 5
     move_forward_single:
         distanceGoal: 0.007
+    blind_gate_task:
+        forward_time: 25 # number of seconds to move forward
+        forward_speed: 6.0 # speed to move forward
+        yaw_error: 2 # yaw error in degrees that will be tolerated
+
