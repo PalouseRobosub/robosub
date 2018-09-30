@@ -4,7 +4,6 @@ Date: 1-2-2018
 
 Description: Describes a number of basic Smach states for AI development.
 """
-import control_wrapper
 import numpy as np
 import rospy
 import smach
@@ -15,7 +14,9 @@ from geometry_msgs.msg import QuaternionStamped
 from robosub_msgs.msg import Float32Stamped, DetectionArray, Detection
 from std_srvs.srv import Empty
 from SubscribeState import SubscribeState
-
+from tf.transformations import euler_from_quaternion
+from control_wrapper import control_wrapper
+import math
 
 class Stabilize(SubscribeState):
     """Waits a specified timeout to check for stable tilt.
@@ -65,7 +66,7 @@ class Stabilize(SubscribeState):
             if rospy.get_time() > self.stable_timeout:
                 self.exit('success')
 
-        c = control_wrapper.control_wrapper()
+        c = control_wrapper()
         c.levelOut()
         c.strafeLeftError(0)
         c.forwardError(0)
@@ -97,7 +98,7 @@ class BlindStrafe(smach.State):
 
     def execute(self, user_data):
         """Executes the SMACH state."""
-        c = control_wrapper.control_wrapper()
+        c = control_wrapper()
         c.levelOut()
         c.strafeLeftError(self.speed)
 
@@ -142,7 +143,7 @@ class BlindRam(smach.State):
 
     def execute(self, user_data):
         """Executes the SMACH state."""
-        c = control_wrapper.control_wrapper()
+        c = control_wrapper()
         c.levelOut()
         c.forwardError(self.speed)
 
@@ -202,7 +203,7 @@ class YawRelative(SubscribeState):
 
         if self.target_yaw is None:
             self.target_yaw = util.wrap_yaw(yaw + user_data.yaw_left)
-            c = control_wrapper.control_wrapper()
+            c = control_wrapper()
             c.levelOut()
             c.yawLeftRelative(user_data.yaw_left)
             c.forwardError(0)
@@ -210,7 +211,7 @@ class YawRelative(SubscribeState):
             c.publish()
             return
 
-        c = control_wrapper.control_wrapper()
+        c = control_wrapper()
         c.publish()
         if abs(util.wrap_yaw(self.target_yaw - yaw)) < self.max_error:
             self.exit('success')
@@ -246,7 +247,7 @@ class GoToDepth(SubscribeState):
 
     def depth_callback(self, depth_msg, user_data):
         """Callback for ROS depth messages."""
-        c = control_wrapper.control_wrapper()
+        c = control_wrapper()
         c.diveAbsolute(self.depth)
         c.levelOut()
         c.publish()
@@ -294,7 +295,7 @@ class LocateObject(SubscribeState):
                 self.label)
         detection = util.getMostProbable(relevent_detections)
 
-        c = control_wrapper.control_wrapper()
+        c = control_wrapper()
         c.levelOut()
         if detection is None:
             rospy.logdebug('{} was not found. Searching left {} '
@@ -357,3 +358,48 @@ class DropMarker(smach.State):
         rospy.loginfo('Dropping marker.')
         service()
         return 'success'
+
+
+class take_heading_yaw(SubscribeState):
+    """Takes heading from orientation, converts it into yaw and transfers it
+    to another state"""
+    def __init__(self):
+        SubscribeState.__init__(self, "orientation", QuaternionStamped,
+                                self.callback, outcomes=['success'],
+                                output_keys=['heading_output'])
+
+    def callback(self, msg, userdata):
+        # get heading
+        # convert to yaw
+        # output yaw
+        quaternion = msg.quaternion
+        quaternion = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+        euler = euler_from_quaternion(quaternion)
+        yaw = euler[2]*180/math.pi
+        userdata.heading_output = yaw
+        self.exit("success")
+
+class rotate_to_heading(SubscribeState):
+    """Yaw to the specific angle."""
+    def __init__(self):
+        SubscribeState.__init__(self, "orientation", QuaternionStamped,
+                                self.callback, outcomes=['success'],
+                                input_keys=['heading_input'])
+        self.yaw_error = rospy.get_param("ai/blind_gate_task/yaw_error")
+
+    def callback(self, msg, userdata):
+        # get current heading
+        # check if current heading is facing the gate
+        # continue turning if not facing the gate
+
+        quaternion = msg.quaternion
+        quaternion = (quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+        euler = euler_from_quaternion(quaternion)
+        yaw = euler[2]*180/math.pi
+        if abs(yaw-userdata.heading_input) < self.yaw_error:
+            self.exit("success")
+
+        c = control_wrapper()
+        c.levelOut()
+        c.yawLeftAbsolute(userdata.heading_input)
+        c.publish()
