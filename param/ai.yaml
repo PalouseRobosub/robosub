@@ -42,6 +42,11 @@ ai:
         time: 5.5
         yaw_relative: 60
         forward_speed: 4
+    #TODO test blind_gate_task values
+    blind_gate_task:
+        forward_time: 10 # number of seconds to move forward
+        forward_speed: 6.0 # speed to move forward
+        yaw_error: 2 # yaw error in degrees that will be tolerated
 # roulette wheel AI variables. They are all time in seconds
     roulette_wheel:
         stabilize: 15
