@@ -51,10 +51,10 @@ ai:
 
 # roulette wheel AI variables. They are all time in seconds
     roulette_wheel:
-        stabilize: 25
-        yaw_relative: 40
-        go_to_depth: 20
-        locate_object: 40
-        move_to_pinger: 130
-        center_downward_camera: 60
-        target_color: 55
+        stabilize_timeout: 25
+        yaw_relative_timeout: 40
+        go_to_depth_timeout: 20
+        locate_object_timeout: 40
+        move_to_pinger_timeout: 130
+        center_downward_camera_timeout: 60
+        target_color_timeout: 55
