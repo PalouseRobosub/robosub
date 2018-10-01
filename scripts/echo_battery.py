@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from robosub.msg import BatteryDetailed
+from robosub_msgs.msg import BatteryDetailed
 from datetime import timedelta
 
 '''

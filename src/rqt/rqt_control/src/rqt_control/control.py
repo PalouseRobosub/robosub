@@ -14,7 +14,7 @@ try:
 except ImportError:
     from python_qt_binding.QtWidgets import QWidget
 
-from robosub.msg import control, control_status
+from robosub_msgs.msg import control, control_status
 
 state_types = {
     0: "NONE",

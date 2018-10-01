@@ -17,9 +17,9 @@ except ImportError:
 from python_qt_binding.QtCore import QTimer
 
 # Import Messages
-from robosub.msg import thruster
-from robosub.msg import Float32Stamped
-from robosub.msg import Euler
+from robosub_msgs.msg import thruster
+from robosub_msgs.msg import Float32Stamped
+from robosub_msgs.msg import Euler
 
 class SysCheck(Plugin):
 

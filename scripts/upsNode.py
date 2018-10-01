@@ -2,7 +2,7 @@
 
 import PyNUT
 import rospy
-from robosub.msg import BatteryDetailed
+from robosub_msgs.msg import BatteryDetailed
 
 def upsDataToChargeStatus(status):
     statuses = status.split()  # Split on spaces

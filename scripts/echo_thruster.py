@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from robosub.msg import thruster
+from robosub_msgs.msg import thruster
 from std_msgs.msg import Float64
 
 '''
