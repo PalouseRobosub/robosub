@@ -10,7 +10,7 @@ import smach_ros
 class gate_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
-        self.time = rospy.get_param("ai/gate_task/forward_time")
+        self.time = rospy.get_param("ai/gate_task/forward_time_seconds")
         self.speed = rospy.get_param("ai/gate_task/forward_speed")
 
         with self:
