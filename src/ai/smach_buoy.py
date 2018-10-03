@@ -2,7 +2,7 @@
 import rospy
 import smach
 import smach_ros
-import buoy_states as buoy_states
+import buoy_states
 from start_switch import start_switch
 from blind_movement import move_forward
 

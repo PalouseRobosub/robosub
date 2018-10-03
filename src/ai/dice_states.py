@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import basic_states 
+import basic_states
 import control_wrapper
 import numpy as np
 import rospy
@@ -9,7 +9,6 @@ import tf
 
 from SubscribeState import SubscribeState
 from robosub_msgs.msg import ObstaclePosArray
-
 
 class GetTargetAngle(SubscribeState):
     """Finds the closest dice target and determines the best angle of approach.
