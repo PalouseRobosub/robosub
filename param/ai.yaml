@@ -49,10 +49,10 @@ ai:
         yaw_error: 2 # yaw error in degrees that will be tolerated
 # roulette wheel AI variables. They are all time in seconds
     roulette_wheel:
-        stabilize_timeout: 15
-        yaw_relative_timeout: 30
-        go_to_depth_timeout: 10
-        locate_object_timeout: 30
-        move_to_pinger_timeout: 120
-        center_downward_camera_timeout: 50
-        target_color_timeout: 45
+        stabilize_timeout_sec: 15
+        yaw_relative_timeout_sec: 30
+        go_to_depth_timeout_sec: 10
+        locate_object_timeout_sec: 30
+        move_to_pinger_timeout_sec: 120
+        center_downward_camera_timeout_sec: 50
+        target_color_timeout_sec: 45

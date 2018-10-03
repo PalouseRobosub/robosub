@@ -14,36 +14,33 @@ class RouletteTask(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success', 'fail'])
 
         # Load parameters for timeout in seconds
-        self.stabilize_timeout = \
-                         rospy.get_param("ai/roulette_wheel/stabilize_timeout")
-        self.target_color_timeout = \
-                         rospy.get_param(
-                         "ai/roulette_wheel/target_color_timeout")
-        self.move_to_pinger_timeout = \
-                         rospy.get_param(
-                         "ai/roulette_wheel/move_to_pinger_timeout")
-        self.depth_timeout = \
-                         rospy.get_param(
-                         "ai/roulette_wheel/go_to_depth_timeout")
-        self.stabilize_timeout = \
-                         rospy.get_param("ai/roulette_wheel/stabilize_timeout")
+        self.stabilize_timeout_sec = \
+                rospy.get_param("ai/roulette_wheel/stabilize_timeout_sec")
+        self.target_color_timeout_sec = \
+                rospy.get_param("ai/roulette_wheel/target_color_timeout_sec")
+        self.move_to_pinger_timeout_sec = \
+                rospy.get_param("ai/roulette_wheel/move_to_pinger_timeout_sec")
+        self.depth_timeout_sec = \
+                rospy.get_param("ai/roulette_wheel/go_to_depth_timeout_sec")
+        self.stabilize_timeout_sec = \
+                rospy.get_param("ai/roulette_wheel/stabilize_timeout_sec")
 
         with self:
             # First, dive to a certain depth and search for the pinger.
             smach.StateMachine.add('DIVE_PINGER', GoToDepth(1.0,
-                                  max_duration=self.depth_timeout),
+                                  max_duration=self.depth_timeout_sec),
                     transitions={'success': 'FIND_PINGER',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
             smach.StateMachine.add('FIND_PINGER', MoveToPinger(
-                                  max_duration=self.move_to_pinger_timeout),
+                                  max_duration=self.move_to_pinger_timeout_sec),
                     transitions={'success': 'STABILIZE',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
             smach.StateMachine.add('STABILIZE', Stabilize(
-                                  max_duration=self.stabilize_timeout),
+                                  max_duration=self.stabilize_timeout_sec),
                     transitions={'success': 'LOCATE_ROULETTE',
                                  'fail': 'fail',
                                  'timeout': 'LOCATE_ROULETTE'})
@@ -55,13 +52,13 @@ class RouletteTask(smach.StateMachine):
 
             # Now, dive lower and center above the desired color.
             smach.StateMachine.add('DIVE_TARGET', GoToDepth(3,
-                                  max_duration=self.depth_timeout),
+                                  max_duration=self.depth_timeout_sec),
                     transitions={'success': 'CENTER_TARGET',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
             smach.StateMachine.add('CENTER_TARGET', TargetColor(Color.GREEN,
-                                  max_duration=self.target_color_timeout),
+                                  max_duration=self.target_color_timeout_sec),
                     transitions={'success': 'DROP_TARGET',
                                  'fail': 'fail',
                                  'timeout': 'DROP_TARGET'})
