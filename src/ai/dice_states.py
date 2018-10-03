@@ -1,12 +1,11 @@
 #!/usr/bin/python
-import basic_states
+import basic_states 
 import control_wrapper
 import numpy as np
 import rospy
 import smach
 import smach_ros
 import tf
-from start_switch import start_switch
 
 from SubscribeState import SubscribeState
 from robosub_msgs.msg import ObstaclePosArray

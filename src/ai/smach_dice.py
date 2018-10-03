@@ -6,6 +6,13 @@ Date: 1-29-2018
 Description: Complete dice AI for hitting multiple dice in order.
 """
 
+import rospy
+import smach
+import smach_ros
+import basic_states
+import dice_states 
+from start_switch import start_switch
+
 class DiceTask(smach.StateMachine):
     """ Smach state machine for the dice task.
 
@@ -27,12 +34,14 @@ class DiceTask(smach.StateMachine):
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
-            smach.StateMachine.add('INITIAL_DISTANCE', SetDistance(2.5),
+            smach.StateMachine.add('INITIAL_DISTANCE',
+                    dice_states.SetDistance(2.5),
                     transitions={'success': 'CHECK_CLOSEST_FIRST',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
-            smach.StateMachine.add('CHECK_CLOSEST_FIRST', CheckClosest(),
+            smach.StateMachine.add('CHECK_CLOSEST_FIRST',
+                    dice_states.CheckClosest(),
                     transitions={'success': 'RAM_DICE_FIRST',
                                  'none': 'ROTATE_LEFT_AROUND_FIRST',
                                  'fail': 'fail'},
@@ -40,17 +49,18 @@ class DiceTask(smach.StateMachine):
                                'target': 'target'})
 
             smach.StateMachine.add('ROTATE_LEFT_AROUND_FIRST',
-                    RotateLeftAround(rotation, strafe_duration),
+                    dice_states.RotateLeftAround(rotation, strafe_duration),
                     transitions={'success': 'CHECK_CLOSEST_FIRST',
                                  'fail': 'fail'})
 
-            smach.StateMachine.add('RAM_DICE_FIRST', RamDice(),
+            smach.StateMachine.add('RAM_DICE_FIRST', dice_states.RamDice(),
                     transitions={'hit': 'CHECK_CLOSEST_SECOND',
                                  'fail': 'ROTATE_LEFT_AROUND_FIRST'},
                     remapping={'target': 'target',
                                'next_targets': 'options'})
 
-            smach.StateMachine.add('CHECK_CLOSEST_SECOND', CheckClosest(),
+            smach.StateMachine.add('CHECK_CLOSEST_SECOND',
+                    dice_states.CheckClosest(),
                     transitions={'success': 'RAM_DICE_SECOND',
                                  'none': 'ROTATE_LEFT_AROUND_SECOND',
                                  'fail': 'fail'},
@@ -58,11 +68,12 @@ class DiceTask(smach.StateMachine):
                                'target': 'target'})
 
             smach.StateMachine.add('ROTATE_LEFT_AROUND_SECOND',
-                    RotateLeftAround(rotation, strafe_duration),
+                    dice_states.RotateLeftAround(rotation, strafe_duration),
                     transitions={'success': 'CHECK_CLOSEST_SECOND',
                                  'fail': 'fail'})
 
-            smach.StateMachine.add('RAM_DICE_SECOND', RamDice(),
+            smach.StateMachine.add('RAM_DICE_SECOND',
+                    dice_states.RamDice(),
                     transitions={'hit': 'success',
                                  'fail': 'ROTATE_LEFT_AROUND_SECOND'},
                     remapping={'target': 'target',
