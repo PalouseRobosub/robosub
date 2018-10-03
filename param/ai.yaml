@@ -7,15 +7,15 @@ ai:
             dive_speed_factor: -1.0
             center_offset: 0.25
         ram_speed: 0.4
-        ram_time: 4.0
+        ram_time_seconds: 4.0
         reset_speed: -0.8
-        reset_time: 10.0
+        reset_time_seconds: 10.0
     find_buoy:
         errorGoal: 0.1
         yaw_speed_factor: -25.0
 # variables below contain values for gate/nav_channel tasks
     gate_task:
-        forward_time: 9.5 # how many seconds to move forward
+        forward_time_seconds: 9.5 # how many seconds to move forward
         forward_speed: 6.0 # how fast to move forward
     move_to_gate:
         forward_speed: 10.0 # how fast to move forward
@@ -30,20 +30,20 @@ ai:
         distanceGoal: 0.01 # What is the distanceGoal, teremined from testing
         forward_speed: 0.4 # Speed at which we move sub
     preq_forward:
-        forward_time: 20 # requires testing
+        forward_time_seconds: 20 # requires testing
         forward_speed: 10.0 # requires testing
     strafe: # values for strafe state
-        time: 4
+        time_seconds: 4
         speed: -4.0
     turn: # values for turn state
-        time: 10
+        time_seconds: 10
         speed: 4
     experiment: # values for experimental state that 'drifts' around boy
-        time: 5.5
-        yaw_relative: 60
+        time_seconds: 5.5
+        yaw_relative_degrees: 60
         forward_speed: 4
     #TODO test blind_gate_task values
     blind_gate_task:
-        forward_time: 10 # number of seconds to move forward
+        forward_time_seconds: 10 # number of seconds to move forward
         forward_speed: 6.0 # speed to move forward
-        yaw_error: 2 # yaw error in degrees that will be tolerated
+        yaw_error_degrees: 2 # yaw error in degrees that will be tolerated
