@@ -3,8 +3,8 @@ import rospy
 import smach
 import smach_ros
 from start_switch import start_switch
-import roulette_states as roulette_states
-import basic_states as basic_states
+import roulette_states
+import basic_states
 
 class RouletteTask(smach.StateMachine):
     """Main roulette state task."""
