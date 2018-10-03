@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import rospy
 from blind_movement import move_forward
-from gate_util import *
+from gate_util
 from start_switch import start_switch
 import smach
 import smach_ros
@@ -15,25 +15,29 @@ class nav_channel(smach.StateMachine):
 
         with self:
             smach.StateMachine.add('FORWARD_UNTIL_FOUND_GATE',
-                                  move_to_gate('nav_channel_post'),
+                                  gate_states.move_to_gate('nav_channel_post'),
                                   transitions={'success': 'CENTER'})
 
-            smach.StateMachine.add('CENTER', center('nav_channel_post'),
+            smach.StateMachine.add('CENTER',
+                                  gate_states.center('nav_channel_post'),
                                   transitions={'centered': 'FORWARD',
                                               'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('SEARCH_FOR_POSTS',
-                                  Search_for_gates('nav_channel_post'),
+                                  gate_states.Search_for_gates(
+                                                              'nav_channel_post'),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
-                                  move_forward_centered('nav_channel_post'),
+                                  gate_states.move_forward_centered(
+                                                                   'nav_channel_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
                                               'not centered': 'CENTER',
                                               'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('BLIND_FORWARD',
-                                  move_forward(self.time, self.speed),
+                                  gate_states.move_forward(
+                                                          self.time, self.speed),
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':

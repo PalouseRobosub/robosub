@@ -10,7 +10,7 @@ import rospy
 import smach
 import smach_ros
 import basic_states
-import dice_states 
+import dice_states
 from start_switch import start_switch
 
 class DiceTask(smach.StateMachine):
