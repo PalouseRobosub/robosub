@@ -283,7 +283,8 @@ class yaw_for_duration(smach.State):
 class u_turn(smach.State):
     def __init__(self, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
-        self.time = rospy.get_param("ai/experiment/time")
+        # These variables were tested to work, should not be passed as args
+        self.time = rospy.get_param("ai/experiment/time_seconds")
         self.yawRelative = rospy.get_param("ai/experiment/yaw_relative")
         self.forward_speed = rospy.get_param("ai/experiment/forward_speed")
         self._poll_rate = rospy.Rate(poll_rate)

@@ -151,7 +151,7 @@ class hit_buoy(smach.StateMachine):
                                   transitions={'success': 'RAM_BUOY',
                                               'lost_buoy': 'FIND_BUOY'})
 
-            ram_time = rospy.get_param("ai/hit_buoy/ram_time")
+            ram_time = rospy.get_param("ai/hit_buoy/ram_time_seconds")
             ram_speed = rospy.get_param("ai/hit_buoy/ram_speed")
             smach.StateMachine.add("RAM_BUOY",
                                   move_forward(time=ram_time, value=ram_speed),
@@ -160,7 +160,7 @@ class hit_buoy(smach.StateMachine):
 class buoy_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
-        reset_time = rospy.get_param("ai/hit_buoy/reset_time")
+        reset_time = rospy.get_param("ai/hit_buoy/reset_time_seconds")
         reset_speed = rospy.get_param("ai/hit_buoy/reset_speed")
         with self:
 

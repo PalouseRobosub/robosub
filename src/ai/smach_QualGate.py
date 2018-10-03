@@ -12,10 +12,11 @@ import smach_ros
 class PreQual_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
-        self.time_forward = rospy.get_param("ai/preq_forward/forward_time")
+        self.time_forward = rospy.get_param(
+                            "ai/preq_forward/forward_time_seconds")
         self.speed_forward = rospy.get_param("ai/preq_forward/forward_speed")
 
-        self.time_strafe = rospy.get_param("ai/strafe/time")
+        self.time_strafe = rospy.get_param("ai/strafe/time_seconds")
         self.speed_strafe = rospy.get_param("ai/strafe/speed")
 
         with self:
