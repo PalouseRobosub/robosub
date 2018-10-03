@@ -3,8 +3,8 @@ import rospy
 import smach
 import smach_ros
 from start_switch import start_switch
-from roulette_states import *
-from basic_states import *
+import roulette_states as roulette_states
+import basic_states as basic_states
 
 class RouletteTask(smach.StateMachine):
     """Main roulette state task."""
@@ -27,45 +27,46 @@ class RouletteTask(smach.StateMachine):
 
         with self:
             # First, dive to a certain depth and search for the pinger.
-            smach.StateMachine.add('DIVE_PINGER', GoToDepth(1.0,
+            smach.StateMachine.add('DIVE_PINGER', basic_states.GoToDepth(1.0,
                                   max_duration=self.depth_timeout_sec),
                     transitions={'success': 'FIND_PINGER',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
-            smach.StateMachine.add('FIND_PINGER', MoveToPinger(
+            smach.StateMachine.add('FIND_PINGER', roulette_states.MoveToPinger(
                                   max_duration=self.move_to_pinger_timeout_sec),
                     transitions={'success': 'STABILIZE',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
-            smach.StateMachine.add('STABILIZE', Stabilize(
+            smach.StateMachine.add('STABILIZE', basic_states.Stabilize(
                                   max_duration=self.stabilize_timeout_sec),
                     transitions={'success': 'LOCATE_ROULETTE',
                                  'fail': 'fail',
                                  'timeout': 'LOCATE_ROULETTE'})
 
             # Next, locate the roulette wheel and center above it.
-            smach.StateMachine.add('LOCATE_ROULETTE', CenterAbove(),
+            smach.StateMachine.add('LOCATE_ROULETTE',
+                    roulette_states.CenterAbove(),
                     transitions={'success': 'DIVE_TARGET',
                                  'fail': 'fail'})
 
             # Now, dive lower and center above the desired color.
-            smach.StateMachine.add('DIVE_TARGET', GoToDepth(3,
+            smach.StateMachine.add('DIVE_TARGET', basic_states.GoToDepth(3,
                                   max_duration=self.depth_timeout_sec),
                     transitions={'success': 'CENTER_TARGET',
                                  'fail': 'fail',
                                  'timeout': 'fail'})
 
-            smach.StateMachine.add('CENTER_TARGET', TargetColor(Color.GREEN,
+            smach.StateMachine.add('CENTER_TARGET',
+                    roulette_states.TargetColor(roulette_states.Color.GREEN,
                                   max_duration=self.target_color_timeout_sec),
                     transitions={'success': 'DROP_TARGET',
                                  'fail': 'fail',
                                  'timeout': 'DROP_TARGET'})
 
             # Finally, drop the marker.
-            smach.StateMachine.add('DROP_TARGET',
-                    DropMarker(),
+            smach.StateMachine.add('DROP_TARGET', basic_states.DropMarker(),
                     transitions={'success': 'success'})
 
 if __name__ == '__main__':
