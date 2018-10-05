@@ -25,19 +25,19 @@ class nav_channel(smach.StateMachine):
 
             smach.StateMachine.add('SEARCH_FOR_POSTS',
                                   gate_states.Search_for_gates(
-                                                              'nav_channel_post'),
+                                                            'nav_channel_post'),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
                                   gate_states.move_forward_centered(
-                                                                   'nav_channel_post'),
+                                                            'nav_channel_post'),
                                   transitions={'ready': 'BLIND_FORWARD',
                                               'not centered': 'CENTER',
                                               'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('BLIND_FORWARD',
                                   gate_states.move_forward(
-                                                          self.time, self.speed),
+                                                         self.time, self.speed),
                                   transitions={'success': 'success'})
 
 if __name__ == '__main__':
