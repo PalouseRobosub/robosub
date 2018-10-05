@@ -317,6 +317,7 @@ class center_object(SubscribeState):
                             "ai/move_forward_single/distanceGoal")
 
     def callback(self, detectionArray, userdata):
+        ensure_depth()
         c = control_wrapper()
         c.levelOut()
 
@@ -337,6 +338,7 @@ class center_object(SubscribeState):
                       vision_result.width * vision_result.height))
         if ((vision_result.width * vision_result.height) >
            self.distanceGoal):
+            ensure_depth()
             self.exit('ready')
             return 'ready'
         if abs(gateXPos-0.5) > self.error_goal:
@@ -350,6 +352,7 @@ class center_object(SubscribeState):
             # rospy.logdebug("trying to dive: {}".format(dive))
             # c.diveRelative(dive)
         else:
+            ensure_depth()
             self.exit('centered')
 
         c.publish()
