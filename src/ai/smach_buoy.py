@@ -4,7 +4,7 @@ import smach
 import smach_ros
 import buoy_states
 from start_switch import start_switch
-from blind_movement import move_forward
+import blind_movement
 
 class buoy_task(smach.StateMachine):
     def __init__(self):
@@ -18,7 +18,7 @@ class buoy_task(smach.StateMachine):
                                   transitions={'success': 'RESET_FOR_GREEN'})
 
             smach.StateMachine.add('RESET_FOR_GREEN',
-                                  move_forward(time=reset_time,
+                                  blind_movement.move_forward(time=reset_time,
                                   value=reset_speed),
                                   transitions={'success': 'HIT_BUOY_GREEN'})
 
@@ -27,7 +27,7 @@ class buoy_task(smach.StateMachine):
                                   transitions={'success': 'RESET_FOR_YELLOW'})
 
             smach.StateMachine.add('RESET_FOR_YELLOW',
-                                  move_forward(time=reset_time,
+                                  blind_movement.move_forward(time=reset_time,
                                   value=reset_speed),
                                   transitions={'success': 'HIT_BUOY_YELLOW'})
 
@@ -36,7 +36,7 @@ class buoy_task(smach.StateMachine):
                                   transitions={'success': 'BACKUP'})
 
             smach.StateMachine.add('BACKUP',
-                                  move_forward(time=reset_time,
+                                  blind_movement.move_forward(time=reset_time,
                                   value=reset_speed),
                                   transitions={'success': 'success'})
 

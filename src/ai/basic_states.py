@@ -385,7 +385,7 @@ class rotate_to_heading(SubscribeState):
         SubscribeState.__init__(self, "orientation", QuaternionStamped,
                                 self.callback, outcomes=['success'],
                                 input_keys=['heading_input'])
-        self.yaw_error = rospy.get_param("ai/blind_gate_task/yaw_error")
+        self.yaw_error = rospy.get_param("ai/blind_gate_task/yaw_error_degrees")
 
     def callback(self, msg, userdata):
         # get current heading

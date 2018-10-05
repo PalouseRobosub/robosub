@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import rospy
-from blind_movement import move_forward
-from gate_states
+import blind_movement
+import gate_states
 from start_switch import start_switch
 import smach
 import smach_ros
@@ -35,7 +35,7 @@ class gate_task(smach.StateMachine):
 
 
             smach.StateMachine.add('BLIND_FORWARD',
-                                  gate_states.move_forward(self.time,
+                                  blind_movement.move_forward(self.time,
                                   self.speed),
                                   transitions={'success': 'success'})
 

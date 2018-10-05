@@ -1,34 +1,36 @@
 #!/usr/bin/python
 import rospy
-from blind_movement import move_forward
-from gate_util import *
+import blind_movement
+import basic_states
 from start_switch import start_switch
 import smach
 import smach_ros
-from basic_states import *
 
 class blind_gate_task(smach.StateMachine):
     def __init__(self):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
         # these variables will not be found without using rosparam load ai.yaml
-        self.time = rospy.get_param("ai/blind_gate_task/forward_time")
+        self.time = rospy.get_param("ai/blind_gate_task/forward_time_seconds")
         self.speed = rospy.get_param("ai/blind_gate_task/forward_speed")
 
         with self:
-            smach.StateMachine.add('TAKE_HEADING', take_heading_yaw(),
+            smach.StateMachine.add('TAKE_HEADING',
+                                  basic_states.take_heading_yaw(),
                                    transitions={'success': 'START_SWITCH'},
                                    remapping={'heading_output': 'heading'})
 
             smach.StateMachine.add('START_SWITCH', start_switch(),
                                    transitions={'success': 'ROTATE_TO_HEADING'})
 
-            smach.StateMachine.add('ROTATE_TO_HEADING', rotate_to_heading(),
+            smach.StateMachine.add('ROTATE_TO_HEADING',
+                                  basic_states.rotate_to_heading(),
                                    transitions={'success': 'MOVE_FORWARD'},
                                    remapping={'heading_input': 'heading'})
 
             smach.StateMachine.add('MOVE_FORWARD',
-                                   move_forward(self.time, self.speed),
+                                   blind_movement.move_forward(self.time,
+                                                                    self.speed),
                                    transitions={'success': 'success'})
 
 if __name__ == '__main__':

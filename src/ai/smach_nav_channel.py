@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import rospy
-from blind_movement import move_forward
-from gate_util
+import blind_movement
+import gate_util
 from start_switch import start_switch
 import smach
 import smach_ros
@@ -14,29 +14,28 @@ class nav_channel(smach.StateMachine):
         self.speed = rospy.get_param("ai/gate_task/forward_speed")
 
         with self:
+            label = 'nav_channel_post' # Just because we can't fit it
             smach.StateMachine.add('FORWARD_UNTIL_FOUND_GATE',
-                                  gate_states.move_to_gate('nav_channel_post'),
+                                  gate_states.move_to_gate(label),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('CENTER',
-                                  gate_states.center('nav_channel_post'),
+                                  gate_states.center(label),
                                   transitions={'centered': 'FORWARD',
                                               'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('SEARCH_FOR_POSTS',
-                                  gate_states.Search_for_gates(
-                                                            'nav_channel_post'),
+                                  gate_states.Search_for_gates(label),
                                   transitions={'success': 'CENTER'})
 
             smach.StateMachine.add('FORWARD',
-                                  gate_states.move_forward_centered(
-                                                            'nav_channel_post'),
+                                  gate_states.move_forward_centered(label),
                                   transitions={'ready': 'BLIND_FORWARD',
                                               'not centered': 'CENTER',
                                               'lost': 'SEARCH_FOR_POSTS'})
 
             smach.StateMachine.add('BLIND_FORWARD',
-                                  gate_states.move_forward(
+                                  blind_movement.move_forward(
                                                          self.time, self.speed),
                                   transitions={'success': 'success'})
 
