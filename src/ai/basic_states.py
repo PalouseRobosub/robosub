@@ -403,3 +403,17 @@ class rotate_to_heading(SubscribeState):
         c.levelOut()
         c.yawLeftAbsolute(userdata.heading_input)
         c.publish()
+
+class surface(SubscribeState):
+    def __init__(self):
+        SubscribeState.__init__(self, 'depth', Float32Stamped, self.surface_callback, outcomes=['success'])
+
+
+    def surface_callback(self, depth_message, userdata):
+        if depth_message.data < -0.1:
+            control = control_wrapper()
+            control.diveAbsolute(-0.1)
+            control.publish()
+        else:
+            self.exit('success')
+        
