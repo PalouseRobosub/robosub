@@ -1,3 +1,20 @@
+import rospy
+from control_wrapper import control_wrapper
+from robosub_msgs.msg import control, control_status
+
+# This functions checks if control system was set to surface, and will override
+# the value to keep sub surfaced at all times, unless required to surface.
+def esnure_depth_listner():
+    rospy.init_node('depth_checker_listener', anonymous=True)
+    rospy.Subscriber("control", control, ensure_depth_callback)
+    rospy.spin()
+
+def ensure_depth_callback(userdata):
+    if(userdata.dive_goal > -0.15):
+        c = control_wrapper()
+        c.diveAbsolute(-0.15)
+        c.Publish()
+
 def getNMostProbable(detection_array, n, thresh=0.1):
     if detection_array is None:
         return None
