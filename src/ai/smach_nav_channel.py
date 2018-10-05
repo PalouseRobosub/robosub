@@ -14,7 +14,7 @@ class nav_channel(smach.StateMachine):
         self.speed = rospy.get_param("ai/gate_task/forward_speed")
 
         with self:
-            label = 'nav_channel_post' # Just because we can't fit it
+            label = 'nav_channel_post'  # Just because we can't fit it
             smach.StateMachine.add('FORWARD_UNTIL_FOUND_GATE',
                                   gate_states.move_to_gate(label),
                                   transitions={'success': 'CENTER'})
