@@ -28,7 +28,7 @@ class control_wrapper():
     def clearState(self):
         self._control_msg = control()
 
-    # Set the yaw and pitch to absolute 0
+    # Set the roll and pitch to absolute 0
     def levelOut(self):
         self.rollRightAbsolute(0)
         self.pitchDownAbsolute(0)

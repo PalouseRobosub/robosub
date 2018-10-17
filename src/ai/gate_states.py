@@ -237,50 +237,7 @@ class move_forward_centered(SubscribeState):
         rospy.logdebug("trying to move forward: {}".format(self.forward_speed))
         c.publish()
 
-# Class for strafing, based on blind_movement
-class strafe_for_duration(smach.State):
-    def __init__(self, time, value, poll_rate=10):
-        smach.State.__init__(self, outcomes=["success"])
-        self.time = time
-        self.value = value
-        self._poll_rate = rospy.Rate(poll_rate)
-
-    def execute(self, userdata):
-        c = control_wrapper()
-        c.levelOut()
-        c.strafeLeftError(self.value)
-        exit_time = rospy.Time.now() + rospy.Duration(self.time)
-        while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
-            c.publish()
-            self._poll_rate.sleep()
-        c.strafeLeftError(0)
-        c.publish()
-        self._poll_rate.sleep()
-        return 'success'
-
-# Class for turning around, based on blind_movement
-class yaw_for_duration(smach.State):
-    def __init__(self, time, value, poll_rate=10):
-        smach.State.__init__(self, outcomes=["success"])
-        self.time = time
-        self.value = value
-        self._poll_rate = rospy.Rate(poll_rate)
-
-    def execute(self, userdata):
-        c = control_wrapper()
-        c.levelOut()
-        c.yawLeftRelative(self.value)
-        exit_time = rospy.Time.now() + rospy.Duration(self.time)
-        while not rospy.is_shutdown() and rospy.Time.now() < exit_time:
-            c.publish()
-            self._poll_rate.sleep()
-        c.yawLeftRelative(0)
-        c.publish()
-        self._poll_rate.sleep()
-        return 'success'
-
-# Class for  making U turn around the post post, based on blind_movement
-class u_turn(smach.State):
+lass u_turn(smach.State):
     def __init__(self, poll_rate=10):
         smach.State.__init__(self, outcomes=["success"])
         # These variables were tested to work, should not be passed as args
