@@ -11,7 +11,7 @@ class surface_ai(smach.StateMachine):
         smach.StateMachine.__init__(self, outcomes=['success'])
 
         with self:
-            smach.StateMachine.add('DIVE', basic_states.goToDepth(0.5), 
+            smach.StateMachine.add('DIVE', basic_states.goToDepth(-0.5), 
                                   transitions={'success': 'MOVE_TO_PINGER', 'fail': 'FAIL', 'timeout': 'FAIL'})
             smach.StateMachine.add('MOVE_TO_PINGER', roulette_states.MoveToPinger(),
                                   transitions={'success': 'SURFACE', 'fail': 'MOVE_TO_PINGER',
