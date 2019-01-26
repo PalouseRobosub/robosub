@@ -1,6 +1,6 @@
 # ATTENTION!
 This repository has been migrated to Gitlab.
-Any further development will be taking place at https://gitlab.com/PalouseRobosub
+Any further development will be taking place at https://gitlab.com/PalouseRobosub/Software/robosub
 
 # Robosub
 
