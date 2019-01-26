@@ -1,3 +1,7 @@
+# ATTENTION!
+This repository has been migrated to Gitlab.
+Any further development will be taking place at https://gitlab.com/PalouseRobosub
+
 # Robosub
 
 [![Build Status](https://travis-ci.org/PalouseRobosub/robosub.svg?branch=master)](https://travis-ci.org/PalouseRobosub/robosub)
